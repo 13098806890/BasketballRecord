@@ -5,10 +5,12 @@ struct GameView: View {
 
     @State private var snapshot = GameSnapshot()
     @State private var undoStack: [GameSnapshot] = []
+    @State private var redoStack: [GameSnapshot] = []
+    @State private var currentGameRecordID: UUID?
+    @State private var hasRestoredLatestGame = false
     @State private var selectedPlayerID: UUID?
     @State private var selectedSide: TeamSide = .home
     @State private var isStatsExpanded = false
-    @State private var isShowingGameSettings = false
     @State private var isShowingSubstitution = false
     @State private var isShowingNewGameSetup = false
     @State private var isShowingResetConfirmation = false
@@ -66,11 +68,8 @@ struct GameView: View {
                     player: selectedPlayer,
                     stats: selectedStats,
                     plusMinus: selectedPlayerID.map { snapshot.plusMinusByPlayerID[$0, default: 0] } ?? 0,
-                    isOnCourt: selectedPlayerID.map { isOnCourt($0, side: selectedSide) } ?? false,
-                    canToggleOnCourt: selectedPlayerID != nil && !snapshot.periodIsRunning && !snapshot.isComplete,
                     playingTime: selectedPlayerID.map { playingTimeText(for: $0) } ?? "00:00",
-                    isExpanded: $isStatsExpanded,
-                    onToggleOnCourt: toggleSelectedOnCourt
+                    isExpanded: $isStatsExpanded
                 )
                     .padding(.horizontal)
 
@@ -87,21 +86,22 @@ struct GameView: View {
                     Button {
                         isShowingNewGameSetup = true
                     } label: {
-                        Label("新比赛", systemImage: "person.2.badge.gearshape")
-                    }
-
-                    Button {
-                        isShowingGameSettings = true
-                    } label: {
-                        Label("比赛规格", systemImage: "slider.horizontal.3")
+                        Label("新比赛", systemImage: "plus.circle")
                     }
 
                     Button {
                         saveCurrentGame()
                     } label: {
-                        Label("保存比赛", systemImage: "square.and.arrow.down")
+                        Label("保存比赛", systemImage: "tray.and.arrow.down")
                     }
                     .disabled(snapshot.logs.isEmpty)
+
+                    Button {
+                        finishGame()
+                    } label: {
+                        Label("结束比赛", systemImage: "checkmark.circle")
+                    }
+                    .disabled(snapshot.isComplete || snapshot.logs.isEmpty)
 
                     Button {
                         isShowingResetConfirmation = true
@@ -110,29 +110,18 @@ struct GameView: View {
                     }
                 }
             }
-            .sheet(isPresented: $isShowingGameSettings) {
-                GameSettingsView(
-                    periodCount: Binding(
-                        get: { snapshot.periodCount },
-                        set: { updatePeriodCount($0) }
-                    ),
-                    courtPlayerCount: Binding(
-                        get: { snapshot.courtPlayerCount },
-                        set: { updateCourtPlayerCount($0) }
-                    ),
-                    resetsTeamFoulsEachPeriod: $snapshot.resetsTeamFoulsEachPeriod,
-                    showsReboundButton: $snapshot.showsReboundButton,
-                    showsAssistButton: $snapshot.showsAssistButton,
-                    showsFoulButton: $snapshot.showsFoulButton
-                )
-            }
             .sheet(isPresented: $isShowingNewGameSetup) {
                 NewGameSetupView(
                     teams: store.teams,
                     playersForTeam: players(in:),
                     initialHomeTeamID: snapshot.homeTeamID,
                     initialAwayTeamID: snapshot.awayTeamID,
-                    courtPlayerCount: snapshot.courtPlayerCount,
+                    initialPeriodCount: snapshot.periodCount,
+                    initialCourtPlayerCount: snapshot.courtPlayerCount,
+                    initialResetsTeamFoulsEachPeriod: snapshot.resetsTeamFoulsEachPeriod,
+                    initialShowsReboundButton: snapshot.showsReboundButton,
+                    initialShowsAssistButton: snapshot.showsAssistButton,
+                    initialShowsFoulButton: snapshot.showsFoulButton,
                     onStart: startNewGame
                 )
             }
@@ -165,10 +154,7 @@ struct GameView: View {
                 Text("当前比赛的得分、事件、上场时间和在场名单都会清空。")
             }
             .onAppear {
-                ensureInitialSelection()
-                if needsNewGameSetup {
-                    isShowingNewGameSetup = true
-                }
+                restoreLatestGameIfNeeded()
             }
             .onChange(of: store.teams) { _, _ in ensureInitialSelection() }
             .onChange(of: substitutionSide) { _, _ in prepareSubstitutionDefaults() }
@@ -225,30 +211,28 @@ struct GameView: View {
                 actionButton("罚篮不中", systemImage: "f.circle", style: .missed) { record(.freeThrowMissed) }
             }
 
-            if snapshot.showsAssistButton || snapshot.showsReboundButton || snapshot.showsFoulButton {
-                HStack(spacing: 8) {
-                    if snapshot.showsAssistButton {
-                        actionButton("助攻", systemImage: "arrowshape.turn.up.right", style: .secondary) { record(.assist) }
-                    }
-                    if snapshot.showsReboundButton {
-                        actionButton("篮板", systemImage: "basketball", style: .secondary) { record(.rebound) }
-                    }
-                    if snapshot.showsFoulButton {
-                        actionButton("犯规", systemImage: "exclamationmark.triangle", style: .warning) { record(.foul) }
-                    }
-                }
-            }
-
             HStack(spacing: 8) {
-                Spacer()
+                if snapshot.showsAssistButton {
+                    actionButton("助攻", systemImage: "person.2.fill", style: .assist) { record(.assist) }
+                }
+                if snapshot.showsReboundButton {
+                    actionButton("篮板", systemImage: "arrow.up.circle.fill", style: .rebound) { record(.rebound) }
+                }
+                if snapshot.showsFoulButton {
+                    actionButton("犯规", systemImage: "exclamationmark.triangle", style: .warning) { record(.foul) }
+                }
+
                 Button {
                     openSubstitution(selectedSide)
                 } label: {
-                    Label("换人", systemImage: "arrow.triangle.2.circlepath")
+                    Label("换人", systemImage: "arrow.left.arrow.right.circle")
                         .font(.caption.weight(.semibold))
-                        .frame(width: 112, height: 34)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(maxWidth: .infinity, minHeight: 34)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .substitution))
+                .disabled(needsNewGameSetup || snapshot.isComplete)
             }
 
             HStack(spacing: 8) {
@@ -256,6 +240,9 @@ struct GameView: View {
                     togglePeriod()
                 } label: {
                     Label(periodButtonTitle, systemImage: snapshot.periodIsRunning ? "stop.circle" : "play.circle")
+                        .font(.caption.weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                         .frame(maxWidth: .infinity, minHeight: 34)
                 }
                 .buttonStyle(.borderedProminent)
@@ -270,6 +257,15 @@ struct GameView: View {
                 }
                 .buttonStyle(.bordered)
                 .disabled(undoStack.isEmpty)
+
+                Button {
+                    redo()
+                } label: {
+                    Label("重做", systemImage: "arrow.uturn.forward")
+                        .frame(maxWidth: .infinity, minHeight: 34)
+                }
+                .buttonStyle(.bordered)
+                .disabled(redoStack.isEmpty)
             }
         }
     }
@@ -331,7 +327,7 @@ struct GameView: View {
                 .frame(maxWidth: .infinity, minHeight: 34)
         }
         .buttonStyle(PastelActionButtonStyle(style: style))
-        .disabled(selectedPlayer == nil)
+        .disabled(selectedPlayer == nil || needsNewGameSetup || snapshot.isComplete)
     }
 
     private func players(in teamID: UUID?) -> [Player] {
@@ -490,19 +486,6 @@ struct GameView: View {
         }
     }
 
-    private func toggleSelectedOnCourt() {
-        guard let playerID = selectedPlayerID, !snapshot.periodIsRunning else { return }
-        mutateSnapshot {
-            var ids = onCourtIDs(for: selectedSide)
-            if ids.contains(playerID) {
-                ids.removeAll { $0 == playerID }
-            } else if ids.count < snapshot.courtPlayerCount {
-                ids.append(playerID)
-            }
-            setOnCourtIDs(ids, for: selectedSide)
-        }
-    }
-
     private func togglePeriod() {
         guard !needsNewGameSetup else {
             isShowingNewGameSetup = true
@@ -538,41 +521,37 @@ struct GameView: View {
         }
     }
 
-    private func updatePeriodCount(_ value: Int) {
-        let clamped = min(max(value, 1), 8)
-        snapshot.periodCount = clamped
-        if snapshot.currentPeriod > clamped {
-            snapshot.currentPeriod = clamped
-            snapshot.periodIsRunning = false
-            snapshot.isComplete = true
-        } else if snapshot.isComplete && snapshot.currentPeriod < clamped {
-            snapshot.isComplete = false
-        }
-    }
-
-    private func updateCourtPlayerCount(_ value: Int) {
-        let clamped = min(max(value, 1), 8)
-        snapshot.courtPlayerCount = clamped
-        trimInvalidLineups()
-    }
-
-    private func startNewGame(homeTeamID: UUID, awayTeamID: UUID, homeStarterIDs: [UUID], awayStarterIDs: [UUID]) {
+    private func startNewGame(
+        homeTeamID: UUID,
+        awayTeamID: UUID,
+        homeStarterIDs: [UUID],
+        awayStarterIDs: [UUID],
+        periodCount: Int,
+        courtPlayerCount: Int,
+        resetsTeamFoulsEachPeriod: Bool,
+        showsReboundButton: Bool,
+        showsAssistButton: Bool,
+        showsFoulButton: Bool
+    ) {
         undoStack.removeAll()
+        redoStack.removeAll()
+        currentGameRecordID = UUID()
         snapshot = GameSnapshot(
             homeTeamID: homeTeamID,
             awayTeamID: awayTeamID,
-            periodCount: snapshot.periodCount,
-            courtPlayerCount: snapshot.courtPlayerCount,
-            resetsTeamFoulsEachPeriod: snapshot.resetsTeamFoulsEachPeriod,
-            showsReboundButton: snapshot.showsReboundButton,
-            showsAssistButton: snapshot.showsAssistButton,
-            showsFoulButton: snapshot.showsFoulButton,
+            periodCount: periodCount,
+            courtPlayerCount: courtPlayerCount,
+            resetsTeamFoulsEachPeriod: resetsTeamFoulsEachPeriod,
+            showsReboundButton: showsReboundButton,
+            showsAssistButton: showsAssistButton,
+            showsFoulButton: showsFoulButton,
             homeOnCourtPlayerIDs: homeStarterIDs,
             awayOnCourtPlayerIDs: awayStarterIDs
         )
         selectedPlayerID = nil
         selectedSide = .home
         ensureSelectedPlayer()
+        autoSaveCurrentGame()
     }
 
     private func saveCurrentGame() {
@@ -583,8 +562,21 @@ struct GameView: View {
             addEvent("比赛保存")
         }
         snapshotForSaving.logs = snapshot.logs
-        store.saveGame(snapshotForSaving)
+        currentGameRecordID = store.autoSaveGame(snapshotForSaving, gameID: currentGameRecordID)
         saveConfirmation = "比赛已保存到历史记录。"
+    }
+
+    private func finishGame() {
+        guard !snapshot.isComplete else { return }
+        let now = Date()
+        mutateSnapshot {
+            if snapshot.periodIsRunning {
+                closeActiveStints(at: now)
+                snapshot.periodIsRunning = false
+            }
+            snapshot.isComplete = true
+            addEvent("比赛结束")
+        }
     }
 
     private func prepareSubstitutionDefaults() {
@@ -627,12 +619,22 @@ struct GameView: View {
 
     private func undo() {
         guard let previous = undoStack.popLast() else { return }
+        redoStack.append(snapshot)
         snapshot = previous
+        ensureSelectedPlayer()
+    }
+
+    private func redo() {
+        guard let next = redoStack.popLast() else { return }
+        undoStack.append(snapshot)
+        snapshot = next
         ensureSelectedPlayer()
     }
 
     private func resetGame() {
         undoStack.removeAll()
+        redoStack.removeAll()
+        currentGameRecordID = nil
         snapshot = GameSnapshot(
             homeTeamID: snapshot.homeTeamID,
             awayTeamID: snapshot.awayTeamID,
@@ -645,16 +647,36 @@ struct GameView: View {
         )
         isStatsExpanded = false
         ensureSelectedPlayer()
-        isShowingNewGameSetup = true
     }
 
     private func mutateSnapshot(pushUndo: Bool = true, _ updates: () -> Void) {
         if pushUndo { undoStack.append(snapshot) }
+        redoStack.removeAll()
         updates()
+        autoSaveCurrentGame()
     }
 
     private func addEvent(_ message: String) {
         snapshot.logs.append(GameLogEntry(timestamp: Date(), message: message))
+    }
+
+    private func autoSaveCurrentGame() {
+        guard !snapshot.logs.isEmpty else { return }
+        currentGameRecordID = store.autoSaveGame(snapshot, gameID: currentGameRecordID)
+    }
+
+    private func restoreLatestGameIfNeeded() {
+        guard !hasRestoredLatestGame else { return }
+        hasRestoredLatestGame = true
+
+        if let latest = store.latestUnfinishedGame() {
+            snapshot = latest.snapshot
+            currentGameRecordID = latest.id
+            ensureSelectedPlayer()
+            return
+        }
+
+        ensureInitialSelection()
     }
 
     private func startActiveStints(at date: Date) {
@@ -724,27 +746,29 @@ extension TeamSide: CaseIterable, Identifiable {
 }
 
 private enum GamePalette {
-    static let make = Color(red: 0.70, green: 0.86, blue: 0.75)
-    static let miss = Color(red: 0.82, green: 0.82, blue: 0.78)
-    static let secondaryAction = Color(red: 0.72, green: 0.82, blue: 0.92)
-    static let warning = Color(red: 0.94, green: 0.78, blue: 0.58)
-    static let period = Color(red: 0.70, green: 0.72, blue: 0.90)
-    static let periodEnd = Color(red: 0.92, green: 0.74, blue: 0.60)
-    static let substitution = Color(red: 0.80, green: 0.72, blue: 0.90)
-    static let surface = Color(red: 0.98, green: 0.97, blue: 0.94)
-    static let selectedBorder = Color(red: 0.52, green: 0.55, blue: 0.78)
-    static let onCourtBorder = Color(red: 0.49, green: 0.70, blue: 0.60)
+    static let make = Color(red: 0.78, green: 0.93, blue: 0.78)
+    static let miss = Color(red: 0.86, green: 0.92, blue: 0.98)
+    static let assist = Color(red: 0.74, green: 0.86, blue: 0.98)
+    static let rebound = Color(red: 0.80, green: 0.90, blue: 0.99)
+    static let warning = Color(red: 0.96, green: 0.80, blue: 0.80)
+    static let period = Color(red: 0.36, green: 0.63, blue: 0.95)
+    static let periodEnd = Color(red: 0.52, green: 0.72, blue: 0.95)
+    static let substitution = Color(red: 0.42, green: 0.67, blue: 0.95)
+    static let surface = Color(red: 0.96, green: 0.98, blue: 1.00)
+    static let selectedBorder = Color(red: 0.25, green: 0.55, blue: 0.90)
+    static let onCourtBorder = Color(red: 0.45, green: 0.69, blue: 0.93)
     static let text = Color(red: 0.18, green: 0.20, blue: 0.22)
 }
 
 private enum ActionButtonStyle {
-    case made, missed, secondary, warning, substitution
+    case made, missed, assist, rebound, warning, substitution
 
     var background: Color {
         switch self {
         case .made: return GamePalette.make
         case .missed: return GamePalette.miss
-        case .secondary: return GamePalette.secondaryAction
+        case .assist: return GamePalette.assist
+        case .rebound: return GamePalette.rebound
         case .warning: return GamePalette.warning
         case .substitution: return GamePalette.substitution
         }
@@ -875,20 +899,24 @@ private struct CompactTeamRow: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
                         ForEach(players) { player in
+                            let isSelected = selectedPlayerID == player.id && selectedSide == side
+                            let avatarSize: CGFloat = isSelected ? 52 : 42
+
                             Button {
                                 onSelect(player, side)
                             } label: {
                                 VStack(spacing: 3) {
                                     ZStack(alignment: .bottomTrailing) {
-                                        PlayerAvatarView(player: player, size: 42)
+                                        PlayerAvatarView(player: player, size: avatarSize)
                                             .overlay {
                                                 if onCourtPlayerIDs.contains(player.id) {
                                                     Circle().stroke(GamePalette.onCourtBorder, lineWidth: 2)
                                                 }
-                                                if selectedPlayerID == player.id && selectedSide == side {
+                                                if isSelected {
                                                     Circle().stroke(GamePalette.selectedBorder, lineWidth: 3)
                                                 }
                                             }
+                                            .animation(.easeInOut(duration: 0.15), value: isSelected)
 
                                         if onCourtPlayerIDs.contains(player.id) {
                                             Image(systemName: "checkmark.circle.fill")
@@ -903,6 +931,7 @@ private struct CompactTeamRow: View {
                                         .lineLimit(1)
                                         .frame(width: 56)
                                 }
+                                .opacity(isSelected ? 1 : 0.8)
                             }
                             .buttonStyle(.plain)
                         }
@@ -920,7 +949,7 @@ private struct CompactTeamRow: View {
     }
 }
 
-private struct TeamStatsDisclosureView: View {
+struct TeamStatsDisclosureView: View {
     var homeName: String
     var awayName: String
     var homeStats: PlayerStats
@@ -1004,11 +1033,8 @@ private struct CollapsibleStatsView: View {
     var player: Player?
     var stats: PlayerStats
     var plusMinus: Int
-    var isOnCourt: Bool
-    var canToggleOnCourt: Bool
     var playingTime: String
     @Binding var isExpanded: Bool
-    var onToggleOnCourt: () -> Void
 
     var body: some View {
         DisclosureGroup(isExpanded: $isExpanded) {
@@ -1036,16 +1062,6 @@ private struct CollapsibleStatsView: View {
             HStack(spacing: 10) {
                 Text(player?.name ?? "选择球员")
                     .font(.subheadline.weight(.semibold))
-                Button {
-                    onToggleOnCourt()
-                } label: {
-                    Label(isOnCourt ? "在场" : "替补", systemImage: isOnCourt ? "checkmark.circle.fill" : "circle")
-                        .labelStyle(.titleAndIcon)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.mini)
-                .tint(isOnCourt ? GamePalette.make : .secondary)
-                .disabled(!canToggleOnCourt)
                 Spacer()
                 Text("\(stats.points)分")
                 Text(playingTime)
@@ -1098,70 +1114,30 @@ private struct CollapsibleStatsView: View {
     }
 }
 
-private struct GameSettingsView: View {
-    @Environment(\.dismiss) private var dismiss
-    @Binding var periodCount: Int
-    @Binding var courtPlayerCount: Int
-    @Binding var resetsTeamFoulsEachPeriod: Bool
-    @Binding var showsReboundButton: Bool
-    @Binding var showsAssistButton: Bool
-    @Binding var showsFoulButton: Bool
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section("比赛规格") {
-                    Stepper(value: $periodCount, in: 1...8) {
-                        HStack {
-                            Text("比赛节数")
-                            Spacer()
-                            Text("\(periodCount)节")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-
-                    Stepper(value: $courtPlayerCount, in: 1...8) {
-                        HStack {
-                            Text("在场人数")
-                            Spacer()
-                            Text("\(courtPlayerCount)人")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-
-                    Toggle("每节球队犯规清零", isOn: $resetsTeamFoulsEachPeriod)
-                }
-
-                Section("计分按钮") {
-                    Toggle("篮板", isOn: $showsReboundButton)
-                    Toggle("助攻", isOn: $showsAssistButton)
-                    Toggle("犯规", isOn: $showsFoulButton)
-                }
-            }
-            .navigationTitle("比赛规格")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("完成") { dismiss() }
-                }
-            }
-        }
-    }
-}
-
 private struct NewGameSetupView: View {
     @Environment(\.dismiss) private var dismiss
     var teams: [Team]
     var playersForTeam: (UUID?) -> [Player]
     var initialHomeTeamID: UUID?
     var initialAwayTeamID: UUID?
-    var courtPlayerCount: Int
-    var onStart: (UUID, UUID, [UUID], [UUID]) -> Void
+    var initialPeriodCount: Int
+    var initialCourtPlayerCount: Int
+    var initialResetsTeamFoulsEachPeriod: Bool
+    var initialShowsReboundButton: Bool
+    var initialShowsAssistButton: Bool
+    var initialShowsFoulButton: Bool
+    var onStart: (UUID, UUID, [UUID], [UUID], Int, Int, Bool, Bool, Bool, Bool) -> Void
 
     @State private var homeTeamID: UUID?
     @State private var awayTeamID: UUID?
     @State private var homeStarterIDs: [UUID] = []
     @State private var awayStarterIDs: [UUID] = []
+    @State private var periodCount = 4
+    @State private var courtPlayerCount = 4
+    @State private var resetsTeamFoulsEachPeriod = true
+    @State private var showsReboundButton = true
+    @State private var showsAssistButton = true
+    @State private var showsFoulButton = true
 
     var body: some View {
         NavigationStack {
@@ -1179,6 +1155,34 @@ private struct NewGameSetupView: View {
                     }
                 }
 
+                Section("比赛设定") {
+                    Stepper(value: $periodCount, in: 1...8) {
+                        HStack {
+                            Text("比赛节数")
+                            Spacer()
+                            Text("\(periodCount)节")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Stepper(value: $courtPlayerCount, in: 1...8) {
+                        HStack {
+                            Text("首发人数")
+                            Spacer()
+                            Text("\(courtPlayerCount)人")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Toggle("每节球队犯规清零", isOn: $resetsTeamFoulsEachPeriod)
+                }
+
+                Section("计分按钮") {
+                    Toggle("篮板", isOn: $showsReboundButton)
+                    Toggle("助攻", isOn: $showsAssistButton)
+                    Toggle("犯规", isOn: $showsFoulButton)
+                }
+
                 starterSection(title: "主队首发", players: homePlayers, selectedIDs: $homeStarterIDs, requiredCount: requiredHomeCount)
                 starterSection(title: "客队首发", players: awayPlayers, selectedIDs: $awayStarterIDs, requiredCount: requiredAwayCount)
             }
@@ -1191,15 +1195,27 @@ private struct NewGameSetupView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("开始") {
                         guard let homeTeamID, let awayTeamID else { return }
-                        onStart(homeTeamID, awayTeamID, homeStarterIDs, awayStarterIDs)
+                        onStart(
+                            homeTeamID,
+                            awayTeamID,
+                            homeStarterIDs,
+                            awayStarterIDs,
+                            periodCount,
+                            courtPlayerCount,
+                            resetsTeamFoulsEachPeriod,
+                            showsReboundButton,
+                            showsAssistButton,
+                            showsFoulButton
+                        )
                         dismiss()
                     }
                     .disabled(!canStart)
                 }
             }
             .onAppear(perform: prepareDefaults)
-            .onChange(of: homeTeamID) { _, _ in homeStarterIDs = Array(homePlayers.map(\.id).prefix(requiredHomeCount)) }
-            .onChange(of: awayTeamID) { _, _ in awayStarterIDs = Array(awayPlayers.map(\.id).prefix(requiredAwayCount)) }
+            .onChange(of: homeTeamID) { _, _ in syncStarterSelections() }
+            .onChange(of: awayTeamID) { _, _ in syncStarterSelections() }
+            .onChange(of: courtPlayerCount) { _, _ in syncStarterSelections() }
         }
     }
 
@@ -1239,11 +1255,16 @@ private struct NewGameSetupView: View {
     private func prepareDefaults() {
         homeTeamID = initialHomeTeamID ?? teams.first?.id
         awayTeamID = initialAwayTeamID ?? teams.dropFirst().first?.id
+        periodCount = min(max(initialPeriodCount, 1), 8)
+        courtPlayerCount = min(max(initialCourtPlayerCount, 1), 8)
+        resetsTeamFoulsEachPeriod = initialResetsTeamFoulsEachPeriod
+        showsReboundButton = initialShowsReboundButton
+        showsAssistButton = initialShowsAssistButton
+        showsFoulButton = initialShowsFoulButton
         if awayTeamID == homeTeamID {
             awayTeamID = teams.first(where: { $0.id != homeTeamID })?.id
         }
-        homeStarterIDs = Array(homePlayers.map(\.id).prefix(requiredHomeCount))
-        awayStarterIDs = Array(awayPlayers.map(\.id).prefix(requiredAwayCount))
+        syncStarterSelections()
     }
 
     private func toggle(_ id: UUID, in selectedIDs: Binding<[UUID]>, limit: Int) {
@@ -1251,6 +1272,23 @@ private struct NewGameSetupView: View {
             selectedIDs.wrappedValue.removeAll { $0 == id }
         } else if selectedIDs.wrappedValue.count < limit {
             selectedIDs.wrappedValue.append(id)
+        }
+    }
+
+    private func syncStarterSelections() {
+        let homePlayerIDs = homePlayers.map(\.id)
+        let awayPlayerIDs = awayPlayers.map(\.id)
+
+        homeStarterIDs = Array(homeStarterIDs.filter { homePlayerIDs.contains($0) }.prefix(requiredHomeCount))
+        awayStarterIDs = Array(awayStarterIDs.filter { awayPlayerIDs.contains($0) }.prefix(requiredAwayCount))
+
+        if homeStarterIDs.count < requiredHomeCount {
+            let candidates = homePlayerIDs.filter { !homeStarterIDs.contains($0) }
+            homeStarterIDs.append(contentsOf: candidates.prefix(requiredHomeCount - homeStarterIDs.count))
+        }
+        if awayStarterIDs.count < requiredAwayCount {
+            let candidates = awayPlayerIDs.filter { !awayStarterIDs.contains($0) }
+            awayStarterIDs.append(contentsOf: candidates.prefix(requiredAwayCount - awayStarterIDs.count))
         }
     }
 }

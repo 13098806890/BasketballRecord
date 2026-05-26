@@ -26,6 +26,7 @@ struct HistoryView: View {
     @EnvironmentObject private var store: AppStore
     @State private var searchText = ""
     @State private var isShowingImport = false
+    @State private var isShowingDelete = false
 
     var body: some View {
         NavigationStack {
@@ -52,13 +53,22 @@ struct HistoryView: View {
             .navigationTitle("比赛历史")
             .searchable(text: $searchText, prompt: "按球员搜索")
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button {
+                        isShowingDelete = true
+                    } label: {
+                        Label("删除", systemImage: "trash")
+                    }
+
                     Button {
                         isShowingImport = true
                     } label: {
-                        Label("导入", systemImage: "square.and.arrow.down.on.square")
+                        Label("导入", systemImage: "tray.and.arrow.down.fill")
                     }
                 }
+            }
+            .sheet(isPresented: $isShowingDelete) {
+                DeleteSavedGamesView()
             }
             .sheet(isPresented: $isShowingImport) {
                 ImportGameView()
@@ -84,6 +94,105 @@ struct HistoryView: View {
             GameMonthGroup(key: key, games: grouped[key, default: []].sorted { $0.savedAt > $1.savedAt })
         }
     }
+}
+
+private struct DeleteSavedGamesView: View {
+    @EnvironmentObject private var store: AppStore
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var selectedIDs: Set<UUID> = []
+    @State private var isShowingDeleteConfirmation = false
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if orderedGames.isEmpty {
+                    ContentUnavailableView("还没有历史比赛", systemImage: "clock.badge.questionmark")
+                }
+
+                ForEach(orderedGames) { game in
+                    Button {
+                        toggle(game.id)
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: selectedIDs.contains(game.id) ? "checkmark.circle.fill" : "circle")
+                                .foregroundStyle(selectedIDs.contains(game.id) ? .red : .secondary)
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    Text("\(game.homeTeamName) vs \(game.awayTeamName)")
+                                        .font(.subheadline.weight(.semibold))
+                                        .lineLimit(1)
+                                    Spacer()
+                                    Text(scoreLine(for: game))
+                                        .font(.subheadline.monospacedDigit().weight(.semibold))
+                                }
+
+                                Text(Self.dateFormatter.string(from: game.savedAt))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .navigationTitle("删除比赛")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("关闭") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("删除(\(selectedIDs.count))") {
+                        isShowingDeleteConfirmation = true
+                    }
+                    .disabled(selectedIDs.isEmpty)
+                }
+            }
+            .alert("确认删除选中比赛？", isPresented: $isShowingDeleteConfirmation) {
+                Button("取消", role: .cancel) { }
+                Button("删除", role: .destructive) {
+                    store.deleteSavedGames(ids: selectedIDs)
+                    selectedIDs.removeAll()
+                    if store.savedGames.isEmpty {
+                        dismiss()
+                    }
+                }
+            } message: {
+                Text("删除后无法恢复。")
+            }
+        }
+    }
+
+    private var orderedGames: [SavedGame] {
+        store.savedGames.sorted { $0.savedAt > $1.savedAt }
+    }
+
+    private func toggle(_ id: UUID) {
+        if selectedIDs.contains(id) {
+            selectedIDs.remove(id)
+        } else {
+            selectedIDs.insert(id)
+        }
+    }
+
+    private func scoreLine(for game: SavedGame) -> String {
+        "\(score(for: game.snapshot.homeTeamID, in: game)) - \(score(for: game.snapshot.awayTeamID, in: game))"
+    }
+
+    private func score(for teamID: UUID?, in game: SavedGame) -> Int {
+        let ids = teamID == game.snapshot.homeTeamID ? game.homePlayerIDs : game.awayPlayerIDs
+        return ids.reduce(0) { total, playerID in
+            total + game.snapshot.statsByPlayerID[playerID, default: PlayerStats()].points
+        }
+    }
+
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        return formatter
+    }()
 }
 
 private struct GameMonthKey: Hashable, Comparable {
@@ -155,7 +264,6 @@ private struct SavedGameRow: View {
 private struct SavedGameDetailView: View {
     @EnvironmentObject private var store: AppStore
     var game: SavedGame
-    @State private var exportText: String?
     @State private var isShowingExport = false
 
     var body: some View {
@@ -172,25 +280,27 @@ private struct SavedGameDetailView: View {
                 }
             }
 
-            Section("球员数据") {
-                ForEach(allPlayerIDs, id: \.self) { playerID in
-                    let stats = game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
-                    NavigationLink {
-                        PlayerGameDetailView(game: game, playerID: playerID)
-                    } label: {
-                        VStack(alignment: .leading, spacing: 5) {
-                            HStack {
-                                Text(game.playerNamesByID[playerID] ?? "未知球员")
-                                    .font(.subheadline.weight(.semibold))
-                                Spacer()
-                                Text("\(stats.points)分")
-                                    .font(.subheadline.monospacedDigit().weight(.semibold))
-                            }
-                            Text("时间 \(GameView.durationFormatter(game.snapshot.playingSecondsByPlayerID[playerID, default: 0]))  投篮 \(stats.made)/\(stats.attempts)  罚球 \(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)  板 \(stats.rebounds)  助 \(stats.assists)  犯 \(stats.fouls)")
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+            Section {
+                TeamStatsDisclosureView(
+                    homeName: game.homeTeamName,
+                    awayName: game.awayTeamName,
+                    homeStats: aggregateStats(for: game.snapshot.homeTeamID),
+                    awayStats: aggregateStats(for: game.snapshot.awayTeamID),
+                    homeFouls: fouls(for: game.snapshot.homeTeamID),
+                    awayFouls: fouls(for: game.snapshot.awayTeamID)
+                )
+                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+            }
+
+            Section("\(game.homeTeamName) 球员数据") {
+                ForEach(game.homePlayerIDs, id: \.self) { playerID in
+                    playerStatRow(for: playerID)
+                }
+            }
+
+            Section("\(game.awayTeamName) 球员数据") {
+                ForEach(game.awayPlayerIDs, id: \.self) { playerID in
+                    playerStatRow(for: playerID)
                 }
             }
 
@@ -217,20 +327,15 @@ private struct SavedGameDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    exportText = store.exportGameBase64(game)
-                    isShowingExport = exportText != nil
+                    isShowingExport = true
                 } label: {
                     Label("导出", systemImage: "square.and.arrow.up")
                 }
             }
         }
         .sheet(isPresented: $isShowingExport) {
-            ExportGameView(base64: exportText ?? "")
+            ExportGameView(game: game)
         }
-    }
-
-    private var allPlayerIDs: [UUID] {
-        game.homePlayerIDs + game.awayPlayerIDs
     }
 
     private func teamSummary(_ side: TeamSide) -> some View {
@@ -249,6 +354,35 @@ private struct SavedGameDetailView: View {
         .frame(maxWidth: .infinity)
     }
 
+    private func playerStatRow(for playerID: UUID) -> some View {
+        let stats = game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+
+        return NavigationLink {
+            if store.player(for: playerID) != nil {
+                PlayerProfileView(playerID: playerID, fixedGame: game)
+            } else {
+                PlayerGameDetailView(game: game, playerID: playerID)
+            }
+        } label: {
+            HStack(spacing: 10) {
+                playerAvatar(for: playerID)
+
+                VStack(alignment: .leading, spacing: 5) {
+                    HStack {
+                        Text(game.playerNamesByID[playerID] ?? "未知球员")
+                            .font(.subheadline.weight(.semibold))
+                        Spacer()
+                        Text("\(stats.points)分")
+                            .font(.subheadline.monospacedDigit().weight(.semibold))
+                    }
+                    Text("时间 \(GameView.durationFormatter(game.snapshot.playingSecondsByPlayerID[playerID, default: 0]))  投篮 \(stats.made)/\(stats.attempts)  罚球 \(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)  板 \(stats.rebounds)  助 \(stats.assists)  犯 \(stats.fouls)")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
     private func score(for teamID: UUID?) -> Int {
         playerIDs(for: teamID).reduce(0) { total, playerID in
             total + game.snapshot.statsByPlayerID[playerID, default: PlayerStats()].points
@@ -261,33 +395,98 @@ private struct SavedGameDetailView: View {
         }
     }
 
+    private func aggregateStats(for teamID: UUID?) -> PlayerStats {
+        playerIDs(for: teamID).reduce(PlayerStats()) { partial, playerID in
+            var total = partial
+            let stats = game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+            total.twoMade += stats.twoMade
+            total.twoAttempts += stats.twoAttempts
+            total.threeMade += stats.threeMade
+            total.threeAttempts += stats.threeAttempts
+            total.bonusFreeThrowMade += stats.bonusFreeThrowMade
+            total.bonusFreeThrowAttempts += stats.bonusFreeThrowAttempts
+            total.freeThrowMade += stats.freeThrowMade
+            total.freeThrowAttempts += stats.freeThrowAttempts
+            total.rebounds += stats.rebounds
+            total.assists += stats.assists
+            total.fouls += stats.fouls
+            return total
+        }
+    }
+
     private func playerIDs(for teamID: UUID?) -> [UUID] {
         teamID == game.snapshot.homeTeamID ? game.homePlayerIDs : game.awayPlayerIDs
+    }
+
+    @ViewBuilder
+    private func playerAvatar(for playerID: UUID) -> some View {
+        if let player = store.player(for: playerID) {
+            PlayerAvatarView(player: player, size: 36)
+        } else {
+            Circle()
+                .fill(Color.accentColor.opacity(0.16))
+                .frame(width: 36, height: 36)
+                .overlay {
+                    Text(String((game.playerNamesByID[playerID] ?? "?").prefix(2)))
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.accentColor)
+                }
+        }
     }
 }
 
 private struct ExportGameView: View {
+    @EnvironmentObject private var store: AppStore
     @Environment(\.dismiss) private var dismiss
-    var base64: String
+    var game: SavedGame
+
+    @State private var base64 = ""
+    @State private var isGenerating = true
+    @State private var copyButtonTitle = "复制编码"
 
     var body: some View {
         NavigationStack {
             Form {
-                Section("Base64 比赛记录") {
-                    TextEditor(text: .constant(base64))
-                        .font(.caption.monospaced())
-                        .frame(minHeight: 220)
-                }
-
-                Section {
-                    Button {
-                        UIPasteboard.general.string = base64
-                    } label: {
-                        Label("复制编码", systemImage: "doc.on.doc")
+                if isGenerating {
+                    Section {
+                        HStack(spacing: 12) {
+                            ProgressView()
+                            Text("正在生成 Base64 编码…")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                } else if base64.isEmpty {
+                    Section {
+                        Text("编码生成失败，请重试。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    Section("Base64 比赛记录") {
+                        TextEditor(text: .constant(base64))
+                            .font(.caption.monospaced())
+                            .frame(minHeight: 220)
                     }
 
-                    ShareLink(item: base64) {
-                        Label("分享编码", systemImage: "square.and.arrow.up")
+                    Section {
+                        Button {
+                            UIPasteboard.general.string = base64
+                            showCopyFeedback()
+                        } label: {
+                            Label(copyButtonTitle, systemImage: copyButtonTitle == "复制编码" ? "doc.on.doc" : "checkmark.circle.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.accentColor)
+
+                        ShareLink(item: base64) {
+                            Label("分享编码", systemImage: "square.and.arrow.up")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.accentColor)
                     }
                 }
             }
@@ -298,6 +497,25 @@ private struct ExportGameView: View {
                     Button("完成") { dismiss() }
                 }
             }
+            .task(id: game.id) {
+                await generateBase64()
+            }
+        }
+    }
+
+    private func generateBase64() async {
+        isGenerating = true
+        base64 = ""
+        await Task.yield()
+        base64 = store.exportGameBase64(game) ?? ""
+        isGenerating = false
+    }
+
+    private func showCopyFeedback() {
+        copyButtonTitle = "已复制"
+        Task {
+            try? await Task.sleep(for: .seconds(1.2))
+            copyButtonTitle = "复制编码"
         }
     }
 }
@@ -309,8 +527,11 @@ private struct ImportGameView: View {
     @State private var package: ExportedGamePackage?
     @State private var playerMapping: [UUID: UUID] = [:]
     @State private var teamMapping: [UUID: UUID] = [:]
-    @State private var message: String?
+    @State private var parseResultText: String?
+    @State private var parseSucceeded = false
     @State private var isShowingMissingRosterAlert = false
+    @State private var isParsing = false
+    @FocusState private var isInputFocused: Bool
 
     var body: some View {
         NavigationStack {
@@ -318,8 +539,37 @@ private struct ImportGameView: View {
                 Section("粘贴 Base64") {
                     TextEditor(text: $base64)
                         .font(.caption.monospaced())
-                        .frame(minHeight: 150)
-                    Button("解析比赛记录") { decode() }
+                        .frame(minHeight: 112)
+                        .focused($isInputFocused)
+                    Button("解析比赛记录") {
+                        isInputFocused = false
+                        Task {
+                            await decode()
+                        }
+                    }
+                    .disabled(base64.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isParsing)
+
+                    if isParsing {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                            Text("解析中…")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
+                if let parseResultText {
+                    Section("解析结果") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(parseResultText)
+                                .font(.footnote.monospaced())
+                                .foregroundStyle(parseSucceeded ? Color.primary : Color.red)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(10)
+                        .background(.white.opacity(0.75), in: RoundedRectangle(cornerRadius: 8))
+                    }
                 }
 
                 if let package {
@@ -355,13 +605,6 @@ private struct ImportGameView: View {
                     }
                 }
 
-                if let message {
-                    Section {
-                        Text(message)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-                }
             }
             .navigationTitle("导入比赛")
             .navigationBarTitleDisplayMode(.inline)
@@ -378,10 +621,18 @@ private struct ImportGameView: View {
         }
     }
 
-    private func decode() {
+    private func decode() async {
+        isParsing = true
+        package = nil
+        parseSucceeded = false
+        parseResultText = nil
+        await Task.yield()
+        defer { isParsing = false }
+
         guard let decoded = store.decodeGamePackage(from: base64) else {
             package = nil
-            message = "编码无法解析，请确认粘贴的是完整 Base64 比赛记录。"
+            parseSucceeded = false
+            parseResultText = "解析失败\n类型: 比赛\n请确认粘贴的是完整 Base64 比赛记录。"
             return
         }
         package = decoded
@@ -390,18 +641,21 @@ private struct ImportGameView: View {
         for player in decoded.players {
             if store.players.contains(where: { $0.id == player.id }) {
                 playerMapping[player.id] = player.id
-            } else if let sameName = store.players.first(where: { $0.name == player.name }) {
-                playerMapping[player.id] = sameName.id
             }
         }
         for team in decoded.teams {
             if store.teams.contains(where: { $0.id == team.id }) {
                 teamMapping[team.id] = team.id
-            } else if let sameName = store.teams.first(where: { $0.name == team.name }) {
-                teamMapping[team.id] = sameName.id
             }
         }
-        message = "已解析到 \(decoded.teams.count) 支球队、\(decoded.players.count) 名球员。没有匹配的项目会作为新资料导入，照片不会导入。"
+        parseSucceeded = true
+        parseResultText = """
+        解析成功
+        类型: 比赛
+        球队数量: \(decoded.teams.count)
+        球员数量: \(decoded.players.count)
+        未匹配项会按原 UUID 新建，照片不会导入。
+        """
         isShowingMissingRosterAlert = decoded.players.contains { playerMapping[$0.id] == nil } || decoded.teams.contains { teamMapping[$0.id] == nil }
     }
 

@@ -112,6 +112,19 @@ struct ExportedGamePackage: Codable, Hashable {
     var game: SavedGame
 }
 
+struct ExportedTeamPackage: Codable, Hashable {
+    var version = 1
+    var exportedAt = Date()
+    var team: ExportTeam
+    var players: [ExportPlayer]
+}
+
+struct ExportedPlayerPackage: Codable, Hashable {
+    var version = 1
+    var exportedAt = Date()
+    var player: ExportPlayer
+}
+
 struct PlayerStats: Codable, Hashable {
     var twoMade = 0
     var twoAttempts = 0
@@ -170,7 +183,7 @@ struct GameSnapshot: Codable, Hashable {
     var currentPeriod: Int = 1
     var periodIsRunning = false
     var isComplete = false
-    var courtPlayerCount = 5
+    var courtPlayerCount = 4
     var resetsTeamFoulsEachPeriod = true
     var showsReboundButton = true 
     var showsAssistButton = true
@@ -192,7 +205,7 @@ struct GameSnapshot: Codable, Hashable {
         currentPeriod: Int = 1,
         periodIsRunning: Bool = false,
         isComplete: Bool = false,
-        courtPlayerCount: Int = 5,
+        courtPlayerCount: Int = 4,
         resetsTeamFoulsEachPeriod: Bool = true,
         showsReboundButton: Bool = true,
         showsAssistButton: Bool = true,
@@ -237,7 +250,7 @@ struct GameSnapshot: Codable, Hashable {
         currentPeriod = try container.decodeIfPresent(Int.self, forKey: .currentPeriod) ?? 1
         periodIsRunning = try container.decodeIfPresent(Bool.self, forKey: .periodIsRunning) ?? false
         isComplete = try container.decodeIfPresent(Bool.self, forKey: .isComplete) ?? false
-        courtPlayerCount = try container.decodeIfPresent(Int.self, forKey: .courtPlayerCount) ?? 5
+        courtPlayerCount = try container.decodeIfPresent(Int.self, forKey: .courtPlayerCount) ?? 4
         resetsTeamFoulsEachPeriod = try container.decodeIfPresent(Bool.self, forKey: .resetsTeamFoulsEachPeriod) ?? true
         showsReboundButton = try container.decodeIfPresent(Bool.self, forKey: .showsReboundButton) ?? true
         showsAssistButton = try container.decodeIfPresent(Bool.self, forKey: .showsAssistButton) ?? true
