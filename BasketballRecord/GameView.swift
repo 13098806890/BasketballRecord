@@ -13,11 +13,13 @@ struct GameView: View {
     @State private var isStatsExpanded = false
     @State private var isShowingSubstitution = false
     @State private var isShowingNewGameSetup = false
+    @State private var isShowingUnfinishedGameAlert = false
     @State private var isShowingResetConfirmation = false
     @State private var substitutionSide: TeamSide = .home
     @State private var outgoingPlayerID: UUID?
     @State private var incomingPlayerID: UUID?
     @State private var saveConfirmation: String?
+    @State private var statAlertMessage: String?
 
     var body: some View {
         NavigationStack {
@@ -84,7 +86,11 @@ struct GameView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button {
-                        isShowingNewGameSetup = true
+                        if hasUnfinishedGameToConfirm {
+                            isShowingUnfinishedGameAlert = true
+                        } else {
+                            isShowingNewGameSetup = true
+                        }
                     } label: {
                         Label("新比赛", systemImage: "plus.circle")
                     }
@@ -92,14 +98,14 @@ struct GameView: View {
                     Button {
                         saveCurrentGame()
                     } label: {
-                        Label("保存比赛", systemImage: "tray.and.arrow.down")
+                        Label("存到历史", systemImage: "clock.badge.checkmark")
                     }
                     .disabled(snapshot.logs.isEmpty)
 
                     Button {
                         finishGame()
                     } label: {
-                        Label("结束比赛", systemImage: "checkmark.circle")
+                        Label("结束比赛", systemImage: "flag.checkered.circle.fill")
                     }
                     .disabled(snapshot.isComplete || snapshot.logs.isEmpty)
 
@@ -152,6 +158,23 @@ struct GameView: View {
                 Button("确认重置") { resetGame() }
             } message: {
                 Text("当前比赛的得分、事件、上场时间和在场名单都会清空。")
+            }
+            .alert("当前比赛未结束", isPresented: $isShowingUnfinishedGameAlert) {
+                Button("取消", role: .cancel) { }
+                Button("结束当前比赛") {
+                    finishGame()
+                    isShowingNewGameSetup = true
+                }
+            } message: {
+                Text("是否先结束当前比赛，再开始新比赛？")
+            }
+            .alert("无法记录统计", isPresented: Binding(
+                get: { statAlertMessage != nil },
+                set: { if !$0 { statAlertMessage = nil } }
+            )) {
+                Button("知道了") { statAlertMessage = nil }
+            } message: {
+                Text(statAlertMessage ?? "")
             }
             .onAppear {
                 restoreLatestGameIfNeeded()
@@ -232,7 +255,7 @@ struct GameView: View {
                         .frame(maxWidth: .infinity, minHeight: 34)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .substitution))
-                .disabled(needsNewGameSetup || snapshot.isComplete)
+                .disabled(needsNewGameSetup)
             }
 
             HStack(spacing: 8) {
@@ -310,6 +333,10 @@ struct GameView: View {
         snapshot.homeTeamID == nil || snapshot.awayTeamID == nil || snapshot.homeOnCourtPlayerIDs.isEmpty || snapshot.awayOnCourtPlayerIDs.isEmpty
     }
 
+    private var hasUnfinishedGameToConfirm: Bool {
+        currentGameRecordID != nil && !snapshot.isComplete
+    }
+
     private var periodSummary: String {
         if snapshot.isComplete { return "已结束" }
         return "第\(snapshot.currentPeriod)/\(snapshot.periodCount)节\(snapshot.periodIsRunning ? "中" : "")"
@@ -327,7 +354,7 @@ struct GameView: View {
                 .frame(maxWidth: .infinity, minHeight: 34)
         }
         .buttonStyle(PastelActionButtonStyle(style: style))
-        .disabled(selectedPlayer == nil || needsNewGameSetup || snapshot.isComplete)
+        .disabled(needsNewGameSetup)
     }
 
     private func players(in teamID: UUID?) -> [Player] {
@@ -396,6 +423,7 @@ struct GameView: View {
 
     private func playingSeconds(for playerID: UUID, now: Date = Date()) -> TimeInterval {
         let stored = snapshot.playingSecondsByPlayerID[playerID, default: 0]
+        guard snapshot.periodIsRunning else { return stored }
         guard let activeSince = snapshot.activeSinceByPlayerID[playerID] else { return stored }
         return stored + max(0, now.timeIntervalSince(activeSince))
     }
@@ -470,7 +498,18 @@ struct GameView: View {
     }
 
     private func record(_ action: StatAction) {
-        guard let player = selectedPlayer else { return }
+        guard !snapshot.isComplete else {
+            statAlertMessage = "比赛已结束"
+            return
+        }
+        guard snapshot.periodIsRunning else {
+            statAlertMessage = "第\(snapshot.currentPeriod)节比赛未开始"
+            return
+        }
+        guard let player = selectedPlayer else {
+            statAlertMessage = "请先选择球员"
+            return
+        }
         guard isOnCourt(player.id, side: selectedSide) else { return }
         mutateSnapshot {
             var stats = snapshot.statsByPlayerID[player.id, default: PlayerStats()]
@@ -562,7 +601,7 @@ struct GameView: View {
             addEvent("比赛保存")
         }
         snapshotForSaving.logs = snapshot.logs
-        currentGameRecordID = store.autoSaveGame(snapshotForSaving, gameID: currentGameRecordID)
+        currentGameRecordID = store.autoSaveGame(snapshotForSaving, gameID: currentGameRecordID, undoSnapshots: undoStack)
         saveConfirmation = "比赛已保存到历史记录。"
     }
 
@@ -622,6 +661,7 @@ struct GameView: View {
         redoStack.append(snapshot)
         snapshot = previous
         ensureSelectedPlayer()
+        autoSaveCurrentGame()
     }
 
     private func redo() {
@@ -629,6 +669,7 @@ struct GameView: View {
         undoStack.append(snapshot)
         snapshot = next
         ensureSelectedPlayer()
+        autoSaveCurrentGame()
     }
 
     private func resetGame() {
@@ -662,7 +703,7 @@ struct GameView: View {
 
     private func autoSaveCurrentGame() {
         guard !snapshot.logs.isEmpty else { return }
-        currentGameRecordID = store.autoSaveGame(snapshot, gameID: currentGameRecordID)
+        currentGameRecordID = store.autoSaveGame(snapshot, gameID: currentGameRecordID, undoSnapshots: undoStack)
     }
 
     private func restoreLatestGameIfNeeded() {
@@ -671,6 +712,14 @@ struct GameView: View {
 
         if let latest = store.latestUnfinishedGame() {
             snapshot = latest.snapshot
+            if !latest.undoSnapshots.isEmpty {
+                undoStack = latest.undoSnapshots
+            } else if let previous = latest.previousSnapshot ?? legacyPreviousSnapshot(from: latest.snapshot) {
+                undoStack = [previous]
+            } else {
+                undoStack = []
+            }
+            redoStack.removeAll()
             currentGameRecordID = latest.id
             ensureSelectedPlayer()
             return
@@ -709,10 +758,82 @@ struct GameView: View {
     }
 
     private func applyPlusMinus(points: Int, scoringSide: TeamSide) {
-        let scoringIDs = onCourtIDs(for: scoringSide)
-        let defendingIDs = onCourtIDs(for: scoringSide == .home ? .away : .home)
-        scoringIDs.forEach { snapshot.plusMinusByPlayerID[$0, default: 0] += points }
-        defendingIDs.forEach { snapshot.plusMinusByPlayerID[$0, default: 0] -= points }
+        applyPlusMinus(points: points, scoringSide: scoringSide, in: &snapshot)
+    }
+
+    private func applyPlusMinus(points: Int, scoringSide: TeamSide, in target: inout GameSnapshot) {
+        let scoringIDs = scoringSide == .home ? target.homeOnCourtPlayerIDs : target.awayOnCourtPlayerIDs
+        let defendingIDs = scoringSide == .home ? target.awayOnCourtPlayerIDs : target.homeOnCourtPlayerIDs
+        scoringIDs.forEach { target.plusMinusByPlayerID[$0, default: 0] += points }
+        defendingIDs.forEach { target.plusMinusByPlayerID[$0, default: 0] -= points }
+    }
+
+    private func legacyPreviousSnapshot(from current: GameSnapshot) -> GameSnapshot? {
+        guard let lastLog = current.logs.last else { return nil }
+
+        var previous = current
+        previous.logs.removeLast()
+
+        if lastLog.message == "比赛保存" {
+            return previous
+        }
+
+        if lastLog.message == "比赛结束" {
+            previous.isComplete = false
+            return previous
+        }
+
+        guard let (playerName, action) = StatAction.parseLog(lastLog.message) else {
+            return nil
+        }
+
+        guard let playerID = playerID(for: playerName, action: action, in: current),
+              let side = sideOfPlayer(playerID, in: current) else {
+            return nil
+        }
+
+        var stats = previous.statsByPlayerID[playerID, default: PlayerStats()]
+        guard action.revert(on: &stats) else { return nil }
+        previous.statsByPlayerID[playerID] = stats
+
+        if action == .foul {
+            let currentFouls = previous.currentPeriodFoulsBySide[side.rawValue, default: 0]
+            previous.currentPeriodFoulsBySide[side.rawValue] = max(0, currentFouls - 1)
+        }
+
+        if action.points > 0 {
+            applyPlusMinus(points: -action.points, scoringSide: side, in: &previous)
+        }
+
+        return previous
+    }
+
+    private func playerID(for playerName: String, action: StatAction, in current: GameSnapshot) -> UUID? {
+        let homeIDs = players(in: current.homeTeamID).map(\.id)
+        let awayIDs = players(in: current.awayTeamID).map(\.id)
+        let allIDs = Array(Set(homeIDs + awayIDs + Array(current.statsByPlayerID.keys)))
+
+        let matchedByName = allIDs.filter { store.player(for: $0)?.name == playerName }
+        guard !matchedByName.isEmpty else { return nil }
+
+        if let precise = matchedByName.first(where: { canRevert(action: action, for: $0, in: current) }) {
+            return precise
+        }
+
+        return matchedByName.first
+    }
+
+    private func canRevert(action: StatAction, for playerID: UUID, in current: GameSnapshot) -> Bool {
+        var stats = current.statsByPlayerID[playerID, default: PlayerStats()]
+        return action.revert(on: &stats)
+    }
+
+    private func sideOfPlayer(_ playerID: UUID, in current: GameSnapshot) -> TeamSide? {
+        let homeIDs = Set(players(in: current.homeTeamID).map(\.id))
+        let awayIDs = Set(players(in: current.awayTeamID).map(\.id))
+        if homeIDs.contains(playerID) { return .home }
+        if awayIDs.contains(playerID) { return .away }
+        return nil
     }
 
     private func name(for playerID: UUID) -> String {
@@ -852,9 +973,68 @@ private enum StatAction {
             stats.rebounds += 1
         }
     }
+
+    func revert(on stats: inout PlayerStats) -> Bool {
+        switch self {
+        case .twoMade:
+            guard stats.twoMade > 0, stats.twoAttempts > 0 else { return false }
+            stats.twoMade -= 1
+            stats.twoAttempts -= 1
+        case .twoMissed:
+            guard stats.twoAttempts > 0 else { return false }
+            stats.twoAttempts -= 1
+        case .threeMade:
+            guard stats.threeMade > 0, stats.threeAttempts > 0 else { return false }
+            stats.threeMade -= 1
+            stats.threeAttempts -= 1
+        case .threeMissed:
+            guard stats.threeAttempts > 0 else { return false }
+            stats.threeAttempts -= 1
+        case .bonusMade:
+            guard stats.bonusFreeThrowMade > 0, stats.bonusFreeThrowAttempts > 0 else { return false }
+            stats.bonusFreeThrowMade -= 1
+            stats.bonusFreeThrowAttempts -= 1
+        case .bonusMissed:
+            guard stats.bonusFreeThrowAttempts > 0 else { return false }
+            stats.bonusFreeThrowAttempts -= 1
+        case .freeThrowMade:
+            guard stats.freeThrowMade > 0, stats.freeThrowAttempts > 0 else { return false }
+            stats.freeThrowMade -= 1
+            stats.freeThrowAttempts -= 1
+        case .freeThrowMissed:
+            guard stats.freeThrowAttempts > 0 else { return false }
+            stats.freeThrowAttempts -= 1
+        case .foul:
+            guard stats.fouls > 0 else { return false }
+            stats.fouls -= 1
+        case .assist:
+            guard stats.assists > 0 else { return false }
+            stats.assists -= 1
+        case .rebound:
+            guard stats.rebounds > 0 else { return false }
+            stats.rebounds -= 1
+        }
+        return true
+    }
+
+    static func parseLog(_ message: String) -> (playerName: String, action: StatAction)? {
+        for action in allCases {
+            guard message.hasSuffix(action.message) else { continue }
+            let name = String(message.dropLast(action.message.count)).trimmingCharacters(in: .whitespaces)
+            guard !name.isEmpty else { return nil }
+            return (name, action)
+        }
+        return nil
+    }
 }
 
 extension StatAction: Equatable {}
+
+extension StatAction: CaseIterable {
+    static var allCases: [StatAction] {
+        [.twoMade, .twoMissed, .threeMade, .threeMissed, .bonusMade, .bonusMissed, .freeThrowMade, .freeThrowMissed, .foul, .assist, .rebound]
+    }
+}
 
 private struct CompactTeamRow: View {
     var side: TeamSide
@@ -931,7 +1111,7 @@ private struct CompactTeamRow: View {
                                         .lineLimit(1)
                                         .frame(width: 56)
                                 }
-                                .opacity(isSelected ? 1 : 0.8)
+                                .opacity(isSelected ? 1 : 0.6)
                             }
                             .buttonStyle(.plain)
                         }

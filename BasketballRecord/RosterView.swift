@@ -3,13 +3,11 @@ import UIKit
 
 struct RosterView: View {
     @EnvironmentObject private var store: AppStore
-    @State private var showingPlayerEditor = false
-    @State private var showingTeamEditor = false
+    @State private var showingCreateEntry = false
     @State private var showingRosterImport = false
     @State private var exportingTeam: Team?
     @State private var exportingPlayer: Player?
-    @State private var showingPlayerMerge = false
-    @State private var showingTeamMerge = false
+    @State private var showingMergeEntry = false
     @State private var editingPlayer: Player?
     @State private var editingTeam: Team?
 
@@ -40,11 +38,12 @@ struct RosterView: View {
                             Button {
                                 exportTeam(team)
                             } label: {
-                                Image(systemName: "square.and.arrow.up")
-                                    .font(.title3)
+                                rosterActionIcon(
+                                    symbol: TransferSymbol.exportData,
+                                    tint: Color(red: 0.08, green: 0.54, blue: 0.52)
+                                )
                             }
                             .buttonStyle(.plain)
-                            .foregroundStyle(.secondary)
                         }
                     }
                     .onDelete(perform: store.deleteTeams)
@@ -80,20 +79,22 @@ struct RosterView: View {
                             Button {
                                 editingPlayer = player
                             } label: {
-                                Image(systemName: "pencil.circle")
-                                    .font(.title3)
+                                rosterActionIcon(
+                                    symbol: "pencil",
+                                    tint: Color(red: 0.16, green: 0.43, blue: 0.83)
+                                )
                             }
                             .buttonStyle(.plain)
-                            .foregroundStyle(.secondary)
 
                             Button {
                                 exportPlayer(player)
                             } label: {
-                                Image(systemName: "square.and.arrow.up")
-                                    .font(.title3)
+                                rosterActionIcon(
+                                    symbol: TransferSymbol.exportData,
+                                    tint: Color(red: 0.08, green: 0.54, blue: 0.52)
+                                )
                             }
                             .buttonStyle(.plain)
-                            .foregroundStyle(.secondary)
                         }
                     }
                     .onDelete(perform: store.deletePlayers)
@@ -103,56 +104,32 @@ struct RosterView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button {
-                        showingPlayerMerge = true
+                        showingMergeEntry = true
                     } label: {
-                        Label("合并球员", systemImage: "person.2.fill")
-                    }
-
-                    Button {
-                        showingTeamMerge = true
-                    } label: {
-                        Label("合并球队", systemImage: "person.3.sequence.fill")
+                        Label("合并", systemImage: "arrow.triangle.merge")
                     }
 
                     Button {
                         showingRosterImport = true
                     } label: {
-                        Label("导入数据", systemImage: "square.and.arrow.down.on.square.fill")
+                        Label("导入数据", systemImage: TransferSymbol.importData)
                     }
 
                     Button {
-                        showingTeamEditor = true
+                        showingCreateEntry = true
                     } label: {
-                        Label {
-                            Text("新建球队")
-                        } icon: {
-                            ZStack(alignment: .topTrailing) {
-                                Image(systemName: "person.3.fill")
-                                Image(systemName: "plus.circle.fill")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .offset(x: 4, y: -4)
-                            }
-                        }
-                    }
-
-                    Button {
-                        showingPlayerEditor = true
-                    } label: {
-                        Label("新建球员", systemImage: "person.crop.circle.badge.plus")
+                        Label("新建", systemImage: "plus.circle.fill")
                     }
                 }
-            }
-            .sheet(isPresented: $showingPlayerEditor) {
-                PlayerEditorView(player: nil)
             }
             .sheet(item: $editingPlayer) { player in
                 PlayerEditorView(player: player)
             }
-            .sheet(isPresented: $showingTeamEditor) {
-                TeamEditorView(team: nil)
-            }
             .sheet(item: $editingTeam) { team in
                 TeamEditorView(team: team)
+            }
+            .sheet(isPresented: $showingCreateEntry) {
+                CreateRosterItemView()
             }
             .sheet(isPresented: $showingRosterImport) {
                 ImportRosterPackageView()
@@ -163,11 +140,8 @@ struct RosterView: View {
             .sheet(item: $exportingPlayer) { player in
                 ExportPlayerPackageView(player: player)
             }
-            .sheet(isPresented: $showingPlayerMerge) {
-                MergePlayerUUIDView()
-            }
-            .sheet(isPresented: $showingTeamMerge) {
-                MergeTeamUUIDView()
+            .sheet(isPresented: $showingMergeEntry) {
+                MergeRosterUUIDView()
             }
         }
     }
@@ -186,6 +160,112 @@ struct RosterView: View {
 
     private func exportPlayer(_ player: Player) {
         exportingPlayer = player
+    }
+
+    private func rosterActionIcon(symbol: String, tint: Color) -> some View {
+        Image(systemName: symbol)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(tint)
+            .frame(width: 30, height: 30)
+            .background(tint.opacity(0.14), in: Circle())
+    }
+}
+
+private struct CreateRosterItemView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var kind: RosterImportKind = .player
+    @State private var showingPlayerEditor = false
+    @State private var showingTeamEditor = false
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("新建类型") {
+                    Picker("新建类型", selection: $kind) {
+                        ForEach(RosterImportKind.allCases) { kind in
+                            Text(kind.rawValue).tag(kind)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+
+                Section {
+                    Button {
+                        if kind == .player {
+                            showingPlayerEditor = true
+                        } else {
+                            showingTeamEditor = true
+                        }
+                    } label: {
+                        Label(kind == .player ? "新建球员" : "新建球队", systemImage: kind == .player ? "person.crop.circle.badge.plus" : "person.3.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.accentColor)
+                }
+            }
+            .navigationTitle("新建")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("关闭") { dismiss() }
+                }
+            }
+            .sheet(isPresented: $showingPlayerEditor) {
+                PlayerEditorView(player: nil)
+            }
+            .sheet(isPresented: $showingTeamEditor) {
+                TeamEditorView(team: nil)
+            }
+        }
+    }
+}
+
+private struct MergeRosterUUIDView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var kind: RosterImportKind = .player
+    @State private var showingPlayerMerge = false
+    @State private var showingTeamMerge = false
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("合并类型") {
+                    Picker("合并类型", selection: $kind) {
+                        ForEach(RosterImportKind.allCases) { kind in
+                            Text(kind.rawValue).tag(kind)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+
+                Section {
+                    Button(role: .destructive) {
+                        if kind == .player {
+                            showingPlayerMerge = true
+                        } else {
+                            showingTeamMerge = true
+                        }
+                    } label: {
+                        Label(kind == .player ? "合并球员" : "合并球队", systemImage: "arrow.triangle.merge")
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+            }
+            .navigationTitle("合并")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("关闭") { dismiss() }
+                }
+            }
+            .sheet(isPresented: $showingPlayerMerge) {
+                MergePlayerUUIDView()
+            }
+            .sheet(isPresented: $showingTeamMerge) {
+                MergeTeamUUIDView()
+            }
+        }
     }
 }
 
@@ -236,13 +316,13 @@ private struct ExportTeamPackageView: View {
                             Label(copyButtonTitle, systemImage: copyButtonTitle == "复制编码" ? "doc.on.doc" : "checkmark.circle.fill")
                                 .frame(maxWidth: .infinity)
                         }
-                        .exportActionButtonStyle()
+                        .buttonStyle(AppSoftProminentButtonStyle())
 
                         ShareLink(item: base64) {
-                            Label("分享编码", systemImage: "square.and.arrow.up")
+                            Label("分享编码", systemImage: TransferSymbol.exportData)
                                 .frame(maxWidth: .infinity)
                         }
-                        .exportActionButtonStyle()
+                        .buttonStyle(AppSoftProminentButtonStyle())
                     }
                 }
             }
@@ -310,7 +390,9 @@ private struct ImportRosterPackageView: View {
                 Section("粘贴 Base64") {
                     TextEditor(text: $base64)
                         .font(.caption.monospaced())
-                        .frame(minHeight: 112)
+                        .frame(height: 112)
+                        .autocorrectionDisabled(true)
+                        .textInputAutocapitalization(.never)
                         .focused($isInputFocused)
                     Button(importKind == .team ? "解析球队数据" : "解析球员数据") {
                         isInputFocused = false
@@ -365,7 +447,7 @@ private struct ImportRosterPackageView: View {
                             _ = store.importTeamPackage(teamPackage)
                             dismiss()
                         } label: {
-                            Label("导入球队", systemImage: "checkmark.circle")
+                            Label("导入球队", systemImage: TransferSymbol.importData)
                         }
                     }
                 }
@@ -386,11 +468,12 @@ private struct ImportRosterPackageView: View {
                             _ = store.importPlayerPackage(playerPackage)
                             dismiss()
                         } label: {
-                            Label("导入球员", systemImage: "checkmark.circle")
+                            Label("导入球员", systemImage: TransferSymbol.importData)
                         }
                     }
                 }
             }
+            .scrollDismissesKeyboard(.immediately)
             .navigationTitle("导入数据")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -508,13 +591,13 @@ private struct ExportPlayerPackageView: View {
                             Label(copyButtonTitle, systemImage: copyButtonTitle == "复制编码" ? "doc.on.doc" : "checkmark.circle.fill")
                                 .frame(maxWidth: .infinity)
                         }
-                        .exportActionButtonStyle()
+                        .buttonStyle(AppSoftProminentButtonStyle())
 
                         ShareLink(item: base64) {
-                            Label("分享编码", systemImage: "square.and.arrow.up")
+                            Label("分享编码", systemImage: TransferSymbol.exportData)
                                 .frame(maxWidth: .infinity)
                         }
-                        .exportActionButtonStyle()
+                        .buttonStyle(AppSoftProminentButtonStyle())
                     }
                 }
             }
@@ -1100,16 +1183,4 @@ private struct PlayerGameMonthGroup: Identifiable {
     var games: [SavedGame]
     var id: String { "\(key.year)-\(key.month)" }
     var title: String { "\(key.year)年 \(key.month)月" }
-}
-
-private extension View {
-    @ViewBuilder
-    func exportActionButtonStyle() -> some View {
-        if #available(iOS 26.0, *) {
-            self.buttonStyle(.glassProminent)
-        } else {
-            self.buttonStyle(.borderedProminent)
-                .tint(Color.accentColor)
-        }
-    }
 }

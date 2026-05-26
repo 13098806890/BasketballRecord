@@ -89,9 +89,12 @@ final class AppStore: ObservableObject {
     }
 
     @discardableResult
-    func autoSaveGame(_ snapshot: GameSnapshot, gameID: UUID?) -> UUID {
+    func autoSaveGame(_ snapshot: GameSnapshot, gameID: UUID?, undoSnapshots: [GameSnapshot] = []) -> UUID {
         let targetID = gameID ?? UUID()
-        let game = buildSavedGame(id: targetID, snapshot: snapshot, savedAt: Date())
+        let previousSnapshot = savedGames.first(where: { $0.id == targetID })?.snapshot
+        var game = buildSavedGame(id: targetID, snapshot: snapshot, savedAt: Date())
+        game.previousSnapshot = previousSnapshot
+        game.undoSnapshots = undoSnapshots
 
         if let existingIndex = savedGames.firstIndex(where: { $0.id == targetID }) {
             savedGames[existingIndex] = game

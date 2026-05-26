@@ -269,6 +269,8 @@ struct SavedGame: Identifiable, Codable, Hashable {
     var id = UUID()
     var savedAt: Date
     var snapshot: GameSnapshot
+    var previousSnapshot: GameSnapshot?
+    var undoSnapshots: [GameSnapshot] = []
     var homeTeamName: String
     var awayTeamName: String
     var homePlayerIDs: [UUID]
@@ -279,6 +281,8 @@ struct SavedGame: Identifiable, Codable, Hashable {
         id: UUID = UUID(),
         savedAt: Date,
         snapshot: GameSnapshot,
+        previousSnapshot: GameSnapshot? = nil,
+        undoSnapshots: [GameSnapshot] = [],
         homeTeamName: String,
         awayTeamName: String,
         homePlayerIDs: [UUID],
@@ -288,6 +292,8 @@ struct SavedGame: Identifiable, Codable, Hashable {
         self.id = id
         self.savedAt = savedAt
         self.snapshot = snapshot
+        self.previousSnapshot = previousSnapshot
+        self.undoSnapshots = undoSnapshots
         self.homeTeamName = homeTeamName
         self.awayTeamName = awayTeamName
         self.homePlayerIDs = homePlayerIDs
@@ -300,6 +306,8 @@ struct SavedGame: Identifiable, Codable, Hashable {
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         savedAt = try container.decode(Date.self, forKey: .savedAt)
         snapshot = try container.decode(GameSnapshot.self, forKey: .snapshot)
+        previousSnapshot = try container.decodeIfPresent(GameSnapshot.self, forKey: .previousSnapshot)
+        undoSnapshots = try container.decodeIfPresent([GameSnapshot].self, forKey: .undoSnapshots) ?? []
         homeTeamName = try container.decodeIfPresent(String.self, forKey: .homeTeamName) ?? "主队"
         awayTeamName = try container.decodeIfPresent(String.self, forKey: .awayTeamName) ?? "客队"
         homePlayerIDs = try container.decodeIfPresent([UUID].self, forKey: .homePlayerIDs) ?? []

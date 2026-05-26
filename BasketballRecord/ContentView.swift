@@ -63,7 +63,7 @@ struct HistoryView: View {
                     Button {
                         isShowingImport = true
                     } label: {
-                        Label("导入", systemImage: "tray.and.arrow.down.fill")
+                        Label("导入", systemImage: TransferSymbol.importData)
                     }
                 }
             }
@@ -329,7 +329,7 @@ private struct SavedGameDetailView: View {
                 Button {
                     isShowingExport = true
                 } label: {
-                    Label("导出", systemImage: "square.and.arrow.up")
+                    Label("导出", systemImage: TransferSymbol.exportData)
                 }
             }
         }
@@ -478,15 +478,13 @@ private struct ExportGameView: View {
                             Label(copyButtonTitle, systemImage: copyButtonTitle == "复制编码" ? "doc.on.doc" : "checkmark.circle.fill")
                                 .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.accentColor)
+                        .buttonStyle(AppSoftProminentButtonStyle())
 
                         ShareLink(item: base64) {
-                            Label("分享编码", systemImage: "square.and.arrow.up")
+                            Label("分享编码", systemImage: TransferSymbol.exportData)
                                 .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.accentColor)
+                        .buttonStyle(AppSoftProminentButtonStyle())
                     }
                 }
             }
@@ -539,7 +537,9 @@ private struct ImportGameView: View {
                 Section("粘贴 Base64") {
                     TextEditor(text: $base64)
                         .font(.caption.monospaced())
-                        .frame(minHeight: 112)
+                        .frame(height: 112)
+                        .autocorrectionDisabled(true)
+                        .textInputAutocapitalization(.never)
                         .focused($isInputFocused)
                     Button("解析比赛记录") {
                         isInputFocused = false
@@ -600,12 +600,13 @@ private struct ImportGameView: View {
                             store.importGamePackage(package, playerMapping: playerMapping, teamMapping: teamMapping)
                             dismiss()
                         } label: {
-                            Label("导入比赛", systemImage: "checkmark.circle")
+                            Label("导入比赛", systemImage: TransferSymbol.importData)
                         }
                     }
                 }
 
             }
+            .scrollDismissesKeyboard(.immediately)
             .navigationTitle("导入比赛")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
