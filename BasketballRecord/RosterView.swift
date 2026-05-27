@@ -53,6 +53,22 @@ struct RosterView: View {
                             .labelsHidden()
                     }
 
+                    HStack(spacing: 12) {
+                        Image(systemName: "sparkles")
+                            .font(.subheadline.weight(.semibold))
+                            .symbolRenderingMode(.monochrome)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 28, height: 28)
+
+                        Text("显示模拟比赛按钮")
+                            .font(.body.weight(.medium))
+
+                        Spacer()
+
+                        Toggle("", isOn: $store.showsSimulationButton)
+                            .labelsHidden()
+                    }
+
                     NavigationLink {
                         CareerStatDisplaySettingsView()
                     } label: {
@@ -1122,7 +1138,7 @@ private struct ExportTeamPackageView: View {
                     Section {
                         HStack(spacing: 12) {
                             ProgressView()
-                            Text("正在生成 Base64 编码…")
+                            Text("正在生成压缩编码…")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
@@ -1135,7 +1151,7 @@ private struct ExportTeamPackageView: View {
                             .foregroundStyle(.secondary)
                     }
                 } else {
-                    Section("Base64 球队数据") {
+                    Section("球队分享编码") {
                         TextEditor(text: .constant(base64))
                             .font(.caption.monospaced())
                             .frame(minHeight: 220)
@@ -1228,7 +1244,7 @@ private struct ImportRosterPackageView: View {
                     .pickerStyle(.segmented)
                 }
 
-                Section("粘贴 Base64") {
+                Section("粘贴分享编码") {
                     TextEditor(text: $base64)
                         .font(.caption.monospaced())
                         .frame(height: 112)
@@ -1361,7 +1377,7 @@ private struct ImportRosterPackageView: View {
                 teamPackage = nil
                 playerPackage = nil
                 parseSucceeded = false
-                parseResultText = "解析失败\n类型: 球队\n请确认粘贴的是完整 Base64 球队数据。"
+                parseResultText = "解析失败\n类型: 球队\n请确认粘贴的是完整分享编码。"
                 return
             }
             applyTeamPackage(decoded)
@@ -1371,7 +1387,7 @@ private struct ImportRosterPackageView: View {
                 teamPackage = nil
                 playerPackage = nil
                 parseSucceeded = false
-                parseResultText = "解析失败\n类型: 球员\n请确认粘贴的是完整 Base64 球员数据。"
+                parseResultText = "解析失败\n类型: 球员\n请确认粘贴的是完整分享编码。"
                 return
             }
             applyPlayerPackage(decoded)
@@ -1460,7 +1476,7 @@ private struct ExportPlayerPackageView: View {
                     Section {
                         HStack(spacing: 12) {
                             ProgressView()
-                            Text("正在生成 Base64 编码…")
+                            Text("正在生成压缩编码…")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
@@ -1473,7 +1489,7 @@ private struct ExportPlayerPackageView: View {
                             .foregroundStyle(.secondary)
                     }
                 } else {
-                    Section("Base64 球员数据") {
+                    Section("球员分享编码") {
                         TextEditor(text: .constant(base64))
                             .font(.caption.monospaced())
                             .frame(minHeight: 220)
@@ -1953,9 +1969,7 @@ struct PlayerProfileView: View {
     }
 
     private func containsPlayer(in game: SavedGame) -> Bool {
-        game.homePlayerIDs.contains(playerID)
-            || game.awayPlayerIDs.contains(playerID)
-            || game.snapshot.statsByPlayerID[playerID] != nil
+        game.didParticipate(playerID)
     }
 
     private func syncSelectedGamesIfNeeded() {

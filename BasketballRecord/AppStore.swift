@@ -44,6 +44,10 @@ final class AppStore: ObservableObject {
         didSet { scheduleSave() }
     }
 
+    @Published var showsSimulationButton = false {
+        didSet { scheduleSave() }
+    }
+
     private let storageKey = "basketball-record-store-v1"
     private var saveTask: Task<Void, Never>?
     private let saveDebounceNanoseconds: UInt64 = 500_000_000
@@ -156,9 +160,8 @@ final class AppStore: ObservableObject {
             exportTeam(id: game.snapshot.awayTeamID, fallbackName: game.awayTeamName, playerIDs: game.awayPlayerIDs)
         ].compactMap { $0 }
 
-        let package = ExportedGamePackage(players: exportedPlayers, teams: exportedTeams, game: game)
-        guard let data = try? JSONEncoder().encode(package) else { return nil }
-        return data.base64EncodedString()
+        let package = ExportedGamePackage(players: exportedPlayers, teams: exportedTeams, game: ExportGameRecord(savedGame: game))
+        return TransferCodec.encode(package)
     }
 
     func exportTeamBase64(_ team: Team) -> String? {
@@ -169,32 +172,24 @@ final class AppStore: ObservableObject {
             return ExportPlayer(id: playerID, name: "未知球员")
         }
         let package = ExportedTeamPackage(team: ExportTeam(team: team), players: exportedPlayers)
-        guard let data = try? JSONEncoder().encode(package) else { return nil }
-        return data.base64EncodedString()
+        return TransferCodec.encode(package)
     }
 
     func exportPlayerBase64(_ player: Player) -> String? {
         let package = ExportedPlayerPackage(player: ExportPlayer(player: player))
-        guard let data = try? JSONEncoder().encode(package) else { return nil }
-        return data.base64EncodedString()
+        return TransferCodec.encode(package)
     }
 
     func decodeGamePackage(from base64: String) -> ExportedGamePackage? {
-        let trimmed = base64.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let data = Data(base64Encoded: trimmed) else { return nil }
-        return try? JSONDecoder().decode(ExportedGamePackage.self, from: data)
+        TransferCodec.decode(base64, as: ExportedGamePackage.self)
     }
 
     func decodeTeamPackage(from base64: String) -> ExportedTeamPackage? {
-        let trimmed = base64.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let data = Data(base64Encoded: trimmed) else { return nil }
-        return try? JSONDecoder().decode(ExportedTeamPackage.self, from: data)
+        TransferCodec.decode(base64, as: ExportedTeamPackage.self)
     }
 
     func decodePlayerPackage(from base64: String) -> ExportedPlayerPackage? {
-        let trimmed = base64.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let data = Data(base64Encoded: trimmed) else { return nil }
-        return try? JSONDecoder().decode(ExportedPlayerPackage.self, from: data)
+        TransferCodec.decode(base64, as: ExportedPlayerPackage.self)
     }
 
     @discardableResult
@@ -296,7 +291,7 @@ final class AppStore: ObservableObject {
             }
         }
 
-        let importedGame = remappedGame(package.game, playerIDMap: playerIDMap, teamIDMap: teamIDMap)
+        let importedGame = remappedGame(package.game.savedGame, playerIDMap: playerIDMap, teamIDMap: teamIDMap)
         upsertImportedGame(importedGame)
     }
 
@@ -390,7 +385,8 @@ final class AppStore: ObservableObject {
             teams: teams,
             savedGames: savedGames,
             hiddenCareerStatItems: hiddenCareerStatItems,
-            keepsScreenAwake: keepsScreenAwake
+            keepsScreenAwake: keepsScreenAwake,
+            showsSimulationButton: showsSimulationButton
         )
         guard let data = try? JSONEncoder().encode(payload) else { return }
         UserDefaults.standard.set(data, forKey: storageKey)
@@ -428,6 +424,7 @@ final class AppStore: ObservableObject {
         savedGames = payload.savedGames
         hiddenCareerStatItems = payload.hiddenCareerStatItems
         keepsScreenAwake = payload.keepsScreenAwake
+        showsSimulationButton = payload.showsSimulationButton
     }
 
     private func seedSampleData() {
@@ -457,15 +454,8 @@ final class AppStore: ObservableObject {
         let awayTeam = team(for: snapshot.awayTeamID)
         let homeRosterIDs = dedupedPlayerIDs(primary: snapshot.homeAvailablePlayerIDs, fallback: homeTeam?.playerIDs ?? snapshot.homeOnCourtPlayerIDs)
         let awayRosterIDs = dedupedPlayerIDs(primary: snapshot.awayAvailablePlayerIDs, fallback: awayTeam?.playerIDs ?? snapshot.awayOnCourtPlayerIDs)
-        var homePlayerIDs = homeRosterIDs.filter { didParticipate($0, in: snapshot) }
-        var awayPlayerIDs = awayRosterIDs.filter { didParticipate($0, in: snapshot) }
-
-        if homePlayerIDs.isEmpty && !homeRosterIDs.isEmpty {
-            homePlayerIDs = homeRosterIDs
-        }
-        if awayPlayerIDs.isEmpty && !awayRosterIDs.isEmpty {
-            awayPlayerIDs = awayRosterIDs
-        }
+        let homePlayerIDs = homeRosterIDs
+        let awayPlayerIDs = awayRosterIDs
 
         let gamePlayerIDs = Array(Set(
             homePlayerIDs
@@ -489,15 +479,6 @@ final class AppStore: ObservableObject {
             awayPlayerIDs: awayPlayerIDs,
             playerNamesByID: playerNames
         )
-    }
-
-    private func didParticipate(_ playerID: UUID, in snapshot: GameSnapshot) -> Bool {
-        if snapshot.starterPlayerIDs.contains(playerID) { return true }
-        if snapshot.playingSecondsByPlayerID[playerID, default: 0] > 0 { return true }
-        if snapshot.activeSinceByPlayerID[playerID] != nil { return true }
-        if snapshot.plusMinusByPlayerID[playerID] != nil { return true }
-        if let stats = snapshot.statsByPlayerID[playerID], stats != PlayerStats() { return true }
-        return false
     }
 
     private func dedupedPlayerIDs(primary: [UUID], fallback: [UUID]) -> [UUID] {
@@ -754,19 +735,22 @@ private struct StorePayload: Codable {
     var savedGames: [SavedGame]
     var hiddenCareerStatItems: Set<CareerStatItem>
     var keepsScreenAwake: Bool
+    var showsSimulationButton: Bool
 
     init(
         players: [Player],
         teams: [Team],
         savedGames: [SavedGame] = [],
         hiddenCareerStatItems: Set<CareerStatItem> = [],
-        keepsScreenAwake: Bool = true
+        keepsScreenAwake: Bool = true,
+        showsSimulationButton: Bool = false
     ) {
         self.players = players
         self.teams = teams
         self.savedGames = savedGames
         self.hiddenCareerStatItems = hiddenCareerStatItems
         self.keepsScreenAwake = keepsScreenAwake
+        self.showsSimulationButton = showsSimulationButton
     }
 
     init(from decoder: Decoder) throws {
@@ -776,5 +760,6 @@ private struct StorePayload: Codable {
         savedGames = try container.decodeIfPresent([SavedGame].self, forKey: .savedGames) ?? []
         hiddenCareerStatItems = try container.decodeIfPresent(Set<CareerStatItem>.self, forKey: .hiddenCareerStatItems) ?? []
         keepsScreenAwake = try container.decodeIfPresent(Bool.self, forKey: .keepsScreenAwake) ?? true
+        showsSimulationButton = try container.decodeIfPresent(Bool.self, forKey: .showsSimulationButton) ?? false
     }
 }

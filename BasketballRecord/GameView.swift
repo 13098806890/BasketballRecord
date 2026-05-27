@@ -109,6 +109,15 @@ struct GameView: View {
                         Label("新比赛", systemImage: "plus.circle")
                     }
 
+                    if store.showsSimulationButton {
+                        Button {
+                            handleSimulateTapped()
+                        } label: {
+                            Label("模拟比赛", systemImage: "sparkles")
+                        }
+                        .disabled(isSimulating)
+                    }
+
                     Button {
                         saveCurrentGame()
                     } label: {

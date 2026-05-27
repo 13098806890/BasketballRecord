@@ -105,23 +105,55 @@ struct ExportTeam: Identifiable, Codable, Hashable {
 }
 
 struct ExportedGamePackage: Codable, Hashable {
-    var version = 1
-    var exportedAt = Date()
     var players: [ExportPlayer]
     var teams: [ExportTeam]
-    var game: SavedGame
+    var game: ExportGameRecord
+}
+
+struct ExportGameRecord: Codable, Hashable {
+    var id: UUID
+    var savedAt: Date
+    var snapshot: GameSnapshot
+    var homeTeamName: String
+    var awayTeamName: String
+    var homePlayerIDs: [UUID]
+    var awayPlayerIDs: [UUID]
+    var playerNamesByID: [UUID: String]
+
+    init(savedGame: SavedGame) {
+        id = savedGame.id
+        savedAt = savedGame.savedAt
+        snapshot = savedGame.snapshot
+        homeTeamName = savedGame.homeTeamName
+        awayTeamName = savedGame.awayTeamName
+        homePlayerIDs = savedGame.homePlayerIDs
+        awayPlayerIDs = savedGame.awayPlayerIDs
+        playerNamesByID = savedGame.playerNamesByID
+    }
+
+    var savedGame: SavedGame {
+        SavedGame(
+            id: id,
+            savedAt: savedAt,
+            snapshot: snapshot,
+            aiSummary: nil,
+            previousSnapshot: nil,
+            undoSnapshots: [],
+            homeTeamName: homeTeamName,
+            awayTeamName: awayTeamName,
+            homePlayerIDs: homePlayerIDs,
+            awayPlayerIDs: awayPlayerIDs,
+            playerNamesByID: playerNamesByID
+        )
+    }
 }
 
 struct ExportedTeamPackage: Codable, Hashable {
-    var version = 1
-    var exportedAt = Date()
     var team: ExportTeam
     var players: [ExportPlayer]
 }
 
 struct ExportedPlayerPackage: Codable, Hashable {
-    var version = 1
-    var exportedAt = Date()
     var player: ExportPlayer
 }
 
@@ -480,16 +512,21 @@ struct SavedGame: Identifiable, Codable, Hashable {
 }
 
 extension SavedGame {
+    func didParticipate(_ playerID: UUID) -> Bool {
+        if snapshot.starterPlayerIDs.contains(playerID) { return true }
+        if snapshot.playingSecondsByPlayerID[playerID, default: 0] > 0 { return true }
+        if snapshot.activeSinceByPlayerID[playerID] != nil { return true }
+        if snapshot.plusMinusByPlayerID[playerID] != nil { return true }
+        if let stats = snapshot.statsByPlayerID[playerID], stats != PlayerStats() { return true }
+        return false
+    }
+
     func role(of playerID: UUID) -> PlayerGameRole? {
-        guard !snapshot.starterPlayerIDs.isEmpty else { return nil }
         if snapshot.starterPlayerIDs.contains(playerID) {
             return .starter
         }
 
-        let rosterPlayerIDs = Set(snapshot.homeAvailablePlayerIDs + snapshot.awayAvailablePlayerIDs)
-        if rosterPlayerIDs.contains(playerID)
-            || homePlayerIDs.contains(playerID)
-            || awayPlayerIDs.contains(playerID) {
+        if didParticipate(playerID) {
             return .bench
         }
 

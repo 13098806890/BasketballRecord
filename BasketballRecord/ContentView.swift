@@ -216,10 +216,7 @@ private struct PlayerCareerBoardView: View {
             var totalSeconds: TimeInterval = 0
 
             for game in store.savedGames {
-                let contains = game.homePlayerIDs.contains(player.id)
-                    || game.awayPlayerIDs.contains(player.id)
-                    || game.snapshot.statsByPlayerID[player.id] != nil
-                guard contains else { continue }
+                guard game.didParticipate(player.id) else { continue }
 
                 games += 1
                 let stats = game.snapshot.statsByPlayerID[player.id, default: PlayerStats()]
@@ -1517,7 +1514,7 @@ private struct ExportGameView: View {
                     Section {
                         HStack(spacing: 12) {
                             ProgressView()
-                            Text("正在生成 Base64 编码…")
+                            Text("正在生成压缩编码…")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
@@ -1530,7 +1527,7 @@ private struct ExportGameView: View {
                             .foregroundStyle(.secondary)
                     }
                 } else {
-                    Section("Base64 比赛记录") {
+                    Section("比赛分享编码") {
                         TextEditor(text: .constant(base64))
                             .font(.caption.monospaced())
                             .frame(minHeight: 220)
@@ -1607,7 +1604,7 @@ private struct ImportGameView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("粘贴 Base64") {
+                Section("粘贴分享编码") {
                     TextEditor(text: $base64)
                         .font(.caption.monospaced())
                         .frame(height: 112)
@@ -1718,7 +1715,7 @@ private struct ImportGameView: View {
         guard let decoded = store.decodeGamePackage(from: base64) else {
             package = nil
             parseSucceeded = false
-            parseResultText = "解析失败\n类型: 比赛\n请确认粘贴的是完整 Base64 比赛记录。"
+            parseResultText = "解析失败\n类型: 比赛\n请确认粘贴的是完整分享编码。"
             return
         }
         applyDecodedPackage(decoded)
