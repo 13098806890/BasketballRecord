@@ -174,6 +174,141 @@ struct GameLogEntry: Identifiable, Codable, Hashable {
     var message: String
 }
 
+enum PlayerGameRole: String, Codable, Hashable {
+    case starter
+    case bench
+
+    var title: String {
+        switch self {
+        case .starter:
+            return "首发"
+        case .bench:
+            return "替补"
+        }
+    }
+}
+
+enum CareerStatSection: String, CaseIterable, Codable, Identifiable {
+    case total
+    case average
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .total:
+            return "总数据"
+        case .average:
+            return "场均"
+        }
+    }
+}
+
+enum CareerStatItem: String, CaseIterable, Codable, Identifiable {
+    case totalPoints
+    case totalRebounds
+    case totalAssists
+    case totalFouls
+    case totalStarterGames
+    case totalBenchGames
+    case totalMinutes
+    case totalPlusMinus
+    case totalTwoPoint
+    case totalThreePoint
+    case totalFreeThrow
+    case averagePoints
+    case averageRebounds
+    case averageAssists
+    case averageFouls
+    case averageMinutes
+    case averagePlusMinus
+    case averageTwoMade
+    case averageThreeMade
+    case averageFreeThrowMade
+    case averageThreePointRate
+    case averageFreeThrowRate
+
+    var id: String { rawValue }
+
+    var section: CareerStatSection {
+        switch self {
+        case .totalPoints,
+             .totalRebounds,
+             .totalAssists,
+             .totalFouls,
+             .totalStarterGames,
+             .totalBenchGames,
+             .totalMinutes,
+             .totalPlusMinus,
+             .totalTwoPoint,
+             .totalThreePoint,
+             .totalFreeThrow:
+            return .total
+        case .averagePoints,
+             .averageRebounds,
+             .averageAssists,
+             .averageFouls,
+             .averageMinutes,
+             .averagePlusMinus,
+             .averageTwoMade,
+             .averageThreeMade,
+             .averageFreeThrowMade,
+             .averageThreePointRate,
+             .averageFreeThrowRate:
+            return .average
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .totalPoints:
+            return "得分"
+        case .totalRebounds:
+            return "篮板"
+        case .totalAssists:
+            return "助攻"
+        case .totalFouls:
+            return "犯规"
+        case .totalStarterGames:
+            return "首发场次"
+        case .totalBenchGames:
+            return "替补场次"
+        case .totalMinutes:
+            return "时间"
+        case .totalPlusMinus:
+            return "正负值"
+        case .totalTwoPoint:
+            return "2分投篮"
+        case .totalThreePoint:
+            return "3分投篮"
+        case .totalFreeThrow:
+            return "罚球"
+        case .averagePoints:
+            return "场均得分"
+        case .averageRebounds:
+            return "场均篮板"
+        case .averageAssists:
+            return "场均助攻"
+        case .averageFouls:
+            return "场均犯规"
+        case .averageMinutes:
+            return "场均时间"
+        case .averagePlusMinus:
+            return "场均正负值"
+        case .averageTwoMade:
+            return "场均2分命中"
+        case .averageThreeMade:
+            return "场均3分命中"
+        case .averageFreeThrowMade:
+            return "场均罚球命中"
+        case .averageThreePointRate:
+            return "三分命中率"
+        case .averageFreeThrowRate:
+            return "罚球命中率"
+        }
+    }
+}
+
 struct GameSnapshot: Codable, Hashable {
     var statsByPlayerID: [UUID: PlayerStats] = [:]
     var logs: [GameLogEntry] = []
@@ -190,11 +325,17 @@ struct GameSnapshot: Codable, Hashable {
     var showsFoulButton = true
     var homeOnCourtPlayerIDs: [UUID] = []
     var awayOnCourtPlayerIDs: [UUID] = []
+    var homeAvailablePlayerIDs: [UUID] = []
+    var awayAvailablePlayerIDs: [UUID] = []
+    var starterPlayerIDs: [UUID] = []
+    var isPaused = false
     var startersRecorded = false
     var playingSecondsByPlayerID: [UUID: TimeInterval] = [:]
     var activeSinceByPlayerID: [UUID: Date] = [:]
     var plusMinusByPlayerID: [UUID: Int] = [:]
     var currentPeriodFoulsBySide: [String: Int] = [:]
+    var matchElapsedSeconds: TimeInterval = 0
+    var matchActiveSince: Date?
 
     init(
         statsByPlayerID: [UUID: PlayerStats] = [:],
@@ -212,11 +353,17 @@ struct GameSnapshot: Codable, Hashable {
         showsFoulButton: Bool = true,
         homeOnCourtPlayerIDs: [UUID] = [],
         awayOnCourtPlayerIDs: [UUID] = [],
+        homeAvailablePlayerIDs: [UUID] = [],
+        awayAvailablePlayerIDs: [UUID] = [],
+        starterPlayerIDs: [UUID] = [],
+        isPaused: Bool = false,
         startersRecorded: Bool = false,
         playingSecondsByPlayerID: [UUID: TimeInterval] = [:],
         activeSinceByPlayerID: [UUID: Date] = [:],
         plusMinusByPlayerID: [UUID: Int] = [:],
-        currentPeriodFoulsBySide: [String: Int] = [:]
+        currentPeriodFoulsBySide: [String: Int] = [:],
+        matchElapsedSeconds: TimeInterval = 0,
+        matchActiveSince: Date? = nil
     ) {
         self.statsByPlayerID = statsByPlayerID
         self.logs = logs
@@ -233,11 +380,17 @@ struct GameSnapshot: Codable, Hashable {
         self.showsFoulButton = showsFoulButton
         self.homeOnCourtPlayerIDs = homeOnCourtPlayerIDs
         self.awayOnCourtPlayerIDs = awayOnCourtPlayerIDs
+        self.homeAvailablePlayerIDs = homeAvailablePlayerIDs
+        self.awayAvailablePlayerIDs = awayAvailablePlayerIDs
+        self.starterPlayerIDs = starterPlayerIDs
+        self.isPaused = isPaused
         self.startersRecorded = startersRecorded
         self.playingSecondsByPlayerID = playingSecondsByPlayerID
         self.activeSinceByPlayerID = activeSinceByPlayerID
         self.plusMinusByPlayerID = plusMinusByPlayerID
         self.currentPeriodFoulsBySide = currentPeriodFoulsBySide
+        self.matchElapsedSeconds = matchElapsedSeconds
+        self.matchActiveSince = matchActiveSince
     }
 
     init(from decoder: Decoder) throws {
@@ -257,11 +410,17 @@ struct GameSnapshot: Codable, Hashable {
         showsFoulButton = try container.decodeIfPresent(Bool.self, forKey: .showsFoulButton) ?? true
         homeOnCourtPlayerIDs = try container.decodeIfPresent([UUID].self, forKey: .homeOnCourtPlayerIDs) ?? []
         awayOnCourtPlayerIDs = try container.decodeIfPresent([UUID].self, forKey: .awayOnCourtPlayerIDs) ?? []
+        homeAvailablePlayerIDs = try container.decodeIfPresent([UUID].self, forKey: .homeAvailablePlayerIDs) ?? homeOnCourtPlayerIDs
+        awayAvailablePlayerIDs = try container.decodeIfPresent([UUID].self, forKey: .awayAvailablePlayerIDs) ?? awayOnCourtPlayerIDs
+        starterPlayerIDs = try container.decodeIfPresent([UUID].self, forKey: .starterPlayerIDs) ?? []
+        isPaused = try container.decodeIfPresent(Bool.self, forKey: .isPaused) ?? false
         startersRecorded = try container.decodeIfPresent(Bool.self, forKey: .startersRecorded) ?? false
         playingSecondsByPlayerID = try container.decodeIfPresent([UUID: TimeInterval].self, forKey: .playingSecondsByPlayerID) ?? [:]
         activeSinceByPlayerID = try container.decodeIfPresent([UUID: Date].self, forKey: .activeSinceByPlayerID) ?? [:]
         plusMinusByPlayerID = try container.decodeIfPresent([UUID: Int].self, forKey: .plusMinusByPlayerID) ?? [:]
         currentPeriodFoulsBySide = try container.decodeIfPresent([String: Int].self, forKey: .currentPeriodFoulsBySide) ?? [:]
+        matchElapsedSeconds = try container.decodeIfPresent(TimeInterval.self, forKey: .matchElapsedSeconds) ?? 0
+        matchActiveSince = try container.decodeIfPresent(Date.self, forKey: .matchActiveSince)
     }
 }
 
@@ -269,6 +428,7 @@ struct SavedGame: Identifiable, Codable, Hashable {
     var id = UUID()
     var savedAt: Date
     var snapshot: GameSnapshot
+    var aiSummary: String?
     var previousSnapshot: GameSnapshot?
     var undoSnapshots: [GameSnapshot] = []
     var homeTeamName: String
@@ -281,6 +441,7 @@ struct SavedGame: Identifiable, Codable, Hashable {
         id: UUID = UUID(),
         savedAt: Date,
         snapshot: GameSnapshot,
+        aiSummary: String? = nil,
         previousSnapshot: GameSnapshot? = nil,
         undoSnapshots: [GameSnapshot] = [],
         homeTeamName: String,
@@ -292,6 +453,7 @@ struct SavedGame: Identifiable, Codable, Hashable {
         self.id = id
         self.savedAt = savedAt
         self.snapshot = snapshot
+        self.aiSummary = aiSummary
         self.previousSnapshot = previousSnapshot
         self.undoSnapshots = undoSnapshots
         self.homeTeamName = homeTeamName
@@ -306,6 +468,7 @@ struct SavedGame: Identifiable, Codable, Hashable {
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         savedAt = try container.decode(Date.self, forKey: .savedAt)
         snapshot = try container.decode(GameSnapshot.self, forKey: .snapshot)
+        aiSummary = try container.decodeIfPresent(String.self, forKey: .aiSummary)
         previousSnapshot = try container.decodeIfPresent(GameSnapshot.self, forKey: .previousSnapshot)
         undoSnapshots = try container.decodeIfPresent([GameSnapshot].self, forKey: .undoSnapshots) ?? []
         homeTeamName = try container.decodeIfPresent(String.self, forKey: .homeTeamName) ?? "主队"
@@ -313,5 +476,23 @@ struct SavedGame: Identifiable, Codable, Hashable {
         homePlayerIDs = try container.decodeIfPresent([UUID].self, forKey: .homePlayerIDs) ?? []
         awayPlayerIDs = try container.decodeIfPresent([UUID].self, forKey: .awayPlayerIDs) ?? []
         playerNamesByID = try container.decodeIfPresent([UUID: String].self, forKey: .playerNamesByID) ?? [:]
+    }
+}
+
+extension SavedGame {
+    func role(of playerID: UUID) -> PlayerGameRole? {
+        guard !snapshot.starterPlayerIDs.isEmpty else { return nil }
+        if snapshot.starterPlayerIDs.contains(playerID) {
+            return .starter
+        }
+
+        let rosterPlayerIDs = Set(snapshot.homeAvailablePlayerIDs + snapshot.awayAvailablePlayerIDs)
+        if rosterPlayerIDs.contains(playerID)
+            || homePlayerIDs.contains(playerID)
+            || awayPlayerIDs.contains(playerID) {
+            return .bench
+        }
+
+        return nil
     }
 }

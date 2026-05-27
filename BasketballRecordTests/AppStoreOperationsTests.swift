@@ -143,6 +143,7 @@ final class AppStoreOperationsTests: XCTestCase {
         snapshot.playingSecondsByPlayerID[sourceID] = 45
         snapshot.plusMinusByPlayerID[targetID] = 4
         snapshot.plusMinusByPlayerID[sourceID] = 6
+        snapshot.starterPlayerIDs = [targetID, sourceID]
         snapshot.homeOnCourtPlayerIDs = [targetID, sourceID]
 
         let game = SavedGame(
@@ -186,9 +187,44 @@ final class AppStoreOperationsTests: XCTestCase {
         XCTAssertEqual(mergedStats.assists, 3)
         XCTAssertEqual(mergedGame.snapshot.playingSecondsByPlayerID[targetID], 165)
         XCTAssertEqual(mergedGame.snapshot.plusMinusByPlayerID[targetID], 10)
+        XCTAssertEqual(mergedGame.snapshot.starterPlayerIDs, [targetID])
         XCTAssertNil(mergedGame.snapshot.statsByPlayerID[sourceID])
         XCTAssertEqual(mergedGame.homePlayerIDs, [targetID])
         XCTAssertNil(mergedGame.playerNamesByID[sourceID])
+    }
+
+    func testSaveGameKeepsStarterWhenNoTechnicalStats() throws {
+        let homeStarterID = uuid("00000000-0000-0000-0000-000000006001")
+        let awayStarterID = uuid("00000000-0000-0000-0000-000000006002")
+        let homeTeamID = uuid("00000000-0000-0000-0000-000000006011")
+        let awayTeamID = uuid("00000000-0000-0000-0000-000000006012")
+
+        let store = AppStore()
+        store.players = [
+            Player(id: homeStarterID, name: "主队首发"),
+            Player(id: awayStarterID, name: "客队首发")
+        ]
+        store.teams = [
+            Team(id: homeTeamID, name: "主队", playerIDs: [homeStarterID]),
+            Team(id: awayTeamID, name: "客队", playerIDs: [awayStarterID])
+        ]
+
+        var snapshot = GameSnapshot(homeTeamID: homeTeamID, awayTeamID: awayTeamID)
+        snapshot.homeAvailablePlayerIDs = [homeStarterID]
+        snapshot.awayAvailablePlayerIDs = [awayStarterID]
+        snapshot.homeOnCourtPlayerIDs = [homeStarterID]
+        snapshot.awayOnCourtPlayerIDs = [awayStarterID]
+        snapshot.starterPlayerIDs = [homeStarterID, awayStarterID]
+        snapshot.startersRecorded = true
+
+        store.saveGame(snapshot)
+
+        let saved = try XCTUnwrap(store.savedGames.first)
+        XCTAssertEqual(saved.homePlayerIDs, [homeStarterID])
+        XCTAssertEqual(saved.awayPlayerIDs, [awayStarterID])
+        XCTAssertEqual(saved.snapshot.starterPlayerIDs, [homeStarterID, awayStarterID])
+        XCTAssertEqual(saved.role(of: homeStarterID), .starter)
+        XCTAssertEqual(saved.role(of: awayStarterID), .starter)
     }
 
     func testMergeTeamRemapsHistoricalTeamIDsAndMergesRoster() throws {
@@ -244,6 +280,120 @@ final class AppStoreOperationsTests: XCTestCase {
         XCTAssertEqual(store.savedGames[0].homeTeamName, "目标队")
         XCTAssertEqual(store.savedGames[1].snapshot.awayTeamID, targetTeamID)
         XCTAssertEqual(store.savedGames[1].awayTeamName, "目标队")
+    }
+
+    func testMergePlayerPreservesPreviousAndUndoSnapshots() throws {
+        let targetID = uuid("00000000-0000-0000-0000-000000005001")
+        let sourceID = uuid("00000000-0000-0000-0000-000000005002")
+        let homeTeamID = uuid("00000000-0000-0000-0000-000000005011")
+        let awayTeamID = uuid("00000000-0000-0000-0000-000000005012")
+
+        let store = AppStore()
+        store.players = [
+            Player(id: targetID, name: "目标"),
+            Player(id: sourceID, name: "来源")
+        ]
+        store.teams = [
+            Team(id: homeTeamID, name: "主队", playerIDs: [targetID, sourceID]),
+            Team(id: awayTeamID, name: "客队", playerIDs: [])
+        ]
+
+        var currentSnapshot = GameSnapshot(homeTeamID: homeTeamID, awayTeamID: awayTeamID)
+        currentSnapshot.statsByPlayerID[sourceID] = PlayerStats(twoMade: 1)
+
+        var previousSnapshot = currentSnapshot
+        previousSnapshot.statsByPlayerID[sourceID] = PlayerStats(threeMade: 1)
+
+        var undoSnapshot = currentSnapshot
+        undoSnapshot.statsByPlayerID[sourceID] = PlayerStats(freeThrowMade: 2)
+
+        let saved = SavedGame(
+            savedAt: Date(),
+            snapshot: currentSnapshot,
+            previousSnapshot: previousSnapshot,
+            undoSnapshots: [undoSnapshot],
+            homeTeamName: "主队",
+            awayTeamName: "客队",
+            homePlayerIDs: [targetID, sourceID],
+            awayPlayerIDs: [],
+            playerNamesByID: [targetID: "目标", sourceID: "来源"]
+        )
+        store.savedGames = [saved]
+
+        _ = try XCTUnwrap(store.mergePlayer(sourceID: sourceID, into: targetID))
+
+        let merged = try XCTUnwrap(store.savedGames.first)
+        XCTAssertNil(merged.snapshot.statsByPlayerID[sourceID])
+        XCTAssertEqual(merged.snapshot.statsByPlayerID[targetID]?.twoMade, 1)
+
+        let mergedPrevious = try XCTUnwrap(merged.previousSnapshot)
+        XCTAssertNil(mergedPrevious.statsByPlayerID[sourceID])
+        XCTAssertEqual(mergedPrevious.statsByPlayerID[targetID]?.threeMade, 1)
+
+        let mergedUndo = try XCTUnwrap(merged.undoSnapshots.first)
+        XCTAssertNil(mergedUndo.statsByPlayerID[sourceID])
+        XCTAssertEqual(mergedUndo.statsByPlayerID[targetID]?.freeThrowMade, 2)
+    }
+
+    func testImportGamePackageUpsertsByGameID() throws {
+        let homePlayerID = uuid("00000000-0000-0000-0000-000000006001")
+        let awayPlayerID = uuid("00000000-0000-0000-0000-000000006002")
+        let homeTeamID = uuid("00000000-0000-0000-0000-000000006011")
+        let awayTeamID = uuid("00000000-0000-0000-0000-000000006012")
+        let gameID = uuid("00000000-0000-0000-0000-000000006099")
+
+        let source = AppStore()
+        source.players = [
+            Player(id: homePlayerID, name: "主队球员"),
+            Player(id: awayPlayerID, name: "客队球员")
+        ]
+        source.teams = [
+            Team(id: homeTeamID, name: "主队", playerIDs: [homePlayerID]),
+            Team(id: awayTeamID, name: "客队", playerIDs: [awayPlayerID])
+        ]
+
+        var snapshot = GameSnapshot(homeTeamID: homeTeamID, awayTeamID: awayTeamID)
+        snapshot.statsByPlayerID[homePlayerID] = PlayerStats(twoMade: 1)
+        let saved = SavedGame(
+            id: gameID,
+            savedAt: Date(),
+            snapshot: snapshot,
+            homeTeamName: "主队",
+            awayTeamName: "客队",
+            homePlayerIDs: [homePlayerID],
+            awayPlayerIDs: [awayPlayerID],
+            playerNamesByID: [homePlayerID: "主队球员", awayPlayerID: "客队球员"]
+        )
+        source.savedGames = [saved]
+
+        let base64 = try XCTUnwrap(source.exportGameBase64(saved))
+        var package = try XCTUnwrap(source.decodeGamePackage(from: base64))
+
+        let target = AppStore()
+        target.players = source.players
+        target.teams = source.teams
+        target.savedGames = []
+
+        target.importGamePackage(package, importsUnmatchedRoster: false)
+        XCTAssertEqual(target.savedGames.count, 1)
+        XCTAssertEqual(target.savedGames[0].id, gameID)
+
+        package.game.snapshot.logs.append(GameLogEntry(timestamp: Date(), message: "模拟事件 (2:0)"))
+        target.importGamePackage(package, importsUnmatchedRoster: false)
+
+        XCTAssertEqual(target.savedGames.count, 1)
+        XCTAssertEqual(target.savedGames[0].id, gameID)
+        XCTAssertEqual(target.savedGames[0].snapshot.logs.count, 1)
+    }
+
+    func testCorruptedStoredPayloadDoesNotSeedSampleData() {
+        UserDefaults.standard.set(Data([0x00, 0x01, 0x02]), forKey: storageKey)
+
+        let store = AppStore()
+
+        XCTAssertTrue(store.players.isEmpty)
+        XCTAssertTrue(store.teams.isEmpty)
+        XCTAssertTrue(store.savedGames.isEmpty)
     }
 
     private func clearStore() {

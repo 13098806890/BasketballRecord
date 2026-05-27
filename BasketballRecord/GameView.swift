@@ -12,14 +12,24 @@ struct GameView: View {
     @State private var selectedSide: TeamSide = .home
     @State private var isStatsExpanded = false
     @State private var isShowingSubstitution = false
+    @State private var isShowingLateArrival = false
     @State private var isShowingNewGameSetup = false
     @State private var isShowingUnfinishedGameAlert = false
+    @State private var isShowingSimulateConfirmation = false
+    @State private var isShowingFinishGameConfirmation = false
     @State private var isShowingResetConfirmation = false
     @State private var substitutionSide: TeamSide = .home
+    @State private var lateArrivalSide: TeamSide = .home
     @State private var outgoingPlayerID: UUID?
     @State private var incomingPlayerID: UUID?
+    @State private var lateArrivalIncomingPlayerID: UUID?
     @State private var saveConfirmation: String?
     @State private var statAlertMessage: String?
+    @State private var simulationAlertMessage: String?
+    @State private var isSimulating = false
+    @State private var clockNow = Date()
+
+    private let matchClockTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         NavigationStack {
@@ -81,6 +91,10 @@ struct GameView: View {
                 logView
                     .padding(.horizontal)
             }
+            .overlay(alignment: .center) {
+                simulationLoadingView
+            }
+            .allowsHitTesting(!isSimulating)
             .navigationTitle("比赛记录")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -101,19 +115,6 @@ struct GameView: View {
                         Label("存到历史", systemImage: "clock.badge.checkmark")
                     }
                     .disabled(snapshot.logs.isEmpty)
-
-                    Button {
-                        finishGame()
-                    } label: {
-                        Label("结束比赛", systemImage: "flag.checkered.circle.fill")
-                    }
-                    .disabled(snapshot.isComplete || snapshot.logs.isEmpty)
-
-                    Button {
-                        isShowingResetConfirmation = true
-                    } label: {
-                        Label("重置比赛", systemImage: "arrow.counterclockwise")
-                    }
                 }
             }
             .sheet(isPresented: $isShowingNewGameSetup) {
@@ -139,10 +140,21 @@ struct GameView: View {
                     homeTeamName: store.team(for: snapshot.homeTeamID)?.name ?? "主队",
                     awayTeamName: store.team(for: snapshot.awayTeamID)?.name ?? "客队",
                     homeOnCourtPlayers: players(in: snapshot.homeTeamID).filter { snapshot.homeOnCourtPlayerIDs.contains($0.id) },
-                    homeBenchPlayers: players(in: snapshot.homeTeamID).filter { !snapshot.homeOnCourtPlayerIDs.contains($0.id) },
+                    homeBenchPlayers: benchPlayers(for: .home),
                     awayOnCourtPlayers: players(in: snapshot.awayTeamID).filter { snapshot.awayOnCourtPlayerIDs.contains($0.id) },
-                    awayBenchPlayers: players(in: snapshot.awayTeamID).filter { !snapshot.awayOnCourtPlayerIDs.contains($0.id) },
+                    awayBenchPlayers: benchPlayers(for: .away),
                     onConfirm: performSubstitution
+                )
+            }
+            .sheet(isPresented: $isShowingLateArrival) {
+                LateArrivalEntryView(
+                    side: $lateArrivalSide,
+                    incomingPlayerID: $lateArrivalIncomingPlayerID,
+                    homeTeamName: store.team(for: snapshot.homeTeamID)?.name ?? "主队",
+                    awayTeamName: store.team(for: snapshot.awayTeamID)?.name ?? "客队",
+                    homeUnregisteredPlayers: unregisteredPlayers(for: .home),
+                    awayUnregisteredPlayers: unregisteredPlayers(for: .away),
+                    onConfirm: performLateArrival
                 )
             }
             .alert("已保存", isPresented: Binding(
@@ -168,6 +180,15 @@ struct GameView: View {
             } message: {
                 Text("是否先结束当前比赛，再开始新比赛？")
             }
+            .alert("当前比赛未结束", isPresented: $isShowingSimulateConfirmation) {
+                Button("取消", role: .cancel) { }
+                Button("结束并模拟") {
+                    finishGame()
+                    startSimulation()
+                }
+            } message: {
+                Text("是否先结束当前比赛，再生成一场模拟比赛？")
+            }
             .alert("无法记录统计", isPresented: Binding(
                 get: { statAlertMessage != nil },
                 set: { if !$0 { statAlertMessage = nil } }
@@ -176,11 +197,23 @@ struct GameView: View {
             } message: {
                 Text(statAlertMessage ?? "")
             }
+            .alert("无法模拟比赛", isPresented: Binding(
+                get: { simulationAlertMessage != nil },
+                set: { if !$0 { simulationAlertMessage = nil } }
+            )) {
+                Button("知道了") { simulationAlertMessage = nil }
+            } message: {
+                Text(simulationAlertMessage ?? "")
+            }
             .onAppear {
                 restoreLatestGameIfNeeded()
             }
+            .onReceive(matchClockTicker) { date in
+                clockNow = date
+            }
             .onChange(of: store.teams) { _, _ in ensureInitialSelection() }
             .onChange(of: substitutionSide) { _, _ in prepareSubstitutionDefaults() }
+            .onChange(of: lateArrivalSide) { _, _ in prepareLateArrivalDefaults() }
         }
     }
 
@@ -188,27 +221,45 @@ struct GameView: View {
         HStack(spacing: 8) {
             Picker("主队", selection: Binding(
                 get: { snapshot.homeTeamID ?? store.teams.first?.id },
-                set: { snapshot.homeTeamID = $0; ensureSelectedPlayer() }
+                set: {
+                    guard canEditTeamSelection else { return }
+                    snapshot.homeTeamID = $0
+                    ensureSelectedPlayer()
+                }
             )) {
                 ForEach(store.teams) { team in
                     Text(team.name).tag(Optional(team.id))
                 }
             }
             .pickerStyle(.menu)
+            .disabled(!canEditTeamSelection)
 
-            Text("VS")
-                .font(.caption.weight(.bold))
+            Text("vs")
+                .font(.caption)
                 .foregroundStyle(.secondary)
 
             Picker("客队", selection: Binding(
                 get: { snapshot.awayTeamID ?? store.teams.dropFirst().first?.id ?? store.teams.first?.id },
-                set: { snapshot.awayTeamID = $0; ensureSelectedPlayer() }
+                set: {
+                    guard canEditTeamSelection else { return }
+                    snapshot.awayTeamID = $0
+                    ensureSelectedPlayer()
+                }
             )) {
                 ForEach(store.teams) { team in
                     Text(team.name).tag(Optional(team.id))
                 }
             }
             .pickerStyle(.menu)
+            .disabled(!canEditTeamSelection)
+
+            HStack(spacing: 4) {
+                Image(systemName: "clock")
+                Text(Self.durationFormatter(currentMatchElapsedSeconds))
+                    .monospacedDigit()
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
 
             Spacer(minLength: 0)
 
@@ -244,18 +295,17 @@ struct GameView: View {
                 if snapshot.showsFoulButton {
                     actionButton("犯规", systemImage: "exclamationmark.triangle", style: .warning) { record(.foul) }
                 }
-
                 Button {
-                    openSubstitution(selectedSide)
+                    togglePause()
                 } label: {
-                    Label("换人", systemImage: "arrow.left.arrow.right.circle")
+                    Label(pauseButtonTitle, systemImage: snapshot.isPaused ? "play.fill" : "pause.fill")
                         .font(.caption.weight(.semibold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                         .frame(maxWidth: .infinity, minHeight: 34)
                 }
-                .buttonStyle(PastelActionButtonStyle(style: .substitution))
-                .disabled(needsNewGameSetup)
+                .buttonStyle(PastelActionButtonStyle(style: .pause))
+                .disabled(!snapshot.periodIsRunning || snapshot.isComplete)
             }
 
             HStack(spacing: 8) {
@@ -268,14 +318,74 @@ struct GameView: View {
                         .minimumScaleFactor(0.7)
                         .frame(maxWidth: .infinity, minHeight: 34)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(snapshot.periodIsRunning ? GamePalette.periodEnd : GamePalette.period)
+                .buttonStyle(PastelActionButtonStyle(style: snapshot.periodIsRunning ? .periodEnd : .period))
                 .disabled(snapshot.isComplete)
+
+                Button {
+                    openSubstitution(selectedSide)
+                } label: {
+                    Label("换人", systemImage: "arrow.left.arrow.right.circle")
+                        .font(.caption.weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(maxWidth: .infinity, minHeight: 34)
+                }
+                .buttonStyle(PastelActionButtonStyle(style: .substitution))
+                .disabled(needsNewGameSetup)
+
+                Button {
+                    openLateArrival(selectedSide)
+                } label: {
+                    Label("新增上场", systemImage: "person.crop.circle.badge.plus")
+                        .font(.caption.weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(maxWidth: .infinity, minHeight: 34)
+                }
+                .buttonStyle(PastelActionButtonStyle(style: .substitution))
+                .disabled(needsNewGameSetup)
+            }
+
+            HStack(spacing: 8) {
+                Button {
+                    isShowingResetConfirmation = true
+                } label: {
+                    Label("重置比赛", systemImage: "arrow.counterclockwise")
+                        .font(.caption.weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(maxWidth: .infinity, minHeight: 34)
+                }
+                .buttonStyle(.bordered)
+
+                Button {
+                    isShowingFinishGameConfirmation = true
+                } label: {
+                    Label("结束比赛", systemImage: "flag.checkered.circle.fill")
+                        .font(.caption.weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(maxWidth: .infinity, minHeight: 34)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(GamePalette.finish)
+                .disabled(snapshot.isComplete || snapshot.logs.isEmpty)
+                .alert("结束比赛？", isPresented: $isShowingFinishGameConfirmation) {
+                    Button("取消", role: .cancel) { }
+                    Button("确认结束") {
+                        finishGame()
+                    }
+                } message: {
+                    Text("结束后将无法继续本场记分，确认结束当前比赛吗？")
+                }
 
                 Button {
                     undo()
                 } label: {
                     Label("撤回", systemImage: "arrow.uturn.backward")
+                        .font(.caption.weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                         .frame(maxWidth: .infinity, minHeight: 34)
                 }
                 .buttonStyle(.bordered)
@@ -285,6 +395,9 @@ struct GameView: View {
                     redo()
                 } label: {
                     Label("重做", systemImage: "arrow.uturn.forward")
+                        .font(.caption.weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                         .frame(maxWidth: .infinity, minHeight: 34)
                 }
                 .buttonStyle(.bordered)
@@ -324,6 +437,21 @@ struct GameView: View {
         return store.player(for: selectedPlayerID)
     }
 
+    @ViewBuilder
+    private var simulationLoadingView: some View {
+        if isSimulating {
+            VStack(spacing: 8) {
+                ProgressView()
+                Text("模拟比赛中...")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 14)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+        }
+    }
+
     private var selectedStats: PlayerStats {
         guard let selectedPlayerID else { return PlayerStats() }
         return snapshot.statsByPlayerID[selectedPlayerID, default: PlayerStats()]
@@ -337,14 +465,37 @@ struct GameView: View {
         currentGameRecordID != nil && !snapshot.isComplete
     }
 
+    private var canEditTeamSelection: Bool {
+        snapshot.logs.isEmpty && currentGameRecordID == nil
+    }
+
     private var periodSummary: String {
         if snapshot.isComplete { return "已结束" }
-        return "第\(snapshot.currentPeriod)/\(snapshot.periodCount)节\(snapshot.periodIsRunning ? "中" : "")"
+        if snapshot.periodIsRunning {
+            return snapshot.isPaused
+                ? "第\(snapshot.currentPeriod)/\(snapshot.periodCount)节(暂停)"
+                : "第\(snapshot.currentPeriod)/\(snapshot.periodCount)节中"
+        }
+        return "第\(snapshot.currentPeriod)/\(snapshot.periodCount)节"
     }
 
     private var periodButtonTitle: String {
         if snapshot.isComplete { return "比赛结束" }
         return "第\(snapshot.currentPeriod)节\(snapshot.periodIsRunning ? "结束" : "开始")"
+    }
+
+    private var currentMatchElapsedSeconds: TimeInterval {
+        guard snapshot.periodIsRunning,
+              !snapshot.isPaused,
+              let activeSince = snapshot.matchActiveSince else {
+            return snapshot.matchElapsedSeconds
+        }
+
+        return snapshot.matchElapsedSeconds + max(0, clockNow.timeIntervalSince(activeSince))
+    }
+
+    private var pauseButtonTitle: String {
+        snapshot.isPaused ? "继续" : "暂停"
     }
 
     private func actionButton(_ title: String, systemImage: String, style: ActionButtonStyle, action: @escaping () -> Void) -> some View {
@@ -368,14 +519,16 @@ struct GameView: View {
     }
 
     private func score(for teamID: UUID?) -> Int {
-        players(in: teamID).reduce(0) { total, player in
-            total + snapshot.statsByPlayerID[player.id, default: PlayerStats()].points
+        guard let side = side(for: teamID) else { return 0 }
+        return gamePlayerIDs(for: side).reduce(0) { total, playerID in
+            total + snapshot.statsByPlayerID[playerID, default: PlayerStats()].points
         }
     }
 
     private func teamFouls(for teamID: UUID?) -> Int {
-        players(in: teamID).reduce(0) { total, player in
-            total + snapshot.statsByPlayerID[player.id, default: PlayerStats()].fouls
+        guard let side = side(for: teamID) else { return 0 }
+        return gamePlayerIDs(for: side).reduce(0) { total, playerID in
+            total + snapshot.statsByPlayerID[playerID, default: PlayerStats()].fouls
         }
     }
 
@@ -387,9 +540,10 @@ struct GameView: View {
     }
 
     private func aggregateStats(for teamID: UUID?) -> PlayerStats {
-        players(in: teamID).reduce(PlayerStats()) { partial, player in
+        guard let side = side(for: teamID) else { return PlayerStats() }
+        return gamePlayerIDs(for: side).reduce(PlayerStats()) { partial, playerID in
             var total = partial
-            let stats = snapshot.statsByPlayerID[player.id, default: PlayerStats()]
+            let stats = snapshot.statsByPlayerID[playerID, default: PlayerStats()]
             total.twoMade += stats.twoMade
             total.twoAttempts += stats.twoAttempts
             total.threeMade += stats.threeMade
@@ -409,6 +563,28 @@ struct GameView: View {
         side == .home ? snapshot.homeOnCourtPlayerIDs : snapshot.awayOnCourtPlayerIDs
     }
 
+    private func gamePlayerIDs(for side: TeamSide) -> [UUID] {
+        let explicitIDs = side == .home ? snapshot.homeAvailablePlayerIDs : snapshot.awayAvailablePlayerIDs
+        if !explicitIDs.isEmpty {
+            return explicitIDs
+        }
+        let fallback = onCourtIDs(for: side)
+        if !fallback.isEmpty {
+            return fallback
+        }
+        let teamID = side == .home ? snapshot.homeTeamID : snapshot.awayTeamID
+        return players(in: teamID).map(\.id)
+    }
+
+    private func setGamePlayerIDs(_ ids: [UUID], for side: TeamSide) {
+        let uniqueIDs = unique(ids)
+        if side == .home {
+            snapshot.homeAvailablePlayerIDs = uniqueIDs
+        } else {
+            snapshot.awayAvailablePlayerIDs = uniqueIDs
+        }
+    }
+
     private func setOnCourtIDs(_ ids: [UUID], for side: TeamSide) {
         if side == .home {
             snapshot.homeOnCourtPlayerIDs = ids
@@ -419,6 +595,25 @@ struct GameView: View {
 
     private func isOnCourt(_ playerID: UUID, side: TeamSide) -> Bool {
         onCourtIDs(for: side).contains(playerID)
+    }
+
+    private func side(for teamID: UUID?) -> TeamSide? {
+        if teamID == snapshot.homeTeamID { return .home }
+        if teamID == snapshot.awayTeamID { return .away }
+        return nil
+    }
+
+    private func benchPlayers(for side: TeamSide) -> [Player] {
+        let onCourt = Set(onCourtIDs(for: side))
+        return gamePlayerIDs(for: side)
+            .filter { !onCourt.contains($0) }
+            .compactMap { store.player(for: $0) }
+    }
+
+    private func unregisteredPlayers(for side: TeamSide) -> [Player] {
+        let teamID = side == .home ? snapshot.homeTeamID : snapshot.awayTeamID
+        let registered = Set(gamePlayerIDs(for: side))
+        return players(in: teamID).filter { !registered.contains($0.id) }
     }
 
     private func playingSeconds(for playerID: UUID, now: Date = Date()) -> TimeInterval {
@@ -449,37 +644,35 @@ struct GameView: View {
     }
 
     private func ensureDefaultLineups() {
-        let homeIDs = players(in: snapshot.homeTeamID).map(\.id)
-        let awayIDs = players(in: snapshot.awayTeamID).map(\.id)
-
-        snapshot.homeOnCourtPlayerIDs = snapshot.homeOnCourtPlayerIDs.filter { homeIDs.contains($0) }
-        snapshot.awayOnCourtPlayerIDs = snapshot.awayOnCourtPlayerIDs.filter { awayIDs.contains($0) }
-
-        if snapshot.homeOnCourtPlayerIDs.isEmpty {
-            snapshot.homeOnCourtPlayerIDs = Array(homeIDs.prefix(snapshot.courtPlayerCount))
-        }
-        if snapshot.awayOnCourtPlayerIDs.isEmpty {
-            snapshot.awayOnCourtPlayerIDs = Array(awayIDs.prefix(snapshot.courtPlayerCount))
-        }
-
-        if snapshot.homeOnCourtPlayerIDs.count < snapshot.courtPlayerCount {
-            let bench = homeIDs.filter { !snapshot.homeOnCourtPlayerIDs.contains($0) }
-            snapshot.homeOnCourtPlayerIDs.append(contentsOf: bench.prefix(snapshot.courtPlayerCount - snapshot.homeOnCourtPlayerIDs.count))
-        }
-        if snapshot.awayOnCourtPlayerIDs.count < snapshot.courtPlayerCount {
-            let bench = awayIDs.filter { !snapshot.awayOnCourtPlayerIDs.contains($0) }
-            snapshot.awayOnCourtPlayerIDs.append(contentsOf: bench.prefix(snapshot.courtPlayerCount - snapshot.awayOnCourtPlayerIDs.count))
-        }
-
-        snapshot.homeOnCourtPlayerIDs = Array(snapshot.homeOnCourtPlayerIDs.prefix(snapshot.courtPlayerCount))
-        snapshot.awayOnCourtPlayerIDs = Array(snapshot.awayOnCourtPlayerIDs.prefix(snapshot.courtPlayerCount))
+        trimInvalidLineups()
     }
 
     private func trimInvalidLineups() {
-        let homeIDs = players(in: snapshot.homeTeamID).map(\.id)
-        let awayIDs = players(in: snapshot.awayTeamID).map(\.id)
-        snapshot.homeOnCourtPlayerIDs = Array(snapshot.homeOnCourtPlayerIDs.filter { homeIDs.contains($0) }.prefix(snapshot.courtPlayerCount))
-        snapshot.awayOnCourtPlayerIDs = Array(snapshot.awayOnCourtPlayerIDs.filter { awayIDs.contains($0) }.prefix(snapshot.courtPlayerCount))
+        let homeTeamIDs = Set(players(in: snapshot.homeTeamID).map(\.id))
+        let awayTeamIDs = Set(players(in: snapshot.awayTeamID).map(\.id))
+
+        let homeRegistered = unique((snapshot.homeAvailablePlayerIDs + snapshot.homeOnCourtPlayerIDs).filter { homeTeamIDs.contains($0) })
+        let awayRegistered = unique((snapshot.awayAvailablePlayerIDs + snapshot.awayOnCourtPlayerIDs).filter { awayTeamIDs.contains($0) })
+
+        var homeOnCourt = unique(snapshot.homeOnCourtPlayerIDs.filter { homeRegistered.contains($0) })
+        var awayOnCourt = unique(snapshot.awayOnCourtPlayerIDs.filter { awayRegistered.contains($0) })
+
+        let maxHomeOnCourt = min(snapshot.courtPlayerCount, homeRegistered.count)
+        let maxAwayOnCourt = min(snapshot.courtPlayerCount, awayRegistered.count)
+
+        if homeOnCourt.count < maxHomeOnCourt {
+            let supplement = homeRegistered.filter { !homeOnCourt.contains($0) }
+            homeOnCourt.append(contentsOf: supplement.prefix(maxHomeOnCourt - homeOnCourt.count))
+        }
+        if awayOnCourt.count < maxAwayOnCourt {
+            let supplement = awayRegistered.filter { !awayOnCourt.contains($0) }
+            awayOnCourt.append(contentsOf: supplement.prefix(maxAwayOnCourt - awayOnCourt.count))
+        }
+
+        snapshot.homeAvailablePlayerIDs = homeRegistered
+        snapshot.awayAvailablePlayerIDs = awayRegistered
+        snapshot.homeOnCourtPlayerIDs = Array(homeOnCourt.prefix(snapshot.courtPlayerCount))
+        snapshot.awayOnCourtPlayerIDs = Array(awayOnCourt.prefix(snapshot.courtPlayerCount))
     }
 
     private func ensureSelectedPlayer() {
@@ -500,6 +693,10 @@ struct GameView: View {
     private func record(_ action: StatAction) {
         guard !snapshot.isComplete else {
             statAlertMessage = "比赛已结束"
+            return
+        }
+        guard !snapshot.isPaused else {
+            statAlertMessage = "比赛暂停中"
             return
         }
         guard snapshot.periodIsRunning else {
@@ -534,8 +731,10 @@ struct GameView: View {
         mutateSnapshot {
             if snapshot.periodIsRunning {
                 closeActiveStints(at: now)
+                closeMatchClock(at: now)
                 addEvent("第\(snapshot.currentPeriod)节结束")
                 snapshot.periodIsRunning = false
+                snapshot.isPaused = false
                 if snapshot.currentPeriod >= snapshot.periodCount {
                     snapshot.isComplete = true
                     addEvent("比赛结束")
@@ -549,13 +748,34 @@ struct GameView: View {
                     snapshot.currentPeriodFoulsBySide[TeamSide.away.rawValue] = 0
                 }
                 if !snapshot.startersRecorded {
+                    snapshot.starterPlayerIDs = unique(snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs)
                     addEvent("主队首发：\(names(for: snapshot.homeOnCourtPlayerIDs))")
                     addEvent("客队首发：\(names(for: snapshot.awayOnCourtPlayerIDs))")
                     snapshot.startersRecorded = true
                 }
                 addEvent("第\(snapshot.currentPeriod)节开始")
+                startMatchClock(at: now)
                 startActiveStints(at: now)
                 snapshot.periodIsRunning = true
+                snapshot.isPaused = false
+            }
+        }
+    }
+
+    private func togglePause() {
+        guard snapshot.periodIsRunning, !snapshot.isComplete else { return }
+        let now = Date()
+        mutateSnapshot {
+            if snapshot.isPaused {
+                snapshot.isPaused = false
+                startMatchClock(at: now)
+                startActiveStints(at: now)
+                addEvent("比赛继续")
+            } else {
+                closeActiveStints(at: now)
+                closeMatchClock(at: now)
+                snapshot.isPaused = true
+                addEvent("比赛暂停")
             }
         }
     }
@@ -565,6 +785,8 @@ struct GameView: View {
         awayTeamID: UUID,
         homeStarterIDs: [UUID],
         awayStarterIDs: [UUID],
+        homeBenchIDs: [UUID],
+        awayBenchIDs: [UUID],
         periodCount: Int,
         courtPlayerCount: Int,
         resetsTeamFoulsEachPeriod: Bool,
@@ -585,7 +807,9 @@ struct GameView: View {
             showsAssistButton: showsAssistButton,
             showsFoulButton: showsFoulButton,
             homeOnCourtPlayerIDs: homeStarterIDs,
-            awayOnCourtPlayerIDs: awayStarterIDs
+            awayOnCourtPlayerIDs: awayStarterIDs,
+            homeAvailablePlayerIDs: unique(homeStarterIDs + homeBenchIDs),
+            awayAvailablePlayerIDs: unique(awayStarterIDs + awayBenchIDs)
         )
         selectedPlayerID = nil
         selectedSide = .home
@@ -595,7 +819,9 @@ struct GameView: View {
 
     private func saveCurrentGame() {
         var snapshotForSaving = snapshot
-        closeActiveStints(in: &snapshotForSaving, at: Date())
+        let now = Date()
+        closeActiveStints(in: &snapshotForSaving, at: now)
+        closeMatchClock(in: &snapshotForSaving, at: now)
         snapshotForSaving.periodIsRunning = false
         mutateSnapshot(pushUndo: false) {
             addEvent("比赛保存")
@@ -611,8 +837,10 @@ struct GameView: View {
         mutateSnapshot {
             if snapshot.periodIsRunning {
                 closeActiveStints(at: now)
+                closeMatchClock(at: now)
                 snapshot.periodIsRunning = false
             }
+            snapshot.isPaused = false
             snapshot.isComplete = true
             addEvent("比赛结束")
         }
@@ -620,7 +848,7 @@ struct GameView: View {
 
     private func prepareSubstitutionDefaults() {
         let onCourt = substitutionSide == .home ? snapshot.homeOnCourtPlayerIDs : snapshot.awayOnCourtPlayerIDs
-        let bench = players(in: substitutionSide == .home ? snapshot.homeTeamID : snapshot.awayTeamID).map(\.id).filter { !onCourt.contains($0) }
+        let bench = gamePlayerIDs(for: substitutionSide).filter { !onCourt.contains($0) }
         outgoingPlayerID = onCourt.first
         incomingPlayerID = bench.first
     }
@@ -645,7 +873,7 @@ struct GameView: View {
             }
             setOnCourtIDs(ids, for: substitutionSide)
 
-            if snapshot.periodIsRunning {
+            if snapshot.periodIsRunning && !snapshot.isPaused {
                 closeStint(for: outgoingPlayerID, at: now)
                 startStint(for: incomingPlayerID, at: now)
             }
@@ -653,6 +881,341 @@ struct GameView: View {
             addEvent("\(name(for: incomingPlayerID)) 替换 \(name(for: outgoingPlayerID))")
             selectedPlayerID = incomingPlayerID
             selectedSide = substitutionSide
+        }
+    }
+
+    private func prepareLateArrivalDefaults() {
+        let incomingCandidates = unregisteredPlayers(for: lateArrivalSide).map(\.id)
+        lateArrivalIncomingPlayerID = incomingCandidates.first
+    }
+
+    private func openLateArrival(_ side: TeamSide) {
+        lateArrivalSide = side
+        prepareLateArrivalDefaults()
+        isShowingLateArrival = true
+    }
+
+    private func handleSimulateTapped() {
+        guard !isSimulating else { return }
+        if hasUnfinishedGameToConfirm {
+            isShowingSimulateConfirmation = true
+            return
+        }
+        startSimulation()
+    }
+
+    private func startSimulation() {
+        guard !isSimulating else { return }
+        isSimulating = true
+        Task { @MainActor in
+            defer { isSimulating = false }
+            await Task.yield()
+            simulateGame()
+        }
+    }
+
+    private func simulateGame() {
+        guard let context = simulationContext() else {
+            simulationAlertMessage = "至少需要两支有球员的球队才能模拟比赛。"
+            return
+        }
+
+        let periodCount = min(max(snapshot.periodCount, 1), 8)
+        let courtCount = max(1, min(snapshot.courtPlayerCount, context.homeRosterIDs.count, context.awayRosterIDs.count))
+        let homeAvailable = context.homeRosterIDs.shuffled()
+        let awayAvailable = context.awayRosterIDs.shuffled()
+
+        var simulated = GameSnapshot(
+            homeTeamID: context.homeTeam.id,
+            awayTeamID: context.awayTeam.id,
+            periodCount: periodCount,
+            courtPlayerCount: courtCount,
+            resetsTeamFoulsEachPeriod: snapshot.resetsTeamFoulsEachPeriod,
+            showsReboundButton: snapshot.showsReboundButton,
+            showsAssistButton: snapshot.showsAssistButton,
+            showsFoulButton: snapshot.showsFoulButton,
+            homeOnCourtPlayerIDs: Array(homeAvailable.prefix(courtCount)),
+            awayOnCourtPlayerIDs: Array(awayAvailable.prefix(courtCount)),
+            homeAvailablePlayerIDs: homeAvailable,
+            awayAvailablePlayerIDs: awayAvailable
+        )
+
+        var eventTime = Date().addingTimeInterval(-Double(periodCount) * 700)
+        var simulatedMatchElapsedSeconds: TimeInterval = 0
+
+        func onCourtIDs(for side: TeamSide) -> [UUID] {
+            side == .home ? simulated.homeOnCourtPlayerIDs : simulated.awayOnCourtPlayerIDs
+        }
+
+        func setOnCourtIDs(_ ids: [UUID], for side: TeamSide) {
+            if side == .home {
+                simulated.homeOnCourtPlayerIDs = ids
+            } else {
+                simulated.awayOnCourtPlayerIDs = ids
+            }
+        }
+
+        func availableIDs(for side: TeamSide) -> [UUID] {
+            side == .home ? simulated.homeAvailablePlayerIDs : simulated.awayAvailablePlayerIDs
+        }
+
+        func randomOnCourtPlayerID(for side: TeamSide) -> UUID? {
+            onCourtIDs(for: side).randomElement()
+        }
+
+        func randomTeammateID(side: TeamSide, excluding playerID: UUID) -> UUID? {
+            onCourtIDs(for: side).filter { $0 != playerID }.randomElement()
+        }
+
+        func randomBenchPlayerID(for side: TeamSide) -> UUID? {
+            let onCourt = Set(onCourtIDs(for: side))
+            let bench = availableIDs(for: side).filter { !onCourt.contains($0) }
+            return bench.randomElement()
+        }
+
+        func sideScore(_ side: TeamSide) -> Int {
+            availableIDs(for: side).reduce(0) { total, playerID in
+                total + simulated.statsByPlayerID[playerID, default: PlayerStats()].points
+            }
+        }
+
+        func scoreSuffix() -> String {
+            "(\(sideScore(.home)):\(sideScore(.away)))"
+        }
+
+        func appendEvent(_ message: String) {
+            simulated.logs.append(GameLogEntry(timestamp: eventTime, message: "\(message) \(scoreSuffix())"))
+        }
+
+        func addPlayingTime(_ seconds: TimeInterval) {
+            guard seconds > 0 else { return }
+            for playerID in simulated.homeOnCourtPlayerIDs + simulated.awayOnCourtPlayerIDs {
+                simulated.playingSecondsByPlayerID[playerID, default: 0] += seconds
+            }
+        }
+
+        func addFoulEvent() {
+            let side: TeamSide = Double.random(in: 0...1) < 0.5 ? .home : .away
+            guard let foulerID = randomOnCourtPlayerID(for: side) else { return }
+            var stats = simulated.statsByPlayerID[foulerID, default: PlayerStats()]
+            stats.fouls += 1
+            simulated.statsByPlayerID[foulerID] = stats
+            simulated.currentPeriodFoulsBySide[side.rawValue, default: 0] += 1
+            appendEvent("\(name(for: foulerID)) 犯规")
+        }
+
+        func addReboundEvent(preferredSide: TeamSide? = nil) {
+            let side: TeamSide
+            if let preferredSide {
+                side = preferredSide
+            } else {
+                side = Double.random(in: 0...1) < 0.5 ? .home : .away
+            }
+            guard let rebounderID = randomOnCourtPlayerID(for: side) else { return }
+            var stats = simulated.statsByPlayerID[rebounderID, default: PlayerStats()]
+            stats.rebounds += 1
+            simulated.statsByPlayerID[rebounderID] = stats
+            appendEvent("\(name(for: rebounderID)) 篮板")
+        }
+
+        func addSubstitutionEvent() {
+            let side: TeamSide = Double.random(in: 0...1) < 0.5 ? .home : .away
+            guard let outgoingID = randomOnCourtPlayerID(for: side),
+                  let incomingID = randomBenchPlayerID(for: side),
+                  outgoingID != incomingID else {
+                return
+            }
+
+            var nextOnCourt = onCourtIDs(for: side)
+            nextOnCourt.removeAll { $0 == outgoingID }
+            nextOnCourt.append(incomingID)
+            setOnCourtIDs(nextOnCourt, for: side)
+            appendEvent("\(name(for: incomingID)) 替换 \(name(for: outgoingID))")
+        }
+
+        func addShotEvent() {
+            let side: TeamSide = Double.random(in: 0...1) < 0.52 ? .home : .away
+            guard let shooterID = randomOnCourtPlayerID(for: side) else { return }
+
+            var stats = simulated.statsByPlayerID[shooterID, default: PlayerStats()]
+            let isThree = Double.random(in: 0...1) < 0.35
+            let isMade = Double.random(in: 0...1) < (isThree ? 0.37 : 0.54)
+
+            if isThree {
+                stats.threeAttempts += 1
+                if isMade { stats.threeMade += 1 }
+                simulated.statsByPlayerID[shooterID] = stats
+                appendEvent("\(name(for: shooterID)) \(isMade ? "3分命中" : "3分不中")")
+                if isMade {
+                    applyPlusMinus(points: 3, scoringSide: side, in: &simulated)
+                }
+            } else {
+                stats.twoAttempts += 1
+                if isMade { stats.twoMade += 1 }
+                simulated.statsByPlayerID[shooterID] = stats
+                appendEvent("\(name(for: shooterID)) \(isMade ? "2分命中" : "2分不中")")
+                if isMade {
+                    applyPlusMinus(points: 2, scoringSide: side, in: &simulated)
+                }
+            }
+
+            if isMade,
+               snapshot.showsAssistButton,
+               Double.random(in: 0...1) < 0.35,
+               let assistID = randomTeammateID(side: side, excluding: shooterID) {
+                var assistStats = simulated.statsByPlayerID[assistID, default: PlayerStats()]
+                assistStats.assists += 1
+                simulated.statsByPlayerID[assistID] = assistStats
+                appendEvent("\(name(for: assistID)) 助攻")
+            }
+
+            if isMade, Double.random(in: 0...1) < 0.12 {
+                var bonusStats = simulated.statsByPlayerID[shooterID, default: PlayerStats()]
+                bonusStats.bonusFreeThrowAttempts += 1
+                let bonusMade = Double.random(in: 0...1) < 0.7
+                if bonusMade {
+                    bonusStats.bonusFreeThrowMade += 1
+                }
+                simulated.statsByPlayerID[shooterID] = bonusStats
+                appendEvent("\(name(for: shooterID)) \(bonusMade ? "加罚命中" : "加罚不中")")
+                if bonusMade {
+                    applyPlusMinus(points: 1, scoringSide: side, in: &simulated)
+                }
+            }
+
+            if !isMade, snapshot.showsReboundButton, Double.random(in: 0...1) < 0.58 {
+                let reboundSide: TeamSide = Double.random(in: 0...1) < 0.25 ? side : (side == .home ? .away : .home)
+                addReboundEvent(preferredSide: reboundSide)
+            }
+        }
+
+        for period in 1...periodCount {
+            simulated.currentPeriod = period
+            if simulated.resetsTeamFoulsEachPeriod {
+                simulated.currentPeriodFoulsBySide[TeamSide.home.rawValue] = 0
+                simulated.currentPeriodFoulsBySide[TeamSide.away.rawValue] = 0
+            }
+
+            if !simulated.startersRecorded {
+                simulated.starterPlayerIDs = unique(simulated.homeOnCourtPlayerIDs + simulated.awayOnCourtPlayerIDs)
+                appendEvent("主队首发：\(names(for: simulated.homeOnCourtPlayerIDs))")
+                appendEvent("客队首发：\(names(for: simulated.awayOnCourtPlayerIDs))")
+                simulated.startersRecorded = true
+            }
+
+            appendEvent("第\(period)节开始")
+
+            let periodDuration = Double.random(in: 630...690)
+            var elapsed: TimeInterval = 0
+            let eventBudget = Int.random(in: 48...64)
+
+            for _ in 0..<eventBudget {
+                let remaining = periodDuration - elapsed
+                if remaining <= 5 { break }
+
+                let delta = min(Double.random(in: 6...16), remaining)
+                elapsed += delta
+                eventTime.addTimeInterval(delta)
+                addPlayingTime(delta)
+                simulatedMatchElapsedSeconds += delta
+
+                let roll = Double.random(in: 0...1)
+                if roll < 0.80 {
+                    addShotEvent()
+                } else if roll < 0.90 {
+                    addFoulEvent()
+                } else if roll < 0.96 {
+                    addSubstitutionEvent()
+                } else if snapshot.showsReboundButton {
+                    addReboundEvent()
+                }
+            }
+
+            if elapsed < periodDuration {
+                let remaining = periodDuration - elapsed
+                eventTime.addTimeInterval(remaining)
+                addPlayingTime(remaining)
+                simulatedMatchElapsedSeconds += remaining
+            }
+
+            appendEvent("第\(period)节结束")
+        }
+
+        simulated.currentPeriod = periodCount
+        simulated.periodIsRunning = false
+        simulated.isPaused = false
+        simulated.isComplete = true
+        simulated.matchElapsedSeconds = simulatedMatchElapsedSeconds
+        simulated.matchActiveSince = nil
+        eventTime.addTimeInterval(10)
+        appendEvent("比赛结束")
+
+        undoStack.removeAll()
+        redoStack.removeAll()
+        currentGameRecordID = UUID()
+        snapshot = simulated
+        selectedPlayerID = snapshot.homeOnCourtPlayerIDs.first
+        selectedSide = .home
+        ensureSelectedPlayer()
+        autoSaveCurrentGame()
+        saveConfirmation = "已生成一场模拟比赛并保存到历史记录。"
+    }
+
+    private struct SimulationContext {
+        var homeTeam: Team
+        var awayTeam: Team
+        var homeRosterIDs: [UUID]
+        var awayRosterIDs: [UUID]
+    }
+
+    private func simulationContext() -> SimulationContext? {
+        func rosterIDs(for teamID: UUID?) -> [UUID] {
+            guard let team = store.team(for: teamID) else { return [] }
+            let validIDs = team.playerIDs.filter { store.player(for: $0) != nil }
+            return unique(validIDs)
+        }
+
+        let preferredHomeRoster = rosterIDs(for: snapshot.homeTeamID)
+        let preferredAwayRoster = rosterIDs(for: snapshot.awayTeamID)
+        if let homeTeam = store.team(for: snapshot.homeTeamID),
+           let awayTeam = store.team(for: snapshot.awayTeamID),
+           homeTeam.id != awayTeam.id,
+           !preferredHomeRoster.isEmpty,
+           !preferredAwayRoster.isEmpty {
+            return SimulationContext(
+                homeTeam: homeTeam,
+                awayTeam: awayTeam,
+                homeRosterIDs: preferredHomeRoster,
+                awayRosterIDs: preferredAwayRoster
+            )
+        }
+
+        let candidates = store.teams.compactMap { team -> (Team, [UUID])? in
+            let ids = rosterIDs(for: team.id)
+            guard !ids.isEmpty else { return nil }
+            return (team, ids)
+        }
+
+        guard candidates.count >= 2 else { return nil }
+        let homeCandidate = candidates[0]
+        let awayCandidate = candidates.first(where: { $0.0.id != homeCandidate.0.id }) ?? candidates[1]
+
+        return SimulationContext(
+            homeTeam: homeCandidate.0,
+            awayTeam: awayCandidate.0,
+            homeRosterIDs: homeCandidate.1,
+            awayRosterIDs: awayCandidate.1
+        )
+    }
+
+    private func performLateArrival() {
+        guard let incomingPlayerID = lateArrivalIncomingPlayerID else { return }
+        mutateSnapshot {
+            var registered = gamePlayerIDs(for: lateArrivalSide)
+            guard !registered.contains(incomingPlayerID) else { return }
+            registered.append(incomingPlayerID)
+            setGamePlayerIDs(registered, for: lateArrivalSide)
+            addEvent("\(name(for: incomingPlayerID)) 已加入出场名单")
         }
     }
 
@@ -698,11 +1261,22 @@ struct GameView: View {
     }
 
     private func addEvent(_ message: String) {
-        snapshot.logs.append(GameLogEntry(timestamp: Date(), message: message))
+        snapshot.logs.append(GameLogEntry(timestamp: Date(), message: "\(message) \(scoreSuffix)"))
+    }
+
+    private var scoreSuffix: String {
+        "(\(score(for: snapshot.homeTeamID)):\(score(for: snapshot.awayTeamID)))"
     }
 
     private func autoSaveCurrentGame() {
-        guard !snapshot.logs.isEmpty else { return }
+        if snapshot.logs.isEmpty {
+            guard let currentGameRecordID,
+                  store.savedGames.contains(where: { $0.id == currentGameRecordID }) else {
+                return
+            }
+            self.currentGameRecordID = store.autoSaveGame(snapshot, gameID: currentGameRecordID, undoSnapshots: undoStack)
+            return
+        }
         currentGameRecordID = store.autoSaveGame(snapshot, gameID: currentGameRecordID, undoSnapshots: undoStack)
     }
 
@@ -721,6 +1295,7 @@ struct GameView: View {
             }
             redoStack.removeAll()
             currentGameRecordID = latest.id
+            trimInvalidLineups()
             ensureSelectedPlayer()
             return
         }
@@ -731,6 +1306,12 @@ struct GameView: View {
     private func startActiveStints(at date: Date) {
         (snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs).forEach { playerID in
             startStint(for: playerID, at: date)
+        }
+    }
+
+    private func startMatchClock(at date: Date) {
+        if snapshot.matchActiveSince == nil {
+            snapshot.matchActiveSince = date
         }
     }
 
@@ -749,6 +1330,16 @@ struct GameView: View {
             target.playingSecondsByPlayerID[playerID, default: 0] += max(0, date.timeIntervalSince(startedAt))
         }
         target.activeSinceByPlayerID.removeAll()
+    }
+
+    private func closeMatchClock(at date: Date) {
+        closeMatchClock(in: &snapshot, at: date)
+    }
+
+    private func closeMatchClock(in target: inout GameSnapshot, at date: Date) {
+        guard let activeSince = target.matchActiveSince else { return }
+        target.matchElapsedSeconds += max(0, date.timeIntervalSince(activeSince))
+        target.matchActiveSince = nil
     }
 
     private func closeStint(for playerID: UUID, at date: Date) {
@@ -770,20 +1361,21 @@ struct GameView: View {
 
     private func legacyPreviousSnapshot(from current: GameSnapshot) -> GameSnapshot? {
         guard let lastLog = current.logs.last else { return nil }
+        let normalizedMessage = normalizedLogMessage(lastLog.message)
 
         var previous = current
         previous.logs.removeLast()
 
-        if lastLog.message == "比赛保存" {
+        if normalizedMessage == "比赛保存" {
             return previous
         }
 
-        if lastLog.message == "比赛结束" {
+        if normalizedMessage == "比赛结束" {
             previous.isComplete = false
             return previous
         }
 
-        guard let (playerName, action) = StatAction.parseLog(lastLog.message) else {
+        guard let (playerName, action) = StatAction.parseLog(normalizedMessage) else {
             return nil
         }
 
@@ -806,6 +1398,26 @@ struct GameView: View {
         }
 
         return previous
+    }
+
+    private func normalizedLogMessage(_ message: String) -> String {
+        guard message.hasSuffix(")"),
+              let start = message.lastIndex(of: "("),
+              start > message.startIndex else {
+            return message
+        }
+
+        let scoreText = message[message.index(after: start)..<message.index(before: message.endIndex)]
+        let parts = scoreText.split(separator: ":")
+        guard parts.count == 2,
+              Int(parts[0]) != nil,
+              Int(parts[1]) != nil else {
+            return message
+        }
+
+        let beforeScore = message[..<start]
+        guard beforeScore.last == " " else { return message }
+        return String(beforeScore.dropLast())
     }
 
     private func playerID(for playerName: String, action: StatAction, in current: GameSnapshot) -> UUID? {
@@ -845,6 +1457,11 @@ struct GameView: View {
         return text.isEmpty ? "未设置" : text
     }
 
+    private func unique(_ ids: [UUID]) -> [UUID] {
+        var seen: Set<UUID> = []
+        return ids.filter { seen.insert($0).inserted }
+    }
+
     static func durationFormatter(_ seconds: TimeInterval) -> String {
         let total = max(0, Int(seconds.rounded()))
         return String(format: "%02d:%02d", total / 60, total % 60)
@@ -875,6 +1492,8 @@ private enum GamePalette {
     static let period = Color(red: 0.36, green: 0.63, blue: 0.95)
     static let periodEnd = Color(red: 0.52, green: 0.72, blue: 0.95)
     static let substitution = Color(red: 0.42, green: 0.67, blue: 0.95)
+    static let pause = Color(red: 0.98, green: 0.82, blue: 0.45)
+    static let finish = Color(red: 0.95, green: 0.48, blue: 0.44)
     static let surface = Color(red: 0.96, green: 0.98, blue: 1.00)
     static let selectedBorder = Color(red: 0.25, green: 0.55, blue: 0.90)
     static let onCourtBorder = Color(red: 0.45, green: 0.69, blue: 0.93)
@@ -882,7 +1501,7 @@ private enum GamePalette {
 }
 
 private enum ActionButtonStyle {
-    case made, missed, assist, rebound, warning, substitution
+    case made, missed, assist, rebound, warning, substitution, pause, period, periodEnd
 
     var background: Color {
         switch self {
@@ -892,6 +1511,9 @@ private enum ActionButtonStyle {
         case .rebound: return GamePalette.rebound
         case .warning: return GamePalette.warning
         case .substitution: return GamePalette.substitution
+        case .pause: return GamePalette.pause
+        case .period: return GamePalette.period
+        case .periodEnd: return GamePalette.periodEnd
         }
     }
 
@@ -900,13 +1522,14 @@ private enum ActionButtonStyle {
 
 private struct PastelActionButtonStyle: ButtonStyle {
     var style: ActionButtonStyle
+    var cornerRadius: CGFloat = 8
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundStyle(style.foreground)
-            .background(style.background.opacity(configuration.isPressed ? 0.65 : 1), in: RoundedRectangle(cornerRadius: 8))
+            .background(style.background.opacity(configuration.isPressed ? 0.65 : 1), in: RoundedRectangle(cornerRadius: cornerRadius))
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: cornerRadius)
                     .stroke(.white.opacity(0.7), lineWidth: 1)
             )
             .opacity(configuration.isPressed ? 0.82 : 1)
@@ -1059,6 +1682,9 @@ private struct CompactTeamRow: View {
                     Text("\(score)")
                         .font(.title.monospacedDigit().weight(.bold))
                         .foregroundStyle(GamePalette.text)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                        .layoutPriority(1)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(foulLabel)
                             .font(.caption2)
@@ -1068,7 +1694,7 @@ private struct CompactTeamRow: View {
                     .foregroundStyle(.secondary)
                 }
             }
-            .frame(width: 96, alignment: .leading)
+            .frame(minWidth: 114, alignment: .leading)
 
             if players.isEmpty {
                 Text("无球员")
@@ -1129,6 +1755,11 @@ private struct CompactTeamRow: View {
     }
 }
 
+enum TeamStatsCardStyle {
+    case scoreboard
+    case record
+}
+
 struct TeamStatsDisclosureView: View {
     var homeName: String
     var awayName: String
@@ -1136,6 +1767,7 @@ struct TeamStatsDisclosureView: View {
     var awayStats: PlayerStats
     var homeFouls: Int
     var awayFouls: Int
+    var style: TeamStatsCardStyle = .scoreboard
 
     @State private var isExpanded = false
 
@@ -1157,8 +1789,8 @@ struct TeamStatsDisclosureView: View {
             }
         }
         .padding(10)
-        .background(GamePalette.surface, in: RoundedRectangle(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(.white.opacity(0.85), lineWidth: 1))
+        .background(containerBackground, in: RoundedRectangle(cornerRadius: containerCornerRadius))
+        .overlay(RoundedRectangle(cornerRadius: containerCornerRadius).stroke(containerBorder, lineWidth: 1))
     }
 
     private func teamRow(_ name: String, stats: PlayerStats, fouls: Int) -> some View {
@@ -1182,7 +1814,7 @@ struct TeamStatsDisclosureView: View {
             }
         }
         .padding(8)
-        .background(.white.opacity(0.52), in: RoundedRectangle(cornerRadius: 8))
+        .background(tileBackground, in: RoundedRectangle(cornerRadius: tileCornerRadius))
     }
 
     private func statTile(_ title: String, _ value: String, _ detail: String) -> some View {
@@ -1206,6 +1838,41 @@ struct TeamStatsDisclosureView: View {
 
     private func percent(_ value: Double) -> String {
         "\(Int((value * 100).rounded()))%"
+    }
+
+    private var containerBackground: Color {
+        switch style {
+        case .scoreboard:
+            return GamePalette.surface
+        case .record:
+            return .clear
+        }
+    }
+
+    private var containerBorder: Color {
+        switch style {
+        case .scoreboard:
+            return .white.opacity(0.85)
+        case .record:
+            return .clear
+        }
+    }
+
+    private var tileBackground: Color {
+        switch style {
+        case .scoreboard:
+            return .white.opacity(0.52)
+        case .record:
+            return .clear
+        }
+    }
+
+    private var containerCornerRadius: CGFloat {
+        style == .record ? 12 : 8
+    }
+
+    private var tileCornerRadius: CGFloat {
+        style == .record ? 10 : 8
     }
 }
 
@@ -1306,12 +1973,14 @@ private struct NewGameSetupView: View {
     var initialShowsReboundButton: Bool
     var initialShowsAssistButton: Bool
     var initialShowsFoulButton: Bool
-    var onStart: (UUID, UUID, [UUID], [UUID], Int, Int, Bool, Bool, Bool, Bool) -> Void
+    var onStart: (UUID, UUID, [UUID], [UUID], [UUID], [UUID], Int, Int, Bool, Bool, Bool, Bool) -> Void
 
     @State private var homeTeamID: UUID?
     @State private var awayTeamID: UUID?
     @State private var homeStarterIDs: [UUID] = []
     @State private var awayStarterIDs: [UUID] = []
+    @State private var homeBenchIDs: [UUID] = []
+    @State private var awayBenchIDs: [UUID] = []
     @State private var periodCount = 4
     @State private var courtPlayerCount = 4
     @State private var resetsTeamFoulsEachPeriod = true
@@ -1364,7 +2033,18 @@ private struct NewGameSetupView: View {
                 }
 
                 starterSection(title: "主队首发", players: homePlayers, selectedIDs: $homeStarterIDs, requiredCount: requiredHomeCount)
+                benchSection(
+                    title: "主队替补",
+                    players: homeBenchCandidates,
+                    selectedIDs: $homeBenchIDs
+                )
+
                 starterSection(title: "客队首发", players: awayPlayers, selectedIDs: $awayStarterIDs, requiredCount: requiredAwayCount)
+                benchSection(
+                    title: "客队替补",
+                    players: awayBenchCandidates,
+                    selectedIDs: $awayBenchIDs
+                )
             }
             .navigationTitle("新比赛")
             .navigationBarTitleDisplayMode(.inline)
@@ -1380,6 +2060,8 @@ private struct NewGameSetupView: View {
                             awayTeamID,
                             homeStarterIDs,
                             awayStarterIDs,
+                            homeBenchIDs,
+                            awayBenchIDs,
                             periodCount,
                             courtPlayerCount,
                             resetsTeamFoulsEachPeriod,
@@ -1393,9 +2075,9 @@ private struct NewGameSetupView: View {
                 }
             }
             .onAppear(perform: prepareDefaults)
-            .onChange(of: homeTeamID) { _, _ in syncStarterSelections() }
-            .onChange(of: awayTeamID) { _, _ in syncStarterSelections() }
-            .onChange(of: courtPlayerCount) { _, _ in syncStarterSelections() }
+            .onChange(of: homeTeamID) { _, _ in syncSelections(fillMissingStarters: true) }
+            .onChange(of: awayTeamID) { _, _ in syncSelections(fillMissingStarters: true) }
+            .onChange(of: courtPlayerCount) { _, _ in syncSelections(fillMissingStarters: true) }
         }
     }
 
@@ -1403,9 +2085,17 @@ private struct NewGameSetupView: View {
     private var awayPlayers: [Player] { playersForTeam(awayTeamID) }
     private var requiredHomeCount: Int { min(courtPlayerCount, homePlayers.count) }
     private var requiredAwayCount: Int { min(courtPlayerCount, awayPlayers.count) }
+    private var homeBenchCandidates: [Player] { homePlayers.filter { !homeStarterIDs.contains($0.id) } }
+    private var awayBenchCandidates: [Player] { awayPlayers.filter { !awayStarterIDs.contains($0.id) } }
 
     private var canStart: Bool {
-        homeTeamID != nil && awayTeamID != nil && homeTeamID != awayTeamID && homeStarterIDs.count == requiredHomeCount && awayStarterIDs.count == requiredAwayCount && requiredHomeCount > 0 && requiredAwayCount > 0
+        return homeTeamID != nil
+            && awayTeamID != nil
+            && homeTeamID != awayTeamID
+            && homeStarterIDs.count == requiredHomeCount
+            && awayStarterIDs.count == requiredAwayCount
+            && requiredHomeCount > 0
+            && requiredAwayCount > 0
     }
 
     private func starterSection(title: String, players: [Player], selectedIDs: Binding<[UUID]>, requiredCount: Int) -> some View {
@@ -1432,6 +2122,30 @@ private struct NewGameSetupView: View {
         }
     }
 
+    private func benchSection(title: String, players: [Player], selectedIDs: Binding<[UUID]>) -> some View {
+        Section("\(title) · 可选") {
+            if players.isEmpty {
+                Text("当前没有可选替补")
+                    .foregroundStyle(.secondary)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(players) { player in
+                            SelectablePlayerAvatarButton(
+                                player: player,
+                                isSelected: selectedIDs.wrappedValue.contains(player.id),
+                                badge: selectedIDs.wrappedValue.contains(player.id) ? "替补" : nil
+                            ) {
+                                toggleBench(player.id, in: selectedIDs)
+                            }
+                        }
+                    }
+                    .padding(.vertical, 6)
+                }
+            }
+        }
+    }
+
     private func prepareDefaults() {
         homeTeamID = initialHomeTeamID ?? teams.first?.id
         awayTeamID = initialAwayTeamID ?? teams.dropFirst().first?.id
@@ -1444,7 +2158,7 @@ private struct NewGameSetupView: View {
         if awayTeamID == homeTeamID {
             awayTeamID = teams.first(where: { $0.id != homeTeamID })?.id
         }
-        syncStarterSelections()
+        syncSelections(fillMissingStarters: true)
     }
 
     private func toggle(_ id: UUID, in selectedIDs: Binding<[UUID]>, limit: Int) {
@@ -1452,24 +2166,40 @@ private struct NewGameSetupView: View {
             selectedIDs.wrappedValue.removeAll { $0 == id }
         } else if selectedIDs.wrappedValue.count < limit {
             selectedIDs.wrappedValue.append(id)
+        } else if !selectedIDs.wrappedValue.isEmpty {
+            selectedIDs.wrappedValue.removeFirst()
+            selectedIDs.wrappedValue.append(id)
         }
+        syncSelections(fillMissingStarters: false)
     }
 
-    private func syncStarterSelections() {
+    private func toggleBench(_ id: UUID, in selectedIDs: Binding<[UUID]>) {
+        if selectedIDs.wrappedValue.contains(id) {
+            selectedIDs.wrappedValue.removeAll { $0 == id }
+        } else {
+            selectedIDs.wrappedValue.append(id)
+        }
+        syncSelections(fillMissingStarters: false)
+    }
+
+    private func syncSelections(fillMissingStarters: Bool) {
         let homePlayerIDs = homePlayers.map(\.id)
         let awayPlayerIDs = awayPlayers.map(\.id)
 
         homeStarterIDs = Array(homeStarterIDs.filter { homePlayerIDs.contains($0) }.prefix(requiredHomeCount))
         awayStarterIDs = Array(awayStarterIDs.filter { awayPlayerIDs.contains($0) }.prefix(requiredAwayCount))
 
-        if homeStarterIDs.count < requiredHomeCount {
+        if fillMissingStarters, homeStarterIDs.count < requiredHomeCount {
             let candidates = homePlayerIDs.filter { !homeStarterIDs.contains($0) }
             homeStarterIDs.append(contentsOf: candidates.prefix(requiredHomeCount - homeStarterIDs.count))
         }
-        if awayStarterIDs.count < requiredAwayCount {
+        if fillMissingStarters, awayStarterIDs.count < requiredAwayCount {
             let candidates = awayPlayerIDs.filter { !awayStarterIDs.contains($0) }
             awayStarterIDs.append(contentsOf: candidates.prefix(requiredAwayCount - awayStarterIDs.count))
         }
+
+        homeBenchIDs = homeBenchIDs.filter { homePlayerIDs.contains($0) && !homeStarterIDs.contains($0) }
+        awayBenchIDs = awayBenchIDs.filter { awayPlayerIDs.contains($0) && !awayStarterIDs.contains($0) }
     }
 }
 
@@ -1578,6 +2308,94 @@ private struct SubstitutionView: View {
     private func selectedName(for id: UUID?) -> String {
         guard let id else { return "未选择" }
         return (onCourtPlayers + benchPlayers).first(where: { $0.id == id })?.name ?? "未选择"
+    }
+
+    private func sectionHeader(_ title: String, _ detail: String) -> some View {
+        HStack {
+            Text(title)
+                .font(.headline)
+            Spacer()
+            Text(detail)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+private struct LateArrivalEntryView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var side: TeamSide
+    @Binding var incomingPlayerID: UUID?
+
+    var homeTeamName: String
+    var awayTeamName: String
+    var homeUnregisteredPlayers: [Player]
+    var awayUnregisteredPlayers: [Player]
+    var onConfirm: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 10) {
+                    Picker("球队", selection: $side) {
+                        Text(homeTeamName).tag(TeamSide.home)
+                        Text(awayTeamName).tag(TeamSide.away)
+                    }
+                    .pickerStyle(.segmented)
+                }
+                .padding(.horizontal)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    sectionHeader("新增到出场名单", selectedName(for: incomingPlayerID))
+                    if incomingPlayers.isEmpty {
+                        Text("没有可新增上场的球员")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                ForEach(incomingPlayers) { player in
+                                    SelectablePlayerAvatarButton(
+                                        player: player,
+                                        isSelected: incomingPlayerID == player.id,
+                                        badge: incomingPlayerID == player.id ? "上场" : nil
+                                    ) {
+                                        incomingPlayerID = player.id
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 6)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+
+                Spacer()
+            }
+            .padding(.top)
+            .navigationTitle("新增上场")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("取消") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("记录") {
+                        onConfirm()
+                        dismiss()
+                    }
+                    .disabled(incomingPlayerID == nil)
+                }
+            }
+        }
+    }
+
+    private var incomingPlayers: [Player] {
+        side == .home ? homeUnregisteredPlayers : awayUnregisteredPlayers
+    }
+
+    private func selectedName(for id: UUID?) -> String {
+        guard let id else { return "未选择" }
+        return incomingPlayers.first(where: { $0.id == id })?.name ?? "未选择"
     }
 
     private func sectionHeader(_ title: String, _ detail: String) -> some View {

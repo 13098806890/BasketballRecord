@@ -25,18 +25,28 @@ final class AppStore: ObservableObject {
     }
 
     @Published var players: [Player] = [] {
-        didSet { save() }
+        didSet { scheduleSave() }
     }
 
     @Published var teams: [Team] = [] {
-        didSet { save() }
+        didSet { scheduleSave() }
     }
 
     @Published var savedGames: [SavedGame] = [] {
-        didSet { save() }
+        didSet { scheduleSave() }
+    }
+
+    @Published var hiddenCareerStatItems: Set<CareerStatItem> = [] {
+        didSet { scheduleSave() }
+    }
+
+    @Published var keepsScreenAwake = true {
+        didSet { scheduleSave() }
     }
 
     private let storageKey = "basketball-record-store-v1"
+    private var saveTask: Task<Void, Never>?
+    private let saveDebounceNanoseconds: UInt64 = 500_000_000
 
     init() {
         load()
@@ -91,8 +101,10 @@ final class AppStore: ObservableObject {
     @discardableResult
     func autoSaveGame(_ snapshot: GameSnapshot, gameID: UUID?, undoSnapshots: [GameSnapshot] = []) -> UUID {
         let targetID = gameID ?? UUID()
-        let previousSnapshot = savedGames.first(where: { $0.id == targetID })?.snapshot
+        let existingGame = savedGames.first(where: { $0.id == targetID })
+        let previousSnapshot = existingGame?.snapshot
         var game = buildSavedGame(id: targetID, snapshot: snapshot, savedAt: Date())
+        game.aiSummary = existingGame?.aiSummary
         game.previousSnapshot = previousSnapshot
         game.undoSnapshots = undoSnapshots
 
@@ -112,6 +124,22 @@ final class AppStore: ObservableObject {
     func latestUnfinishedGame() -> SavedGame? {
         guard let latest = savedGames.first else { return nil }
         return latest.snapshot.isComplete ? nil : latest
+    }
+
+    func isCareerStatVisible(_ item: CareerStatItem) -> Bool {
+        !hiddenCareerStatItems.contains(item)
+    }
+
+    func setCareerStatVisible(_ item: CareerStatItem, visible: Bool) {
+        if visible {
+            hiddenCareerStatItems.remove(item)
+        } else {
+            hiddenCareerStatItems.insert(item)
+        }
+    }
+
+    func setAllCareerStatVisibility(visible: Bool) {
+        hiddenCareerStatItems = visible ? [] : Set(CareerStatItem.allCases)
     }
 
     func exportGameBase64(_ game: SavedGame) -> String? {
@@ -269,7 +297,7 @@ final class AppStore: ObservableObject {
         }
 
         let importedGame = remappedGame(package.game, playerIDMap: playerIDMap, teamIDMap: teamIDMap)
-        savedGames.insert(importedGame, at: 0)
+        upsertImportedGame(importedGame)
     }
 
     func deleteSavedGames(at offsets: IndexSet) {
@@ -279,6 +307,11 @@ final class AppStore: ObservableObject {
     func deleteSavedGames(ids: Set<UUID>) {
         guard !ids.isEmpty else { return }
         savedGames.removeAll { ids.contains($0.id) }
+    }
+
+    func updateAISummary(_ summary: String, for gameID: UUID) {
+        guard let index = savedGames.firstIndex(where: { $0.id == gameID }) else { return }
+        savedGames[index].aiSummary = summary
     }
 
     @discardableResult
@@ -352,20 +385,49 @@ final class AppStore: ObservableObject {
     }
 
     private func save() {
-        let payload = StorePayload(players: players, teams: teams, savedGames: savedGames)
+        let payload = StorePayload(
+            players: players,
+            teams: teams,
+            savedGames: savedGames,
+            hiddenCareerStatItems: hiddenCareerStatItems,
+            keepsScreenAwake: keepsScreenAwake
+        )
         guard let data = try? JSONEncoder().encode(payload) else { return }
         UserDefaults.standard.set(data, forKey: storageKey)
     }
 
+    private func scheduleSave() {
+        saveTask?.cancel()
+        saveTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await Task.sleep(nanoseconds: saveDebounceNanoseconds)
+            } catch {
+                return
+            }
+            guard !Task.isCancelled else { return }
+            save()
+        }
+    }
+
     private func load() {
-        guard let data = UserDefaults.standard.data(forKey: storageKey),
-              let payload = try? JSONDecoder().decode(StorePayload.self, from: data) else {
+        guard let data = UserDefaults.standard.data(forKey: storageKey) else {
             seedSampleData()
             return
         }
+
+        guard let payload = try? JSONDecoder().decode(StorePayload.self, from: data) else {
+            players = []
+            teams = []
+            savedGames = []
+            return
+        }
+
         players = payload.players
         teams = payload.teams
         savedGames = payload.savedGames
+        hiddenCareerStatItems = payload.hiddenCareerStatItems
+        keepsScreenAwake = payload.keepsScreenAwake
     }
 
     private func seedSampleData() {
@@ -393,7 +455,26 @@ final class AppStore: ObservableObject {
     private func buildSavedGame(id: UUID, snapshot: GameSnapshot, savedAt: Date) -> SavedGame {
         let homeTeam = team(for: snapshot.homeTeamID)
         let awayTeam = team(for: snapshot.awayTeamID)
-        let gamePlayerIDs = (homeTeam?.playerIDs ?? []) + (awayTeam?.playerIDs ?? [])
+        let homeRosterIDs = dedupedPlayerIDs(primary: snapshot.homeAvailablePlayerIDs, fallback: homeTeam?.playerIDs ?? snapshot.homeOnCourtPlayerIDs)
+        let awayRosterIDs = dedupedPlayerIDs(primary: snapshot.awayAvailablePlayerIDs, fallback: awayTeam?.playerIDs ?? snapshot.awayOnCourtPlayerIDs)
+        var homePlayerIDs = homeRosterIDs.filter { didParticipate($0, in: snapshot) }
+        var awayPlayerIDs = awayRosterIDs.filter { didParticipate($0, in: snapshot) }
+
+        if homePlayerIDs.isEmpty && !homeRosterIDs.isEmpty {
+            homePlayerIDs = homeRosterIDs
+        }
+        if awayPlayerIDs.isEmpty && !awayRosterIDs.isEmpty {
+            awayPlayerIDs = awayRosterIDs
+        }
+
+        let gamePlayerIDs = Array(Set(
+            homePlayerIDs
+                + awayPlayerIDs
+                + snapshot.starterPlayerIDs
+                + Array(snapshot.statsByPlayerID.keys)
+                + Array(snapshot.playingSecondsByPlayerID.keys)
+                + Array(snapshot.plusMinusByPlayerID.keys)
+        ))
         let playerNames = Dictionary(uniqueKeysWithValues: gamePlayerIDs.compactMap { playerID in
             player(for: playerID).map { (playerID, $0.name) }
         })
@@ -404,40 +485,65 @@ final class AppStore: ObservableObject {
             snapshot: snapshot,
             homeTeamName: homeTeam?.name ?? "主队",
             awayTeamName: awayTeam?.name ?? "客队",
-            homePlayerIDs: homeTeam?.playerIDs ?? [],
-            awayPlayerIDs: awayTeam?.playerIDs ?? [],
+            homePlayerIDs: homePlayerIDs,
+            awayPlayerIDs: awayPlayerIDs,
             playerNamesByID: playerNames
         )
     }
 
-    private func remappedGame(_ game: SavedGame, playerIDMap: [UUID: UUID], teamIDMap: [UUID: UUID]) -> SavedGame {
-        var snapshot = game.snapshot
-        snapshot.homeTeamID = snapshot.homeTeamID.flatMap { teamIDMap[$0] ?? $0 }
-        snapshot.awayTeamID = snapshot.awayTeamID.flatMap { teamIDMap[$0] ?? $0 }
-        snapshot.statsByPlayerID = remapDictionary(snapshot.statsByPlayerID, using: playerIDMap)
-        snapshot.homeOnCourtPlayerIDs = game.snapshot.homeOnCourtPlayerIDs.map { playerIDMap[$0] ?? $0 }
-        snapshot.awayOnCourtPlayerIDs = game.snapshot.awayOnCourtPlayerIDs.map { playerIDMap[$0] ?? $0 }
-        snapshot.playingSecondsByPlayerID = remapDictionary(snapshot.playingSecondsByPlayerID, using: playerIDMap)
-        snapshot.activeSinceByPlayerID = remapDictionary(snapshot.activeSinceByPlayerID, using: playerIDMap)
-        snapshot.plusMinusByPlayerID = remapDictionary(snapshot.plusMinusByPlayerID, using: playerIDMap)
+    private func didParticipate(_ playerID: UUID, in snapshot: GameSnapshot) -> Bool {
+        if snapshot.starterPlayerIDs.contains(playerID) { return true }
+        if snapshot.playingSecondsByPlayerID[playerID, default: 0] > 0 { return true }
+        if snapshot.activeSinceByPlayerID[playerID] != nil { return true }
+        if snapshot.plusMinusByPlayerID[playerID] != nil { return true }
+        if let stats = snapshot.statsByPlayerID[playerID], stats != PlayerStats() { return true }
+        return false
+    }
 
-        let homePlayerIDs = game.homePlayerIDs.map { playerIDMap[$0] ?? $0 }
-        let awayPlayerIDs = game.awayPlayerIDs.map { playerIDMap[$0] ?? $0 }
+    private func dedupedPlayerIDs(primary: [UUID], fallback: [UUID]) -> [UUID] {
+        let source = primary.isEmpty ? fallback : primary
+        var seen: Set<UUID> = []
+        return source.filter { seen.insert($0).inserted }
+    }
+
+    private func remappedGame(_ game: SavedGame, playerIDMap: [UUID: UUID], teamIDMap: [UUID: UUID]) -> SavedGame {
+        let snapshot = remappedSnapshot(game.snapshot, playerIDMap: playerIDMap, teamIDMap: teamIDMap)
+        let homePlayerIDs = dedupedIDs(game.homePlayerIDs.map { playerIDMap[$0] ?? $0 })
+        let awayPlayerIDs = dedupedIDs(game.awayPlayerIDs.map { playerIDMap[$0] ?? $0 })
         var playerNames: [UUID: String] = [:]
         for (oldID, name) in game.playerNamesByID {
             playerNames[playerIDMap[oldID] ?? oldID] = name
         }
 
         return SavedGame(
-            id: UUID(),
+            id: game.id,
             savedAt: game.savedAt,
             snapshot: snapshot,
+            aiSummary: game.aiSummary,
+            previousSnapshot: game.previousSnapshot.map { remappedSnapshot($0, playerIDMap: playerIDMap, teamIDMap: teamIDMap) },
+            undoSnapshots: game.undoSnapshots.map { remappedSnapshot($0, playerIDMap: playerIDMap, teamIDMap: teamIDMap) },
             homeTeamName: team(for: snapshot.homeTeamID)?.name ?? game.homeTeamName,
             awayTeamName: team(for: snapshot.awayTeamID)?.name ?? game.awayTeamName,
             homePlayerIDs: homePlayerIDs,
             awayPlayerIDs: awayPlayerIDs,
             playerNamesByID: playerNames
         )
+    }
+
+    private func remappedSnapshot(_ snapshot: GameSnapshot, playerIDMap: [UUID: UUID], teamIDMap: [UUID: UUID]) -> GameSnapshot {
+        var remapped = snapshot
+        remapped.homeTeamID = snapshot.homeTeamID.flatMap { teamIDMap[$0] ?? $0 }
+        remapped.awayTeamID = snapshot.awayTeamID.flatMap { teamIDMap[$0] ?? $0 }
+        remapped.statsByPlayerID = remapDictionary(snapshot.statsByPlayerID, using: playerIDMap)
+        remapped.homeOnCourtPlayerIDs = dedupedIDs(snapshot.homeOnCourtPlayerIDs.map { playerIDMap[$0] ?? $0 })
+        remapped.awayOnCourtPlayerIDs = dedupedIDs(snapshot.awayOnCourtPlayerIDs.map { playerIDMap[$0] ?? $0 })
+        remapped.homeAvailablePlayerIDs = dedupedIDs(snapshot.homeAvailablePlayerIDs.map { playerIDMap[$0] ?? $0 })
+        remapped.awayAvailablePlayerIDs = dedupedIDs(snapshot.awayAvailablePlayerIDs.map { playerIDMap[$0] ?? $0 })
+        remapped.starterPlayerIDs = dedupedIDs(snapshot.starterPlayerIDs.map { playerIDMap[$0] ?? $0 })
+        remapped.playingSecondsByPlayerID = remapDictionary(snapshot.playingSecondsByPlayerID, using: playerIDMap)
+        remapped.activeSinceByPlayerID = remapDictionary(snapshot.activeSinceByPlayerID, using: playerIDMap)
+        remapped.plusMinusByPlayerID = remapDictionary(snapshot.plusMinusByPlayerID, using: playerIDMap)
+        return remapped
     }
 
     private func remapDictionary<Value>(_ dictionary: [UUID: Value], using map: [UUID: UUID]) -> [UUID: Value] {
@@ -455,6 +561,9 @@ final class AppStore: ObservableObject {
             || game.snapshot.playingSecondsByPlayerID[sourceID] != nil
             || game.snapshot.activeSinceByPlayerID[sourceID] != nil
             || game.snapshot.plusMinusByPlayerID[sourceID] != nil
+            || game.snapshot.homeAvailablePlayerIDs.contains(sourceID)
+            || game.snapshot.awayAvailablePlayerIDs.contains(sourceID)
+            || game.snapshot.starterPlayerIDs.contains(sourceID)
             || game.snapshot.homeOnCourtPlayerIDs.contains(sourceID)
             || game.snapshot.awayOnCourtPlayerIDs.contains(sourceID)
             || game.playerNamesByID[sourceID] != nil
@@ -466,13 +575,7 @@ final class AppStore: ObservableObject {
         targetID: UUID,
         targetName: String
     ) -> SavedGame {
-        var snapshot = game.snapshot
-        snapshot.statsByPlayerID = mergeStatsDictionary(snapshot.statsByPlayerID, sourceID: sourceID, targetID: targetID)
-        snapshot.playingSecondsByPlayerID = mergeSumDictionary(snapshot.playingSecondsByPlayerID, sourceID: sourceID, targetID: targetID)
-        snapshot.plusMinusByPlayerID = mergeSumDictionary(snapshot.plusMinusByPlayerID, sourceID: sourceID, targetID: targetID)
-        snapshot.activeSinceByPlayerID = mergeDateDictionary(snapshot.activeSinceByPlayerID, sourceID: sourceID, targetID: targetID)
-        snapshot.homeOnCourtPlayerIDs = remapDedupedIDs(snapshot.homeOnCourtPlayerIDs, sourceID: sourceID, targetID: targetID)
-        snapshot.awayOnCourtPlayerIDs = remapDedupedIDs(snapshot.awayOnCourtPlayerIDs, sourceID: sourceID, targetID: targetID)
+        let snapshot = remappedSnapshotForPlayerMerge(game.snapshot, sourceID: sourceID, targetID: targetID)
 
         var names = game.playerNamesByID
         names[targetID] = targetName
@@ -482,12 +585,29 @@ final class AppStore: ObservableObject {
             id: game.id,
             savedAt: game.savedAt,
             snapshot: snapshot,
+            aiSummary: game.aiSummary,
+            previousSnapshot: game.previousSnapshot.map { remappedSnapshotForPlayerMerge($0, sourceID: sourceID, targetID: targetID) },
+            undoSnapshots: game.undoSnapshots.map { remappedSnapshotForPlayerMerge($0, sourceID: sourceID, targetID: targetID) },
             homeTeamName: game.homeTeamName,
             awayTeamName: game.awayTeamName,
             homePlayerIDs: remapDedupedIDs(game.homePlayerIDs, sourceID: sourceID, targetID: targetID),
             awayPlayerIDs: remapDedupedIDs(game.awayPlayerIDs, sourceID: sourceID, targetID: targetID),
             playerNamesByID: names
         )
+    }
+
+    private func remappedSnapshotForPlayerMerge(_ snapshot: GameSnapshot, sourceID: UUID, targetID: UUID) -> GameSnapshot {
+        var remapped = snapshot
+        remapped.statsByPlayerID = mergeStatsDictionary(snapshot.statsByPlayerID, sourceID: sourceID, targetID: targetID)
+        remapped.playingSecondsByPlayerID = mergeSumDictionary(snapshot.playingSecondsByPlayerID, sourceID: sourceID, targetID: targetID)
+        remapped.plusMinusByPlayerID = mergeSumDictionary(snapshot.plusMinusByPlayerID, sourceID: sourceID, targetID: targetID)
+        remapped.activeSinceByPlayerID = mergeDateDictionary(snapshot.activeSinceByPlayerID, sourceID: sourceID, targetID: targetID)
+        remapped.homeAvailablePlayerIDs = remapDedupedIDs(snapshot.homeAvailablePlayerIDs, sourceID: sourceID, targetID: targetID)
+        remapped.awayAvailablePlayerIDs = remapDedupedIDs(snapshot.awayAvailablePlayerIDs, sourceID: sourceID, targetID: targetID)
+        remapped.starterPlayerIDs = remapDedupedIDs(snapshot.starterPlayerIDs, sourceID: sourceID, targetID: targetID)
+        remapped.homeOnCourtPlayerIDs = remapDedupedIDs(snapshot.homeOnCourtPlayerIDs, sourceID: sourceID, targetID: targetID)
+        remapped.awayOnCourtPlayerIDs = remapDedupedIDs(snapshot.awayOnCourtPlayerIDs, sourceID: sourceID, targetID: targetID)
+        return remapped
     }
 
     private func mergeStatsDictionary(
@@ -564,16 +684,17 @@ final class AppStore: ObservableObject {
         targetID: UUID,
         targetName: String
     ) -> SavedGame {
-        var snapshot = game.snapshot
-        let homeChanged = snapshot.homeTeamID == sourceID
-        let awayChanged = snapshot.awayTeamID == sourceID
-        if homeChanged { snapshot.homeTeamID = targetID }
-        if awayChanged { snapshot.awayTeamID = targetID }
+        let snapshot = remappedSnapshotForTeamMerge(game.snapshot, sourceID: sourceID, targetID: targetID)
+        let homeChanged = game.snapshot.homeTeamID == sourceID
+        let awayChanged = game.snapshot.awayTeamID == sourceID
 
         return SavedGame(
             id: game.id,
             savedAt: game.savedAt,
             snapshot: snapshot,
+            aiSummary: game.aiSummary,
+            previousSnapshot: game.previousSnapshot.map { remappedSnapshotForTeamMerge($0, sourceID: sourceID, targetID: targetID) },
+            undoSnapshots: game.undoSnapshots.map { remappedSnapshotForTeamMerge($0, sourceID: sourceID, targetID: targetID) },
             homeTeamName: homeChanged ? targetName : game.homeTeamName,
             awayTeamName: awayChanged ? targetName : game.awayTeamName,
             homePlayerIDs: game.homePlayerIDs,
@@ -581,17 +702,71 @@ final class AppStore: ObservableObject {
             playerNamesByID: game.playerNamesByID
         )
     }
+
+    private func remappedSnapshotForTeamMerge(_ snapshot: GameSnapshot, sourceID: UUID, targetID: UUID) -> GameSnapshot {
+        var remapped = snapshot
+        if remapped.homeTeamID == sourceID { remapped.homeTeamID = targetID }
+        if remapped.awayTeamID == sourceID { remapped.awayTeamID = targetID }
+        return remapped
+    }
+
+    private func upsertImportedGame(_ importedGame: SavedGame) {
+        if let existingIndex = savedGames.firstIndex(where: { $0.id == importedGame.id }) {
+            savedGames[existingIndex] = importedGame
+            if existingIndex != 0 {
+                let updated = savedGames.remove(at: existingIndex)
+                savedGames.insert(updated, at: 0)
+            }
+            return
+        }
+
+        if let duplicateIndex = savedGames.firstIndex(where: { isLikelyDuplicateGame($0, importedGame) }) {
+            let existingID = savedGames[duplicateIndex].id
+            var replacement = importedGame
+            replacement.id = existingID
+            savedGames[duplicateIndex] = replacement
+            if duplicateIndex != 0 {
+                let updated = savedGames.remove(at: duplicateIndex)
+                savedGames.insert(updated, at: 0)
+            }
+            return
+        }
+
+        savedGames.insert(importedGame, at: 0)
+    }
+
+    private func isLikelyDuplicateGame(_ lhs: SavedGame, _ rhs: SavedGame) -> Bool {
+        lhs.savedAt == rhs.savedAt
+            && lhs.homeTeamName == rhs.homeTeamName
+            && lhs.awayTeamName == rhs.awayTeamName
+            && lhs.snapshot == rhs.snapshot
+    }
+
+    private func dedupedIDs(_ ids: [UUID]) -> [UUID] {
+        var seen: Set<UUID> = []
+        return ids.filter { seen.insert($0).inserted }
+    }
 }
 
 private struct StorePayload: Codable {
     var players: [Player]
     var teams: [Team]
     var savedGames: [SavedGame]
+    var hiddenCareerStatItems: Set<CareerStatItem>
+    var keepsScreenAwake: Bool
 
-    init(players: [Player], teams: [Team], savedGames: [SavedGame] = []) {
+    init(
+        players: [Player],
+        teams: [Team],
+        savedGames: [SavedGame] = [],
+        hiddenCareerStatItems: Set<CareerStatItem> = [],
+        keepsScreenAwake: Bool = true
+    ) {
         self.players = players
         self.teams = teams
         self.savedGames = savedGames
+        self.hiddenCareerStatItems = hiddenCareerStatItems
+        self.keepsScreenAwake = keepsScreenAwake
     }
 
     init(from decoder: Decoder) throws {
@@ -599,5 +774,7 @@ private struct StorePayload: Codable {
         players = try container.decode([Player].self, forKey: .players)
         teams = try container.decode([Team].self, forKey: .teams)
         savedGames = try container.decodeIfPresent([SavedGame].self, forKey: .savedGames) ?? []
+        hiddenCareerStatItems = try container.decodeIfPresent(Set<CareerStatItem>.self, forKey: .hiddenCareerStatItems) ?? []
+        keepsScreenAwake = try container.decodeIfPresent(Bool.self, forKey: .keepsScreenAwake) ?? true
     }
 }

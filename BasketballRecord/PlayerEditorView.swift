@@ -52,6 +52,13 @@ struct PlayerEditorView: View {
                     TextField("体重 kg", text: $weight)
                         .keyboardType(.decimalPad)
                 }
+
+                Section("UUID") {
+                    Text(player?.id.uuidString ?? "保存后生成")
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                }
             }
             .navigationTitle(player == nil ? "新建球员" : "编辑球员")
             .toolbar {

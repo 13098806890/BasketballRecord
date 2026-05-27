@@ -26,6 +26,11 @@
 - 比赛详情按球队分开展示球员数据。
 - 提供可折叠球队统计区，包含球队总览数据。
 
+- AI 比赛分析
+- 支持配置 DeepSeek API Key（连通性测试 + Keychain 存储）。
+- 生成比赛总结、MVP 与高亮时刻，并保存到比赛记录。
+- AI 分析结果使用图标化卡片展示，支持文本清洗与纯文本渲染。
+
 - 球员卡
 - 支持从比赛历史中选择统计范围。
 - 提供按月分组、全选/全清、按月全选等操作。
@@ -50,4 +55,17 @@
 
 ## 版本
 
-- 当前版本：`1.01`
+- 当前版本：`1.02`
+
+## Release Notes
+
+- 版本日志：`RELEASE_NOTES.md`
+
+## App Store 上架文档
+
+- 上架说明入口：`docs/appstore/README.md`
+- 隐私政策：`docs/appstore/privacy-policy.md`
+- 支持页面：`docs/appstore/support.md`
+- 使用条款：`docs/appstore/terms-of-use.md`
+- 元数据草案：`docs/appstore/app-store-metadata.md`
+- 审核备注模板：`docs/appstore/review-notes.md`
