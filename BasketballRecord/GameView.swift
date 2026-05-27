@@ -228,47 +228,13 @@ struct GameView: View {
 
     private var teamPickers: some View {
         HStack(spacing: 8) {
-            Picker("主队", selection: Binding(
-                get: { snapshot.homeTeamID ?? store.teams.first?.id },
-                set: {
-                    guard canEditTeamSelection else { return }
-                    snapshot.homeTeamID = $0
-                    ensureSelectedPlayer()
-                }
-            )) {
-                ForEach(store.teams) { team in
-                    Text(team.name).tag(Optional(team.id))
-                }
-            }
-            .pickerStyle(.menu)
-            .disabled(!canEditTeamSelection)
-
-            Text("vs")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Picker("客队", selection: Binding(
-                get: { snapshot.awayTeamID ?? store.teams.dropFirst().first?.id ?? store.teams.first?.id },
-                set: {
-                    guard canEditTeamSelection else { return }
-                    snapshot.awayTeamID = $0
-                    ensureSelectedPlayer()
-                }
-            )) {
-                ForEach(store.teams) { team in
-                    Text(team.name).tag(Optional(team.id))
-                }
-            }
-            .pickerStyle(.menu)
-            .disabled(!canEditTeamSelection)
-
             HStack(spacing: 4) {
                 Image(systemName: "clock")
                 Text(Self.durationFormatter(currentMatchElapsedSeconds))
                     .monospacedDigit()
             }
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            .font(.callout.weight(.bold))
+            .foregroundStyle(.black)
 
             Spacer(minLength: 0)
 
