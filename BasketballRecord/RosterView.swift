@@ -51,8 +51,7 @@ struct RosterView: View {
                         settingsRow(
                             title: "生涯数据显示",
                             systemImage: "slider.horizontal.3",
-                            countText: nil,
-                            showsDisclosure: true
+                            countText: nil
                         )
                     }
                 }
@@ -64,8 +63,7 @@ struct RosterView: View {
                         settingsRow(
                             title: "球队",
                             systemImage: "person.3.fill",
-                            countText: "\(store.teams.count)",
-                            showsDisclosure: true
+                            countText: "\(store.teams.count)"
                         )
                     }
 
@@ -75,8 +73,7 @@ struct RosterView: View {
                         settingsRow(
                             title: "球员",
                             systemImage: "person.crop.circle.fill",
-                            countText: "\(store.players.count)",
-                            showsDisclosure: true
+                            countText: "\(store.players.count)"
                         )
                     }
 
@@ -100,8 +97,7 @@ struct RosterView: View {
                         settingsRow(
                             title: "蓝牙协同",
                             systemImage: "dot.radiowaves.left.and.right",
-                            countText: nil,
-                            showsDisclosure: true
+                            countText: nil
                         )
                     }
 
