@@ -30,7 +30,7 @@ struct PlayerEditorView: View {
                     HStack(spacing: 16) {
                         preview
                         PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                            Label("选择照片", systemImage: "photo")
+                            Label(LocalizedStringKey("label_select_photo"), systemImage: "photo")
                         }
                     }
 
@@ -38,35 +38,35 @@ struct PlayerEditorView: View {
                         Button(role: .destructive) {
                             photoData = nil
                         } label: {
-                            Label("移除照片", systemImage: "trash")
+                            Label(LocalizedStringKey("label_remove_photo"), systemImage: "trash")
                         }
                     }
                 }
 
-                Section("基本信息") {
-                    TextField("姓名（必填）", text: $name)
-                    TextField("号码", text: $number)
+                Section(LocalizedStringKey("section_basic_info")) {
+                    TextField(LocalizedStringKey("placeholder_name_required"), text: $name)
+                    TextField(LocalizedStringKey("placeholder_number"), text: $number)
                         .keyboardType(.numberPad)
-                    TextField("身高 cm", text: $height)
+                    TextField(LocalizedStringKey("placeholder_height_cm"), text: $height)
                         .keyboardType(.decimalPad)
-                    TextField("体重 kg", text: $weight)
+                    TextField(LocalizedStringKey("placeholder_weight_kg"), text: $weight)
                         .keyboardType(.decimalPad)
                 }
 
-                Section("UUID") {
-                    Text(player?.id.uuidString ?? "保存后生成")
+                Section(LocalizedStringKey("section_uuid")) {
+                    Text(player?.id.uuidString ?? NSLocalizedString("text_generated_after_save", comment: "Generated after save"))
                         .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                         .textSelection(.enabled)
                 }
             }
-            .navigationTitle(player == nil ? "新建球员" : "编辑球员")
+            .navigationTitle(player == nil ? NSLocalizedString("nav_new_player", comment: "New player") : NSLocalizedString("nav_edit_player", comment: "Edit player"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                    Button(LocalizedStringKey("button_cancel")) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") { save() }
+                    Button(LocalizedStringKey("button_save")) { save() }
                         .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }

@@ -190,7 +190,20 @@
 "reason_parse_failed" = "解析失败";
 "update_parse_failed" = "接收完成但解析失败，请重试";
 "update_received_completed_confirm_import" = "已接收完成，请确认是否导入";
-"processing_validating_and_parsing_received_data" = "正在校验並解析接收数据…";
+"processing_validating_and_parsing_received_data" = "正在校验并解析接收数据…";
+"label_select_photo" = "选择照片";
+"label_remove_photo" = "移除照片";
+"section_basic_info" = "基本信息";
+"placeholder_name_required" = "姓名（必填）";
+"placeholder_number" = "号码";
+"placeholder_height_cm" = "身高 cm";
+"placeholder_weight_kg" = "体重 kg";
+"section_uuid" = "UUID";
+"text_generated_after_save" = "保存后生成";
+"nav_new_player" = "新建球员";
+"nav_edit_player" = "编辑球员";
+"button_save" = "保存";
+
 "processing_waiting_and_receiving" = "正在等待並接收數據…";
 "update_confirmed_waiting_for_peer_start_transfer" = "已確認接收，等待 %@ 開始傳輸";
 "update_rejected_peer_sync_request" = "已拒絕 %@ 的同步請求";

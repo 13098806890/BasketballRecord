@@ -186,6 +186,19 @@
 "button_disconnect_all" = "Disconnect All";
 "label_connected" = "Connected";
 "button_clear_status" = "Clear status";
+"label_select_photo" = "Select Photo";
+"label_remove_photo" = "Remove Photo";
+"section_basic_info" = "Basic Info";
+"placeholder_name_required" = "Name (required)";
+"placeholder_number" = "Number";
+"placeholder_height_cm" = "Height (cm)";
+"placeholder_weight_kg" = "Weight (kg)";
+"section_uuid" = "UUID";
+"text_generated_after_save" = "Generated after save";
+"nav_new_player" = "New Player";
+"nav_edit_player" = "Edit Player";
+"button_save" = "Save";
+
 "permission_status_authorized" = "Local network permission allowed";
 "permission_status_denied" = "Local network permission not allowed";
 "permission_status_checking" = "Checking local network permission";
