@@ -190,6 +190,29 @@
 "permission_status_denied" = "Local network permission not allowed";
 "permission_status_checking" = "Checking local network permission";
 "permission_status_unknown" = "Local network permission status unknown";
+
+/* BluetoothSyncManager new keys */
+"error_sync_data_encoding_failed" = "Sync data encoding failed";
+"status_bluetooth_message_encoding_failed" = "Bluetooth message encoding failed";
+"status_send_failed_with_error" = "Send failed: %@";
+"update_sync_send_interrupted" = "Sync send interrupted, please retry";
+"update_data_sent_waiting_peer_confirm" = "Data sent, waiting for %@ to verify and confirm";
+"update_sender_completed_but_no_confirmation_yet" = "Sender completed sending but no confirmation yet";
+"reason_data_incomplete" = "Data incomplete";
+"update_received_data_incomplete" = "Received data incomplete, please retry";
+"reason_hash_check_failed" = "Hash check failed";
+"update_hash_check_failed" = "Received but hash check failed, please retry";
+"reason_parse_failed" = "Parse failed";
+"update_parse_failed" = "Received but parse failed, please retry";
+"update_received_completed_confirm_import" = "Received complete, please confirm import";
+"processing_validating_and_parsing_received_data" = "Validating and parsing received data…";
+"processing_waiting_and_receiving" = "Waiting and receiving data…";
+"update_confirmed_waiting_for_peer_start_transfer" = "Confirmed receive, waiting for %@ to start transfer";
+"update_rejected_peer_sync_request" = "%@ rejected the sync request";
+"update_received_completed_confirm_import" = "Received complete, please confirm import";
+"permission_status_denied" = "Local network permission not allowed";
+"permission_status_checking" = "Checking local network permission";
+"permission_status_unknown" = "Local network permission status unknown";
 "permission_hint_authorized" = "Can discover and connect nearby devices.";
 "permission_hint_denied" = "Please enable \"Local Network\" in System Settings, otherwise broadcasting or searching devices won't work.";
 "permission_hint_checking" = "First-time checks may trigger a system permission prompt.";

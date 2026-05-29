@@ -18,7 +18,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
 
     private static let offerDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.locale = Locale.current
         formatter.dateFormat = "MM-dd HH:mm"
         return formatter
     }()
@@ -368,7 +368,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
                 offer: offer.payload,
                 chunkBuffer: Array(repeating: nil, count: max(offer.payload.totalChunks, 0))
             )
-            setStoreSyncProcessing(active: true, message: "正在等待并接收对方数据…")
+            setStoreSyncProcessing(active: true, message: NSLocalizedString("processing_waiting_and_receiving", comment: "Waiting and receiving data"))
             lastIncomingProgressUpdateAt = nil
             incomingStoreSyncProgress = BluetoothStoreSyncProgress(
                 id: offer.payload.transferID,
@@ -379,13 +379,13 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
                 totalBytes: offer.payload.totalBytes,
                 isSending: false
             )
-            updateStoreSyncStatus("已确认接收，等待 \(offer.fromPeerName) 开始传输")
+            updateStoreSyncStatus(String(format: NSLocalizedString("update_confirmed_waiting_for_peer_start_transfer", comment: "Confirmed receive, waiting for peer to start transfer"), offer.fromPeerName))
         } else {
             incomingStoreSyncTransfers.removeValue(forKey: offer.payload.transferID)
             incomingStoreSyncProgress = nil
             lastIncomingProgressUpdateAt = nil
             setStoreSyncProcessing(active: false, message: nil)
-            updateStoreSyncStatus("已拒绝 \(offer.fromPeerName) 的同步请求")
+            updateStoreSyncStatus(String(format: NSLocalizedString("update_rejected_peer_sync_request", comment: "Rejected peer sync request"), offer.fromPeerName))
         }
 
         pendingStoreSyncOffer = nil
@@ -577,7 +577,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
             peers.contains(where: { $0 == candidate })
         }
         guard !connectedTargets.isEmpty else {
-            setStatusMessage("当前没有可用连接设备")
+            setStatusMessage(NSLocalizedString("status_no_available_connection", comment: "No available connected device"))
             return false
         }
         let shouldCompress: Bool
@@ -589,7 +589,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
         }
 
         guard let encoded = encodeMessage(message, compress: shouldCompress) else {
-            setStatusMessage("蓝牙消息编码失败")
+            setStatusMessage(NSLocalizedString("status_bluetooth_message_encoding_failed", comment: "Bluetooth message encoding failed"))
             return false
         }
 
@@ -597,7 +597,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
             try session.send(encoded, toPeers: connectedTargets, with: .reliable)
             return true
         } catch {
-            setStatusMessage("发送失败：\(error.localizedDescription)")
+            setStatusMessage(String(format: NSLocalizedString("status_send_failed_with_error", comment: "Send failed: %@"), error.localizedDescription))
             return false
         }
     }
@@ -653,7 +653,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
                     self.outgoingStoreSyncProgress = nil
                     self.lastOutgoingProgressUpdateAt = nil
                     self.setStoreSyncProcessing(active: false, message: nil)
-                    self.updateStoreSyncStatus("同步发送中断，请重试")
+                    self.updateStoreSyncStatus(NSLocalizedString("update_sync_send_interrupted", comment: "Sync send interrupted, please retry"))
                 }
                 return
             }
@@ -704,7 +704,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
                 totalBytes: transfer.offer.totalBytes,
                 isSending: true
             )
-            self.updateStoreSyncStatus("数据发送完成，等待 \(transfer.targetPeer.displayName) 校验并确认", showGlobalAlert: false)
+            self.updateStoreSyncStatus(String(format: NSLocalizedString("update_data_sent_waiting_peer_confirm", comment: "Data sent, waiting for peer to verify and confirm"), transfer.targetPeer.displayName), showGlobalAlert: false)
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 12) { [weak self] in
                 guard let self else { return }
@@ -717,7 +717,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
                 self.lastOutgoingProgressUpdateAt = nil
                 self.refreshStoreSyncSendingState()
                 self.setStoreSyncProcessing(active: false, message: nil)
-                self.updateStoreSyncStatus("发送端已完成数据发送，但暂未收到对端确认（可能仍在接收/校验）")
+                self.updateStoreSyncStatus(NSLocalizedString("update_sender_completed_but_no_confirmation_yet", comment: "Sender completed sending but no confirmation yet"))
             }
         }
     }
@@ -762,8 +762,8 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
 
         let orderedChunks = transfer.chunkBuffer.compactMap { $0 }
         guard orderedChunks.count == transfer.offer.totalChunks else {
-            sendStoreSyncReceiveAck(transferID: payload.transferID, to: peer, success: false, reason: "数据不完整")
-            updateStoreSyncStatus("接收数据不完整，请重新传输")
+            sendStoreSyncReceiveAck(transferID: payload.transferID, to: peer, success: false, reason: NSLocalizedString("reason_data_incomplete", comment: "Data incomplete"))
+            updateStoreSyncStatus(NSLocalizedString("update_received_data_incomplete", comment: "Received data incomplete, please retry"))
             incomingStoreSyncTransfers.removeValue(forKey: payload.transferID)
             incomingStoreSyncProgress = nil
             lastIncomingProgressUpdateAt = nil
@@ -774,7 +774,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
         let totalBytes = transfer.offer.totalBytes
         let snapshotHash = transfer.offer.snapshotHash
         incomingStoreSyncTransfers.removeValue(forKey: payload.transferID)
-        setStoreSyncProcessing(active: true, message: "正在校验并解析接收数据…")
+        setStoreSyncProcessing(active: true, message: NSLocalizedString("processing_validating_and_parsing_received_data", comment: "Validating and parsing received data"))
 
         storeSyncTransferQueue.async { [weak self] in
             guard let self else { return }
@@ -800,8 +800,8 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
             guard let decodedPayload = self.decodeStoreSyncPayloadData(joinedData) else {
                 DispatchQueue.main.async { [weak self] in
                     guard let self else { return }
-                    self.sendStoreSyncReceiveAck(transferID: transferID, to: peer, success: false, reason: "解析失败")
-                    self.updateStoreSyncStatus("接收完成但解析失败，请重试")
+                    self.sendStoreSyncReceiveAck(transferID: transferID, to: peer, success: false, reason: NSLocalizedString("reason_parse_failed", comment: "Parse failed"))
+                    self.updateStoreSyncStatus(NSLocalizedString("update_parse_failed", comment: "Received but parse failed, please retry"))
                     self.incomingStoreSyncProgress = nil
                     self.lastIncomingProgressUpdateAt = nil
                     self.setStoreSyncProcessing(active: false, message: nil)
@@ -813,7 +813,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
                 guard let self else { return }
                 self.sendStoreSyncReceiveAck(transferID: transferID, to: peer, success: true, reason: nil)
                 self.pendingStoreSync = BluetoothReceivedStoreSync(fromPeerName: peer.displayName, payload: decodedPayload)
-                self.updateStoreSyncStatus("已接收完成，请确认是否导入")
+                self.updateStoreSyncStatus(NSLocalizedString("update_received_completed_confirm_import", comment: "Received complete, please confirm import"))
                 self.setStoreSyncProcessing(active: false, message: nil)
 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
@@ -1017,12 +1017,12 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
         let includeSavedGames = !sanitizedPayload.savedGames.isEmpty
 
         guard includePlayers || includeTeams || includeSavedGames else {
-            return .failure(StoreSyncPreparationError(message: "已选分类中没有可发送的数据"))
+            return .failure(StoreSyncPreparationError(message: NSLocalizedString("error_no_data_in_selected_category", comment: "No data in selected categories to send")))
         }
 
         let localEncoder = JSONEncoder()
         guard let raw = try? localEncoder.encode(sanitizedPayload) else {
-            return .failure(StoreSyncPreparationError(message: "同步数据编码失败"))
+            return .failure(StoreSyncPreparationError(message: NSLocalizedString("error_sync_data_encoding_failed", comment: "Sync data encoding failed")))
         }
         let encodedPayload = (try? (raw as NSData).compressed(using: .lzfse) as Data) ?? raw
 
@@ -1032,7 +1032,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
         let snapshotHash = sha256Hex(encodedPayload)
 
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.locale = Locale.current
         formatter.dateFormat = "MM-dd HH:mm"
 
         let offer = BluetoothStoreSyncOfferPayload(

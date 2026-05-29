@@ -132,6 +132,28 @@
 "permission_status_denied" = "本地網絡權限未允許";
 "permission_status_checking" = "正在檢測本地網絡權限";
 "permission_status_unknown" = "本地網絡權限狀態未知";
+
+/* BluetoothSyncManager 新增 key */
+"error_sync_data_encoding_failed" = "同步資料編碼失敗";
+"status_bluetooth_message_encoding_failed" = "藍牙訊息編碼失敗";
+"status_send_failed_with_error" = "發送失敗：%@";
+"update_sync_send_interrupted" = "同步發送中斷，請重試";
+"update_data_sent_waiting_peer_confirm" = "資料發送完成，等待 %@ 校驗並確認";
+"update_sender_completed_but_no_confirmation_yet" = "發送端已完成資料發送，但暫未收到對端確認（可能仍在接收/校驗）";
+"reason_data_incomplete" = "資料不完整";
+"update_received_data_incomplete" = "接收資料不完整，請重新傳輸";
+"reason_hash_check_failed" = "Hash 校驗失敗";
+"update_hash_check_failed" = "接收完成但 Hash 校驗失敗，請重新傳輸";
+"reason_parse_failed" = "解析失敗";
+"update_parse_failed" = "接收完成但解析失敗，請重試";
+"update_received_completed_confirm_import" = "已接收完成，請確認是否匯入";
+"processing_validating_and_parsing_received_data" = "正在校驗並解析接收資料…";
+"processing_waiting_and_receiving" = "正在等待並接收資料…";
+"update_confirmed_waiting_for_peer_start_transfer" = "已確認接收，等待 %@ 開始傳輸";
+"update_rejected_peer_sync_request" = "已拒絕 %@ 的同步請求";
+"permission_status_denied" = "本地網絡權限未允許";
+"permission_status_checking" = "正在檢測本地網絡權限";
+"permission_status_unknown" = "本地網絡權限狀態未知";
 "permission_hint_authorized" = "可以正常發現並連接附近裝置。";
 "permission_hint_denied" = "請在系統設定中打開「本地網絡」，否則無法廣播或搜索裝置。";
 "permission_hint_checking" = "首次檢測可能會觸發系統權限提示。";

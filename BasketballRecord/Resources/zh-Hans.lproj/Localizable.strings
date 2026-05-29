@@ -175,6 +175,26 @@
 "status_sync_in_progress_please_wait" = "已有同步任务进行中，请稍候";
 "update_preparing_store_sync_please_wait" = "正在准备同步数据，请稍候";
 "store_sync_preparing_local_processing" = "正在准备同步数据（本地处理）";
+
+/* BluetoothSyncManager 新增 key */
+"error_sync_data_encoding_failed" = "同步数据编码失败";
+"status_bluetooth_message_encoding_failed" = "蓝牙消息编码失败";
+"status_send_failed_with_error" = "发送失败：%@";
+"update_sync_send_interrupted" = "同步发送中断，请重试";
+"update_data_sent_waiting_peer_confirm" = "数据发送完成，等待 %@ 校验并确认";
+"update_sender_completed_but_no_confirmation_yet" = "发送端已完成数据发送，但暂未收到对端确认（可能仍在接收/校验）";
+"reason_data_incomplete" = "数据不完整";
+"update_received_data_incomplete" = "接收数据不完整，请重新传输";
+"reason_hash_check_failed" = "哈希校验失败";
+"update_hash_check_failed" = "接收完成但哈希校验失败，请重新传输";
+"reason_parse_failed" = "解析失败";
+"update_parse_failed" = "接收完成但解析失败，请重试";
+"update_received_completed_confirm_import" = "已接收完成，请确认是否导入";
+"processing_validating_and_parsing_received_data" = "正在校验並解析接收数据…";
+"processing_waiting_and_receiving" = "正在等待並接收數據…";
+"update_confirmed_waiting_for_peer_start_transfer" = "已確認接收，等待 %@ 開始傳輸";
+"update_rejected_peer_sync_request" = "已拒絕 %@ 的同步請求";
+
 "update_sync_task_in_progress" = "已有同步任务进行中";
 "update_sync_preparation_cancelled" = "同步准备已取消";
 "update_sync_receive_cancelled" = "接收同步已取消";
