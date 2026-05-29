@@ -64,7 +64,7 @@ struct GameView: View {
                     simulationLoadingView
                 }
                 .allowsHitTesting(!isSimulating)
-                .navigationTitle("比赛记录")
+                .navigationTitle(LocalizedStringKey("nav_game"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItemGroup(placement: .topBarTrailing) {
@@ -75,13 +75,13 @@ struct GameView: View {
                                 isShowingNewGameSetup = true
                             }
                         } label: {
-                            Label("新比赛", systemImage: "plus.circle")
+                            Label(LocalizedStringKey("button_new_game"), systemImage: "plus.circle")
                         }
 
                         Button {
                             handleInviteSyncTapped()
                         } label: {
-                            Label("邀请协同", systemImage: "dot.radiowaves.left.and.right")
+                            Label(LocalizedStringKey("button_invite_collab"), systemImage: "dot.radiowaves.left.and.right")
                         }
                         .disabled(currentGameRecordID == nil || needsNewGameSetup || bluetooth.connectedPeers.isEmpty)
 
@@ -89,7 +89,7 @@ struct GameView: View {
                             Button {
                                 handleSimulateTapped()
                             } label: {
-                                Label("模拟比赛", systemImage: "sparkles")
+                                Label(LocalizedStringKey("button_simulate"), systemImage: "sparkles")
                             }
                             .disabled(isSimulating)
                         }
@@ -97,7 +97,7 @@ struct GameView: View {
                         Button {
                             saveCurrentGame()
                         } label: {
-                            Label("存到历史", systemImage: "clock.badge.checkmark")
+                            Label(LocalizedStringKey("button_save_history"), systemImage: "clock.badge.checkmark")
                         }
                         .disabled(snapshot.logs.isEmpty)
                     }
@@ -154,59 +154,59 @@ struct GameView: View {
 
     private var alertWrappedView: some View {
         sheetWrappedView
-            .alert("已保存", isPresented: Binding(
+            .alert(LocalizedStringKey("alert_saved"), isPresented: Binding(
                 get: { saveConfirmation != nil },
                 set: { if !$0 { saveConfirmation = nil } }
             )) {
-                Button("好") { saveConfirmation = nil }
+                Button(LocalizedStringKey("button_ok")) { saveConfirmation = nil }
             } message: {
                 Text(saveConfirmation ?? "")
             }
-            .alert("重置比赛数据？", isPresented: $isShowingResetConfirmation) {
-                Button("取消", role: .cancel) { }
-                Button("确认重置") { resetGame() }
+            .alert(LocalizedStringKey("alert_reset_game_title"), isPresented: $isShowingResetConfirmation) {
+                Button(LocalizedStringKey("button_cancel"), role: .cancel) { }
+                Button(LocalizedStringKey("button_confirm_reset")) { resetGame() }
             } message: {
-                Text("当前比赛的得分、事件、上场时间和在场名单都会清空。")
+                Text(LocalizedStringKey("alert_reset_game_message"))
             }
-            .alert("当前比赛未结束", isPresented: $isShowingUnfinishedGameAlert) {
-                Button("取消", role: .cancel) { }
-                Button("结束当前比赛") {
+            .alert(LocalizedStringKey("alert_unfinished_game_title"), isPresented: $isShowingUnfinishedGameAlert) {
+                Button(LocalizedStringKey("button_cancel"), role: .cancel) { }
+                Button(LocalizedStringKey("button_end_current_game")) {
                     finishGame()
                     isShowingNewGameSetup = true
                 }
             } message: {
-                Text("是否先结束当前比赛，再开始新比赛？")
+                Text(LocalizedStringKey("alert_unfinished_game_message"))
             }
-            .alert("当前比赛未结束", isPresented: $isShowingSimulateConfirmation) {
-                Button("取消", role: .cancel) { }
-                Button("结束并模拟") {
+            .alert(LocalizedStringKey("alert_unfinished_game_title"), isPresented: $isShowingSimulateConfirmation) {
+                Button(LocalizedStringKey("button_cancel"), role: .cancel) { }
+                Button(LocalizedStringKey("button_end_and_simulate")) {
                     finishGame()
                     startSimulation()
                 }
             } message: {
-                Text("是否先结束当前比赛，再生成一场模拟比赛？")
+                Text(LocalizedStringKey("alert_unfinished_game_simulate_message"))
             }
-            .alert("无法记录统计", isPresented: Binding(
+            .alert(LocalizedStringKey("alert_cannot_record_title"), isPresented: Binding(
                 get: { statAlertMessage != nil },
                 set: { if !$0 { statAlertMessage = nil } }
             )) {
-                Button("知道了") { statAlertMessage = nil }
+                Button(LocalizedStringKey("button_ok")) { statAlertMessage = nil }
             } message: {
                 Text(statAlertMessage ?? "")
             }
-            .alert("无法模拟比赛", isPresented: Binding(
+            .alert(LocalizedStringKey("alert_cannot_simulate_title"), isPresented: Binding(
                 get: { simulationAlertMessage != nil },
                 set: { if !$0 { simulationAlertMessage = nil } }
             )) {
-                Button("知道了") { simulationAlertMessage = nil }
+                Button(LocalizedStringKey("button_ok")) { simulationAlertMessage = nil }
             } message: {
                 Text(simulationAlertMessage ?? "")
             }
-            .alert("蓝牙协同", isPresented: Binding(
+            .alert(LocalizedStringKey("alert_bluetooth_collab_title"), isPresented: Binding(
                 get: { collaborationAlertMessage != nil },
                 set: { if !$0 { collaborationAlertMessage = nil } }
             )) {
-                Button("知道了") { collaborationAlertMessage = nil }
+                Button(LocalizedStringKey("button_ok")) { collaborationAlertMessage = nil }
             } message: {
                 Text(collaborationAlertMessage ?? "")
             }
@@ -278,12 +278,12 @@ struct GameView: View {
             SavedGameDetailView(game: currentLiveSavedGame, displayMode: .live)
         } label: {
             HStack(spacing: 10) {
-                Label("比赛数据", systemImage: "chart.bar.doc.horizontal")
+                Label(LocalizedStringKey("label_game_data"), systemImage: "chart.bar.doc.horizontal")
                     .font(.subheadline.weight(.semibold))
 
                 Spacer(minLength: 8)
 
-                Text("查看")
+                Text(LocalizedStringKey("label_view"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -433,45 +433,45 @@ struct GameView: View {
     private var actionButtons: some View {
         VStack(spacing: 8) {
             HStack(spacing: 8) {
-                actionButton("2分命中", systemImage: "2.circle.fill", style: .made) { record(.twoMade) }
-                actionButton("3分命中", systemImage: "3.circle.fill", style: .made) { record(.threeMade) }
-                actionButton("加罚命中", systemImage: "plus.circle.fill", style: .made) { record(.bonusMade) }
-                actionButton("罚篮命中", systemImage: "f.circle.fill", style: .made) { record(.freeThrowMade) }
+                actionButton(LocalizedStringKey("action_two_made"), systemImage: "2.circle.fill", style: .made) { record(.twoMade) }
+                actionButton(LocalizedStringKey("action_three_made"), systemImage: "3.circle.fill", style: .made) { record(.threeMade) }
+                actionButton(LocalizedStringKey("action_bonus_made"), systemImage: "plus.circle.fill", style: .made) { record(.bonusMade) }
+                actionButton(LocalizedStringKey("action_free_made"), systemImage: "f.circle.fill", style: .made) { record(.freeThrowMade) }
             }
 
             HStack(spacing: 8) {
-                actionButton("2分不中", systemImage: "2.circle", style: .missed) { record(.twoMissed) }
-                actionButton("3分不中", systemImage: "3.circle", style: .missed) { record(.threeMissed) }
-                actionButton("加罚不中", systemImage: "plus.circle", style: .missed) { record(.bonusMissed) }
-                actionButton("罚篮不中", systemImage: "f.circle", style: .missed) { record(.freeThrowMissed) }
+                actionButton(LocalizedStringKey("action_two_missed"), systemImage: "2.circle", style: .missed) { record(.twoMissed) }
+                actionButton(LocalizedStringKey("action_three_missed"), systemImage: "3.circle", style: .missed) { record(.threeMissed) }
+                actionButton(LocalizedStringKey("action_bonus_missed"), systemImage: "plus.circle", style: .missed) { record(.bonusMissed) }
+                actionButton(LocalizedStringKey("action_free_missed"), systemImage: "f.circle", style: .missed) { record(.freeThrowMissed) }
             }
 
             HStack(spacing: 8) {
                 if snapshot.showsAssistButton {
-                    actionButton("助攻", systemImage: "person.2.fill", style: .assist) { record(.assist) }
+                    actionButton(LocalizedStringKey("action_assist"), systemImage: "person.2.fill", style: .assist) { record(.assist) }
                 }
                 if snapshot.showsReboundButton {
-                    actionButton("篮板", systemImage: "arrow.up.circle.fill", style: .rebound) { record(.rebound) }
+                    actionButton(LocalizedStringKey("action_rebound"), systemImage: "arrow.up.circle.fill", style: .rebound) { record(.rebound) }
                 }
                 if snapshot.showsFoulButton {
-                    actionButton("犯规", systemImage: "exclamationmark.triangle", style: .warning) { record(.foul) }
+                    actionButton(LocalizedStringKey("action_foul"), systemImage: "exclamationmark.triangle", style: .warning) { record(.foul) }
                 }
                 if snapshot.showsStealButton {
-                    actionButton("抢断", systemImage: "hand.raised.fill", style: .assist) { record(.steal) }
+                    actionButton(LocalizedStringKey("action_steal"), systemImage: "hand.raised.fill", style: .assist) { record(.steal) }
                 }
             }
 
             HStack(spacing: 8) {
                 if snapshot.showsBlockButton {
-                    actionButton("封盖", systemImage: "shield.lefthalf.filled", style: .rebound) { record(.block) }
+                    actionButton(LocalizedStringKey("action_block"), systemImage: "shield.lefthalf.filled", style: .rebound) { record(.block) }
                 }
                 if snapshot.showsTurnoverButton {
-                    actionButton("失误", systemImage: "arrow.triangle.2.circlepath", style: .warning) { record(.turnover) }
+                    actionButton(LocalizedStringKey("action_turnover"), systemImage: "arrow.triangle.2.circlepath", style: .warning) { record(.turnover) }
                 }
                 Button {
                     togglePause()
                 } label: {
-                    Label(pauseButtonTitle, systemImage: snapshot.isPaused ? "play.fill" : "pause.fill")
+                    Label(LocalizedStringKey(pauseButtonTitle), systemImage: snapshot.isPaused ? "play.fill" : "pause.fill")
                         .font(.caption.weight(.semibold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
@@ -487,7 +487,7 @@ struct GameView: View {
                     triggerTapFeedback()
                     pulseActionButton("period-toggle")
                 } label: {
-                    Label(periodButtonTitle, systemImage: snapshot.periodIsRunning ? "stop.circle" : "play.circle")
+                    Label(LocalizedStringKey(periodButtonTitle), systemImage: snapshot.periodIsRunning ? "stop.circle" : "play.circle")
                         .font(.caption.weight(.semibold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
@@ -501,7 +501,7 @@ struct GameView: View {
                 Button {
                     openSubstitution(selectedSide)
                 } label: {
-                    Label("换人", systemImage: "arrow.left.arrow.right.circle")
+                    Label(LocalizedStringKey("button_substitute"), systemImage: "arrow.left.arrow.right.circle")
                         .font(.caption.weight(.semibold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
@@ -513,7 +513,7 @@ struct GameView: View {
                 Button {
                     openLateArrival(selectedSide)
                 } label: {
-                    Label("新增上场", systemImage: "person.crop.circle.badge.plus")
+                    Label(LocalizedStringKey("button_add_late_arrival"), systemImage: "person.crop.circle.badge.plus")
                         .font(.caption.weight(.semibold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
@@ -527,7 +527,7 @@ struct GameView: View {
                 Button {
                     isShowingResetConfirmation = true
                 } label: {
-                    Label("重置比赛", systemImage: "arrow.counterclockwise")
+                    Label(LocalizedStringKey("button_reset_game"), systemImage: "arrow.counterclockwise")
                         .font(.caption.weight(.semibold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
@@ -538,7 +538,7 @@ struct GameView: View {
                 Button {
                     isShowingFinishGameConfirmation = true
                 } label: {
-                    Label("结束比赛", systemImage: "flag.checkered.circle.fill")
+                    Label(LocalizedStringKey("button_finish_game"), systemImage: "flag.checkered.circle.fill")
                         .font(.caption.weight(.semibold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
@@ -559,7 +559,7 @@ struct GameView: View {
                 Button {
                     undo()
                 } label: {
-                    Label("撤回", systemImage: "arrow.uturn.backward")
+                    Label(LocalizedStringKey("button_undo"), systemImage: "arrow.uturn.backward")
                         .font(.caption.weight(.semibold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
@@ -571,7 +571,7 @@ struct GameView: View {
                 Button {
                     redo()
                 } label: {
-                    Label("重做", systemImage: "arrow.uturn.forward")
+                    Label(LocalizedStringKey("button_redo"), systemImage: "arrow.uturn.forward")
                         .font(.caption.weight(.semibold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
@@ -595,7 +595,7 @@ struct GameView: View {
             }
 
             if snapshot.logs.isEmpty {
-                ContentUnavailableView("还没有事件", systemImage: "list.bullet.clipboard")
+                ContentUnavailableView(LocalizedStringKey("text_no_events"), systemImage: "list.bullet.clipboard")
                     .frame(maxWidth: .infinity, minHeight: 120)
             } else {
                 List(snapshot.logs.reversed()) { entry in
@@ -732,8 +732,8 @@ struct GameView: View {
         return snapshot.periodElapsedSeconds + max(0, clockNow.timeIntervalSince(activeSince))
     }
 
-    private var pauseButtonTitle: String {
-        snapshot.isPaused ? "继续" : "暂停"
+    private var pauseButtonTitle: LocalizedStringKey {
+        snapshot.isPaused ? LocalizedStringKey("button_continue") : LocalizedStringKey("button_pause")
     }
 
     private var isRecordingActive: Bool {
@@ -748,7 +748,7 @@ struct GameView: View {
                 .opacity(recordingIndicatorBlink ? 0.25 : 1)
                 .scaleEffect(recordingIndicatorBlink ? 0.85 : 1.05)
 
-            Text("REC")
+            Text(LocalizedStringKey("label_rec"))
                 .font(.caption2.monospacedDigit().weight(.bold))
                 .foregroundStyle(.red)
         }
@@ -3127,7 +3127,7 @@ private struct NewGameSetupView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("球队") {
+                Section(LocalizedStringKey("section_teams")) {
                     Picker("主队", selection: $homeTeamID) {
                         ForEach(teams) { team in
                             Text(team.name).tag(Optional(team.id))
@@ -3140,7 +3140,7 @@ private struct NewGameSetupView: View {
                     }
                 }
 
-                Section("比赛设定") {
+                Section(LocalizedStringKey("section_game_settings")) {
                     Stepper(value: $periodCount, in: 1...8) {
                         HStack {
                             Text("比赛节数")
@@ -3162,7 +3162,7 @@ private struct NewGameSetupView: View {
                     Toggle("每节球队犯规清零", isOn: $resetsTeamFoulsEachPeriod)
                 }
 
-                Section("计分按钮") {
+                Section(LocalizedStringKey("section_scoring_buttons")) {
                     Toggle("篮板", isOn: $showsReboundButton)
                     Toggle("助攻", isOn: $showsAssistButton)
                     Toggle("犯规", isOn: $showsFoulButton)
@@ -3171,28 +3171,28 @@ private struct NewGameSetupView: View {
                     Toggle("失误", isOn: $showsTurnoverButton)
                 }
 
-                starterSection(title: "主队首发", players: homePlayers, selectedIDs: $homeStarterIDs, requiredCount: requiredHomeCount)
+                starterSection(title: LocalizedStringKey("starter_home_title"), players: homePlayers, selectedIDs: $homeStarterIDs, requiredCount: requiredHomeCount)
                 benchSection(
                     title: "主队替补",
                     players: homeBenchCandidates,
                     selectedIDs: $homeBenchIDs
                 )
 
-                starterSection(title: "客队首发", players: awayPlayers, selectedIDs: $awayStarterIDs, requiredCount: requiredAwayCount)
+                starterSection(title: LocalizedStringKey("starter_away_title"), players: awayPlayers, selectedIDs: $awayStarterIDs, requiredCount: requiredAwayCount)
                 benchSection(
                     title: "客队替补",
                     players: awayBenchCandidates,
                     selectedIDs: $awayBenchIDs
                 )
             }
-            .navigationTitle("新比赛")
+                .navigationTitle(LocalizedStringKey("nav_new_game"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                    Button(LocalizedStringKey("button_cancel")) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("开始") {
+                    Button(LocalizedStringKey("button_start")) {
                         guard let homeTeamID, let awayTeamID else { return }
                         onStart(
                             homeTeamID,

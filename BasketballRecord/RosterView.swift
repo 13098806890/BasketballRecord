@@ -12,7 +12,7 @@ struct RosterView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("比赛偏好") {
+                Section(LocalizedStringKey("settings_section_game_prefs")) {
                     HStack(spacing: 12) {
                         Image(systemName: "sun.max")
                             .font(.subheadline.weight(.semibold))
@@ -20,7 +20,7 @@ struct RosterView: View {
                             .foregroundStyle(.secondary)
                             .frame(width: 28, height: 28)
 
-                        Text("保持屏幕常亮")
+                        Text(LocalizedStringKey("settings_keep_screen_awake"))
                             .font(.body.weight(.medium))
 
                         Spacer()
@@ -36,7 +36,7 @@ struct RosterView: View {
                             .foregroundStyle(.secondary)
                             .frame(width: 28, height: 28)
 
-                        Text("显示模拟比赛按钮")
+                        Text(LocalizedStringKey("settings_show_simulation_button"))
                             .font(.body.weight(.medium))
 
                         Spacer()
@@ -49,19 +49,19 @@ struct RosterView: View {
                         CareerStatDisplaySettingsView()
                     } label: {
                         settingsRow(
-                            title: "生涯数据显示",
+                            title: LocalizedStringKey("settings_career_display"),
                             systemImage: "slider.horizontal.3",
                             countText: nil
                         )
                     }
                 }
 
-                Section("数据管理") {
+                Section(LocalizedStringKey("settings_section_data_management")) {
                     NavigationLink {
                         TeamManagementView()
                     } label: {
                         settingsRow(
-                            title: "球队",
+                            title: LocalizedStringKey("settings_teams"),
                             systemImage: "person.3.fill",
                             countText: "\(store.teams.count)"
                         )
@@ -71,7 +71,7 @@ struct RosterView: View {
                         PlayerManagementView()
                     } label: {
                         settingsRow(
-                            title: "球员",
+                            title: LocalizedStringKey("settings_players"),
                             systemImage: "person.crop.circle.fill",
                             countText: "\(store.players.count)"
                         )
@@ -81,7 +81,7 @@ struct RosterView: View {
                         showingCreateEntry = true
                     } label: {
                         settingsRow(
-                            title: "新建",
+                            title: LocalizedStringKey("settings_new"),
                             systemImage: "plus.circle.fill",
                             countText: nil,
                             showsDisclosure: true
@@ -90,12 +90,12 @@ struct RosterView: View {
                     .buttonStyle(.plain)
                 }
 
-                Section("同步与导入") {
+                Section(LocalizedStringKey("settings_section_sync_import")) {
                     NavigationLink {
                         BluetoothSyncSettingsView()
                     } label: {
                         settingsRow(
-                            title: "蓝牙协同",
+                            title: LocalizedStringKey("settings_bluetooth_sync"),
                             systemImage: "dot.radiowaves.left.and.right",
                             countText: nil
                         )
@@ -105,7 +105,7 @@ struct RosterView: View {
                         showingRosterImport = true
                     } label: {
                         settingsRow(
-                            title: "导入",
+                            title: LocalizedStringKey("settings_import"),
                             systemImage: TransferSymbol.importData,
                             countText: nil,
                             showsDisclosure: true
@@ -117,7 +117,7 @@ struct RosterView: View {
                         showingMergeEntry = true
                     } label: {
                         settingsRow(
-                            title: "合并",
+                            title: LocalizedStringKey("settings_merge"),
                             systemImage: "arrow.triangle.merge",
                             countText: nil,
                             showsDisclosure: true
@@ -126,13 +126,13 @@ struct RosterView: View {
                     .buttonStyle(.plain)
                 }
 
-                Section("AI") {
+                Section(LocalizedStringKey("settings_section_ai")) {
 
                     Button {
                         showingDeepSeekConfig = true
                     } label: {
                         settingsRow(
-                            title: "DeepSeek API Key",
+                            title: LocalizedStringKey("settings_deepseek_api_key"),
                             systemImage: "sparkles",
                             countText: nil,
                             showsDisclosure: true
@@ -141,12 +141,12 @@ struct RosterView: View {
                     .buttonStyle(.plain)
                 }
 
-                Section("帮助与关于") {
+                Section(LocalizedStringKey("settings_section_help_about")) {
                     Button {
                         showingSettingsDocument = .terms
                     } label: {
                         settingsRow(
-                            title: "使用说明",
+                            title: LocalizedStringKey("settings_help"),
                             systemImage: "doc.text.fill",
                             countText: nil,
                             iconColor: .blue,
@@ -159,7 +159,7 @@ struct RosterView: View {
                         showingSettingsDocument = .privacy
                     } label: {
                         settingsRow(
-                            title: "隐私说明",
+                            title: LocalizedStringKey("settings_privacy"),
                             systemImage: "hand.raised.fill",
                             countText: nil,
                             iconColor: .blue,
@@ -169,13 +169,13 @@ struct RosterView: View {
                     .buttonStyle(.plain)
 
                     settingsRow(
-                        title: "版本",
+                        title: LocalizedStringKey("settings_version"),
                         systemImage: "number.circle.fill",
                         countText: appVersionText
                     )
                 }
             }
-            .navigationTitle("设置")
+            .navigationTitle(LocalizedStringKey("settings_nav_title"))
             .sheet(isPresented: $showingCreateEntry) {
                 CreateRosterItemView()
             }
@@ -201,7 +201,7 @@ struct RosterView: View {
     }
 
     private func settingsRow(
-        title: String,
+        title: LocalizedStringKey,
         systemImage: String,
         countText: String?,
         iconColor: Color = .secondary,
@@ -274,7 +274,7 @@ private struct DeepSeekAPISettingsView: View {
         NavigationStack {
             Form {
                 Section {
-                    SecureField("请输入 DeepSeek API Key", text: $apiKey)
+                    SecureField(LocalizedStringKey("deepseek_enter_api_key"), text: $apiKey)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .onChange(of: apiKey) { _, _ in
@@ -290,7 +290,7 @@ private struct DeepSeekAPISettingsView: View {
                             if isTesting {
                                 ProgressView()
                             }
-                            Text(isTesting ? "测试连接中..." : "测试连接")
+                            Text(isTesting ? LocalizedStringKey("deepseek_testing") : LocalizedStringKey("deepseek_test"))
                         }
                         .frame(maxWidth: .infinity)
                     }
@@ -299,12 +299,12 @@ private struct DeepSeekAPISettingsView: View {
                     Button {
                         saveKey()
                     } label: {
-                        Label("保存到钥匙串", systemImage: "key")
+                        Label(LocalizedStringKey("deepseek_save_key"), systemImage: "key")
                             .frame(maxWidth: .infinity)
                     }
                     .disabled(!canSave)
 
-                    Button("删除已保存 Key", role: .destructive) {
+                    Button(LocalizedStringKey("deepseek_remove_saved_key"), role: .destructive) {
                         removeSavedKey()
                     }
                     .disabled(!hasSavedKey)

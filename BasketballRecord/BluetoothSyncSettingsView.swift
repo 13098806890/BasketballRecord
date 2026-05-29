@@ -13,7 +13,7 @@ struct BluetoothSyncSettingsView: View {
 
     var body: some View {
         List {
-            Section("本机") {
+            Section(LocalizedStringKey("section_device")) {
                 HStack(spacing: 12) {
                     Image(systemName: "iphone")
                         .font(.subheadline.weight(.semibold))
@@ -25,22 +25,24 @@ struct BluetoothSyncSettingsView: View {
                         .font(.body.weight(.medium))
                 }
 
-                TextField("设备昵称", text: $editablePeerName)
+                TextField(LocalizedStringKey("placeholder_device_name"), text: $editablePeerName)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
 
-                Button("保存设备昵称") {
+                Button(action: {
                     bluetooth.updateLocalPeerName(editablePeerName)
                     editablePeerName = bluetooth.localPeerName
+                }) {
+                    Text(LocalizedStringKey("button_save_device_name"))
                 }
                 .disabled(editablePeerName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || editablePeerName == bluetooth.localPeerName)
 
-                Text("系统可能只返回 iPhone / iPad，建议设置昵称方便区分设备。")
+                Text(LocalizedStringKey("note_device_naming"))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
 
-            Section("权限") {
+            Section(LocalizedStringKey("section_permissions")) {
                 HStack(spacing: 10) {
                     Image(systemName: permissionStatusIcon)
                         .foregroundStyle(permissionStatusColor)
@@ -57,19 +59,19 @@ struct BluetoothSyncSettingsView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
 
-                Button("重新检测本地网络权限") {
-                    bluetooth.refreshLocalNetworkPermission()
+                Button(action: { bluetooth.refreshLocalNetworkPermission() }) {
+                    Text(LocalizedStringKey("button_check_local_network_permission"))
                 }
 
                 if bluetooth.localNetworkPermissionStatus == .denied {
-                    Button("前往系统设置") {
-                        openSystemSettings()
+                    Button(action: { openSystemSettings() }) {
+                        Text(LocalizedStringKey("button_open_system_settings"))
                     }
                     .foregroundStyle(.blue)
                 }
             }
 
-            Section("连接") {
+            Section(LocalizedStringKey("section_connection")) {
                 HStack(spacing: 12) {
                     Image(systemName: "dot.radiowaves.left.and.right")
                         .font(.subheadline.weight(.semibold))
@@ -77,7 +79,7 @@ struct BluetoothSyncSettingsView: View {
                         .foregroundStyle(.secondary)
                         .frame(width: 28, height: 28)
 
-                    Text("允许被发现")
+                    Text(LocalizedStringKey("label_discoverable"))
                         .font(.body.weight(.medium))
 
                     Spacer()
@@ -93,7 +95,7 @@ struct BluetoothSyncSettingsView: View {
                         .foregroundStyle(.secondary)
                         .frame(width: 28, height: 28)
 
-                    Text("搜索附近设备")
+                    Text(LocalizedStringKey("label_search_nearby"))
                         .font(.body.weight(.medium))
 
                     Spacer()
@@ -103,7 +105,7 @@ struct BluetoothSyncSettingsView: View {
                 }
 
                 if bluetooth.connectedPeers.isEmpty {
-                    Text("暂无已连接设备")
+                    Text(LocalizedStringKey("text_no_connected_devices"))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 } else {
@@ -114,7 +116,7 @@ struct BluetoothSyncSettingsView: View {
                             Text(peer.displayName)
                                 .font(.body)
                             Spacer()
-                            Text("已连接")
+                            Text(LocalizedStringKey("label_connected"))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -123,14 +125,14 @@ struct BluetoothSyncSettingsView: View {
                     Button(role: .destructive) {
                         bluetooth.disconnect()
                     } label: {
-                        Label("断开所有连接", systemImage: "xmark.circle")
+                        Label(LocalizedStringKey("button_disconnect_all"), systemImage: "xmark.circle")
                     }
                 }
             }
 
-            Section("附近设备") {
+            Section(LocalizedStringKey("section_nearby_devices")) {
                 if bluetooth.discoveredPeers.isEmpty {
-                    Text("未发现设备，请确认双方都开启了蓝牙协同")
+                    Text(LocalizedStringKey("text_no_discovered_devices"))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 } else {
@@ -139,8 +141,8 @@ struct BluetoothSyncSettingsView: View {
                             Text(peer.displayName)
                                 .font(.body)
                             Spacer()
-                            Button("连接") {
-                                bluetooth.inviteConnection(to: peer)
+                            Button(action: { bluetooth.inviteConnection(to: peer) }) {
+                                Text(LocalizedStringKey("button_connect"))
                             }
                             .buttonStyle(.borderedProminent)
                             .controlSize(.small)
@@ -149,17 +151,17 @@ struct BluetoothSyncSettingsView: View {
                 }
             }
 
-            Section("数据同步") {
+            Section(LocalizedStringKey("section_store_sync")) {
                 NavigationLink {
                     BluetoothStoreSyncComposerView()
                         .environmentObject(store)
                         .environmentObject(bluetooth)
                 } label: {
-                    Label("选择并发送数据", systemImage: "arrow.left.arrow.right.circle")
+                    Label(LocalizedStringKey("label_select_and_send_data"), systemImage: "arrow.left.arrow.right.circle")
                 }
                 .disabled(bluetooth.connectedPeers.isEmpty || bluetooth.isStoreSyncPreparing || bluetooth.isStoreSyncSending)
 
-                Text("可按需选择球员、球队、比赛记录。接收方确认后才会开始传输。")
+                Text(LocalizedStringKey("note_selective_send"))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
 
@@ -167,7 +169,7 @@ struct BluetoothSyncSettingsView: View {
                     HStack(spacing: 8) {
                         ProgressView()
                             .controlSize(.small)
-                        Text(bluetooth.storeSyncPreparationMessage ?? "正在准备同步数据")
+                        Text(bluetooth.storeSyncPreparationMessage ?? NSLocalizedString("preparing_store_sync", comment: "Preparing store sync"))
                     }
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -175,8 +177,8 @@ struct BluetoothSyncSettingsView: View {
 
                 if bluetooth.isStoreSyncSending {
                     Text(bluetooth.outgoingStoreSyncProgress == nil
-                         ? "已发送请求，等待对方确认（尚未开始传输）。"
-                         : "同步进行中，暂时不可重复发起。")
+                         ? NSLocalizedString("sync_request_sent_waiting_confirmation", comment: "Request sent, waiting for recipient confirmation (transfer not started).")
+                         : NSLocalizedString("sync_in_progress_cannot_restart", comment: "Sync in progress, cannot restart"))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -188,43 +190,43 @@ struct BluetoothSyncSettingsView: View {
                     Button(role: .destructive) {
                         _ = bluetooth.cancelCurrentStoreSyncTask()
                     } label: {
-                        Label("取消当前同步", systemImage: "xmark.circle")
+                        Label(LocalizedStringKey("label_cancel_current_sync"), systemImage: "xmark.circle")
                     }
                 }
             }
 
             if let outgoing = bluetooth.outgoingStoreSyncProgress {
-                Section("发送进度") {
+                Section(LocalizedStringKey("section_send_progress")) {
                     ProgressView(value: outgoing.fractionCompleted)
-                    Text("发送给 \(outgoing.peerName)：\(progressDetailText(outgoing))")
+                    Text(String(format: NSLocalizedString("progress_sending_to_format", comment: "Sending progress"), outgoing.peerName, progressDetailText(outgoing)))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }
 
             if let incoming = bluetooth.incomingStoreSyncProgress {
-                Section("接收进度") {
+                Section(LocalizedStringKey("section_receive_progress")) {
                     ProgressView(value: incoming.fractionCompleted)
-                    Text("来自 \(incoming.peerName)：\(progressDetailText(incoming))")
+                    Text(String(format: NSLocalizedString("progress_received_from_format", comment: "Received progress"), incoming.peerName, progressDetailText(incoming)))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }
 
             if let status = bluetooth.statusMessage, !status.isEmpty {
-                Section("状态") {
+                Section(LocalizedStringKey("section_status")) {
                     Text(status)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
 
-                    Button("清除状态") {
-                        bluetooth.clearStatus()
+                    Button(action: { bluetooth.clearStatus() }) {
+                        Text(LocalizedStringKey("button_clear_status"))
                     }
                     .font(.footnote)
                 }
             }
         }
-        .navigationTitle("蓝牙协同")
+        .navigationTitle(LocalizedStringKey("nav_bluetooth_sync"))
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             advertisingEnabled = bluetooth.isAdvertising
@@ -255,11 +257,11 @@ struct BluetoothSyncSettingsView: View {
         .onChange(of: bluetooth.localPeerName) { _, newName in
             editablePeerName = newName
         }
-        .alert("提示", isPresented: Binding(
+        .alert(LocalizedStringKey("alert_notice_title"), isPresented: Binding(
             get: { alertMessage != nil },
             set: { if !$0 { alertMessage = nil } }
         )) {
-            Button("好的") { alertMessage = nil }
+            Button(LocalizedStringKey("alert_ok")) { alertMessage = nil }
         } message: {
             Text(alertMessage ?? "")
         }
@@ -304,26 +306,26 @@ struct BluetoothSyncSettingsView: View {
     private var permissionStatusText: String {
         switch bluetooth.localNetworkPermissionStatus {
         case .authorized:
-            return "本地网络权限已允许"
+            return NSLocalizedString("permission_status_authorized", comment: "Local network permission authorized")
         case .denied:
-            return "本地网络权限未允许"
+            return NSLocalizedString("permission_status_denied", comment: "Local network permission denied")
         case .checking:
-            return "正在检测本地网络权限"
+            return NSLocalizedString("permission_status_checking", comment: "Checking local network permission")
         case .unknown:
-            return "本地网络权限状态未知"
+            return NSLocalizedString("permission_status_unknown", comment: "Local network permission unknown")
         }
     }
 
     private var permissionStatusHint: String {
         switch bluetooth.localNetworkPermissionStatus {
         case .authorized:
-            return "可以正常发现并连接附近设备。"
+            return NSLocalizedString("permission_hint_authorized", comment: "Can discover and connect nearby devices")
         case .denied:
-            return "请在系统设置中打开“本地网络”，否则无法广播或搜索设备。"
+            return NSLocalizedString("permission_hint_denied", comment: "Please enable Local Network in system settings")
         case .checking:
-            return "首次检测可能会触发系统权限提示。"
+            return NSLocalizedString("permission_hint_checking", comment: "First check may prompt system permission dialog")
         case .unknown:
-            return "点击“重新检测本地网络权限”进行检查。"
+            return NSLocalizedString("permission_hint_unknown", comment: "Click re-check to inspect local network permission")
         }
     }
 

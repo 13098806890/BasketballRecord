@@ -120,7 +120,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
 
         UserDefaults.standard.set(normalized, forKey: Constants.peerNameDefaultsKey)
         reconnectAsPeer(named: normalized)
-        statusMessage = "本机名称已更新为 \(normalized)"
+        statusMessage = String(format: NSLocalizedString("status_local_name_updated", comment: "Local name updated"), normalized)
     }
 
     func setAdvertising(_ enabled: Bool) {
@@ -135,11 +135,11 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
 
     func inviteConnection(to peer: MCPeerID) {
         guard isBrowsing else {
-            statusMessage = "请先开启设备搜索"
+            statusMessage = NSLocalizedString("error_enable_device_search", comment: "Please enable device search first")
             return
         }
         browser?.invitePeer(peer, to: session, withContext: nil, timeout: 20)
-        statusMessage = "已邀请 \(peer.displayName) 建立连接"
+        statusMessage = String(format: NSLocalizedString("status_invited_connection", comment: "Invited a peer to connect"), peer.displayName)
     }
 
     func disconnect() {
@@ -147,7 +147,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
         discoveredPeers.removeAll()
         connectedPeers.removeAll()
         clearSessionRuntimeState()
-        statusMessage = "已断开蓝牙协同连接"
+        statusMessage = NSLocalizedString("status_disconnected_bluetooth", comment: "Bluetooth collaboration disconnected")
     }
 
     func clearStatus() {
@@ -186,7 +186,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
             isStoreSyncPreparing = false
             storeSyncPreparationMessage = nil
             setStoreSyncProcessing(active: false, message: nil)
-            updateStoreSyncStatus("已取消同步准备")
+            updateStoreSyncStatus(NSLocalizedString("update_sync_preparation_cancelled", comment: "Sync preparation cancelled"))
             return true
         }
 
@@ -207,19 +207,19 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
             lastIncomingProgressUpdateAt = nil
             refreshStoreSyncSendingState()
             setStoreSyncProcessing(active: false, message: nil)
-            updateStoreSyncStatus("已取消接收同步")
+            updateStoreSyncStatus(NSLocalizedString("update_sync_receive_cancelled", comment: "Receive sync cancelled"))
             return true
         }
 
         if let offer = pendingStoreSyncOffer {
             let ok = respondToStoreSyncOffer(offer, accepted: false)
             if ok {
-                updateStoreSyncStatus("已取消待确认的同步请求")
+                updateStoreSyncStatus(NSLocalizedString("update_sync_offer_cancelled_pending", comment: "Cancelled pending sync offer"))
             }
             return ok
         }
 
-        updateStoreSyncStatus("当前没有可取消的同步任务")
+        updateStoreSyncStatus(NSLocalizedString("update_no_cancelable_sync_tasks", comment: "No cancelable sync tasks"))
         return false
     }
 
@@ -288,7 +288,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
     @discardableResult
     func sendStoreSync(players: [Player], teams: [Team], savedGames: [SavedGame]) -> Bool {
         guard let firstPeer = connectedPeers.first else {
-            statusMessage = "当前没有可用连接设备"
+            statusMessage = NSLocalizedString("status_no_available_connection", comment: "No available connected device")
             return false
         }
         return sendStoreSyncOffer(
@@ -300,7 +300,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
     @discardableResult
     func sendStoreSyncOffer(payload: BluetoothStoreSyncPayload, to peer: MCPeerID) -> Bool {
         guard !isStoreSyncPreparing, outgoingStoreSyncTransfers.isEmpty else {
-            statusMessage = "已有同步任务进行中，请稍候"
+            statusMessage = NSLocalizedString("status_sync_in_progress_please_wait", comment: "A sync task is already in progress")
             return false
         }
 
@@ -315,18 +315,18 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
 
     func sendStoreSyncOfferAsync(payload: BluetoothStoreSyncPayload, to peer: MCPeerID) {
         guard !isStoreSyncPreparing else {
-            updateStoreSyncStatus("正在准备同步数据，请稍候")
+            updateStoreSyncStatus(NSLocalizedString("update_preparing_store_sync_please_wait", comment: "Preparing store sync, please wait"))
             return
         }
         guard outgoingStoreSyncTransfers.isEmpty else {
-            updateStoreSyncStatus("已有同步任务进行中，请稍候")
+            updateStoreSyncStatus(NSLocalizedString("update_sync_task_in_progress", comment: "A sync task is already in progress"))
             return
         }
 
         let preparingID = UUID()
         storeSyncPreparingID = preparingID
         isStoreSyncPreparing = true
-        storeSyncPreparationMessage = "正在准备同步数据（本地处理）"
+        storeSyncPreparationMessage = NSLocalizedString("store_sync_preparing_local_processing", comment: "Preparing store sync (local processing)")
 
         storeSyncPrepareQueue.async { [weak self] in
             guard let self else { return }
@@ -1064,7 +1064,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
 
     private func enqueuePreparedStoreSyncTransfer(_ prepared: PreparedStoreSyncTransfer) -> Bool {
         guard !isStoreSyncPreparing, outgoingStoreSyncTransfers.isEmpty else {
-            updateStoreSyncStatus("已有同步任务进行中，请稍候")
+            updateStoreSyncStatus(NSLocalizedString("update_sync_task_in_progress", comment: "A sync task is already in progress"))
             return false
         }
 

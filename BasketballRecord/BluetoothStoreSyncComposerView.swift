@@ -99,12 +99,12 @@ struct BluetoothStoreSyncComposerView: View {
 
     var body: some View {
         Form {
-            Section("接收设备") {
+            Section(LocalizedStringKey("section_receiving_devices")) {
                 if connectedPeers.isEmpty {
-                    Text("暂无已连接设备")
+                    Text(LocalizedStringKey("no_connected_devices"))
                         .foregroundStyle(.secondary)
                 } else {
-                    Picker("发送到", selection: $selectedPeerIndex) {
+                    Picker(LocalizedStringKey("picker_send_to"), selection: $selectedPeerIndex) {
                         ForEach(Array(connectedPeers.enumerated()), id: \.offset) { index, peer in
                             Text(peer.displayName).tag(index)
                         }
@@ -112,8 +112,10 @@ struct BluetoothStoreSyncComposerView: View {
                 }
             }
 
-            Section("球员") {
-                Toggle("发送球员（\(store.players.count)）", isOn: $includePlayers)
+            Section(LocalizedStringKey("section_players")) {
+                Toggle(isOn: $includePlayers) {
+                    Text(String(format: NSLocalizedString("toggle_send_players_count", comment: "Send players with count"), store.players.count))
+                }
 
                 if includePlayers {
                     selectionActionBar(
@@ -128,14 +130,14 @@ struct BluetoothStoreSyncComposerView: View {
                     )
 
                     if sortedPlayers.isEmpty {
-                        Text("暂无球员数据")
+                        Text(LocalizedStringKey("no_player_data"))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(sortedPlayers) { player in
                             selectableRow(
                                 title: player.name,
-                                subtitle: player.number.isEmpty ? nil : "No. \(player.number)",
+                                subtitle: player.number.isEmpty ? nil : String(format: NSLocalizedString("player_number_prefix", comment: "Player number prefix"), player.number),
                                 isSelected: selectedPlayerIDs.contains(player.id)
                             ) {
                                 togglePlayerSelection(player.id)
@@ -145,8 +147,10 @@ struct BluetoothStoreSyncComposerView: View {
                 }
             }
 
-            Section("球队") {
-                Toggle("发送球队（\(store.teams.count)）", isOn: $includeTeams)
+            Section(LocalizedStringKey("section_teams")) {
+                Toggle(isOn: $includeTeams) {
+                    Text(String(format: NSLocalizedString("toggle_send_teams_count", comment: "Send teams with count"), store.teams.count))
+                }
 
                 if includeTeams {
                     selectionActionBar(
@@ -161,14 +165,14 @@ struct BluetoothStoreSyncComposerView: View {
                     )
 
                     if sortedTeams.isEmpty {
-                        Text("暂无球队数据")
+                        Text(LocalizedStringKey("no_team_data"))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(sortedTeams) { team in
                             selectableRow(
                                 title: team.name,
-                                subtitle: "\(team.playerIDs.count) 名球员",
+                                subtitle: String(format: NSLocalizedString("team_player_count", comment: "Number of players in team"), team.playerIDs.count),
                                 isSelected: selectedTeamIDs.contains(team.id)
                             ) {
                                 toggleTeamSelection(team.id)
@@ -178,8 +182,10 @@ struct BluetoothStoreSyncComposerView: View {
                 }
             }
 
-            Section("比赛记录") {
-                Toggle("发送比赛记录（\(store.savedGames.count)）", isOn: $includeSavedGames)
+            Section(LocalizedStringKey("section_saved_games")) {
+                Toggle(isOn: $includeSavedGames) {
+                    Text(String(format: NSLocalizedString("toggle_send_savedgames_count", comment: "Send saved games with count"), store.savedGames.count))
+                }
 
                 if includeSavedGames {
                     selectionActionBar(
@@ -194,13 +200,13 @@ struct BluetoothStoreSyncComposerView: View {
                     )
 
                     if sortedSavedGames.isEmpty {
-                        Text("暂无比赛记录")
+                        Text(LocalizedStringKey("no_savedgames_data"))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(sortedSavedGames) { game in
                             selectableRow(
-                                title: "\(game.homeTeamName) vs \(game.awayTeamName)",
+                                title: String(format: NSLocalizedString("game_vs_format", comment: "Home vs Away"), game.homeTeamName, game.awayTeamName),
                                 subtitle: gameSubtitle(for: game),
                                 isSelected: selectedGameIDs.contains(game.id)
                             ) {
@@ -215,7 +221,7 @@ struct BluetoothStoreSyncComposerView: View {
                 Button {
                     sendRequest()
                 } label: {
-                    Label("发送同步请求", systemImage: "paperplane.fill")
+                    Label(LocalizedStringKey("button_send_store_sync_request"), systemImage: "paperplane.fill")
                 }
                 .disabled(connectedPeers.isEmpty || bluetooth.isStoreSyncPreparing || bluetooth.isStoreSyncSending || !hasSelectedData)
 
@@ -223,20 +229,20 @@ struct BluetoothStoreSyncComposerView: View {
                     HStack(spacing: 8) {
                         ProgressView()
                             .controlSize(.small)
-                        Text(bluetooth.storeSyncPreparationMessage ?? "正在准备同步数据")
+                        Text(bluetooth.storeSyncPreparationMessage ?? NSLocalizedString("preparing_store_sync", comment: "Preparing store sync"))
                     }
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 }
 
                 if !hasSelectedData {
-                    Text("请至少选择一条要发送的数据。")
+                    Text(LocalizedStringKey("must_select_at_least_one_item"))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
 
                 if bluetooth.isStoreSyncSending, bluetooth.outgoingStoreSyncProgress == nil {
-                    Text("已发送请求，等待对方确认（尚未开始传输）。")
+                    Text(LocalizedStringKey("sync_request_sent_waiting_confirmation"))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -245,13 +251,13 @@ struct BluetoothStoreSyncComposerView: View {
                     Button(role: .destructive) {
                         _ = bluetooth.cancelCurrentStoreSyncTask()
                     } label: {
-                        Label("取消当前同步", systemImage: "xmark.circle")
+                        Label(LocalizedStringKey("label_cancel_current_sync"), systemImage: "xmark.circle")
                     }
                 }
             }
 
             if let outgoing = bluetooth.outgoingStoreSyncProgress {
-                Section("发送进度") {
+                Section(LocalizedStringKey("section_send_progress")) {
                     ProgressView(value: outgoing.fractionCompleted)
                     Text("\(progressDetailText(outgoing))")
                         .font(.footnote)
@@ -260,14 +266,14 @@ struct BluetoothStoreSyncComposerView: View {
             }
 
             if let status = bluetooth.statusMessage, !status.isEmpty {
-                Section("状态") {
+                Section(LocalizedStringKey("section_status")) {
                     Text(status)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }
         }
-        .navigationTitle("选择同步内容")
+        .navigationTitle(LocalizedStringKey("nav_select_sync_content"))
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             if store.players.isEmpty { includePlayers = false }
@@ -289,11 +295,11 @@ struct BluetoothStoreSyncComposerView: View {
         .onChange(of: store.savedGames) { _, games in
             selectedGameIDs = selectedGameIDs.intersection(Set(games.map(\.id)))
         }
-        .alert("提示", isPresented: Binding(
+        .alert(LocalizedStringKey("alert_notice_title"), isPresented: Binding(
             get: { alertMessage != nil },
             set: { if !$0 { alertMessage = nil } }
         )) {
-            Button("好的") { alertMessage = nil }
+            Button(LocalizedStringKey("alert_ok")) { alertMessage = nil }
         } message: {
             Text(alertMessage ?? "")
         }
@@ -307,19 +313,19 @@ struct BluetoothStoreSyncComposerView: View {
         onClear: @escaping () -> Void
     ) -> some View {
         HStack {
-            Text("已选 \(selectedCount)/\(totalCount)")
+            Text(String(format: NSLocalizedString("text_selected_count", comment: "Selected count"), selectedCount, totalCount))
                 .font(.footnote)
                 .foregroundStyle(.secondary)
 
             Spacer()
 
-            Button("全选") {
-                onSelectAll()
+            Button(action: onSelectAll) {
+                Text(LocalizedStringKey("button_select_all"))
             }
             .font(.footnote)
 
-            Button("清空") {
-                onClear()
+            Button(action: onClear) {
+                Text(LocalizedStringKey("button_clear"))
             }
             .font(.footnote)
             .foregroundStyle(.secondary)
@@ -424,7 +430,7 @@ struct BluetoothStoreSyncComposerView: View {
 
     private func sendRequest() {
         guard connectedPeers.indices.contains(selectedPeerIndex) else {
-            alertMessage = "请先连接接收设备"
+            alertMessage = NSLocalizedString("error_no_connected_device", comment: "Please connect a receiving device")
             return
         }
 
@@ -443,7 +449,7 @@ struct BluetoothStoreSyncComposerView: View {
 
         let hasData = !payload.players.isEmpty || !payload.teams.isEmpty || !payload.savedGames.isEmpty
         guard hasData else {
-            alertMessage = "已选分类中没有可发送的数据"
+            alertMessage = NSLocalizedString("error_no_data_in_selected_category", comment: "No data in the selected categories to send")
             return
         }
 
@@ -478,7 +484,7 @@ struct BluetoothStoreSyncComposerView: View {
     private func progressDetailText(_ progress: BluetoothStoreSyncProgress) -> String {
         let percent = Int((progress.fractionCompleted * 100).rounded())
         let bytes = "\(byteString(progress.transferredBytes))/\(byteString(progress.totalBytes))"
-        return "发送给 \(progress.peerName)：\(percent)% · \(progress.transferredChunks)/\(progress.totalChunks) · \(bytes)"
+        return String(format: NSLocalizedString("progress_sending_to_format", comment: "Sending to X: percent · chunks · bytes"), progress.peerName, percent, progress.transferredChunks, progress.totalChunks, bytes)
     }
 
     private func byteString(_ value: Int) -> String {
@@ -487,7 +493,7 @@ struct BluetoothStoreSyncComposerView: View {
 
     private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.locale = Locale.current
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
         return formatter
     }()

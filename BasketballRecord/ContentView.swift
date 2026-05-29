@@ -15,22 +15,22 @@ struct ContentView: View {
         TabView {
             GameView()
                 .tabItem {
-                    Label("记分", systemImage: "sportscourt")
+                    Label(LocalizedStringKey("tab_score"), systemImage: "sportscourt")
                 }
 
             HistoryView()
                 .tabItem {
-                    Label("比赛记录", systemImage: "clock.arrow.circlepath")
+                    Label(LocalizedStringKey("tab_history"), systemImage: "clock.arrow.circlepath")
                 }
 
             CareerView()
                 .tabItem {
-                    Label("生涯", systemImage: "trophy")
+                    Label(LocalizedStringKey("tab_career"), systemImage: "trophy")
                 }
 
             RosterView()
                 .tabItem {
-                    Label("设置", systemImage: "gearshape")
+                    Label(LocalizedStringKey("tab_settings"), systemImage: "gearshape")
                 }
         }
         .overlay(alignment: .top) {
@@ -86,39 +86,39 @@ struct ContentView: View {
             switch alert {
             case let .storeSyncOffer(offer):
                 Alert(
-                    title: Text("收到同步请求"),
+                    title: Text(LocalizedStringKey("alert_store_sync_offer_title")),
                     message: Text(storeSyncOfferAlertMessage(for: offer)),
-                    primaryButton: .default(Text("同意并接收"), action: {
+                    primaryButton: .default(Text(LocalizedStringKey("alert_accept_and_receive")), action: {
                         let ok = bluetooth.respondToStoreSyncOffer(offer, accepted: true)
                         if !ok {
-                            bluetoothAlertMessage = "确认失败，请检查连接状态后重试。"
+                            bluetoothAlertMessage = NSLocalizedString("alert_confirm_failed", comment: "Confirm failed message")
                         }
                     }),
-                    secondaryButton: .destructive(Text("拒绝"), action: {
+                    secondaryButton: .destructive(Text(LocalizedStringKey("alert_reject")), action: {
                         _ = bluetooth.respondToStoreSyncOffer(offer, accepted: false)
                     })
                 )
 
             case let .storeSyncImport(sync):
                 Alert(
-                    title: Text("收到可导入数据"),
+                    title: Text(LocalizedStringKey("alert_import_available_title")),
                     message: Text(storeSyncImportAlertMessage(for: sync)),
-                    primaryButton: .default(Text("导入"), action: {
+                    primaryButton: .default(Text(LocalizedStringKey("alert_import")), action: {
                         importReceivedStoreSync(sync)
                     }),
-                    secondaryButton: .destructive(Text("忽略"), action: {
+                    secondaryButton: .destructive(Text(LocalizedStringKey("alert_ignore")), action: {
                         bluetooth.clearPendingStoreSync()
                     })
                 )
 
             case let .liveInvite(invite):
                 Alert(
-                    title: Text("协同记分邀请"),
-                    message: Text("\(invite.fromPeerName) 邀请你共同记录同一场比赛。是否加入并同步阵容与比赛设置？"),
-                    primaryButton: .default(Text("同意"), action: {
+                    title: Text(LocalizedStringKey("alert_collaboration_invite_title")),
+                    message: Text(String(format: NSLocalizedString("alert_collaboration_invite_message", comment: "Invite message"), invite.fromPeerName)),
+                    primaryButton: .default(Text(LocalizedStringKey("alert_accept")), action: {
                         acceptLiveInviteGlobally(invite)
                     }),
-                    secondaryButton: .cancel(Text("拒绝"), action: {
+                    secondaryButton: .cancel(Text(LocalizedStringKey("alert_reject")), action: {
                         _ = bluetooth.respondToLiveInvite(invite, accepted: false)
                         bluetooth.clearPendingLiveInvite()
                     })
@@ -128,28 +128,28 @@ struct ContentView: View {
                 Alert(
                     title: Text(status.title),
                     message: Text(status.message),
-                    dismissButton: .default(Text("好的"), action: {
+                    dismissButton: .default(Text(LocalizedStringKey("alert_ok")), action: {
                         bluetooth.clearPendingStoreSyncStatusAlert()
                     })
                 )
 
             case let .message(message):
                 Alert(
-                    title: Text("提示"),
+                    title: Text(LocalizedStringKey("alert_notice_title")),
                     message: Text(message),
-                    dismissButton: .default(Text("好的"), action: {
+                    dismissButton: .default(Text(LocalizedStringKey("alert_ok")), action: {
                         bluetoothAlertMessage = nil
                     })
                 )
             }
         }
-        .alert("蓝牙同步处理中", isPresented: $isShowingStoreSyncBusyAlert) {
-            Button("取消同步", role: .destructive) {
+        .alert(LocalizedStringKey("alert_store_sync_processing"), isPresented: $isShowingStoreSyncBusyAlert) {
+            Button(LocalizedStringKey("button_cancel_sync"), role: .destructive) {
                 _ = bluetooth.cancelCurrentStoreSyncTask()
                 suppressBusyAlertUntilIdle = false
                 isShowingStoreSyncBusyAlert = false
             }
-            Button("后台继续", role: .cancel) {
+            Button(LocalizedStringKey("button_continue_in_background"), role: .cancel) {
                 suppressBusyAlertUntilIdle = true
                 isShowingStoreSyncBusyAlert = false
             }
