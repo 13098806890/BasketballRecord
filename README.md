@@ -53,9 +53,10 @@
 2. 选择 Scheme：`BasketballRecord`
 3. 选择模拟器或真机后运行。
 
+
 ## 版本
 
-- 当前版本：`1.03`
+- 当前版本：`1.06`
 
 ## Release Notes
 
