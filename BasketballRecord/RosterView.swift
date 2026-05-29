@@ -12,31 +12,7 @@ struct RosterView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("数据管理") {
-                    NavigationLink {
-                        TeamManagementView()
-                    } label: {
-                        settingsRow(
-                            title: "球队",
-                            systemImage: "person.3.fill",
-                            countText: "\(store.teams.count)",
-                            tint: Color(red: 0.10, green: 0.45, blue: 0.78)
-                        )
-                    }
-
-                    NavigationLink {
-                        PlayerManagementView()
-                    } label: {
-                        settingsRow(
-                            title: "球员",
-                            systemImage: "person.crop.circle.fill",
-                            countText: "\(store.players.count)",
-                            tint: Color(red: 0.22, green: 0.56, blue: 0.28)
-                        )
-                    }
-                }
-
-                Section("操作") {
+                Section("比赛偏好") {
                     HStack(spacing: 12) {
                         Image(systemName: "sun.max")
                             .font(.subheadline.weight(.semibold))
@@ -76,7 +52,30 @@ struct RosterView: View {
                             title: "生涯数据显示",
                             systemImage: "slider.horizontal.3",
                             countText: nil,
-                            tint: Color(red: 0.32, green: 0.46, blue: 0.86),
+                            showsDisclosure: true
+                        )
+                    }
+                }
+
+                Section("数据管理") {
+                    NavigationLink {
+                        TeamManagementView()
+                    } label: {
+                        settingsRow(
+                            title: "球队",
+                            systemImage: "person.3.fill",
+                            countText: "\(store.teams.count)",
+                            showsDisclosure: true
+                        )
+                    }
+
+                    NavigationLink {
+                        PlayerManagementView()
+                    } label: {
+                        settingsRow(
+                            title: "球员",
+                            systemImage: "person.crop.circle.fill",
+                            countText: "\(store.players.count)",
                             showsDisclosure: true
                         )
                     }
@@ -88,11 +87,23 @@ struct RosterView: View {
                             title: "新建",
                             systemImage: "plus.circle.fill",
                             countText: nil,
-                            tint: Color(red: 0.12, green: 0.50, blue: 0.92),
                             showsDisclosure: true
                         )
                     }
                     .buttonStyle(.plain)
+                }
+
+                Section("同步与导入") {
+                    NavigationLink {
+                        BluetoothSyncSettingsView()
+                    } label: {
+                        settingsRow(
+                            title: "蓝牙协同",
+                            systemImage: "dot.radiowaves.left.and.right",
+                            countText: nil,
+                            showsDisclosure: true
+                        )
+                    }
 
                     Button {
                         showingRosterImport = true
@@ -101,7 +112,6 @@ struct RosterView: View {
                             title: "导入",
                             systemImage: TransferSymbol.importData,
                             countText: nil,
-                            tint: Color(red: 0.10, green: 0.62, blue: 0.58),
                             showsDisclosure: true
                         )
                     }
@@ -114,11 +124,13 @@ struct RosterView: View {
                             title: "合并",
                             systemImage: "arrow.triangle.merge",
                             countText: nil,
-                            tint: Color(red: 0.86, green: 0.38, blue: 0.25),
                             showsDisclosure: true
                         )
                     }
                     .buttonStyle(.plain)
+                }
+
+                Section("AI") {
 
                     Button {
                         showingDeepSeekConfig = true
@@ -127,20 +139,25 @@ struct RosterView: View {
                             title: "DeepSeek API Key",
                             systemImage: "sparkles",
                             countText: nil,
-                            tint: Color(red: 0.54, green: 0.45, blue: 0.88),
                             showsDisclosure: true
                         )
                     }
                     .buttonStyle(.plain)
                 }
 
-                Section("关于") {
-                    settingsRow(
-                        title: "版本",
-                        systemImage: "number.circle.fill",
-                        countText: appVersionText,
-                        tint: Color(red: 0.38, green: 0.41, blue: 0.48)
-                    )
+                Section("帮助与关于") {
+                    Button {
+                        showingSettingsDocument = .terms
+                    } label: {
+                        settingsRow(
+                            title: "使用说明",
+                            systemImage: "doc.text.fill",
+                            countText: nil,
+                            iconColor: .blue,
+                            showsDisclosure: true
+                        )
+                    }
+                    .buttonStyle(.plain)
 
                     Button {
                         showingSettingsDocument = .privacy
@@ -149,37 +166,17 @@ struct RosterView: View {
                             title: "隐私说明",
                             systemImage: "hand.raised.fill",
                             countText: nil,
-                            tint: Color(red: 0.36, green: 0.49, blue: 0.78),
+                            iconColor: .blue,
                             showsDisclosure: true
                         )
                     }
                     .buttonStyle(.plain)
 
-                    Button {
-                        showingSettingsDocument = .terms
-                    } label: {
-                        settingsRow(
-                            title: "使用说明",
-                            systemImage: "doc.text.fill",
-                            countText: nil,
-                            tint: Color(red: 0.18, green: 0.56, blue: 0.48),
-                            showsDisclosure: true
-                        )
-                    }
-                    .buttonStyle(.plain)
-
-                    Button {
-                        showingSettingsDocument = .dataPolicy
-                    } label: {
-                        settingsRow(
-                            title: "数据与备份",
-                            systemImage: "externaldrive.fill",
-                            countText: nil,
-                            tint: Color(red: 0.82, green: 0.46, blue: 0.25),
-                            showsDisclosure: true
-                        )
-                    }
-                    .buttonStyle(.plain)
+                    settingsRow(
+                        title: "版本",
+                        systemImage: "number.circle.fill",
+                        countText: appVersionText
+                    )
                 }
             }
             .navigationTitle("设置")
@@ -207,12 +204,18 @@ struct RosterView: View {
         return "\(version).\(build)"
     }
 
-    private func settingsRow(title: String, systemImage: String, countText: String?, tint _: Color, showsDisclosure: Bool = false) -> some View {
+    private func settingsRow(
+        title: String,
+        systemImage: String,
+        countText: String?,
+        iconColor: Color = .secondary,
+        showsDisclosure: Bool = false
+    ) -> some View {
         HStack(spacing: 12) {
             Image(systemName: systemImage)
                 .font(.subheadline.weight(.semibold))
                 .symbolRenderingMode(.monochrome)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(iconColor)
                 .frame(width: 28, height: 28)
 
             Text(title)
@@ -433,7 +436,6 @@ private struct DeepSeekAPISettingsView: View {
 private enum SettingsDocument: String, Identifiable {
     case privacy
     case terms
-    case dataPolicy
 
     var id: String { rawValue }
 
@@ -443,19 +445,15 @@ private enum SettingsDocument: String, Identifiable {
             return "隐私说明"
         case .terms:
             return "使用说明"
-        case .dataPolicy:
-            return "数据与备份"
         }
     }
 
     var subtitle: String {
         switch self {
         case .privacy:
-            return "说明应用如何处理隐私与个人数据。"
+            return "说明应用如何处理你的数据与隐私。"
         case .terms:
-            return "快速上手与完整功能说明。"
-        case .dataPolicy:
-            return "说明本地存储、备份与导入前注意事项。"
+            return "快速上手与核心功能说明。"
         }
     }
 
@@ -465,20 +463,11 @@ private enum SettingsDocument: String, Identifiable {
             return "hand.raised"
         case .terms:
             return "book"
-        case .dataPolicy:
-            return "externaldrive"
         }
     }
 
     var accentColor: Color {
-        switch self {
-        case .privacy:
-            return Color(red: 0.34, green: 0.51, blue: 0.80)
-        case .terms:
-            return Color(red: 0.19, green: 0.57, blue: 0.48)
-        case .dataPolicy:
-            return Color(red: 0.83, green: 0.48, blue: 0.26)
-        }
+        Color.blue
     }
 
     var featureSections: [SettingsFeatureSection]? {
@@ -487,27 +476,27 @@ private enum SettingsDocument: String, Identifiable {
             return [
                 SettingsFeatureSection(
                     icon: "lock.shield",
-                    title: "数据收集与使用",
+                    title: "数据存储",
                     items: [
-                        SettingsFeatureItem("默认不采集身份信息", "应用不会主动收集你的姓名、手机号、身份证号等个人身份信息。"),
-                        SettingsFeatureItem("不做广告跟踪", "应用不用于广告追踪，也不会将你的数据用于广告定向。"),
-                        SettingsFeatureItem("仅用于核心功能", "你在应用内录入的数据仅用于比赛记录、统计、导入导出等功能本身。")
+                        SettingsFeatureItem("默认仅保存在本机", "比赛、球队、球员和设置默认保存在本机应用沙盒，不会自动上传到开发者服务器。"),
+                        SettingsFeatureItem("你控制导入导出", "只有你主动执行分享、导入、导出或蓝牙同步时，数据才会离开当前设备。")
                     ]
                 ),
                 SettingsFeatureSection(
-                    icon: "iphone",
-                    title: "本地存储",
+                    icon: "network",
+                    title: "网络与第三方服务",
                     items: [
-                        SettingsFeatureItem("默认保存在本机", "比赛、球队、球员等数据默认保存在本机应用沙盒，不会自动上传到云端服务器。"),
-                        SettingsFeatureItem("由你决定分享", "通过导入/导出/分享发送的数据，接收方与传输渠道均由你主动选择。")
+                        SettingsFeatureItem("蓝牙协同", "蓝牙协同仅在你连接并确认后进行，数据仅在参与设备之间传输。"),
+                        SettingsFeatureItem("AI 总结（可选）", "仅当你配置 DeepSeek API Key 并主动生成总结时，当前比赛所需数据才会发送到 DeepSeek。"),
+                        SettingsFeatureItem("API Key 安全保存", "DeepSeek API Key 保存在 iOS Keychain 中，可随时在设置里删除。")
                     ]
                 ),
                 SettingsFeatureSection(
                     icon: "exclamationmark.triangle",
                     title: "使用提醒",
                     items: [
-                        SettingsFeatureItem("删除通常不可恢复", "执行删除、覆盖等操作前，建议先导出备份后再处理。"),
-                        SettingsFeatureItem("更换设备前先备份", "更换手机、卸载应用或清理系统数据前，请先导出关键数据。")
+                        SettingsFeatureItem("删除或覆盖前先确认", "删除、覆盖、合并等操作可能影响已有数据，建议先核对内容。"),
+                        SettingsFeatureItem("迁移设备前先导出", "更换设备、卸载应用或系统重置前，建议先导出关键数据做备份。")
                     ]
                 )
             ]
@@ -517,74 +506,36 @@ private enum SettingsDocument: String, Identifiable {
                     icon: "play.rectangle",
                     title: "快速上手",
                     items: [
-                        SettingsFeatureItem("先建球员与球队", "在“设置”里先新建球员，再新建球队并把球员加入球队。至少准备两支有球员的球队。"),
-                        SettingsFeatureItem("新建比赛", "进入“记分”页面，点击右上角“新比赛”，选择主客队、节数、上场人数和统计按钮。"),
-                        SettingsFeatureItem("开始第一节", "第一节点击“开始”的瞬间，在场球员会被记录为首发；开节后才能记录得分和技术统计。")
+                        SettingsFeatureItem("先准备阵容", "在“设置”里先新建球员与球队，至少准备两支有球员的球队。"),
+                        SettingsFeatureItem("新建比赛", "进入“记分”页点“新比赛”，选择主客队、节数、上场人数和统计按钮。"),
+                        SettingsFeatureItem("开始记录", "第一节点击开始时，在场球员记为首发；后续加入上场的球员记为替补。")
                     ]
                 ),
                 SettingsFeatureSection(
                     icon: "basketball",
                     title: "比赛记录",
                     items: [
-                        SettingsFeatureItem("记分统计", "支持2分、3分、罚球、篮板、助攻、犯规，并自动汇总球队与个人数据。"),
-                        SettingsFeatureItem("首发 / 替补判定", "仅以第一节开始瞬间在场球员为首发；其他后续加入并上场的球员计为替补。"),
-                        SettingsFeatureItem("换人与晚到球员", "可随时换人；晚到球员先通过“新增上场”加入本场，再参与换人与统计。"),
-                        SettingsFeatureItem("比赛日志", "关键事件会写入日志，便于赛后回看比赛过程。")
+                        SettingsFeatureItem("支持多项统计", "支持2分、3分、罚球、篮板、助攻、犯规、封盖、抢断、失误。"),
+                        SettingsFeatureItem("换人与新增上场", "比赛中可随时换人；晚到球员可先“新增上场”再参与统计。"),
+                        SettingsFeatureItem("历史详情", "赛后可在比赛记录中查看球队数据、球员数据、事件日志和分节数据。")
                     ]
                 ),
                 SettingsFeatureSection(
-                    icon: "chart.bar",
-                    title: "历史与生涯",
+                    icon: "dot.radiowaves.left.and.right",
+                    title: "同步与分享",
                     items: [
-                        SettingsFeatureItem("自动保存", "比赛进行中会自动保存，降低中断导致的数据丢失风险。"),
-                        SettingsFeatureItem("历史详情", "历史页可按场查看比分、日志与每位球员单场表现。"),
-                        SettingsFeatureItem("生涯统计", "球员页支持累计与场均数据，并支持首发 / 替补场次统计。"),
-                        SettingsFeatureItem("显示设置", "可在“设置 > 生涯数据显示”中自定义展示统计项。")
+                        SettingsFeatureItem("蓝牙协同", "可连接附近设备，发送球队/球员/比赛数据，或加入协同记分。"),
+                        SettingsFeatureItem("导入导出", "支持按类型导入导出；导入前会先解析并提示可能覆盖内容。"),
+                        SettingsFeatureItem("数据合并", "可合并重复球员/球队，减少历史记录里的重复数据。")
                     ]
                 ),
                 SettingsFeatureSection(
-                    icon: "square.and.arrow.down",
-                    title: "导入导出",
+                    icon: "sparkles",
+                    title: "AI 比赛总结（可选）",
                     items: [
-                        SettingsFeatureItem("导出分享", "球员、球队、比赛支持导出编码，便于跨设备备份或分享。"),
-                        SettingsFeatureItem("导入预览", "导入前会先解析，建议确认内容无误后再执行导入。"),
-                        SettingsFeatureItem("映射合并", "导入比赛支持球员 / 球队映射；合并功能可处理重复数据并同步历史关联。")
-                    ]
-                ),
-                SettingsFeatureSection(
-                    icon: "lock.shield",
-                    title: "数据与备份",
-                    items: [
-                        SettingsFeatureItem("本地存储", "比赛、球队、球员数据默认保存在本机应用沙盒。"),
-                        SettingsFeatureItem("备份建议", "更换设备、卸载应用或清理系统数据前，请先导出备份。"),
-                        SettingsFeatureItem("操作提醒", "删除通常不可恢复，建议定期导出关键比赛与核心球队数据。")
-                    ]
-                )
-            ]
-        case .dataPolicy:
-            return [
-                SettingsFeatureSection(
-                    icon: "externaldrive",
-                    title: "备份建议",
-                    items: [
-                        SettingsFeatureItem("定期导出", "建议定期导出关键比赛与核心球队数据，避免误删或设备异常造成损失。"),
-                        SettingsFeatureItem("重要节点备份", "赛季结束、设备迁移、系统升级前，建议额外执行一次完整导出备份。")
-                    ]
-                ),
-                SettingsFeatureSection(
-                    icon: "square.and.arrow.down",
-                    title: "导入前检查",
-                    items: [
-                        SettingsFeatureItem("先解析后导入", "导入前先核对解析结果，确认球队、球员和比赛信息无误再继续。"),
-                        SettingsFeatureItem("确认来源可信", "请仅导入来自可信来源的数据，避免错误或异常内容覆盖现有数据。")
-                    ]
-                ),
-                SettingsFeatureSection(
-                    icon: "shield",
-                    title: "安全与恢复",
-                    items: [
-                        SettingsFeatureItem("保留多份备份", "建议将导出文件保存到不同位置（如本机与云盘），提升可恢复性。"),
-                        SettingsFeatureItem("先备份再合并", "执行导入映射、合并球员/球队等批量操作前，建议先做一次备份快照。")
+                        SettingsFeatureItem("按需启用", "需要先在设置中配置 DeepSeek API Key，并通过测试连接后保存。"),
+                        SettingsFeatureItem("总结内容", "可生成比赛总结、MVP 与高光时刻，结果会保存到比赛记录中。"),
+                        SettingsFeatureItem("渲染展示", "AI 结果会按说明页风格展示，便于阅读和回看。")
                     ]
                 )
             ]
@@ -595,48 +546,19 @@ private enum SettingsDocument: String, Identifiable {
         switch self {
         case .privacy:
             return """
-            1. 本应用默认将数据仅保存在本机设备，不会自动上传到云端服务器。
-            2. 应用不会主动收集你的个人身份信息，也不会用于广告跟踪。
-            3. 你通过导入/导出/分享功能发送的数据，由你自行决定接收方和传输渠道。
+            本应用默认将比赛、球队、球员等数据保存在本机，不会自动上传到开发者服务器。
+            仅在你主动执行导入、导出、分享、蓝牙协同或 AI 总结时，相关数据才会参与传输。
+            你可以随时在设置中管理或删除 DeepSeek API Key。
             """
         case .terms:
             return """
             欢迎使用「篮球生涯」。
 
-            一、快速上手
-            • 先建球员与球队：在“设置”里先新建球员，再新建球队并把球员加入球队；至少准备两支有球员的球队。
-            • 新建比赛：进入“记分”页面，点击右上角“新比赛”，选择主客队、节数、上场人数和统计按钮。
-            • 开始第一节：第一节点击“开始”的瞬间，在场球员会被记录为首发；开节后才能记录得分和技术统计。
-            • 比赛中操作：可进行2分/3分/罚球记分、换人、暂停/继续、结束单节、结束整场。
-            • 结束与保存：可点击“存到历史”保存快照，结束比赛后可在历史页查看完整数据。
-
-            二、比赛记录
-            • 记分统计：支持2分、3分、罚球、篮板、助攻、犯规，且会自动汇总球队与个人数据。
-            • 首发/替补判定：仅以第一节开始瞬间在场球员为首发；其他后续加入并上场的球员计为替补。
-            • 晚到球员：先通过“新增上场”加入本场名单，再参与换人与统计。
-            • 比赛日志：关键事件会写入日志，便于赛后回看比赛过程。
-
-            三、历史与生涯
-            • 自动保存：比赛进行中会自动保存，降低中断导致的数据丢失风险。
-            • 历史详情：历史页可按场查看比分、日志与每位球员单场表现。
-            • 生涯统计：球员页支持累计与场均数据，并支持首发/替补场次统计。
-            • 显示设置：可在“设置 > 生涯数据显示”中自定义展示哪些统计项。
-
-            四、导入导出
-            • 导出分享：球员、球队、比赛支持导出编码，便于跨设备备份或分享。
-            • 导入预览：导入前会先解析，建议确认内容后再执行导入。
-            • 映射合并：导入比赛支持球员/球队映射；合并功能可处理重复数据并同步历史关联。
-
-            五、数据说明
-            • 本地存储：比赛、球队、球员数据默认保存在本机应用沙盒。
-            • 备份建议：更换设备、卸载应用或清理系统数据前，请先导出备份。
-            • 操作提醒：删除通常不可恢复，建议定期导出关键比赛与核心球队数据。
-            """
-        case .dataPolicy:
-            return """
-            1. 比赛、球队、球员数据保存在本机应用沙盒内。
-            2. 更换设备、卸载应用或清理数据前，请先使用导出功能备份。
-            3. 导入数据前请确认来源可信，并核对解析预览后再执行导入。
+            1. 先建球员与球队，再进入“记分”页新建比赛。
+            2. 第一节开始时在场球员记为首发，后续加入上场记为替补。
+            3. 比赛支持完整技术统计、分节查看、历史回看与生涯汇总。
+            4. 可通过蓝牙协同、导入导出、合并功能进行跨设备与数据整理。
+            5. 配置 DeepSeek API Key 后，可生成并保存 AI 比赛总结。
             """
         }
     }
@@ -1060,10 +982,10 @@ private struct CreateRosterItemView: View {
                         }
                     } label: {
                         Label(kind == .player ? "新建球员" : "新建球队", systemImage: kind == .player ? "person.crop.circle.badge.plus" : "person.3.fill")
+                            .symbolRenderingMode(.monochrome)
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.accentColor)
+                    .buttonStyle(AppNeutralProminentButtonStyle())
                 }
             }
             .navigationTitle("新建")
@@ -1119,13 +1041,17 @@ private struct MergeRosterUUIDView: View {
 
 private struct ExportTeamPackageView: View {
     @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var bluetooth: BluetoothSyncManager
     @Environment(\.dismiss) private var dismiss
     var team: Team
 
     @State private var base64 = ""
+    @State private var transferID = GameShareChunkCodec.generateTransferID()
+    @State private var segmentCount = 4
+    @State private var chunkLines: [String] = []
     @State private var isGenerating = true
-    @State private var copyButtonTitle = "复制编码"
-    @State private var copyFeedbackTask: Task<Void, Never>?
+    @State private var copiedChunkIndex: Int?
+    @State private var copiedChunkFeedbackTask: Task<Void, Never>?
 
     var body: some View {
         NavigationStack {
@@ -1151,24 +1077,68 @@ private struct ExportTeamPackageView: View {
                             .foregroundStyle(.secondary)
                     }
                 } else {
+                    Section("蓝牙传输") {
+                        if bluetooth.connectedPeers.isEmpty {
+                            Text("暂无已连接设备，请先到设置-蓝牙协同完成连接。")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            NavigationLink {
+                                BluetoothStoreSyncComposerView(preset: .team(team.id))
+                                    .environmentObject(store)
+                                    .environmentObject(bluetooth)
+                            } label: {
+                                Label("蓝牙发送当前球队", systemImage: "dot.radiowaves.left.and.right")
+                            }
+
+                            Text("进入后可选择接收设备并查看传输百分比进度。")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Section("导出设置") {
+                        Stepper(value: $segmentCount, in: 1...8) {
+                            HStack {
+                                Text("分段数量")
+                                Spacer(minLength: 8)
+                                Text("\(segmentCount)段")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+
+                        Text("设为1段即不分段导出。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+
                     Section("球队分享编码") {
-                        TextEditor(text: .constant(base64))
-                            .font(.caption.monospaced())
-                            .frame(minHeight: 220)
+                        ForEach(Array(chunkLines.enumerated()), id: \.offset) { index, line in
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("第\(index + 1)/\(chunkLines.count)段")
+                                    .font(.subheadline.weight(.semibold))
+
+                                TransferCodePreview(text: line)
+
+                                Button {
+                                    UIPasteboard.general.string = line
+                                    showChunkCopyFeedback(index)
+                                } label: {
+                                    Label(
+                                        copiedChunkIndex == index ? "已复制" : "复制第\(index + 1)段",
+                                        systemImage: copiedChunkIndex == index ? "checkmark.circle.fill" : "doc.on.doc"
+                                    )
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(AppSoftProminentButtonStyle())
+                            }
+                            .padding(.vertical, 4)
+                        }
                     }
 
                     Section {
-                        Button {
-                            UIPasteboard.general.string = base64
-                            showCopyFeedback()
-                        } label: {
-                            Label(copyButtonTitle, systemImage: copyButtonTitle == "复制编码" ? "doc.on.doc" : "checkmark.circle.fill")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(AppSoftProminentButtonStyle())
-
-                        ShareLink(item: base64) {
-                            Label("分享编码", systemImage: TransferSymbol.exportData)
+                        ShareLink(item: chunkLines.joined(separator: "\n")) {
+                            Label("分享全部分段", systemImage: TransferSymbol.exportData)
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(AppSoftProminentButtonStyle())
@@ -1185,8 +1155,11 @@ private struct ExportTeamPackageView: View {
             .task(id: team.id) {
                 await generateBase64()
             }
+            .onChange(of: segmentCount) { _, _ in
+                rebuildChunkLines()
+            }
             .onDisappear {
-                copyFeedbackTask?.cancel()
+                copiedChunkFeedbackTask?.cancel()
             }
         }
     }
@@ -1194,18 +1167,30 @@ private struct ExportTeamPackageView: View {
     private func generateBase64() async {
         isGenerating = true
         base64 = ""
+        chunkLines = []
+        transferID = GameShareChunkCodec.generateTransferID()
         await Task.yield()
         base64 = store.exportTeamBase64(team) ?? ""
+        rebuildChunkLines()
         isGenerating = false
     }
 
-    private func showCopyFeedback() {
-        copyButtonTitle = "已复制"
-        copyFeedbackTask?.cancel()
-        copyFeedbackTask = Task {
+    private func rebuildChunkLines() {
+        chunkLines = GameShareChunkCodec.makeChunkLines(
+            payload: base64,
+            preferredParts: segmentCount,
+            transferID: transferID,
+            keyword: GameShareChunkCodec.teamKeyword
+        )
+    }
+
+    private func showChunkCopyFeedback(_ index: Int) {
+        copiedChunkIndex = index
+        copiedChunkFeedbackTask?.cancel()
+        copiedChunkFeedbackTask = Task {
             try? await Task.sleep(for: .seconds(1.2))
             guard !Task.isCancelled else { return }
-            copyButtonTitle = "复制编码"
+            copiedChunkIndex = nil
         }
     }
 }
@@ -1222,15 +1207,44 @@ private struct ImportRosterPackageView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var importKind: RosterImportKind = .team
     @State private var base64 = ""
+    @State private var isChunkedMode = false
+    @State private var chunkInputLines: [String] = []
+    @State private var chunkTransferID: String?
+    @State private var chunkTotalParts = 0
     @State private var teamPackage: ExportedTeamPackage?
     @State private var playerPackage: ExportedPlayerPackage?
     @State private var parseResultText: String?
     @State private var parseSucceeded = false
     @State private var isShowingClipboardAutoFillAlert = false
+    @State private var clipboardAutoFillMessage = ""
+    @State private var lastAutoFilledClipboardChangeCount = -1
     @State private var hasCheckedClipboard = false
     @State private var isProgrammaticKindSwitch = false
     @State private var isParsing = false
     @FocusState private var isInputFocused: Bool
+
+    private var chunkKeyword: String {
+        switch importKind {
+        case .team:
+            return GameShareChunkCodec.teamKeyword
+        case .player:
+            return GameShareChunkCodec.playerKeyword
+        }
+    }
+
+    private var filledChunkCount: Int {
+        chunkInputLines
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .count
+    }
+
+    private var canParseInput: Bool {
+        if isChunkedMode {
+            return chunkTotalParts > 0 && filledChunkCount == chunkTotalParts
+        }
+        return !base64.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
 
     var body: some View {
         NavigationStack {
@@ -1245,19 +1259,54 @@ private struct ImportRosterPackageView: View {
                 }
 
                 Section("粘贴分享编码") {
-                    TextEditor(text: $base64)
-                        .font(.caption.monospaced())
-                        .frame(height: 112)
-                        .autocorrectionDisabled(true)
-                        .textInputAutocapitalization(.never)
-                        .focused($isInputFocused)
+                    if isChunkedMode {
+                        Text("已识别分段导入（\(filledChunkCount)/\(chunkTotalParts)）")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+
+                        if let chunkTransferID {
+                            Text("批次 ID: \(chunkTransferID)")
+                                .font(.caption.monospaced())
+                                .foregroundStyle(.secondary)
+                        }
+
+                        ForEach(0..<chunkTotalParts, id: \.self) { index in
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("第\(index + 1)/\(chunkTotalParts)段")
+                                    .font(.caption.weight(.semibold))
+
+                                TransferCodeInput(
+                                    text: binding(forChunkIndex: index),
+                                    placeholder: "粘贴第\(index + 1)段"
+                                )
+                                    .focused($isInputFocused)
+                            }
+                            .padding(.vertical, 2)
+                        }
+
+                        HStack(spacing: 8) {
+                            Button("从剪贴板读取分段") {
+                                tryAutoFillFromClipboard()
+                            }
+                            .buttonStyle(AppSoftProminentButtonStyle())
+
+                            Button("改为单段导入") {
+                                resetToSingleMode()
+                            }
+                            .buttonStyle(AppSoftProminentButtonStyle())
+                        }
+                    } else {
+                        TransferCodeInput(text: $base64)
+                            .focused($isInputFocused)
+                    }
+
                     Button(importKind == .team ? "解析球队数据" : "解析球员数据") {
                         isInputFocused = false
                         Task {
                             await decode()
                         }
                     }
-                    .disabled(base64.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isParsing)
+                    .disabled(!canParseInput || isParsing)
 
                     if isParsing {
                         HStack(spacing: 8) {
@@ -1345,11 +1394,14 @@ private struct ImportRosterPackageView: View {
             .alert("已自动识别", isPresented: $isShowingClipboardAutoFillAlert) {
                 Button("知道了") { }
             } message: {
-                Text("已从剪贴板识别到可导入数据，并自动粘贴解析成功。")
+                Text(clipboardAutoFillMessage)
             }
             .onAppear {
                 guard !hasCheckedClipboard else { return }
                 hasCheckedClipboard = true
+                tryAutoFillFromClipboard()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in
                 tryAutoFillFromClipboard()
             }
             .onChange(of: importKind) { _, _ in
@@ -1358,6 +1410,9 @@ private struct ImportRosterPackageView: View {
                     return
                 }
                 clearDecodeState()
+                if isChunkedMode {
+                    resetToSingleMode()
+                }
             }
         }
     }
@@ -1371,9 +1426,31 @@ private struct ImportRosterPackageView: View {
         await Task.yield()
         defer { isParsing = false }
 
+        let sourceText: String
+        if isChunkedMode {
+            switch GameShareChunkCodec.assemblePayload(from: chunkInputLines, expectedKeyword: chunkKeyword) {
+            case .success(let assembled):
+                sourceText = assembled.payload
+            case .failure(let message):
+                teamPackage = nil
+                playerPackage = nil
+                parseSucceeded = false
+                parseResultText = "解析失败\n类型: \(importKind.rawValue)分段\n\(message)"
+                return
+            }
+        } else {
+            let trimmedInput = base64.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let (kind, chunks) = recognizedChunks(from: trimmedInput) {
+                applyChunks(chunks, kind: kind)
+                parseResultText = "已识别为分段编码，请补全所有段后再解析。"
+                return
+            }
+            sourceText = trimmedInput
+        }
+
         switch importKind {
         case .team:
-            guard let decoded = store.decodeTeamPackage(from: base64) else {
+            guard let decoded = store.decodeTeamPackage(from: sourceText) else {
                 teamPackage = nil
                 playerPackage = nil
                 parseSucceeded = false
@@ -1383,7 +1460,7 @@ private struct ImportRosterPackageView: View {
             applyTeamPackage(decoded)
 
         case .player:
-            guard let decoded = store.decodePlayerPackage(from: base64) else {
+            guard let decoded = store.decodePlayerPackage(from: sourceText) else {
                 teamPackage = nil
                 playerPackage = nil
                 parseSucceeded = false
@@ -1395,31 +1472,135 @@ private struct ImportRosterPackageView: View {
     }
 
     private func tryAutoFillFromClipboard() {
-        guard let clipboardText = UIPasteboard.general.string?.trimmingCharacters(in: .whitespacesAndNewlines),
+        let pasteboard = UIPasteboard.general
+        let currentChangeCount = pasteboard.changeCount
+
+        guard currentChangeCount != lastAutoFilledClipboardChangeCount else {
+            return
+        }
+
+        guard let clipboardText = pasteboard.string?.trimmingCharacters(in: .whitespacesAndNewlines),
               !clipboardText.isEmpty else {
             return
         }
 
+        if let (kind, chunks) = recognizedChunks(from: clipboardText) {
+            applyChunks(chunks, kind: kind)
+            lastAutoFilledClipboardChangeCount = currentChangeCount
+            return
+        }
+
         if let decodedTeam = store.decodeTeamPackage(from: clipboardText) {
+            isChunkedMode = false
             base64 = clipboardText
             if importKind != .team {
                 isProgrammaticKindSwitch = true
                 importKind = .team
             }
             applyTeamPackage(decodedTeam)
+            lastAutoFilledClipboardChangeCount = currentChangeCount
+            clipboardAutoFillMessage = "已从剪贴板识别到球队数据，并自动粘贴解析成功。"
             isShowingClipboardAutoFillAlert = true
             return
         }
 
         if let decodedPlayer = store.decodePlayerPackage(from: clipboardText) {
+            isChunkedMode = false
             base64 = clipboardText
             if importKind != .player {
                 isProgrammaticKindSwitch = true
                 importKind = .player
             }
             applyPlayerPackage(decodedPlayer)
+            lastAutoFilledClipboardChangeCount = currentChangeCount
+            clipboardAutoFillMessage = "已从剪贴板识别到球员数据，并自动粘贴解析成功。"
             isShowingClipboardAutoFillAlert = true
         }
+    }
+
+    private func recognizedChunks(from text: String) -> (kind: RosterImportKind, chunks: [GameShareChunk])? {
+        let teamChunks = GameShareChunkCodec.parseChunks(in: text, expectedKeyword: GameShareChunkCodec.teamKeyword)
+        let playerChunks = GameShareChunkCodec.parseChunks(in: text, expectedKeyword: GameShareChunkCodec.playerKeyword)
+
+        if !teamChunks.isEmpty || !playerChunks.isEmpty {
+            if teamChunks.count >= playerChunks.count, !teamChunks.isEmpty {
+                return (.team, teamChunks)
+            }
+            if !playerChunks.isEmpty {
+                return (.player, playerChunks)
+            }
+        }
+
+        if let teamChunk = GameShareChunkCodec.parseChunkLine(text, expectedKeyword: GameShareChunkCodec.teamKeyword) {
+            return (.team, [teamChunk])
+        }
+        if let playerChunk = GameShareChunkCodec.parseChunkLine(text, expectedKeyword: GameShareChunkCodec.playerKeyword) {
+            return (.player, [playerChunk])
+        }
+
+        return nil
+    }
+
+    private func applyChunks(_ chunks: [GameShareChunk], kind: RosterImportKind) {
+        guard !chunks.isEmpty else { return }
+
+        let groupedByID = Dictionary(grouping: chunks, by: { $0.transferID })
+        let targetChunks: [GameShareChunk]
+
+        if let chunkTransferID,
+           importKind == kind,
+           let sameBatch = groupedByID[chunkTransferID],
+           !sameBatch.isEmpty {
+            targetChunks = sameBatch
+        } else if let firstGroup = groupedByID.values.max(by: { $0.count < $1.count }) {
+            targetChunks = firstGroup
+        } else {
+            return
+        }
+
+        guard let sample = targetChunks.first else { return }
+        let previousTransferID = chunkTransferID
+
+        if importKind != kind {
+            isProgrammaticKindSwitch = true
+            importKind = kind
+        }
+
+        isChunkedMode = true
+        chunkTransferID = sample.transferID
+        chunkTotalParts = sample.totalParts
+
+        if chunkInputLines.count != sample.totalParts || previousTransferID != sample.transferID {
+            chunkInputLines = Array(repeating: "", count: sample.totalParts)
+        }
+
+        for chunk in targetChunks where chunk.partIndex <= sample.totalParts {
+            chunkInputLines[chunk.partIndex - 1] = chunk.rawLine
+        }
+
+        clearDecodeState()
+        clipboardAutoFillMessage = "已识别\(kind.rawValue)分段编码，已自动填充 \(filledChunkCount)/\(chunkTotalParts) 段。"
+        isShowingClipboardAutoFillAlert = true
+    }
+
+    private func resetToSingleMode() {
+        isChunkedMode = false
+        chunkInputLines = []
+        chunkTransferID = nil
+        chunkTotalParts = 0
+    }
+
+    private func binding(forChunkIndex index: Int) -> Binding<String> {
+        Binding(
+            get: {
+                guard index < chunkInputLines.count else { return "" }
+                return chunkInputLines[index]
+            },
+            set: { newValue in
+                guard index < chunkInputLines.count else { return }
+                chunkInputLines[index] = newValue
+            }
+        )
     }
 
     private func applyTeamPackage(_ decoded: ExportedTeamPackage) {
@@ -1457,13 +1638,17 @@ private struct ImportRosterPackageView: View {
 
 private struct ExportPlayerPackageView: View {
     @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var bluetooth: BluetoothSyncManager
     @Environment(\.dismiss) private var dismiss
     var player: Player
 
     @State private var base64 = ""
+    @State private var transferID = GameShareChunkCodec.generateTransferID()
+    @State private var segmentCount = 4
+    @State private var chunkLines: [String] = []
     @State private var isGenerating = true
-    @State private var copyButtonTitle = "复制编码"
-    @State private var copyFeedbackTask: Task<Void, Never>?
+    @State private var copiedChunkIndex: Int?
+    @State private var copiedChunkFeedbackTask: Task<Void, Never>?
 
     var body: some View {
         NavigationStack {
@@ -1489,24 +1674,68 @@ private struct ExportPlayerPackageView: View {
                             .foregroundStyle(.secondary)
                     }
                 } else {
+                    Section("蓝牙传输") {
+                        if bluetooth.connectedPeers.isEmpty {
+                            Text("暂无已连接设备，请先到设置-蓝牙协同完成连接。")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            NavigationLink {
+                                BluetoothStoreSyncComposerView(preset: .player(player.id))
+                                    .environmentObject(store)
+                                    .environmentObject(bluetooth)
+                            } label: {
+                                Label("蓝牙发送当前球员", systemImage: "dot.radiowaves.left.and.right")
+                            }
+
+                            Text("进入后可选择接收设备并查看传输百分比进度。")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Section("导出设置") {
+                        Stepper(value: $segmentCount, in: 1...8) {
+                            HStack {
+                                Text("分段数量")
+                                Spacer(minLength: 8)
+                                Text("\(segmentCount)段")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+
+                        Text("设为1段即不分段导出。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+
                     Section("球员分享编码") {
-                        TextEditor(text: .constant(base64))
-                            .font(.caption.monospaced())
-                            .frame(minHeight: 220)
+                        ForEach(Array(chunkLines.enumerated()), id: \.offset) { index, line in
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("第\(index + 1)/\(chunkLines.count)段")
+                                    .font(.subheadline.weight(.semibold))
+
+                                TransferCodePreview(text: line)
+
+                                Button {
+                                    UIPasteboard.general.string = line
+                                    showChunkCopyFeedback(index)
+                                } label: {
+                                    Label(
+                                        copiedChunkIndex == index ? "已复制" : "复制第\(index + 1)段",
+                                        systemImage: copiedChunkIndex == index ? "checkmark.circle.fill" : "doc.on.doc"
+                                    )
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(AppSoftProminentButtonStyle())
+                            }
+                            .padding(.vertical, 4)
+                        }
                     }
 
                     Section {
-                        Button {
-                            UIPasteboard.general.string = base64
-                            showCopyFeedback()
-                        } label: {
-                            Label(copyButtonTitle, systemImage: copyButtonTitle == "复制编码" ? "doc.on.doc" : "checkmark.circle.fill")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(AppSoftProminentButtonStyle())
-
-                        ShareLink(item: base64) {
-                            Label("分享编码", systemImage: TransferSymbol.exportData)
+                        ShareLink(item: chunkLines.joined(separator: "\n")) {
+                            Label("分享全部分段", systemImage: TransferSymbol.exportData)
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(AppSoftProminentButtonStyle())
@@ -1523,8 +1752,11 @@ private struct ExportPlayerPackageView: View {
             .task(id: player.id) {
                 await generateBase64()
             }
+            .onChange(of: segmentCount) { _, _ in
+                rebuildChunkLines()
+            }
             .onDisappear {
-                copyFeedbackTask?.cancel()
+                copiedChunkFeedbackTask?.cancel()
             }
         }
     }
@@ -1532,18 +1764,30 @@ private struct ExportPlayerPackageView: View {
     private func generateBase64() async {
         isGenerating = true
         base64 = ""
+        chunkLines = []
+        transferID = GameShareChunkCodec.generateTransferID()
         await Task.yield()
         base64 = store.exportPlayerBase64(player) ?? ""
+        rebuildChunkLines()
         isGenerating = false
     }
 
-    private func showCopyFeedback() {
-        copyButtonTitle = "已复制"
-        copyFeedbackTask?.cancel()
-        copyFeedbackTask = Task {
+    private func rebuildChunkLines() {
+        chunkLines = GameShareChunkCodec.makeChunkLines(
+            payload: base64,
+            preferredParts: segmentCount,
+            transferID: transferID,
+            keyword: GameShareChunkCodec.playerKeyword
+        )
+    }
+
+    private func showChunkCopyFeedback(_ index: Int) {
+        copiedChunkIndex = index
+        copiedChunkFeedbackTask?.cancel()
+        copiedChunkFeedbackTask = Task {
             try? await Task.sleep(for: .seconds(1.2))
             guard !Task.isCancelled else { return }
-            copyButtonTitle = "复制编码"
+            copiedChunkIndex = nil
         }
     }
 }
@@ -1744,6 +1988,8 @@ struct PlayerProfileView: View {
     var fixedGame: SavedGame? = nil
     @State private var selectedGameIDs: Set<UUID> = []
     @State private var hasInitializedGameSelection = false
+    @State private var selectedPeriod: Int? = nil
+    @State private var fixedGameAnalysis = SavedGamePeriodAnalysis()
 
     private var player: Player? { store.player(for: playerID) }
 
@@ -1773,15 +2019,40 @@ struct PlayerProfileView: View {
                     statSection("场均", values: averageValues)
                 }
 
+                if let fixedGame, fixedGame.snapshot.periodCount > 1 {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("数据范围")
+                            .font(.headline)
+                        Picker("分节", selection: $selectedPeriod) {
+                            Text("全场").tag(Optional<Int>.none)
+                            ForEach(1...fixedGame.snapshot.periodCount, id: \.self) { period in
+                                Text("第\(period)节").tag(Optional(period))
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                    .padding(.horizontal)
+                }
+
                 statSection(fixedGame == nil ? "总数据" : "本场数据", values: totalValues)
+
+                if fixedGame != nil {
+                    eventSection
+                }
             }
             .padding(.vertical)
         }
         .background(Color(red: 0.97, green: 0.96, blue: 0.93))
         .navigationTitle(player?.name ?? "球员")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear(perform: syncSelectedGamesIfNeeded)
-        .onChange(of: store.savedGames) { _, _ in syncSelectedGamesIfNeeded() }
+        .onAppear {
+            syncSelectedGamesIfNeeded()
+            rebuildFixedGameAnalysisIfNeeded()
+        }
+        .onChange(of: store.savedGames) { _, _ in
+            syncSelectedGamesIfNeeded()
+            rebuildFixedGameAnalysisIfNeeded()
+        }
     }
 
     private var header: some View {
@@ -1848,6 +2119,37 @@ struct PlayerProfileView: View {
         .padding(.horizontal)
     }
 
+    private var eventSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("事件")
+                .font(.headline)
+
+            if filteredPlayerLogs.isEmpty {
+                Text("该范围暂无该球员事件记录")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 8))
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        ForEach(filteredPlayerLogs) { log in
+                            Text(GameLogFormatter.lineText(for: log))
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(GameLogFormatter.isScoring(log) ? Color.blue : Color.primary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(10)
+                                .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 8))
+                        }
+                    }
+                }
+                .frame(maxHeight: 220)
+            }
+        }
+        .padding(.horizontal)
+    }
+
     private var allPlayerGames: [SavedGame] {
         store.savedGames
             .filter { containsPlayer(in: $0) }
@@ -1868,8 +2170,21 @@ struct PlayerProfileView: View {
         }
     }
 
+    private var isFixedPeriodMode: Bool {
+        fixedGame != nil && selectedPeriod != nil
+    }
+
+    private var filteredPlayerLogs: [PeriodAwareLog] {
+        guard fixedGame != nil else { return [] }
+        return fixedGameAnalysis.playerLogs(for: playerID, period: selectedPeriod).reversed()
+    }
+
     private var totalStats: PlayerStats {
-        filteredGames.reduce(PlayerStats()) { partial, game in
+        if let selectedPeriod, fixedGame != nil {
+            return fixedGameAnalysis.statsByPlayerID(for: selectedPeriod)[playerID, default: PlayerStats()]
+        }
+
+        return filteredGames.reduce(PlayerStats()) { partial, game in
             let stats = game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
             var total = partial
             total.twoMade += stats.twoMade
@@ -1883,16 +2198,25 @@ struct PlayerProfileView: View {
             total.rebounds += stats.rebounds
             total.assists += stats.assists
             total.fouls += stats.fouls
+            total.blocks += stats.blocks
+            total.steals += stats.steals
+            total.turnovers += stats.turnovers
             return total
         }
     }
 
     private var totalMinutes: Double {
-        filteredGames.reduce(0) { $0 + ($1.snapshot.playingSecondsByPlayerID[playerID, default: 0] / 60) }
+        if isFixedPeriodMode {
+            return 0
+        }
+        return filteredGames.reduce(0) { $0 + ($1.snapshot.playingSecondsByPlayerID[playerID, default: 0] / 60) }
     }
 
     private var totalPlusMinus: Int {
-        filteredGames.reduce(0) { $0 + $1.snapshot.plusMinusByPlayerID[playerID, default: 0] }
+        if isFixedPeriodMode {
+            return 0
+        }
+        return filteredGames.reduce(0) { $0 + $1.snapshot.plusMinusByPlayerID[playerID, default: 0] }
     }
 
     private var starterGameCount: Int {
@@ -1914,10 +2238,13 @@ struct PlayerProfileView: View {
             (.totalRebounds, "\(stats.rebounds)"),
             (.totalAssists, "\(stats.assists)"),
             (.totalFouls, "\(stats.fouls)"),
+            (.totalBlocks, "\(stats.blocks)"),
+            (.totalSteals, "\(stats.steals)"),
+            (.totalTurnovers, "\(stats.turnovers)"),
             (.totalStarterGames, "\(starterGameCount)"),
             (.totalBenchGames, "\(benchGameCount)"),
-            (.totalMinutes, String(format: "%.1f", totalMinutes)),
-            (.totalPlusMinus, totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)"),
+            (.totalMinutes, isFixedPeriodMode ? "--" : String(format: "%.1f", totalMinutes)),
+            (.totalPlusMinus, isFixedPeriodMode ? "--" : (totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)")),
             (.totalTwoPoint, madeAttemptRate(made: stats.twoMade, attempts: stats.twoAttempts, rate: stats.twoPointRate)),
             (.totalThreePoint, madeAttemptRate(made: stats.threeMade, attempts: stats.threeAttempts, rate: stats.threePointRate)),
             (.totalFreeThrow, madeAttemptRate(made: stats.allFreeThrowMade, attempts: stats.allFreeThrowAttempts, rate: stats.freeThrowRate))
@@ -1935,6 +2262,9 @@ struct PlayerProfileView: View {
             (.averageRebounds, average(stats.rebounds, games)),
             (.averageAssists, average(stats.assists, games)),
             (.averageFouls, average(stats.fouls, games)),
+            (.averageBlocks, average(stats.blocks, games)),
+            (.averageSteals, average(stats.steals, games)),
+            (.averageTurnovers, average(stats.turnovers, games)),
             (.averageMinutes, String(format: "%.1f", totalMinutes / Double(games))),
             (.averagePlusMinus, String(format: "%.1f", Double(totalPlusMinus) / Double(games))),
             (.averageTwoMade, average(stats.twoMade, games)),
@@ -1983,6 +2313,22 @@ struct PlayerProfileView: View {
         }
 
         selectedGameIDs = selectedGameIDs.intersection(availableIDs)
+    }
+
+    private func rebuildFixedGameAnalysisIfNeeded() {
+        guard let fixedGame else {
+            fixedGameAnalysis = SavedGamePeriodAnalysis()
+            selectedPeriod = nil
+            return
+        }
+
+        let analyzer = SavedGameAnalyzer(game: fixedGame) { name in
+            if let localID = fixedGame.playerNamesByID.first(where: { $0.value == name })?.key {
+                return localID
+            }
+            return store.players.first(where: { $0.name == name })?.id
+        }
+        fixedGameAnalysis = analyzer.analyze()
     }
 }
 

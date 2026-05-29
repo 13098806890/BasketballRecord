@@ -40,3 +40,42 @@ struct AppNeutralProminentButtonStyle: ButtonStyle {
             .opacity(configuration.isPressed ? 0.84 : 1)
     }
 }
+
+struct TransferCodePreview: View {
+    var text: String
+
+    var body: some View {
+        Text(text)
+            .font(.caption.monospaced())
+            .lineLimit(1)
+            .truncationMode(.middle)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color(uiColor: .secondarySystemBackground))
+            )
+            .textSelection(.enabled)
+    }
+}
+
+struct TransferCodeInput: View {
+    @Binding var text: String
+    var placeholder: String = "粘贴分享编码"
+
+    var body: some View {
+        TextField(placeholder, text: $text)
+            .font(.caption.monospaced())
+            .lineLimit(1)
+            .truncationMode(.middle)
+            .autocorrectionDisabled(true)
+            .textInputAutocapitalization(.never)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color(uiColor: .secondarySystemBackground))
+            )
+    }
+}

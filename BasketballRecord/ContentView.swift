@@ -2,6 +2,15 @@ import SwiftUI
 import UIKit
 
 struct ContentView: View {
+    @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var bluetooth: BluetoothSyncManager
+
+    @State private var activeGlobalBluetoothAlert: GlobalBluetoothAlert?
+    @State private var bluetoothAlertMessage: String?
+    @State private var isShowingStoreSyncBusyAlert = false
+    @State private var suppressBusyAlertUntilIdle = false
+    @State private var storeSyncBusyAlertText = ""
+
     var body: some View {
         TabView {
             GameView()
@@ -23,6 +32,404 @@ struct ContentView: View {
                 .tabItem {
                     Label("设置", systemImage: "gearshape")
                 }
+        }
+        .overlay(alignment: .top) {
+            if let summary = globalStoreSyncSummary {
+                globalStoreSyncBanner(summary)
+                    .padding(.horizontal, 14)
+                    .padding(.top, 8)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .zIndex(20)
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: globalStoreSyncSummary?.id)
+        .onAppear {
+            refreshStoreSyncBusyAlertPresentation(force: true)
+            presentNextGlobalAlertIfNeeded(force: true)
+        }
+        .onChange(of: bluetooth.isStoreSyncPreparing) { _, _ in
+            refreshStoreSyncBusyAlertPresentation(force: true)
+        }
+        .onChange(of: bluetooth.isStoreSyncProcessing) { _, _ in
+            refreshStoreSyncBusyAlertPresentation(force: true)
+        }
+        .onChange(of: bluetooth.storeSyncPreparationMessage) { _, _ in
+            refreshStoreSyncBusyAlertPresentation(force: false)
+        }
+        .onChange(of: bluetooth.storeSyncProcessingMessage) { _, _ in
+            refreshStoreSyncBusyAlertPresentation(force: false)
+        }
+        .onChange(of: storeSyncProgressRefreshKey) { _, _ in
+            refreshStoreSyncBusyAlertPresentation(force: false)
+        }
+        .onChange(of: bluetooth.pendingStoreSyncOffer?.id) { _, _ in
+            presentNextGlobalAlertIfNeeded(force: true)
+        }
+        .onChange(of: bluetooth.pendingStoreSync?.id) { _, _ in
+            presentNextGlobalAlertIfNeeded(force: true)
+        }
+        .onChange(of: bluetooth.pendingStoreSyncStatusAlert?.id) { _, _ in
+            presentNextGlobalAlertIfNeeded(force: true)
+        }
+        .onChange(of: bluetooth.pendingLiveInvite?.id) { _, _ in
+            presentNextGlobalAlertIfNeeded(force: true)
+        }
+        .onChange(of: bluetoothAlertMessage) { _, _ in
+            presentNextGlobalAlertIfNeeded(force: true)
+        }
+        .onChange(of: activeGlobalBluetoothAlert?.id) { _, value in
+            if value == nil {
+                presentNextGlobalAlertIfNeeded(force: false)
+            }
+        }
+        .alert(item: $activeGlobalBluetoothAlert) { alert in
+            switch alert {
+            case let .storeSyncOffer(offer):
+                Alert(
+                    title: Text("收到同步请求"),
+                    message: Text(storeSyncOfferAlertMessage(for: offer)),
+                    primaryButton: .default(Text("同意并接收"), action: {
+                        let ok = bluetooth.respondToStoreSyncOffer(offer, accepted: true)
+                        if !ok {
+                            bluetoothAlertMessage = "确认失败，请检查连接状态后重试。"
+                        }
+                    }),
+                    secondaryButton: .destructive(Text("拒绝"), action: {
+                        _ = bluetooth.respondToStoreSyncOffer(offer, accepted: false)
+                    })
+                )
+
+            case let .storeSyncImport(sync):
+                Alert(
+                    title: Text("收到可导入数据"),
+                    message: Text(storeSyncImportAlertMessage(for: sync)),
+                    primaryButton: .default(Text("导入"), action: {
+                        importReceivedStoreSync(sync)
+                    }),
+                    secondaryButton: .destructive(Text("忽略"), action: {
+                        bluetooth.clearPendingStoreSync()
+                    })
+                )
+
+            case let .liveInvite(invite):
+                Alert(
+                    title: Text("协同记分邀请"),
+                    message: Text("\(invite.fromPeerName) 邀请你共同记录同一场比赛。是否加入并同步阵容与比赛设置？"),
+                    primaryButton: .default(Text("同意"), action: {
+                        acceptLiveInviteGlobally(invite)
+                    }),
+                    secondaryButton: .cancel(Text("拒绝"), action: {
+                        _ = bluetooth.respondToLiveInvite(invite, accepted: false)
+                        bluetooth.clearPendingLiveInvite()
+                    })
+                )
+
+            case let .status(status):
+                Alert(
+                    title: Text(status.title),
+                    message: Text(status.message),
+                    dismissButton: .default(Text("好的"), action: {
+                        bluetooth.clearPendingStoreSyncStatusAlert()
+                    })
+                )
+
+            case let .message(message):
+                Alert(
+                    title: Text("提示"),
+                    message: Text(message),
+                    dismissButton: .default(Text("好的"), action: {
+                        bluetoothAlertMessage = nil
+                    })
+                )
+            }
+        }
+        .alert("蓝牙同步处理中", isPresented: $isShowingStoreSyncBusyAlert) {
+            Button("取消同步", role: .destructive) {
+                _ = bluetooth.cancelCurrentStoreSyncTask()
+                suppressBusyAlertUntilIdle = false
+                isShowingStoreSyncBusyAlert = false
+            }
+            Button("后台继续", role: .cancel) {
+                suppressBusyAlertUntilIdle = true
+                isShowingStoreSyncBusyAlert = false
+            }
+        } message: {
+            Text(storeSyncBusyAlertText)
+        }
+    }
+
+    private var loadingTitle: String {
+        if let outgoing = bluetooth.outgoingStoreSyncProgress {
+            return "正在传输 \(outgoing.transferredChunks)/\(outgoing.totalChunks)"
+        }
+        if let incoming = bluetooth.incomingStoreSyncProgress {
+            return "正在接收 \(incoming.transferredChunks)/\(incoming.totalChunks)"
+        }
+        if bluetooth.isStoreSyncPreparing {
+            return bluetooth.storeSyncPreparationMessage ?? "正在准备同步数据"
+        }
+        return bluetooth.storeSyncProcessingMessage ?? "正在处理同步数据"
+    }
+
+    private var storeSyncProgressRefreshKey: String {
+        if let outgoing = bluetooth.outgoingStoreSyncProgress {
+            return "out-\(outgoing.id.uuidString)-\(outgoing.transferredChunks)-\(outgoing.totalChunks)"
+        }
+        if let incoming = bluetooth.incomingStoreSyncProgress {
+            return "in-\(incoming.id.uuidString)-\(incoming.transferredChunks)-\(incoming.totalChunks)"
+        }
+        return "idle"
+    }
+
+    private var loadingSubtitle: String {
+        if let outgoing = bluetooth.outgoingStoreSyncProgress {
+            let percent = Int((outgoing.fractionCompleted * 100).rounded())
+            return "\(percent)% · \(byteString(outgoing.transferredBytes))/\(byteString(outgoing.totalBytes))"
+        }
+        if let incoming = bluetooth.incomingStoreSyncProgress {
+            let percent = Int((incoming.fractionCompleted * 100).rounded())
+            return "\(percent)% · \(byteString(incoming.transferredBytes))/\(byteString(incoming.totalBytes))"
+        }
+        if bluetooth.isStoreSyncPreparing {
+            return "正在准备数据，完成后会发送请求并等待对方确认。"
+        }
+        return "数据处理已转到后台线程，主界面保持可交互。"
+    }
+
+    private var globalStoreSyncSummary: GlobalStoreSyncSummary? {
+        if let incoming = bluetooth.incomingStoreSyncProgress {
+            let percent = Int((incoming.fractionCompleted * 100).rounded())
+            return GlobalStoreSyncSummary(
+                id: "incoming-\(incoming.id.uuidString)-\(incoming.transferredChunks)",
+                icon: "arrow.down.circle.fill",
+                title: "接收中：\(incoming.peerName)",
+                detail: "\(percent)% · \(incoming.transferredChunks)/\(incoming.totalChunks) · \(byteString(incoming.transferredBytes))/\(byteString(incoming.totalBytes))",
+                progress: incoming.fractionCompleted
+            )
+        }
+
+        if let outgoing = bluetooth.outgoingStoreSyncProgress {
+            let percent = Int((outgoing.fractionCompleted * 100).rounded())
+            return GlobalStoreSyncSummary(
+                id: "outgoing-\(outgoing.id.uuidString)-\(outgoing.transferredChunks)",
+                icon: "arrow.up.circle.fill",
+                title: "发送中：\(outgoing.peerName)",
+                detail: "\(percent)% · \(outgoing.transferredChunks)/\(outgoing.totalChunks) · \(byteString(outgoing.transferredBytes))/\(byteString(outgoing.totalBytes))",
+                progress: outgoing.fractionCompleted
+            )
+        }
+
+        if bluetooth.isStoreSyncPreparing || bluetooth.isStoreSyncProcessing {
+            return GlobalStoreSyncSummary(
+                id: "busy-\(loadingTitle)",
+                icon: "arrow.triangle.2.circlepath.circle.fill",
+                title: loadingTitle,
+                detail: loadingSubtitle,
+                progress: nil
+            )
+        }
+
+        return nil
+    }
+
+    @ViewBuilder
+    private func globalStoreSyncBanner(_ summary: GlobalStoreSyncSummary) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: summary.icon)
+                .foregroundStyle(.blue)
+                .font(.title3)
+                .padding(.top, 1)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(summary.title)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+
+                if let progress = summary.progress {
+                    ProgressView(value: progress)
+                        .tint(.blue)
+                } else {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+
+                Text(summary.detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.black.opacity(0.06), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+    }
+
+    private func byteString(_ value: Int) -> String {
+        ByteCountFormatter.string(fromByteCount: Int64(value), countStyle: .file)
+    }
+
+    private func refreshStoreSyncBusyAlertPresentation(force: Bool) {
+        let isBusy = bluetooth.isStoreSyncPreparing || bluetooth.isStoreSyncProcessing
+
+        if !isBusy {
+            suppressBusyAlertUntilIdle = false
+            isShowingStoreSyncBusyAlert = false
+            return
+        }
+
+        storeSyncBusyAlertText = "\(loadingTitle)\n\n\(loadingSubtitle)"
+
+        if force || (!isShowingStoreSyncBusyAlert && !suppressBusyAlertUntilIdle) {
+            isShowingStoreSyncBusyAlert = true
+        }
+    }
+
+    private func presentNextGlobalAlertIfNeeded(force: Bool) {
+        if !force, activeGlobalBluetoothAlert != nil {
+            return
+        }
+
+        if let offer = bluetooth.pendingStoreSyncOffer {
+            activeGlobalBluetoothAlert = .storeSyncOffer(offer)
+            return
+        }
+
+        if let sync = bluetooth.pendingStoreSync {
+            activeGlobalBluetoothAlert = .storeSyncImport(sync)
+            return
+        }
+
+        if let invite = bluetooth.pendingLiveInvite {
+            activeGlobalBluetoothAlert = .liveInvite(invite)
+            return
+        }
+
+        if let status = bluetooth.pendingStoreSyncStatusAlert {
+            activeGlobalBluetoothAlert = .status(status)
+            return
+        }
+
+        if let message = bluetoothAlertMessage,
+           !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            activeGlobalBluetoothAlert = .message(message)
+            return
+        }
+
+        activeGlobalBluetoothAlert = nil
+    }
+
+    private func acceptLiveInviteGlobally(_ invite: BluetoothReceivedLiveInvite) {
+        let ok = bluetooth.respondToLiveInvite(invite, accepted: true)
+        guard ok else {
+            bluetoothAlertMessage = "确认失败，请检查连接状态后重试。"
+            return
+        }
+
+        let existingPlayerIDs = Set(store.players.map(\.id))
+        let existingTeamIDs = Set(store.teams.map(\.id))
+
+        let missingPlayers = invite.payload.players.filter { !existingPlayerIDs.contains($0.id) }
+        let missingTeams = invite.payload.teams.filter { !existingTeamIDs.contains($0.id) }
+
+        if !missingPlayers.isEmpty {
+            _ = store.upsertPlayers(missingPlayers)
+        }
+        if !missingTeams.isEmpty {
+            _ = store.upsertTeams(missingTeams)
+        }
+
+        let snapshotPayload = BluetoothLiveSnapshotPayload(
+            sessionID: invite.payload.sessionID,
+            hostDeviceID: invite.payload.hostDeviceID,
+            version: invite.payload.stateVersion,
+            stateHash: invite.payload.stateHash,
+            reason: "accepted_live_invite",
+            state: invite.payload.state
+        )
+        bluetooth.latestLiveSnapshot = BluetoothReceivedLiveSnapshot(
+            fromPeerID: invite.fromPeerID,
+            fromPeerName: invite.fromPeerName,
+            payload: snapshotPayload
+        )
+        bluetooth.noteAcceptedLiveSession(sessionID: invite.payload.sessionID, with: invite.fromPeerName)
+        bluetooth.postGlobalBluetoothAlert(title: "蓝牙协同", message: "已加入 \(invite.fromPeerName) 的协同比赛")
+        bluetooth.clearPendingLiveInvite()
+    }
+
+    private func importReceivedStoreSync(_ sync: BluetoothReceivedStoreSync) {
+        let playerSummary = store.upsertPlayers(sync.payload.players)
+        let teamSummary = store.upsertTeams(sync.payload.teams)
+        let gameSummary = store.upsertSavedGames(sync.payload.savedGames)
+        bluetooth.clearPendingStoreSync()
+        bluetoothAlertMessage = "导入完成：球员新增 \(playerSummary.inserted)，更新 \(playerSummary.updated)；球队新增 \(teamSummary.inserted)，更新 \(teamSummary.updated)；比赛新增 \(gameSummary.inserted)，更新 \(gameSummary.updated)。"
+    }
+
+    private func storeSyncOfferAlertMessage(for offer: BluetoothReceivedStoreSyncOffer) -> String {
+        var lines: [String] = [
+            "来自 \(offer.fromPeerName)",
+            "球员 \(offer.payload.playerCount) 人 · 球队 \(offer.payload.teamCount) 支 · 比赛 \(offer.payload.gameCount) 场"
+        ]
+
+        let previewLines = [
+            previewLine(title: "球员", items: offer.payload.playerNamesPreview, total: offer.payload.playerCount),
+            previewLine(title: "球队", items: offer.payload.teamNamesPreview, total: offer.payload.teamCount),
+            previewLine(title: "比赛", items: offer.payload.gameTitlesPreview, total: offer.payload.gameCount)
+        ].compactMap { $0 }
+
+        lines.append(contentsOf: previewLines)
+        return lines.joined(separator: "\n")
+    }
+
+    private func storeSyncImportAlertMessage(for sync: BluetoothReceivedStoreSync) -> String {
+        "来自 \(sync.fromPeerName)\n球员 \(sync.payload.players.count) 人 · 球队 \(sync.payload.teams.count) 支 · 比赛 \(sync.payload.savedGames.count) 场"
+    }
+
+    private func previewLine(title: String, items: [String], total: Int) -> String? {
+        guard total > 0 else { return nil }
+        let shown = Array(items.prefix(3))
+        guard !shown.isEmpty else {
+            return "\(title)：共 \(total) 项"
+        }
+
+        let suffix = total > shown.count ? " 等 \(total) 项" : ""
+        return "\(title)：\(shown.joined(separator: "、"))\(suffix)"
+    }
+}
+
+private struct GlobalStoreSyncSummary: Equatable {
+    let id: String
+    let icon: String
+    let title: String
+    let detail: String
+    let progress: Double?
+}
+
+private enum GlobalBluetoothAlert: Identifiable {
+    case storeSyncOffer(BluetoothReceivedStoreSyncOffer)
+    case storeSyncImport(BluetoothReceivedStoreSync)
+    case liveInvite(BluetoothReceivedLiveInvite)
+    case status(BluetoothStoreSyncStatusAlert)
+    case message(String)
+
+    var id: String {
+        switch self {
+        case let .storeSyncOffer(offer):
+            return "offer-\(offer.id.uuidString)"
+        case let .storeSyncImport(sync):
+            return "import-\(sync.id.uuidString)"
+        case let .liveInvite(invite):
+            return "live-\(invite.id.uuidString)"
+        case let .status(status):
+            return "status-\(status.id.uuidString)"
+        case let .message(message):
+            return "message-\(message)"
         }
     }
 }
@@ -231,6 +638,9 @@ private struct PlayerCareerBoardView: View {
                 total.rebounds += stats.rebounds
                 total.assists += stats.assists
                 total.fouls += stats.fouls
+                total.blocks += stats.blocks
+                total.steals += stats.steals
+                total.turnovers += stats.turnovers
                 totalSeconds += game.snapshot.playingSecondsByPlayerID[player.id, default: 0]
             }
 
@@ -308,22 +718,12 @@ struct HistoryView: View {
     @State private var displayedGames: [SavedGame] = []
     @State private var isLoadingGames = true
     @State private var loadTask: Task<Void, Never>?
+    @State private var pendingSwipeDeleteGame: SavedGame?
 
     var body: some View {
         NavigationStack {
             List {
-                if isLoadingGames {
-                    HStack(spacing: 10) {
-                        Spacer()
-                        ProgressView()
-                        Text("正在加载比赛记录...")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                    }
-                    .padding(.vertical, 8)
-                    .listRowSeparator(.hidden)
-                } else if filteredGames.isEmpty {
+                if !isLoadingGames, filteredGames.isEmpty {
                     ContentUnavailableView("还没有历史比赛", systemImage: "clock.badge.questionmark")
                 }
 
@@ -335,12 +735,13 @@ struct HistoryView: View {
                             } label: {
                                 SavedGameRow(game: game)
                             }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                Button(role: .destructive) {
-                                    deleteGame(id: game.id)
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                Button {
+                                    pendingSwipeDeleteGame = game
                                 } label: {
                                     Label("删除", systemImage: "trash")
                                 }
+                                .tint(.red)
                             }
                         }
                     } label: {
@@ -350,6 +751,19 @@ struct HistoryView: View {
                 }
             }
             .navigationTitle("比赛记录")
+            .overlay {
+                if isLoadingGames {
+                    VStack(spacing: 10) {
+                        ProgressView()
+                        Text("正在加载比赛记录...")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+            }
             .searchable(text: $searchText, prompt: "按球员搜索")
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
@@ -373,10 +787,26 @@ struct HistoryView: View {
                 ImportGameView()
             }
             .onAppear {
-                loadGamesAsync()
+                loadGamesAsync(showLoading: displayedGames.isEmpty)
             }
             .onChange(of: store.savedGames) { _, _ in
-                loadGamesAsync()
+                loadGamesAsync(showLoading: false)
+            }
+            .alert("确认删除这场比赛？", isPresented: Binding(
+                get: { pendingSwipeDeleteGame != nil },
+                set: { if !$0 { pendingSwipeDeleteGame = nil } }
+            )) {
+                Button("取消", role: .cancel) {
+                    pendingSwipeDeleteGame = nil
+                }
+                Button("删除", role: .destructive) {
+                    if let gameID = pendingSwipeDeleteGame?.id {
+                        deleteGame(id: gameID)
+                    }
+                    pendingSwipeDeleteGame = nil
+                }
+            } message: {
+                Text("删除后无法恢复。")
             }
         }
     }
@@ -404,13 +834,19 @@ struct HistoryView: View {
         store.deleteSavedGames(ids: Set([id]))
     }
 
-    private func loadGamesAsync() {
+    private func loadGamesAsync(showLoading: Bool) {
         let currentGames = store.savedGames
         loadTask?.cancel()
-        isLoadingGames = true
+        if showLoading {
+            isLoadingGames = true
+        }
 
         loadTask = Task {
-            try? await Task.sleep(nanoseconds: 120_000_000)
+            if showLoading {
+                try? await Task.sleep(nanoseconds: 120_000_000)
+            } else {
+                await Task.yield()
+            }
             guard !Task.isCancelled else { return }
 
             let sortedGames = currentGames.sorted { $0.savedAt > $1.savedAt }
@@ -587,13 +1023,33 @@ private struct SavedGameRow: View {
     }()
 }
 
-private struct SavedGameDetailView: View {
+struct SavedGameDetailView: View {
+    enum DisplayMode {
+        case history
+        case live
+    }
+
     @EnvironmentObject private var store: AppStore
     var game: SavedGame
+    var displayMode: DisplayMode = .history
     @State private var isShowingExport = false
+    @State private var selectedPeriod: Int? = nil
     @State private var isGeneratingAISummary = false
     @State private var aiSummary = ""
     @State private var aiSummaryError: String?
+    @State private var periodAnalysis = SavedGamePeriodAnalysis()
+
+    init(game: SavedGame, displayMode: DisplayMode = .history) {
+        self.game = game
+        self.displayMode = displayMode
+
+        _aiSummary = State(initialValue: game.aiSummary ?? "")
+
+        let initialAnalyzer = SavedGameAnalyzer(game: game) { name in
+            game.playerNamesByID.first(where: { $0.value == name })?.key
+        }
+        _periodAnalysis = State(initialValue: initialAnalyzer.analyze())
+    }
 
     var body: some View {
         List {
@@ -609,6 +1065,18 @@ private struct SavedGameDetailView: View {
                 }
             }
 
+            if game.snapshot.periodCount > 1, !availablePeriodOptions.isEmpty {
+                Section("数据范围") {
+                    Picker("分节", selection: $selectedPeriod) {
+                        Text("全场").tag(Optional<Int>.none)
+                        ForEach(availablePeriodOptions, id: \.self) { period in
+                            Text("第\(period)节").tag(Optional(period))
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+            }
+
             Section {
                 TeamStatsDisclosureView(
                     homeName: game.homeTeamName,
@@ -617,9 +1085,11 @@ private struct SavedGameDetailView: View {
                     awayStats: aggregateStats(for: game.snapshot.awayTeamID),
                     homeFouls: fouls(for: game.snapshot.homeTeamID),
                     awayFouls: fouls(for: game.snapshot.awayTeamID),
-                    style: .record
+                    style: .scoreboard
                 )
+                .padding(.horizontal, 12)
                 .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                .listRowSeparator(.hidden)
             }
 
             Section("\(game.homeTeamName) 球员数据") {
@@ -634,49 +1104,67 @@ private struct SavedGameDetailView: View {
                 }
             }
 
-            Section("AI 比赛总结") {
-                Button {
-                    generateAISummary()
-                } label: {
-                    HStack(spacing: 8) {
-                        if isGeneratingAISummary {
-                            ProgressView()
+            if displayMode == .history {
+                Section("AI 比赛总结") {
+                    Button {
+                        generateAISummary()
+                    } label: {
+                        HStack(spacing: 8) {
+                            if isGeneratingAISummary {
+                                ProgressView()
+                            }
+                            Label(isGeneratingAISummary ? "生成中..." : "生成比赛总结", systemImage: "sparkles")
                         }
-                        Label(isGeneratingAISummary ? "生成中..." : "生成比赛总结", systemImage: "sparkles")
                     }
-                }
-                .disabled(isGeneratingAISummary || deepSeekAPIKey == nil)
+                    .disabled(isGeneratingAISummary || deepSeekAPIKey == nil)
 
-                if let aiSummaryError {
-                    Text(aiSummaryError)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                }
+                    if let aiSummaryError {
+                        Text(aiSummaryError)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
 
-                if aiSummary.isEmpty {
-                    Text(deepSeekAPIKey == nil ? "等待 DeepSeek API Key 后启用。" : "将生成：比赛总结、MVP 评选与高亮时刻。")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else {
-                    aiSummaryStyledView
+                    if aiSummary.isEmpty {
+                        Text(deepSeekAPIKey == nil ? "等待 DeepSeek API Key 后启用。" : "将生成：比赛总结、MVP 评选与高亮时刻。")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        aiSummaryStyledView
+                    }
                 }
             }
 
             Section("事件") {
-                ForEach(game.snapshot.logs.reversed()) { entry in
-                    Text("\(GameView.timeFormatter.string(from: entry.timestamp))  \(entry.message)")
-                        .font(.footnote.monospacedDigit())
+                if filteredPeriodAwareLogs.isEmpty {
+                    Text("当前范围暂无事件")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 2) {
+                            ForEach(filteredPeriodAwareLogs.reversed()) { item in
+                                Text(logLineText(for: item))
+                                    .font(.footnote.monospacedDigit())
+                                    .foregroundStyle(GameLogFormatter.isScoring(item) ? Color.blue : Color.primary)
+                                    .lineLimit(1)
+                                    .frame(maxWidth: .infinity, minHeight: 22, alignment: .leading)
+                            }
+                        }
+                    }
+                    .frame(maxHeight: eventListMaxHeight)
                 }
             }
         }
         .navigationTitle("比赛详情")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    isShowingExport = true
-                } label: {
-                    Label("导出", systemImage: TransferSymbol.exportData)
+            if displayMode == .history {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        isShowingExport = true
+                    } label: {
+                        Label("导出", systemImage: TransferSymbol.exportData)
+                    }
                 }
             }
         }
@@ -684,7 +1172,11 @@ private struct SavedGameDetailView: View {
             ExportGameView(game: game)
         }
         .onAppear {
-            if aiSummary.isEmpty, let savedSummary = game.aiSummary, !savedSummary.isEmpty {
+            sanitizeSelectedPeriod()
+            if displayMode == .history,
+               aiSummary.isEmpty,
+               let savedSummary = game.aiSummary,
+               !savedSummary.isEmpty {
                 let normalizedSummary = normalizeAISummary(savedSummary)
                 aiSummary = normalizedSummary
                 if normalizedSummary != savedSummary {
@@ -711,7 +1203,10 @@ private struct SavedGameDetailView: View {
     }
 
     private func playerStatRow(for playerID: UUID) -> some View {
-        let stats = game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+        let stats = displayStatsByPlayerID[playerID, default: PlayerStats()]
+        let playingTime = selectedPeriod == nil
+            ? GameView.durationFormatter(game.snapshot.playingSecondsByPlayerID[playerID, default: 0])
+            : "--:--"
 
         return NavigationLink {
             if store.player(for: playerID) != nil {
@@ -739,7 +1234,7 @@ private struct SavedGameDetailView: View {
                         Text("\(stats.points)分")
                             .font(.subheadline.monospacedDigit().weight(.semibold))
                     }
-                    Text("时间 \(GameView.durationFormatter(game.snapshot.playingSecondsByPlayerID[playerID, default: 0]))  投篮 \(stats.made)/\(stats.attempts)  罚球 \(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)  板 \(stats.rebounds)  助 \(stats.assists)  犯 \(stats.fouls)")
+                    Text("时间 \(playingTime)  投篮 \(stats.made)/\(stats.attempts)  罚球 \(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)  板 \(stats.rebounds)  助 \(stats.assists)  犯 \(stats.fouls)  盖 \(stats.blocks)  断 \(stats.steals)  失 \(stats.turnovers)")
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
@@ -749,20 +1244,20 @@ private struct SavedGameDetailView: View {
 
     private func score(for teamID: UUID?) -> Int {
         playerIDs(for: teamID).reduce(0) { total, playerID in
-            total + game.snapshot.statsByPlayerID[playerID, default: PlayerStats()].points
+            total + displayStatsByPlayerID[playerID, default: PlayerStats()].points
         }
     }
 
     private func fouls(for teamID: UUID?) -> Int {
         playerIDs(for: teamID).reduce(0) { total, playerID in
-            total + game.snapshot.statsByPlayerID[playerID, default: PlayerStats()].fouls
+            total + displayStatsByPlayerID[playerID, default: PlayerStats()].fouls
         }
     }
 
     private func aggregateStats(for teamID: UUID?) -> PlayerStats {
         playerIDs(for: teamID).reduce(PlayerStats()) { partial, playerID in
             var total = partial
-            let stats = game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+            let stats = displayStatsByPlayerID[playerID, default: PlayerStats()]
             total.twoMade += stats.twoMade
             total.twoAttempts += stats.twoAttempts
             total.threeMade += stats.threeMade
@@ -774,12 +1269,82 @@ private struct SavedGameDetailView: View {
             total.rebounds += stats.rebounds
             total.assists += stats.assists
             total.fouls += stats.fouls
+            total.blocks += stats.blocks
+            total.steals += stats.steals
+            total.turnovers += stats.turnovers
             return total
         }
     }
 
     private func playerIDs(for teamID: UUID?) -> [UUID] {
         teamID == game.snapshot.homeTeamID ? game.homePlayerIDs : game.awayPlayerIDs
+    }
+
+    private var displayStatsByPlayerID: [UUID: PlayerStats] {
+        guard let selectedPeriod else {
+            return game.snapshot.statsByPlayerID
+        }
+        return statsByPlayerID(for: selectedPeriod)
+    }
+
+    private var availablePeriodOptions: [Int] {
+        guard maxAvailablePeriod > 0 else { return [] }
+        return Array(1...maxAvailablePeriod)
+    }
+
+    private var maxAvailablePeriod: Int {
+        let maxPeriod = max(game.snapshot.periodCount, 1)
+        if game.snapshot.isComplete {
+            return maxPeriod
+        }
+
+        let reachedByLogs = periodAnalysis.logs.compactMap(\.inferredPeriod).max() ?? 0
+        if game.snapshot.periodIsRunning || game.snapshot.periodElapsedSeconds > 0 {
+            return min(max(reachedByLogs, game.snapshot.currentPeriod), maxPeriod)
+        }
+        return min(reachedByLogs, maxPeriod)
+    }
+
+    private var eventListMaxHeight: CGFloat {
+        20 * 22
+    }
+
+    private var periodAwareLogs: [PeriodAwareLog] {
+        periodAnalysis.logs
+    }
+
+    private var filteredPeriodAwareLogs: [PeriodAwareLog] {
+        periodAnalysis.logs(for: selectedPeriod)
+    }
+
+    private func statsByPlayerID(for period: Int) -> [UUID: PlayerStats] {
+        periodAnalysis.statsByPlayerID(for: period)
+    }
+
+    private func rebuildPeriodAnalysis() {
+        let analyzer = SavedGameAnalyzer(game: game) { name in
+            resolvePlayerIDByName(name)
+        }
+        periodAnalysis = analyzer.analyze()
+        sanitizeSelectedPeriod()
+    }
+
+    private func sanitizeSelectedPeriod() {
+        guard let selectedPeriod else { return }
+        if !availablePeriodOptions.contains(selectedPeriod) {
+            self.selectedPeriod = nil
+        }
+    }
+
+    private func resolvePlayerIDByName(_ name: String) -> UUID? {
+        if let existing = game.playerNamesByID.first(where: { $0.value == name })?.key {
+            return existing
+        }
+        return store.players.first(where: { $0.name == name })?.id
+    }
+
+    private func logLineText(for item: PeriodAwareLog) -> String {
+        GameLogFormatter.lineText(for: item)
     }
 
     private var deepSeekAPIKey: String? {
@@ -904,6 +1469,7 @@ private struct SavedGameDetailView: View {
         let homeScore = score(for: game.snapshot.homeTeamID)
         let awayScore = score(for: game.snapshot.awayTeamID)
         let highlightClues = highlightCluesText()
+        let numericFacts = numericFactsText()
 
         let playerLines = allPlayerIDsForSummary().map { playerID in
             let stats = game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
@@ -914,12 +1480,10 @@ private struct SavedGameDetailView: View {
             let minutes = GameView.durationFormatter(game.snapshot.playingSecondsByPlayerID[playerID, default: 0])
             let name = game.playerNamesByID[playerID] ?? "未知球员"
 
-            return "- [\(side)] \(name)（\(role)） 时间 \(minutes) 得分 \(stats.points) 篮板 \(stats.rebounds) 助攻 \(stats.assists) 犯规 \(stats.fouls) 投篮 \(stats.made)/\(stats.attempts) 三分 \(stats.threeMade)/\(stats.threeAttempts) 罚球 \(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts) 正负值 \(plusMinusText)"
+            return "- [\(side)] \(name)（\(role)） 时间 \(minutes) 得分 \(stats.points) 篮板 \(stats.rebounds) 助攻 \(stats.assists) 犯规 \(stats.fouls) 封盖 \(stats.blocks) 抢断 \(stats.steals) 失误 \(stats.turnovers) 投篮 \(stats.made)/\(stats.attempts) 三分 \(stats.threeMade)/\(stats.threeAttempts) 罚球 \(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts) 正负值 \(plusMinusText)"
         }
 
-        let logs = game.snapshot.logs.suffix(24).map {
-            "- \(GameView.timeFormatter.string(from: $0.timestamp)) \($0.message)"
-        }
+        let logs = periodAwareLogs.suffix(24).map { "- \(logLineText(for: $0))" }
 
         let playersText = playerLines.isEmpty ? "- 无可用球员数据" : playerLines.joined(separator: "\n")
         let logText = logs.isEmpty ? "- 无事件日志" : logs.joined(separator: "\n")
@@ -950,6 +1514,8 @@ private struct SavedGameDetailView: View {
         - 若日志没有明确“上篮/中投/抛投/扣篮”等出手类型，禁止写具体出手动作；统一写“2分命中”或“3分命中”。
         - 可以基于比分变化与连续事件做合理推测，但推测语气要用“可能/倾向于”，且不能把推测写成确定事实。
         - 最终输出不要出现“依据”“参考事件”“证据”等字样，也不要在每条高亮后附加引用括号。
+        - 高亮时刻中，若提供了“第X节 第Y分Z秒”信息，优先写入对应条目。
+        - 涉及“最高/最低/最多/最少”等数字表达时，必须与【数值校验】一致，禁止自行改写数值。
 
         【比赛信息】
         日期：\(Self.aiPromptDateFormatter.string(from: game.savedAt))
@@ -963,6 +1529,9 @@ private struct SavedGameDetailView: View {
 
         【高光候选线索（系统基于日志提取）】
         \(highlightClues)
+
+        【数值校验（以此为准）】
+        \(numericFacts)
 
         【事件日志（最多24条，按时间）】
         \(logText)
@@ -1243,9 +1812,9 @@ private struct SavedGameDetailView: View {
             }
 
             if hitCount >= 2, totalPoints >= 4 {
-                let startTime = GameView.timeFormatter.string(from: scoringEvents[start].entry.timestamp)
-                let endTime = GameView.timeFormatter.string(from: scoringEvents[end].entry.timestamp)
-                clues.append("个人连续得分：\(playerName(playerID)) 连得 \(totalPoints) 分（\(hitCount) 次命中，\(startTime)-\(endTime)）")
+                let timing = highlightRangeText(start: scoringEvents[start], end: scoringEvents[end])
+                let timingSuffix = timing.map { "，\($0)" } ?? ""
+                clues.append("个人连续得分：\(playerName(playerID)) 连得 \(totalPoints) 分（\(hitCount) 次命中\(timingSuffix)）")
             }
 
             index = end + 1
@@ -1271,9 +1840,9 @@ private struct SavedGameDetailView: View {
             }
 
             if hitCount >= 3, totalPoints >= 6 {
-                let startTime = GameView.timeFormatter.string(from: scoringEvents[start].entry.timestamp)
-                let endTime = GameView.timeFormatter.string(from: scoringEvents[end].entry.timestamp)
-                clues.append("球队连续得分：\(teamName(for: side)) 连得 \(totalPoints) 分（\(hitCount) 次命中，\(startTime)-\(endTime)）")
+                let timing = highlightRangeText(start: scoringEvents[start], end: scoringEvents[end])
+                let timingSuffix = timing.map { "，\($0)" } ?? ""
+                clues.append("球队连续得分：\(teamName(for: side)) 连得 \(totalPoints) 分（\(hitCount) 次命中\(timingSuffix)）")
             }
 
             index = end + 1
@@ -1297,21 +1866,24 @@ private struct SavedGameDetailView: View {
                 let diffBefore = abs(homeBefore - awayBefore)
                 let diffAfter = abs(homeAfter - awayAfter)
                 if min(diffBefore, diffAfter) <= 3 {
-                    clues.append("焦灼比分关键球：\(playerName(event.playerID)) 命中 \(points) 分")
+                    let timingSuffix = highlightMomentText(for: event).map { "（\($0)）" } ?? ""
+                    clues.append("焦灼比分关键球：\(playerName(event.playerID)) 命中 \(points) 分\(timingSuffix)")
                 }
 
             case .rebound:
                 if let home = event.homeScore,
                    let away = event.awayScore,
                    abs(home - away) <= 3 {
-                    clues.append("焦灼比分关键篮板：\(playerName(event.playerID))")
+                    let timingSuffix = highlightMomentText(for: event).map { "（\($0)）" } ?? ""
+                    clues.append("焦灼比分关键篮板：\(playerName(event.playerID))\(timingSuffix)")
                 }
 
             case .block:
                 if let home = event.homeScore,
                    let away = event.awayScore,
                    abs(home - away) <= 3 {
-                    clues.append("焦灼比分关键封盖：\(playerName(event.playerID))")
+                    let timingSuffix = highlightMomentText(for: event).map { "（\($0)）" } ?? ""
+                    clues.append("焦灼比分关键封盖：\(playerName(event.playerID))\(timingSuffix)")
                 }
 
             case .assist, .other:
@@ -1337,9 +1909,11 @@ private struct SavedGameDetailView: View {
             }
 
             if count >= 2 {
-                let startTime = GameView.timeFormatter.string(from: assistEvents[start].entry.timestamp)
-                let endTime = GameView.timeFormatter.string(from: assistEvents[end].entry.timestamp)
-                clues.append("连续助攻：\(playerName(playerID)) 连续 \(count) 次助攻（\(startTime)-\(endTime)）")
+                if let timing = highlightRangeText(start: assistEvents[start], end: assistEvents[end]) {
+                    clues.append("连续助攻：\(playerName(playerID)) 连续 \(count) 次助攻（\(timing)）")
+                } else {
+                    clues.append("连续助攻：\(playerName(playerID)) 连续 \(count) 次助攻")
+                }
             }
 
             index = end + 1
@@ -1350,16 +1924,17 @@ private struct SavedGameDetailView: View {
     }
 
     private func parsedHighlightEvents() -> [ParsedHighlightEvent] {
-        game.snapshot.logs.map { entry in
+        periodAwareLogs.map { item in
+            let entry = item.entry
             let (cleanMessage, homeScore, awayScore) = parseMessageAndScore(entry.message)
-            let playerID = detectPlayerID(in: cleanMessage)
-            let side = side(for: playerID)
+            let side = side(for: item.resolvedPlayerID)
             return ParsedHighlightEvent(
                 entry: entry,
+                inferredPeriod: item.inferredPeriod,
                 cleanMessage: cleanMessage,
                 homeScore: homeScore,
                 awayScore: awayScore,
-                playerID: playerID,
+                playerID: item.resolvedPlayerID,
                 side: side,
                 kind: highlightKind(for: cleanMessage)
             )
@@ -1381,15 +1956,6 @@ private struct SavedGameDetailView: View {
             return (String(cleanMessage), nil, nil)
         }
         return (String(cleanMessage), homeScore, awayScore)
-    }
-
-    private func detectPlayerID(in message: String) -> UUID? {
-        for (playerID, name) in game.playerNamesByID.sorted(by: { $0.value.count > $1.value.count }) where !name.isEmpty {
-            if message.contains(name) {
-                return playerID
-            }
-        }
-        return nil
     }
 
     private func side(for playerID: UUID?) -> TeamSide? {
@@ -1418,8 +1984,35 @@ private struct SavedGameDetailView: View {
         return .other
     }
 
+    private func highlightMomentText(for event: ParsedHighlightEvent) -> String? {
+        let period = event.inferredPeriod ?? event.entry.period
+        return periodMinuteText(period: period, elapsedSeconds: event.entry.periodElapsedSeconds)
+    }
+
+    private func highlightRangeText(start: ParsedHighlightEvent, end: ParsedHighlightEvent) -> String? {
+        let startText = highlightMomentText(for: start)
+        let endText = highlightMomentText(for: end)
+
+        if let startText, let endText {
+            return startText == endText ? startText : "\(startText)-\(endText)"
+        }
+
+        return startText ?? endText
+    }
+
+    private func periodMinuteText(period: Int?, elapsedSeconds: TimeInterval?) -> String? {
+        guard let period else { return nil }
+        guard let elapsedSeconds else { return "第\(period)节" }
+
+        let totalSeconds = max(0, Int(elapsedSeconds.rounded(.down)))
+        let minute = totalSeconds / 60
+        let second = totalSeconds % 60
+        return "第\(period)节 第\(minute)分\(String(format: "%02d", second))秒"
+    }
+
     private struct ParsedHighlightEvent {
         let entry: GameLogEntry
+        let inferredPeriod: Int?
         let cleanMessage: String
         let homeScore: Int?
         let awayScore: Int?
@@ -1445,6 +2038,134 @@ private struct SavedGameDetailView: View {
         case rebound
         case block
         case other
+    }
+
+    private func numericFactsText() -> String {
+        let participantIDs = allPlayerIDsForSummary().filter { game.didParticipate($0) }
+        guard !participantIDs.isEmpty else {
+            return "- 未找到可用于校验的出场球员统计。"
+        }
+
+        let homeScore = score(for: game.snapshot.homeTeamID)
+        let awayScore = score(for: game.snapshot.awayTeamID)
+        let scoreTotal = homeScore + awayScore
+        let playerScoreTotal = participantIDs.reduce(0) { partial, playerID in
+            partial + game.snapshot.statsByPlayerID[playerID, default: PlayerStats()].points
+        }
+
+        var lines: [String] = []
+        lines.append("比分总分：\(homeScore)+\(awayScore)=\(scoreTotal)，出场球员得分汇总 \(playerScoreTotal)")
+
+        lines.append(metricLine("得分最高", among: participantIDs, unit: "分") {
+            game.snapshot.statsByPlayerID[$0, default: PlayerStats()].points
+        })
+        lines.append(metricLine("得分最低（出场球员）", among: participantIDs, order: .ascending, unit: "分") {
+            game.snapshot.statsByPlayerID[$0, default: PlayerStats()].points
+        })
+        lines.append(metricLine("篮板最多", among: participantIDs, unit: "个", requirePositive: true) {
+            game.snapshot.statsByPlayerID[$0, default: PlayerStats()].rebounds
+        })
+        lines.append(metricLine("助攻最多", among: participantIDs, unit: "次", requirePositive: true) {
+            game.snapshot.statsByPlayerID[$0, default: PlayerStats()].assists
+        })
+        lines.append(metricLine("封盖最多", among: participantIDs, unit: "次", requirePositive: true) {
+            game.snapshot.statsByPlayerID[$0, default: PlayerStats()].blocks
+        })
+        lines.append(metricLine("抢断最多", among: participantIDs, unit: "次", requirePositive: true) {
+            game.snapshot.statsByPlayerID[$0, default: PlayerStats()].steals
+        })
+        lines.append(metricLine("失误最多", among: participantIDs, unit: "次", requirePositive: true) {
+            game.snapshot.statsByPlayerID[$0, default: PlayerStats()].turnovers
+        })
+        lines.append(metricLine("正负值最高", among: participantIDs, unit: "") {
+            game.snapshot.plusMinusByPlayerID[$0, default: 0]
+        })
+        lines.append(metricLine("正负值最低", among: participantIDs, order: .ascending, unit: "") {
+            game.snapshot.plusMinusByPlayerID[$0, default: 0]
+        })
+
+        if let longest = leadingPlayers(
+            among: participantIDs,
+            metric: { Int(game.snapshot.playingSecondsByPlayerID[$0, default: 0].rounded(.down)) },
+            order: .descending,
+            requirePositive: true
+        ) {
+            let duration = GameView.durationFormatter(TimeInterval(longest.value))
+            lines.append("出场时间最长：\(playersText(for: longest.playerIDs))（\(duration)）")
+        } else {
+            lines.append("出场时间最长：暂无有效记录")
+        }
+
+        return lines.map { "- \($0)" }.joined(separator: "\n")
+    }
+
+    private enum RankingOrder {
+        case ascending
+        case descending
+    }
+
+    private func metricLine(
+        _ title: String,
+        among playerIDs: [UUID],
+        order: RankingOrder = .descending,
+        unit: String,
+        requirePositive: Bool = false,
+        metric: (UUID) -> Int
+    ) -> String {
+        guard let leader = leadingPlayers(
+            among: playerIDs,
+            metric: metric,
+            order: order,
+            requirePositive: requirePositive
+        ) else {
+            return "\(title)：暂无有效记录"
+        }
+
+        let valueText = unit.isEmpty
+            ? signedNumberText(leader.value)
+            : "\(leader.value)\(unit)"
+        return "\(title)：\(playersText(for: leader.playerIDs))（\(valueText)）"
+    }
+
+    private func leadingPlayers(
+        among playerIDs: [UUID],
+        metric: (UUID) -> Int,
+        order: RankingOrder,
+        requirePositive: Bool
+    ) -> (playerIDs: [UUID], value: Int)? {
+        var pairs = playerIDs.map { ($0, metric($0)) }
+        if requirePositive {
+            pairs = pairs.filter { $0.1 > 0 }
+        }
+
+        guard !pairs.isEmpty else { return nil }
+
+        let targetValue = order == .descending
+            ? pairs.map { $0.1 }.max()
+            : pairs.map { $0.1 }.min()
+
+        guard let targetValue else { return nil }
+
+        let leaders = pairs
+            .filter { $0.1 == targetValue }
+            .map { $0.0 }
+            .sorted { playerName($0) < playerName($1) }
+
+        return (leaders, targetValue)
+    }
+
+    private func playersText(for playerIDs: [UUID], maxCount: Int = 3) -> String {
+        let names = playerIDs.map(playerName).sorted()
+        guard names.count > maxCount else {
+            return names.joined(separator: " / ")
+        }
+
+        let shown = names.prefix(maxCount).joined(separator: " / ")
+        return "\(shown) 等\(names.count)人"
+    }
+
+    private func signedNumberText(_ value: Int) -> String {
+        value > 0 ? "+\(value)" : "\(value)"
     }
 
     private func allPlayerIDsForSummary() -> [UUID] {
@@ -1499,13 +2220,17 @@ private struct SavedGameDetailView: View {
 
 private struct ExportGameView: View {
     @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var bluetooth: BluetoothSyncManager
     @Environment(\.dismiss) private var dismiss
     var game: SavedGame
 
     @State private var base64 = ""
+    @State private var transferID = GameShareChunkCodec.generateTransferID()
+    @State private var segmentCount = 4
+    @State private var chunkLines: [String] = []
     @State private var isGenerating = true
-    @State private var copyButtonTitle = "复制编码"
-    @State private var copyFeedbackTask: Task<Void, Never>?
+    @State private var copiedChunkIndex: Int?
+    @State private var copiedChunkFeedbackTask: Task<Void, Never>?
 
     var body: some View {
         NavigationStack {
@@ -1527,24 +2252,68 @@ private struct ExportGameView: View {
                             .foregroundStyle(.secondary)
                     }
                 } else {
+                    Section("蓝牙传输") {
+                        if bluetooth.connectedPeers.isEmpty {
+                            Text("暂无已连接设备，请先到设置-蓝牙协同完成连接。")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            NavigationLink {
+                                BluetoothStoreSyncComposerView(preset: .game(game.id))
+                                    .environmentObject(store)
+                                    .environmentObject(bluetooth)
+                            } label: {
+                                Label("蓝牙发送当前比赛", systemImage: "dot.radiowaves.left.and.right")
+                            }
+
+                            Text("进入后可选择接收设备并查看传输百分比进度。")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Section("导出设置") {
+                        Stepper(value: $segmentCount, in: 1...8) {
+                            HStack {
+                                Text("分段数量")
+                                Spacer(minLength: 8)
+                                Text("\(segmentCount)段")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+
+                        Text("当前编码共 \(chunkLines.count) 段，每段都带有可识别前缀。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+
                     Section("比赛分享编码") {
-                        TextEditor(text: .constant(base64))
-                            .font(.caption.monospaced())
-                            .frame(minHeight: 220)
+                        ForEach(Array(chunkLines.enumerated()), id: \.offset) { index, line in
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("第\(index + 1)/\(chunkLines.count)段")
+                                    .font(.subheadline.weight(.semibold))
+
+                                TransferCodePreview(text: line)
+
+                                Button {
+                                    UIPasteboard.general.string = line
+                                    showChunkCopyFeedback(index)
+                                } label: {
+                                    Label(
+                                        copiedChunkIndex == index ? "已复制" : "复制第\(index + 1)段",
+                                        systemImage: copiedChunkIndex == index ? "checkmark.circle.fill" : "doc.on.doc"
+                                    )
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(AppSoftProminentButtonStyle())
+                            }
+                            .padding(.vertical, 4)
+                        }
                     }
 
                     Section {
-                        Button {
-                            UIPasteboard.general.string = base64
-                            showCopyFeedback()
-                        } label: {
-                            Label(copyButtonTitle, systemImage: copyButtonTitle == "复制编码" ? "doc.on.doc" : "checkmark.circle.fill")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(AppSoftProminentButtonStyle())
-
-                        ShareLink(item: base64) {
-                            Label("分享编码", systemImage: TransferSymbol.exportData)
+                        ShareLink(item: chunkLines.joined(separator: "\n")) {
+                            Label("分享全部分段", systemImage: TransferSymbol.exportData)
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(AppSoftProminentButtonStyle())
@@ -1561,8 +2330,11 @@ private struct ExportGameView: View {
             .task(id: game.id) {
                 await generateBase64()
             }
+            .onChange(of: segmentCount) { _, _ in
+                rebuildChunkLines()
+            }
             .onDisappear {
-                copyFeedbackTask?.cancel()
+                copiedChunkFeedbackTask?.cancel()
             }
         }
     }
@@ -1570,18 +2342,29 @@ private struct ExportGameView: View {
     private func generateBase64() async {
         isGenerating = true
         base64 = ""
+        chunkLines = []
+        transferID = GameShareChunkCodec.generateTransferID()
         await Task.yield()
         base64 = store.exportGameBase64(game) ?? ""
+        rebuildChunkLines()
         isGenerating = false
     }
 
-    private func showCopyFeedback() {
-        copyButtonTitle = "已复制"
-        copyFeedbackTask?.cancel()
-        copyFeedbackTask = Task {
+    private func rebuildChunkLines() {
+        chunkLines = GameShareChunkCodec.makeChunkLines(
+            payload: base64,
+            preferredParts: segmentCount,
+            transferID: transferID
+        )
+    }
+
+    private func showChunkCopyFeedback(_ index: Int) {
+        copiedChunkIndex = index
+        copiedChunkFeedbackTask?.cancel()
+        copiedChunkFeedbackTask = Task {
             try? await Task.sleep(for: .seconds(1.2))
             guard !Task.isCancelled else { return }
-            copyButtonTitle = "复制编码"
+            copiedChunkIndex = nil
         }
     }
 }
@@ -1590,6 +2373,10 @@ private struct ImportGameView: View {
     @EnvironmentObject private var store: AppStore
     @Environment(\.dismiss) private var dismiss
     @State private var base64 = ""
+    @State private var isChunkedMode = false
+    @State private var chunkInputLines: [String] = []
+    @State private var chunkTransferID: String?
+    @State private var chunkTotalParts = 0
     @State private var package: ExportedGamePackage?
     @State private var playerMapping: [UUID: UUID] = [:]
     @State private var teamMapping: [UUID: UUID] = [:]
@@ -1597,27 +2384,83 @@ private struct ImportGameView: View {
     @State private var parseSucceeded = false
     @State private var isShowingMissingRosterAlert = false
     @State private var isShowingClipboardAutoFillAlert = false
+    @State private var clipboardAutoFillMessage = ""
+    @State private var lastAutoFilledClipboardChangeCount = -1
+    @State private var isShowingImportOverwriteAlert = false
+    @State private var pendingImportDisposition: AppStore.GameImportDisposition?
+    @State private var isShowingChunkReplaceAlert = false
+    @State private var pendingIncomingChunks: [GameShareChunk] = []
+    @State private var pendingIncomingPartCount = 0
     @State private var hasCheckedClipboard = false
     @State private var isParsing = false
     @FocusState private var isInputFocused: Bool
+
+    private var filledChunkCount: Int {
+        chunkInputLines
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .count
+    }
+
+    private var canParseInput: Bool {
+        if isChunkedMode {
+            return chunkTotalParts > 0 && filledChunkCount == chunkTotalParts
+        }
+        return !base64.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
 
     var body: some View {
         NavigationStack {
             Form {
                 Section("粘贴分享编码") {
-                    TextEditor(text: $base64)
-                        .font(.caption.monospaced())
-                        .frame(height: 112)
-                        .autocorrectionDisabled(true)
-                        .textInputAutocapitalization(.never)
-                        .focused($isInputFocused)
+                    if isChunkedMode {
+                        Text("已识别分段导入（\(filledChunkCount)/\(chunkTotalParts)）")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+
+                        if let chunkTransferID {
+                            Text("批次 ID: \(chunkTransferID)")
+                                .font(.caption.monospaced())
+                                .foregroundStyle(.secondary)
+                        }
+
+                        ForEach(0..<chunkTotalParts, id: \.self) { index in
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("第\(index + 1)/\(chunkTotalParts)段")
+                                    .font(.caption.weight(.semibold))
+
+                                TransferCodeInput(
+                                    text: binding(forChunkIndex: index),
+                                    placeholder: "粘贴第\(index + 1)段"
+                                )
+                                    .focused($isInputFocused)
+                            }
+                            .padding(.vertical, 2)
+                        }
+
+                        HStack(spacing: 8) {
+                            Button("从剪贴板读取分段") {
+                                tryAutoFillFromClipboard(force: true)
+                            }
+                            .buttonStyle(AppSoftProminentButtonStyle())
+
+                            Button("改为单段导入") {
+                                resetToSingleMode()
+                            }
+                            .buttonStyle(AppSoftProminentButtonStyle())
+                        }
+                    } else {
+                        TransferCodeInput(text: $base64)
+                            .focused($isInputFocused)
+                    }
+
                     Button("解析比赛记录") {
                         isInputFocused = false
                         Task {
                             await decode()
                         }
                     }
-                    .disabled(base64.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isParsing)
+                    .disabled(!canParseInput || isParsing)
 
                     if isParsing {
                         HStack(spacing: 8) {
@@ -1667,8 +2510,7 @@ private struct ImportGameView: View {
 
                     Section {
                         Button {
-                            store.importGamePackage(package, playerMapping: playerMapping, teamMapping: teamMapping)
-                            dismiss()
+                            triggerImport()
                         } label: {
                             Label("导入比赛", systemImage: TransferSymbol.importData)
                                 .frame(maxWidth: .infinity)
@@ -1694,13 +2536,50 @@ private struct ImportGameView: View {
             .alert("已自动识别", isPresented: $isShowingClipboardAutoFillAlert) {
                 Button("知道了") { }
             } message: {
-                Text("已从剪贴板识别到比赛数据，并自动粘贴解析成功。")
+                Text(clipboardAutoFillMessage)
+            }
+            .alert("检测到将覆盖已有比赛", isPresented: $isShowingImportOverwriteAlert) {
+                Button("取消", role: .cancel) { }
+                Button("覆盖导入", role: .destructive) {
+                    performImportAndDismiss()
+                }
+            } message: {
+                Text(overwriteImportMessage)
+            }
+            .alert("检测到新的分段导入", isPresented: $isShowingChunkReplaceAlert) {
+                Button("取消", role: .cancel) {
+                    pendingIncomingChunks = []
+                    pendingIncomingPartCount = 0
+                }
+                Button("继续导入", role: .destructive) {
+                    replaceWithPendingIncomingChunks()
+                }
+            } message: {
+                Text(chunkReplaceMessage)
             }
             .onAppear {
                 guard !hasCheckedClipboard else { return }
                 hasCheckedClipboard = true
                 tryAutoFillFromClipboard()
             }
+            .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in
+                tryAutoFillFromClipboard()
+            }
+        }
+    }
+
+    private var chunkReplaceMessage: String {
+        "当前已录入 \(filledChunkCount)/\(chunkTotalParts) 段，新剪贴板识别到 \(pendingIncomingPartCount) 段，可能不是同一场比赛。继续会清空当前分段内容。"
+    }
+
+    private var overwriteImportMessage: String {
+        switch pendingImportDisposition {
+        case .replacedSameID:
+            return "这次导入会覆盖一条同 UUID 的现有比赛记录，是否继续？"
+        case .replacedLikelyDuplicate:
+            return "这次导入会覆盖一条系统判断为重复的现有比赛记录，是否继续？"
+        case .inserted, .none:
+            return "这次导入会覆盖现有比赛记录，是否继续？"
         }
     }
 
@@ -1712,7 +2591,34 @@ private struct ImportGameView: View {
         await Task.yield()
         defer { isParsing = false }
 
-        guard let decoded = store.decodeGamePackage(from: base64) else {
+        let sourceText: String
+        if isChunkedMode {
+            switch GameShareChunkCodec.assemblePayload(from: chunkInputLines) {
+            case .success(let assembled):
+                sourceText = assembled.payload
+            case .failure(let message):
+                package = nil
+                parseSucceeded = false
+                parseResultText = "解析失败\n类型: 比赛分段\n\(message)"
+                return
+            }
+        } else {
+            let trimmedInput = base64.trimmingCharacters(in: .whitespacesAndNewlines)
+            let chunkCandidates = GameShareChunkCodec.parseChunks(in: trimmedInput)
+            if !chunkCandidates.isEmpty {
+                applyChunks(chunkCandidates)
+                parseResultText = "已识别为分段编码，请补全所有段后再解析。"
+                return
+            }
+            if let singleChunk = GameShareChunkCodec.parseChunkLine(trimmedInput) {
+                applyChunks([singleChunk])
+                parseResultText = "已识别为分段编码，请补全所有段后再解析。"
+                return
+            }
+            sourceText = trimmedInput
+        }
+
+        guard let decoded = store.decodeGamePackage(from: sourceText) else {
             package = nil
             parseSucceeded = false
             parseResultText = "解析失败\n类型: 比赛\n请确认粘贴的是完整分享编码。"
@@ -1721,16 +2627,142 @@ private struct ImportGameView: View {
         applyDecodedPackage(decoded)
     }
 
-    private func tryAutoFillFromClipboard() {
-        guard let clipboardText = UIPasteboard.general.string?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !clipboardText.isEmpty,
-              let decoded = store.decodeGamePackage(from: clipboardText) else {
+    private func tryAutoFillFromClipboard(force: Bool = false) {
+        let pasteboard = UIPasteboard.general
+        let currentChangeCount = pasteboard.changeCount
+
+        guard force || currentChangeCount != lastAutoFilledClipboardChangeCount else {
             return
         }
 
+        guard let clipboardText = pasteboard.string?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !clipboardText.isEmpty else {
+            return
+        }
+
+        let chunks = GameShareChunkCodec.parseChunks(in: clipboardText)
+        if !chunks.isEmpty,
+           let selectedChunks = selectTargetChunks(from: chunks) {
+            if shouldConfirmChunkReplacement(for: selectedChunks) {
+                pendingIncomingChunks = selectedChunks
+                pendingIncomingPartCount = selectedChunks.first?.totalParts ?? 0
+                isShowingChunkReplaceAlert = true
+                lastAutoFilledClipboardChangeCount = currentChangeCount
+                return
+            }
+
+            applyChunks(selectedChunks)
+            lastAutoFilledClipboardChangeCount = currentChangeCount
+            return
+        }
+
+        if let chunk = GameShareChunkCodec.parseChunkLine(clipboardText),
+           let selectedChunks = selectTargetChunks(from: [chunk]) {
+            if shouldConfirmChunkReplacement(for: selectedChunks) {
+                pendingIncomingChunks = selectedChunks
+                pendingIncomingPartCount = selectedChunks.first?.totalParts ?? 0
+                isShowingChunkReplaceAlert = true
+                lastAutoFilledClipboardChangeCount = currentChangeCount
+                return
+            }
+
+            applyChunks(selectedChunks)
+            lastAutoFilledClipboardChangeCount = currentChangeCount
+            return
+        }
+
+        guard let decoded = store.decodeGamePackage(from: clipboardText) else {
+            return
+        }
+
+        isChunkedMode = false
         base64 = clipboardText
         applyDecodedPackage(decoded)
+        lastAutoFilledClipboardChangeCount = currentChangeCount
+        clipboardAutoFillMessage = "已从剪贴板识别到比赛数据，并自动粘贴解析成功。"
         isShowingClipboardAutoFillAlert = true
+    }
+
+    private func replaceWithPendingIncomingChunks() {
+        guard !pendingIncomingChunks.isEmpty else { return }
+        resetToSingleMode()
+        applyChunks(pendingIncomingChunks)
+        pendingIncomingChunks = []
+        pendingIncomingPartCount = 0
+    }
+
+    private func shouldConfirmChunkReplacement(for incomingChunks: [GameShareChunk]) -> Bool {
+        guard isChunkedMode,
+              filledChunkCount > 0,
+              let currentTransferID = chunkTransferID,
+              let incomingSample = incomingChunks.first else {
+            return false
+        }
+
+        let isSameTransfer = currentTransferID == incomingSample.transferID
+        let isSamePartCount = chunkTotalParts == incomingSample.totalParts
+        return !(isSameTransfer && isSamePartCount)
+    }
+
+    private func selectTargetChunks(from chunks: [GameShareChunk]) -> [GameShareChunk]? {
+        guard !chunks.isEmpty else { return nil }
+
+        let groupedByID = Dictionary(grouping: chunks, by: { $0.transferID })
+
+        if let chunkTransferID,
+           let sameBatch = groupedByID[chunkTransferID],
+           !sameBatch.isEmpty {
+            return sameBatch
+        }
+
+        return groupedByID.values.max(by: { $0.count < $1.count })
+    }
+
+    private func applyChunks(_ targetChunks: [GameShareChunk]) {
+        guard let sample = targetChunks.first else { return }
+        let previousTransferID = chunkTransferID
+
+        isChunkedMode = true
+        chunkTransferID = sample.transferID
+        chunkTotalParts = sample.totalParts
+
+        if chunkInputLines.count != sample.totalParts || previousTransferID != sample.transferID {
+            chunkInputLines = Array(repeating: "", count: sample.totalParts)
+        }
+
+        for chunk in targetChunks where chunk.partIndex <= sample.totalParts {
+            chunkInputLines[chunk.partIndex - 1] = chunk.rawLine
+        }
+
+        parseSucceeded = false
+        parseResultText = nil
+        package = nil
+
+        clipboardAutoFillMessage = "已识别比赛分段编码，已自动填充 \(filledChunkCount)/\(chunkTotalParts) 段。"
+        isShowingClipboardAutoFillAlert = true
+    }
+
+    private func resetToSingleMode() {
+        isChunkedMode = false
+        chunkInputLines = []
+        chunkTransferID = nil
+        chunkTotalParts = 0
+        parseSucceeded = false
+        parseResultText = nil
+        package = nil
+    }
+
+    private func binding(forChunkIndex index: Int) -> Binding<String> {
+        Binding(
+            get: {
+                guard index < chunkInputLines.count else { return "" }
+                return chunkInputLines[index]
+            },
+            set: { newValue in
+                guard index < chunkInputLines.count else { return }
+                chunkInputLines[index] = newValue
+            }
+        )
     }
 
     private func applyDecodedPackage(_ decoded: ExportedGamePackage) {
@@ -1758,6 +2790,30 @@ private struct ImportGameView: View {
         isShowingMissingRosterAlert = decoded.players.contains { playerMapping[$0.id] == nil } || decoded.teams.contains { teamMapping[$0.id] == nil }
     }
 
+    private func triggerImport() {
+        guard let package else { return }
+
+        let disposition = store.previewGameImportDisposition(
+            package,
+            playerMapping: playerMapping,
+            teamMapping: teamMapping
+        )
+
+        if disposition.isOverwrite {
+            pendingImportDisposition = disposition
+            isShowingImportOverwriteAlert = true
+            return
+        }
+
+        performImportAndDismiss()
+    }
+
+    private func performImportAndDismiss() {
+        guard let package else { return }
+        _ = store.importGamePackage(package, playerMapping: playerMapping, teamMapping: teamMapping)
+        dismiss()
+    }
+
     private func binding(forPlayer id: UUID) -> Binding<UUID?> {
         Binding(
             get: { playerMapping[id] },
@@ -1776,52 +2832,88 @@ private struct ImportGameView: View {
 private struct PlayerGameDetailView: View {
     var game: SavedGame
     var playerID: UUID
+    @State private var selectedPeriod: Int? = nil
+    @State private var periodAnalysis = SavedGamePeriodAnalysis()
 
-    private var stats: PlayerStats {
-        game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+    private var displayStats: PlayerStats {
+        guard let selectedPeriod else {
+            return game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+        }
+        return periodAnalysis.statsByPeriod[selectedPeriod]?[playerID] ?? PlayerStats()
+    }
+
+    private var displayLogs: [PeriodAwareLog] {
+        periodAnalysis.playerLogs(for: playerID, period: selectedPeriod)
     }
 
     var body: some View {
         List {
+            if game.snapshot.periodCount > 1 {
+                Section("数据范围") {
+                    Picker("分节", selection: $selectedPeriod) {
+                        Text("全场").tag(Optional<Int>.none)
+                        ForEach(1...game.snapshot.periodCount, id: \.self) { period in
+                            Text("第\(period)节").tag(Optional(period))
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+            }
+
             Section {
                 HStack {
                     Text(playerName)
                         .font(.headline)
                     Spacer()
-                    Text("\(stats.points)分")
+                    Text("\(displayStats.points)分")
                         .font(.title2.monospacedDigit().weight(.bold))
                 }
                 statLine("身份", roleText)
-                statLine("上场时间", GameView.durationFormatter(game.snapshot.playingSecondsByPlayerID[playerID, default: 0]))
+                statLine("上场时间", playingTimeText)
             }
 
             Section("投篮") {
-                statLine("投篮", "\(stats.made)/\(stats.attempts)")
-                statLine("命中率", percent(stats.fieldGoalRate))
-                statLine("2分", "\(stats.twoMade)/\(stats.twoAttempts)")
-                statLine("2分率", percent(stats.twoPointRate))
-                statLine("3分", "\(stats.threeMade)/\(stats.threeAttempts)")
-                statLine("3分率", percent(stats.threePointRate))
+                statLine("投篮", "\(displayStats.made)/\(displayStats.attempts)")
+                statLine("命中率", percent(displayStats.fieldGoalRate))
+                statLine("2分", "\(displayStats.twoMade)/\(displayStats.twoAttempts)")
+                statLine("2分率", percent(displayStats.twoPointRate))
+                statLine("3分", "\(displayStats.threeMade)/\(displayStats.threeAttempts)")
+                statLine("3分率", percent(displayStats.threePointRate))
             }
 
             Section("罚篮") {
-                statLine("罚篮", "\(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)")
-                statLine("命中率", percent(stats.freeThrowRate))
-                statLine("加罚", "\(stats.bonusFreeThrowMade)/\(stats.bonusFreeThrowAttempts)")
+                statLine("罚篮", "\(displayStats.allFreeThrowMade)/\(displayStats.allFreeThrowAttempts)")
+                statLine("命中率", percent(displayStats.freeThrowRate))
+                statLine("加罚", "\(displayStats.bonusFreeThrowMade)/\(displayStats.bonusFreeThrowAttempts)")
             }
 
             Section("其他") {
-                statLine("篮板 / 助攻 / 犯规", "\(stats.rebounds) / \(stats.assists) / \(stats.fouls)")
+                statLine("板 / 助 / 犯 / 盖 / 断 / 失", "\(displayStats.rebounds) / \(displayStats.assists) / \(displayStats.fouls) / \(displayStats.blocks) / \(displayStats.steals) / \(displayStats.turnovers)")
             }
 
             Section("高阶") {
                 statLine("正负值", plusMinusText)
-                statLine("eFG / TS", "\(percent(stats.effectiveFieldGoalRate)) / \(percent(stats.trueShootingRate))")
-                statLine("每次出手得分", String(format: "%.2f", stats.pointsPerShot))
+                statLine("eFG / TS", "\(percent(displayStats.effectiveFieldGoalRate)) / \(percent(displayStats.trueShootingRate))")
+                statLine("每次出手得分", String(format: "%.2f", displayStats.pointsPerShot))
+            }
+
+            Section("事件") {
+                if displayLogs.isEmpty {
+                    Text("该范围暂无该球员事件记录")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(displayLogs.reversed()) { log in
+                        Text(GameLogFormatter.lineText(for: log))
+                            .font(.footnote.monospacedDigit())
+                            .foregroundStyle(GameLogFormatter.isScoring(log) ? Color.blue : Color.primary)
+                    }
+                }
             }
         }
         .navigationTitle(playerName)
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear(perform: rebuildPeriodAnalysis)
     }
 
     private var playerName: String {
@@ -1842,12 +2934,25 @@ private struct PlayerGameDetailView: View {
         "\(Int((value * 100).rounded()))%"
     }
 
+    private var playingTimeText: String {
+        guard selectedPeriod == nil else { return "--:--" }
+        return GameView.durationFormatter(game.snapshot.playingSecondsByPlayerID[playerID, default: 0])
+    }
+
     private var plusMinusText: String {
+        guard selectedPeriod == nil else { return "--" }
         let value = game.snapshot.plusMinusByPlayerID[playerID, default: 0]
         return value > 0 ? "+\(value)" : "\(value)"
     }
 
     private var roleText: String {
         game.role(of: playerID)?.title ?? "未记录"
+    }
+
+    private func rebuildPeriodAnalysis() {
+        let analyzer = SavedGameAnalyzer(game: game) { name in
+            game.playerNamesByID.first(where: { $0.value == name })?.key
+        }
+        periodAnalysis = analyzer.analyze()
     }
 }

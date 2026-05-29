@@ -73,7 +73,7 @@ struct PlayerEditorView: View {
             .task(id: selectedPhoto) {
                 guard let selectedPhoto,
                       let data = try? await selectedPhoto.loadTransferable(type: Data.self) else { return }
-                photoData = data
+                photoData = compressedPhotoData(from: data)
             }
         }
     }
@@ -114,5 +114,34 @@ struct PlayerEditorView: View {
             store.updatePlayer(next)
         }
         dismiss()
+    }
+
+    private func compressedPhotoData(from data: Data) -> Data {
+        guard let image = UIImage(data: data) else { return data }
+
+        let maxDimension: CGFloat = 720
+        let resized = resizedImage(image, maxDimension: maxDimension)
+
+        return resized.jpegData(compressionQuality: 0.8) ?? data
+    }
+
+    private func resizedImage(_ image: UIImage, maxDimension: CGFloat) -> UIImage {
+        let originalSize = image.size
+        let longestSide = max(originalSize.width, originalSize.height)
+
+        guard longestSide > maxDimension else { return image }
+
+        let ratio = maxDimension / longestSide
+        let targetSize = CGSize(
+            width: originalSize.width * ratio,
+            height: originalSize.height * ratio
+        )
+
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+
+        return UIGraphicsImageRenderer(size: targetSize, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
     }
 }

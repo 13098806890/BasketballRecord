@@ -24,6 +24,36 @@ final class AppStore: ObservableObject {
         var updatedGames: Int
     }
 
+    struct PlayerUpsertSummary {
+        var inserted: Int
+        var updated: Int
+    }
+
+    struct TeamUpsertSummary {
+        var inserted: Int
+        var updated: Int
+    }
+
+    struct SavedGameUpsertSummary {
+        var inserted: Int
+        var updated: Int
+    }
+
+    enum GameImportDisposition {
+        case inserted
+        case replacedSameID(existingGameID: UUID)
+        case replacedLikelyDuplicate(existingGameID: UUID)
+
+        var isOverwrite: Bool {
+            switch self {
+            case .inserted:
+                return false
+            case .replacedSameID, .replacedLikelyDuplicate:
+                return true
+            }
+        }
+    }
+
     @Published var players: [Player] = [] {
         didSet { scheduleSave() }
     }
@@ -93,6 +123,83 @@ final class AppStore: ObservableObject {
         teams[index] = team
     }
 
+    @discardableResult
+    func upsertPlayers(_ incomingPlayers: [Player]) -> PlayerUpsertSummary {
+        guard !incomingPlayers.isEmpty else {
+            return PlayerUpsertSummary(inserted: 0, updated: 0)
+        }
+
+        var nextPlayers = players
+        var inserted = 0
+        var updated = 0
+
+        for incoming in incomingPlayers {
+            if let existingIndex = nextPlayers.firstIndex(where: { $0.id == incoming.id }) {
+                var merged = incoming
+                if merged.photoData == nil {
+                    merged.photoData = nextPlayers[existingIndex].photoData
+                }
+                nextPlayers[existingIndex] = merged
+                updated += 1
+            } else {
+                nextPlayers.append(incoming)
+                inserted += 1
+            }
+        }
+
+        players = nextPlayers
+        return PlayerUpsertSummary(inserted: inserted, updated: updated)
+    }
+
+    @discardableResult
+    func upsertTeams(_ incomingTeams: [Team]) -> TeamUpsertSummary {
+        guard !incomingTeams.isEmpty else {
+            return TeamUpsertSummary(inserted: 0, updated: 0)
+        }
+
+        var nextTeams = teams
+        var inserted = 0
+        var updated = 0
+
+        for incoming in incomingTeams {
+            if let existingIndex = nextTeams.firstIndex(where: { $0.id == incoming.id }) {
+                nextTeams[existingIndex] = incoming
+                updated += 1
+            } else {
+                nextTeams.append(incoming)
+                inserted += 1
+            }
+        }
+
+        teams = nextTeams
+        return TeamUpsertSummary(inserted: inserted, updated: updated)
+    }
+
+    @discardableResult
+    func upsertSavedGames(_ incomingGames: [SavedGame]) -> SavedGameUpsertSummary {
+        guard !incomingGames.isEmpty else {
+            return SavedGameUpsertSummary(inserted: 0, updated: 0)
+        }
+
+        var nextGames = savedGames
+        var inserted = 0
+        var updated = 0
+
+        for incoming in incomingGames {
+            if let existingIndex = nextGames.firstIndex(where: { $0.id == incoming.id }) {
+                nextGames[existingIndex] = incoming
+                updated += 1
+            } else {
+                nextGames.append(incoming)
+                inserted += 1
+            }
+        }
+
+        nextGames.sort { $0.savedAt > $1.savedAt }
+        savedGames = nextGames
+        return SavedGameUpsertSummary(inserted: inserted, updated: updated)
+    }
+
     func deleteTeams(at offsets: IndexSet) {
         teams.remove(atOffsets: offsets)
     }
@@ -160,8 +267,8 @@ final class AppStore: ObservableObject {
             exportTeam(id: game.snapshot.awayTeamID, fallbackName: game.awayTeamName, playerIDs: game.awayPlayerIDs)
         ].compactMap { $0 }
 
-        let package = ExportedGamePackage(players: exportedPlayers, teams: exportedTeams, game: ExportGameRecord(savedGame: game))
-        return TransferCodec.encode(package)
+        let legacyPackage = ExportedGamePackage(players: exportedPlayers, teams: exportedTeams, game: ExportGameRecord(savedGame: game))
+        return TransferCodec.encode(ExportedGamePackageV2(legacy: legacyPackage))
     }
 
     func exportTeamBase64(_ team: Team) -> String? {
@@ -181,7 +288,10 @@ final class AppStore: ObservableObject {
     }
 
     func decodeGamePackage(from base64: String) -> ExportedGamePackage? {
-        TransferCodec.decode(base64, as: ExportedGamePackage.self)
+        guard let decoded = TransferCodec.decode(base64, as: ExportedGamePackageV2.self) else {
+            return nil
+        }
+        return decoded.legacyPackage
     }
 
     func decodeTeamPackage(from base64: String) -> ExportedTeamPackage? {
@@ -257,12 +367,13 @@ final class AppStore: ObservableObject {
         return PlayerImportSummary(addedPlayers: addedPlayers, updatedPlayers: updatedPlayers)
     }
 
+    @discardableResult
     func importGamePackage(
         _ package: ExportedGamePackage,
         playerMapping: [UUID: UUID] = [:],
         teamMapping: [UUID: UUID] = [:],
         importsUnmatchedRoster: Bool = true
-    ) {
+    ) -> GameImportDisposition {
         var playerIDMap = playerMapping
         var teamIDMap = teamMapping
 
@@ -292,7 +403,19 @@ final class AppStore: ObservableObject {
         }
 
         let importedGame = remappedGame(package.game.savedGame, playerIDMap: playerIDMap, teamIDMap: teamIDMap)
-        upsertImportedGame(importedGame)
+        return upsertImportedGame(importedGame)
+    }
+
+    func previewGameImportDisposition(
+        _ package: ExportedGamePackage,
+        playerMapping: [UUID: UUID] = [:],
+        teamMapping: [UUID: UUID] = [:],
+        importsUnmatchedRoster: Bool = true
+    ) -> GameImportDisposition {
+        let playerIDMap = inferredPlayerIDMap(for: package, providedMapping: playerMapping, importsUnmatchedRoster: importsUnmatchedRoster)
+        let teamIDMap = inferredTeamIDMap(for: package, providedMapping: teamMapping, importsUnmatchedRoster: importsUnmatchedRoster)
+        let importedGame = remappedGame(package.game.savedGame, playerIDMap: playerIDMap, teamIDMap: teamIDMap)
+        return gameImportDisposition(for: importedGame)
     }
 
     func deleteSavedGames(at offsets: IndexSet) {
@@ -515,6 +638,13 @@ final class AppStore: ObservableObject {
         var remapped = snapshot
         remapped.homeTeamID = snapshot.homeTeamID.flatMap { teamIDMap[$0] ?? $0 }
         remapped.awayTeamID = snapshot.awayTeamID.flatMap { teamIDMap[$0] ?? $0 }
+        remapped.logs = snapshot.logs.map { entry in
+            var mapped = entry
+            if let playerID = entry.playerID {
+                mapped.playerID = playerIDMap[playerID] ?? playerID
+            }
+            return mapped
+        }
         remapped.statsByPlayerID = remapDictionary(snapshot.statsByPlayerID, using: playerIDMap)
         remapped.homeOnCourtPlayerIDs = dedupedIDs(snapshot.homeOnCourtPlayerIDs.map { playerIDMap[$0] ?? $0 })
         remapped.awayOnCourtPlayerIDs = dedupedIDs(snapshot.awayOnCourtPlayerIDs.map { playerIDMap[$0] ?? $0 })
@@ -547,6 +677,7 @@ final class AppStore: ObservableObject {
             || game.snapshot.starterPlayerIDs.contains(sourceID)
             || game.snapshot.homeOnCourtPlayerIDs.contains(sourceID)
             || game.snapshot.awayOnCourtPlayerIDs.contains(sourceID)
+            || game.snapshot.logs.contains(where: { $0.playerID == sourceID })
             || game.playerNamesByID[sourceID] != nil
     }
 
@@ -579,6 +710,13 @@ final class AppStore: ObservableObject {
 
     private func remappedSnapshotForPlayerMerge(_ snapshot: GameSnapshot, sourceID: UUID, targetID: UUID) -> GameSnapshot {
         var remapped = snapshot
+        remapped.logs = snapshot.logs.map { entry in
+            var mapped = entry
+            if mapped.playerID == sourceID {
+                mapped.playerID = targetID
+            }
+            return mapped
+        }
         remapped.statsByPlayerID = mergeStatsDictionary(snapshot.statsByPlayerID, sourceID: sourceID, targetID: targetID)
         remapped.playingSecondsByPlayerID = mergeSumDictionary(snapshot.playingSecondsByPlayerID, sourceID: sourceID, targetID: targetID)
         remapped.plusMinusByPlayerID = mergeSumDictionary(snapshot.plusMinusByPlayerID, sourceID: sourceID, targetID: targetID)
@@ -652,6 +790,9 @@ final class AppStore: ObservableObject {
         total.rebounds += rhs.rebounds
         total.assists += rhs.assists
         total.fouls += rhs.fouls
+        total.blocks += rhs.blocks
+        total.steals += rhs.steals
+        total.turnovers += rhs.turnovers
         return total
     }
 
@@ -691,14 +832,15 @@ final class AppStore: ObservableObject {
         return remapped
     }
 
-    private func upsertImportedGame(_ importedGame: SavedGame) {
+    private func upsertImportedGame(_ importedGame: SavedGame) -> GameImportDisposition {
         if let existingIndex = savedGames.firstIndex(where: { $0.id == importedGame.id }) {
+            let existingID = savedGames[existingIndex].id
             savedGames[existingIndex] = importedGame
             if existingIndex != 0 {
                 let updated = savedGames.remove(at: existingIndex)
                 savedGames.insert(updated, at: 0)
             }
-            return
+            return .replacedSameID(existingGameID: existingID)
         }
 
         if let duplicateIndex = savedGames.firstIndex(where: { isLikelyDuplicateGame($0, importedGame) }) {
@@ -710,10 +852,51 @@ final class AppStore: ObservableObject {
                 let updated = savedGames.remove(at: duplicateIndex)
                 savedGames.insert(updated, at: 0)
             }
-            return
+            return .replacedLikelyDuplicate(existingGameID: existingID)
         }
 
         savedGames.insert(importedGame, at: 0)
+        return .inserted
+    }
+
+    private func gameImportDisposition(for importedGame: SavedGame) -> GameImportDisposition {
+        if let existing = savedGames.first(where: { $0.id == importedGame.id }) {
+            return .replacedSameID(existingGameID: existing.id)
+        }
+
+        if let duplicate = savedGames.first(where: { isLikelyDuplicateGame($0, importedGame) }) {
+            return .replacedLikelyDuplicate(existingGameID: duplicate.id)
+        }
+
+        return .inserted
+    }
+
+    private func inferredPlayerIDMap(
+        for package: ExportedGamePackage,
+        providedMapping: [UUID: UUID],
+        importsUnmatchedRoster: Bool
+    ) -> [UUID: UUID] {
+        guard importsUnmatchedRoster else { return providedMapping }
+
+        var mapping = providedMapping
+        for exportedPlayer in package.players where mapping[exportedPlayer.id] == nil {
+            mapping[exportedPlayer.id] = exportedPlayer.id
+        }
+        return mapping
+    }
+
+    private func inferredTeamIDMap(
+        for package: ExportedGamePackage,
+        providedMapping: [UUID: UUID],
+        importsUnmatchedRoster: Bool
+    ) -> [UUID: UUID] {
+        guard importsUnmatchedRoster else { return providedMapping }
+
+        var mapping = providedMapping
+        for exportedTeam in package.teams where mapping[exportedTeam.id] == nil {
+            mapping[exportedTeam.id] = exportedTeam.id
+        }
+        return mapping
     }
 
     private func isLikelyDuplicateGame(_ lhs: SavedGame, _ rhs: SavedGame) -> Bool {

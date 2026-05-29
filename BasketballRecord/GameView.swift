@@ -1,7 +1,11 @@
 import SwiftUI
+import UIKit
+import MultipeerConnectivity
+import CryptoKit
 
 struct GameView: View {
     @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var bluetooth: BluetoothSyncManager
 
     @State private var snapshot = GameSnapshot()
     @State private var undoStack: [GameSnapshot] = []
@@ -10,7 +14,6 @@ struct GameView: View {
     @State private var hasRestoredLatestGame = false
     @State private var selectedPlayerID: UUID?
     @State private var selectedSide: TeamSide = .home
-    @State private var isStatsExpanded = false
     @State private var isShowingSubstitution = false
     @State private var isShowingLateArrival = false
     @State private var isShowingNewGameSetup = false
@@ -26,106 +29,84 @@ struct GameView: View {
     @State private var saveConfirmation: String?
     @State private var statAlertMessage: String?
     @State private var simulationAlertMessage: String?
+    @State private var collaborationAlertMessage: String?
     @State private var isSimulating = false
+    @State private var activeLiveSessionID: UUID?
+    @State private var liveRole: LiveCollaborationRole?
+    @State private var liveVersion = 0
+    @State private var liveStateHash = ""
+    @State private var liveHostPeerName: String?
+    @State private var liveHostPeerID: MCPeerID?
+    @State private var liveParticipantNames: Set<String> = []
+    @State private var localLiveOpSeq = 0
+    @State private var liveCommitHistory: [BluetoothLiveOpCommitPayload] = []
+    @State private var peerAckVersionByDeviceID: [String: Int] = [:]
+    @State private var isApplyingRemoteSnapshot = false
     @State private var clockNow = Date()
+    @State private var scorePulseSide: TeamSide?
+    @State private var scorePulseDismissTask: Task<Void, Never>?
+    @State private var actionButtonPulseKey: String?
+    @State private var actionButtonPulseDismissTask: Task<Void, Never>?
+    @State private var recordingIndicatorBlink = false
+    @State private var highlightedLogID: UUID?
+    @State private var highlightedLogDismissTask: Task<Void, Never>?
 
     private let matchClockTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
+        lifecycleWrappedView
+    }
+
+    private var navigationRoot: some View {
         NavigationStack {
-            VStack(spacing: 8) {
-                teamPickers
-                    .padding(.horizontal)
-                    .padding(.top, 8)
-
-                VStack(spacing: 6) {
-                    CompactTeamRow(
-                        side: .home,
-                        team: store.team(for: snapshot.homeTeamID),
-                        players: onCourtPlayers(for: .home),
-                        score: score(for: snapshot.homeTeamID),
-                        fouls: displayedTeamFouls(for: .home),
-                        foulLabel: snapshot.resetsTeamFoulsEachPeriod ? "本节犯规" : "累计犯规",
-                        onCourtPlayerIDs: snapshot.homeOnCourtPlayerIDs,
-                        selectedPlayerID: selectedPlayerID,
-                        selectedSide: selectedSide,
-                        onSelect: selectPlayer
-                    )
-
-                    CompactTeamRow(
-                        side: .away,
-                        team: store.team(for: snapshot.awayTeamID),
-                        players: onCourtPlayers(for: .away),
-                        score: score(for: snapshot.awayTeamID),
-                        fouls: displayedTeamFouls(for: .away),
-                        foulLabel: snapshot.resetsTeamFoulsEachPeriod ? "本节犯规" : "累计犯规",
-                        onCourtPlayerIDs: snapshot.awayOnCourtPlayerIDs,
-                        selectedPlayerID: selectedPlayerID,
-                        selectedSide: selectedSide,
-                        onSelect: selectPlayer
-                    )
+            gameLayout
+                .overlay(alignment: .center) {
+                    simulationLoadingView
                 }
-
-                TeamStatsDisclosureView(
-                    homeName: store.team(for: snapshot.homeTeamID)?.name ?? "主队",
-                    awayName: store.team(for: snapshot.awayTeamID)?.name ?? "客队",
-                    homeStats: aggregateStats(for: snapshot.homeTeamID),
-                    awayStats: aggregateStats(for: snapshot.awayTeamID),
-                    homeFouls: teamFouls(for: snapshot.homeTeamID),
-                    awayFouls: teamFouls(for: snapshot.awayTeamID)
-                )
-                .padding(.horizontal)
-
-                CollapsibleStatsView(
-                    player: selectedPlayer,
-                    stats: selectedStats,
-                    plusMinus: selectedPlayerID.map { snapshot.plusMinusByPlayerID[$0, default: 0] } ?? 0,
-                    playingTime: selectedPlayerID.map { playingTimeText(for: $0) } ?? "00:00",
-                    isExpanded: $isStatsExpanded
-                )
-                    .padding(.horizontal)
-
-                actionButtons
-                    .padding(.horizontal)
-
-                logView
-                    .padding(.horizontal)
-            }
-            .overlay(alignment: .center) {
-                simulationLoadingView
-            }
-            .allowsHitTesting(!isSimulating)
-            .navigationTitle("比赛记录")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button {
-                        if hasUnfinishedGameToConfirm {
-                            isShowingUnfinishedGameAlert = true
-                        } else {
-                            isShowingNewGameSetup = true
-                        }
-                    } label: {
-                        Label("新比赛", systemImage: "plus.circle")
-                    }
-
-                    if store.showsSimulationButton {
+                .allowsHitTesting(!isSimulating)
+                .navigationTitle("比赛记录")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItemGroup(placement: .topBarTrailing) {
                         Button {
-                            handleSimulateTapped()
+                            if hasUnfinishedGameToConfirm {
+                                isShowingUnfinishedGameAlert = true
+                            } else {
+                                isShowingNewGameSetup = true
+                            }
                         } label: {
-                            Label("模拟比赛", systemImage: "sparkles")
+                            Label("新比赛", systemImage: "plus.circle")
                         }
-                        .disabled(isSimulating)
-                    }
 
-                    Button {
-                        saveCurrentGame()
-                    } label: {
-                        Label("存到历史", systemImage: "clock.badge.checkmark")
+                        Button {
+                            handleInviteSyncTapped()
+                        } label: {
+                            Label("邀请协同", systemImage: "dot.radiowaves.left.and.right")
+                        }
+                        .disabled(currentGameRecordID == nil || needsNewGameSetup || bluetooth.connectedPeers.isEmpty)
+
+                        if store.showsSimulationButton {
+                            Button {
+                                handleSimulateTapped()
+                            } label: {
+                                Label("模拟比赛", systemImage: "sparkles")
+                            }
+                            .disabled(isSimulating)
+                        }
+
+                        Button {
+                            saveCurrentGame()
+                        } label: {
+                            Label("存到历史", systemImage: "clock.badge.checkmark")
+                        }
+                        .disabled(snapshot.logs.isEmpty)
                     }
-                    .disabled(snapshot.logs.isEmpty)
                 }
-            }
+        }
+    }
+
+    private var sheetWrappedView: some View {
+        navigationRoot
             .sheet(isPresented: $isShowingNewGameSetup) {
                 NewGameSetupView(
                     teams: store.teams,
@@ -138,6 +119,9 @@ struct GameView: View {
                     initialShowsReboundButton: snapshot.showsReboundButton,
                     initialShowsAssistButton: snapshot.showsAssistButton,
                     initialShowsFoulButton: snapshot.showsFoulButton,
+                    initialShowsBlockButton: snapshot.showsBlockButton,
+                    initialShowsStealButton: snapshot.showsStealButton,
+                    initialShowsTurnoverButton: snapshot.showsTurnoverButton,
                     onStart: startNewGame
                 )
             }
@@ -166,6 +150,10 @@ struct GameView: View {
                     onConfirm: performLateArrival
                 )
             }
+    }
+
+    private var alertWrappedView: some View {
+        sheetWrappedView
             .alert("已保存", isPresented: Binding(
                 get: { saveConfirmation != nil },
                 set: { if !$0 { saveConfirmation = nil } }
@@ -214,33 +202,231 @@ struct GameView: View {
             } message: {
                 Text(simulationAlertMessage ?? "")
             }
+            .alert("蓝牙协同", isPresented: Binding(
+                get: { collaborationAlertMessage != nil },
+                set: { if !$0 { collaborationAlertMessage = nil } }
+            )) {
+                Button("知道了") { collaborationAlertMessage = nil }
+            } message: {
+                Text(collaborationAlertMessage ?? "")
+            }
+    }
+
+    private var lifecycleWrappedView: some View {
+        alertWrappedView
             .onAppear {
                 restoreLatestGameIfNeeded()
             }
             .onReceive(matchClockTicker) { date in
                 clockNow = date
             }
+            .onChange(of: bluetooth.latestLiveSnapshot?.id) { _, _ in
+                guard let incoming = bluetooth.latestLiveSnapshot else { return }
+                applyRemoteLiveSnapshot(incoming)
+            }
+            .onChange(of: bluetooth.latestInviteResponse?.id) { _, _ in
+                guard let response = bluetooth.latestInviteResponse else { return }
+                handleInviteResponse(response)
+            }
+            .onChange(of: bluetooth.pendingLiveOpRequest?.id) { _, _ in
+                guard let request = bluetooth.pendingLiveOpRequest else { return }
+                handleIncomingLiveOpRequest(request)
+            }
+            .onChange(of: bluetooth.latestLiveOpCommit?.id) { _, _ in
+                guard let commit = bluetooth.latestLiveOpCommit else { return }
+                handleIncomingLiveOpCommit(commit)
+            }
+            .onChange(of: bluetooth.latestLiveOpAck?.id) { _, _ in
+                guard let ack = bluetooth.latestLiveOpAck else { return }
+                handleIncomingLiveOpAck(ack)
+            }
+            .onChange(of: bluetooth.latestLiveResyncRequest?.id) { _, _ in
+                guard let request = bluetooth.latestLiveResyncRequest else { return }
+                handleIncomingResyncRequest(request)
+            }
             .onChange(of: store.teams) { _, _ in ensureInitialSelection() }
             .onChange(of: substitutionSide) { _, _ in prepareSubstitutionDefaults() }
             .onChange(of: lateArrivalSide) { _, _ in prepareLateArrivalDefaults() }
+            .onDisappear {
+                scorePulseDismissTask?.cancel()
+                actionButtonPulseDismissTask?.cancel()
+                highlightedLogDismissTask?.cancel()
+            }
+    }
+
+    private var gameLayout: some View {
+        VStack(spacing: 8) {
+            teamPickers
+                .padding(.horizontal)
+                .padding(.top, 8)
+
+            teamRows
+
+            liveGameDataEntry
+                .padding(.horizontal)
+
+            actionButtons
+                .padding(.horizontal)
+
+            logView
+                .padding(.horizontal)
+        }
+    }
+
+    private var liveGameDataEntry: some View {
+        NavigationLink {
+            SavedGameDetailView(game: currentLiveSavedGame, displayMode: .live)
+        } label: {
+            HStack(spacing: 10) {
+                Label("比赛数据", systemImage: "chart.bar.doc.horizontal")
+                    .font(.subheadline.weight(.semibold))
+
+                Spacer(minLength: 8)
+
+                Text("查看")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity)
+            .background(GamePalette.surface, in: RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+        .disabled(needsNewGameSetup)
+        .opacity(needsNewGameSetup ? 0.5 : 1)
+    }
+
+    private var teamRows: some View {
+        VStack(spacing: 6) {
+            CompactTeamRow(
+                side: .home,
+                team: store.team(for: snapshot.homeTeamID),
+                players: onCourtPlayers(for: .home),
+                score: score(for: snapshot.homeTeamID),
+                isScorePulsing: scorePulseSide == .home,
+                fouls: displayedTeamFouls(for: .home),
+                foulLabel: snapshot.resetsTeamFoulsEachPeriod ? "本节犯规" : "累计犯规",
+                onCourtPlayerIDs: snapshot.homeOnCourtPlayerIDs,
+                selectedPlayerID: selectedPlayerID,
+                selectedSide: selectedSide,
+                onSelect: selectPlayer
+            )
+
+            CompactTeamRow(
+                side: .away,
+                team: store.team(for: snapshot.awayTeamID),
+                players: onCourtPlayers(for: .away),
+                score: score(for: snapshot.awayTeamID),
+                isScorePulsing: scorePulseSide == .away,
+                fouls: displayedTeamFouls(for: .away),
+                foulLabel: snapshot.resetsTeamFoulsEachPeriod ? "本节犯规" : "累计犯规",
+                onCourtPlayerIDs: snapshot.awayOnCourtPlayerIDs,
+                selectedPlayerID: selectedPlayerID,
+                selectedSide: selectedSide,
+                onSelect: selectPlayer
+            )
         }
     }
 
     private var teamPickers: some View {
-        HStack(spacing: 8) {
-            HStack(spacing: 4) {
-                Image(systemName: "clock")
-                Text(Self.durationFormatter(currentMatchElapsedSeconds))
-                    .monospacedDigit()
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                HStack(spacing: 4) {
+                    Image(systemName: "clock")
+                    Text(Self.durationFormatter(currentMatchElapsedSeconds))
+                        .monospacedDigit()
+                }
+                .font(.callout.weight(.bold))
+                .foregroundStyle(.black)
+
+                if isRecordingActive {
+                    recordingIndicator
+                }
+
+                Spacer(minLength: 0)
+
+                HStack(spacing: 8) {
+                    Text(periodSummary)
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+
+                    HStack(spacing: 4) {
+                        Image(systemName: "timer")
+                        Text(Self.durationFormatter(currentPeriodElapsedSeconds))
+                            .monospacedDigit()
+                    }
+                    .font(.caption.monospacedDigit().weight(.semibold))
+                    .foregroundStyle(.black)
+                }
             }
-            .font(.callout.weight(.bold))
-            .foregroundStyle(.black)
 
-            Spacer(minLength: 0)
+            if let collaborationStatus {
+                HStack(spacing: 6) {
+                    Image(systemName: collaborationStatus.isDisconnected ? "wifi.slash" : "dot.radiowaves.left.and.right")
+                        .font(.caption.weight(.semibold))
+                    Text(collaborationStatus.message)
+                        .lineLimit(1)
+                }
+                .font(.caption)
+                .foregroundStyle(collaborationStatus.isDisconnected ? Color.orange : Color.blue)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background((collaborationStatus.isDisconnected ? Color.orange : Color.blue).opacity(0.12), in: Capsule())
+            }
+        }
+    }
 
-            Text(periodSummary)
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
+    private var collaborationStatus: (message: String, isDisconnected: Bool)? {
+        guard let role = liveRole,
+              activeLiveSessionID != nil else {
+            return nil
+        }
+
+        let roleLabel: String
+        switch role {
+        case .host:
+            roleLabel = "Host（主机）"
+        case .participant:
+            roleLabel = "Client（客户端）"
+        }
+
+        let connectedPeerNames = Set(bluetooth.connectedPeers.map(\.displayName))
+
+        switch role {
+        case .participant:
+            guard let hostName = liveHostPeerName, !hostName.isEmpty else {
+                return ("\(roleLabel) · 协同中：等待主机状态同步", false)
+            }
+            if connectedPeerNames.contains(hostName) {
+                return ("\(roleLabel) · 协同中：与 \(hostName)", false)
+            }
+            return ("\(roleLabel) · 协同中断：\(hostName) 已断开", true)
+
+        case .host:
+            let knownParticipants = liveParticipantNames.sorted()
+            guard !knownParticipants.isEmpty else {
+                return ("\(roleLabel) · 协同中：等待队友加入", false)
+            }
+
+            let connected = knownParticipants.filter { connectedPeerNames.contains($0) }
+            let disconnected = knownParticipants.filter { !connectedPeerNames.contains($0) }
+
+            if disconnected.isEmpty {
+                return ("\(roleLabel) · 协同中：与 \(connected.joined(separator: "、"))", false)
+            }
+            if connected.isEmpty {
+                return ("\(roleLabel) · 协同中断：\(disconnected.joined(separator: "、")) 已断开", true)
+            }
+
+            return (
+                "\(roleLabel) · 协同中：与 \(connected.joined(separator: "、"))（\(disconnected.joined(separator: "、")) 已断开）",
+                true
+            )
         }
     }
 
@@ -270,6 +456,18 @@ struct GameView: View {
                 if snapshot.showsFoulButton {
                     actionButton("犯规", systemImage: "exclamationmark.triangle", style: .warning) { record(.foul) }
                 }
+                if snapshot.showsStealButton {
+                    actionButton("抢断", systemImage: "hand.raised.fill", style: .assist) { record(.steal) }
+                }
+            }
+
+            HStack(spacing: 8) {
+                if snapshot.showsBlockButton {
+                    actionButton("封盖", systemImage: "shield.lefthalf.filled", style: .rebound) { record(.block) }
+                }
+                if snapshot.showsTurnoverButton {
+                    actionButton("失误", systemImage: "arrow.triangle.2.circlepath", style: .warning) { record(.turnover) }
+                }
                 Button {
                     togglePause()
                 } label: {
@@ -286,6 +484,8 @@ struct GameView: View {
             HStack(spacing: 8) {
                 Button {
                     togglePeriod()
+                    triggerTapFeedback()
+                    pulseActionButton("period-toggle")
                 } label: {
                     Label(periodButtonTitle, systemImage: snapshot.periodIsRunning ? "stop.circle" : "play.circle")
                         .font(.caption.weight(.semibold))
@@ -294,6 +494,8 @@ struct GameView: View {
                         .frame(maxWidth: .infinity, minHeight: 34)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: snapshot.periodIsRunning ? .periodEnd : .period))
+                .scaleEffect(actionButtonPulseKey == "period-toggle" ? 1.09 : 1)
+                .animation(.spring(response: 0.2, dampingFraction: 0.68), value: actionButtonPulseKey == "period-toggle")
                 .disabled(snapshot.isComplete)
 
                 Button {
@@ -397,10 +599,14 @@ struct GameView: View {
                     .frame(maxWidth: .infinity, minHeight: 120)
             } else {
                 List(snapshot.logs.reversed()) { entry in
-                    Text("\(Self.timeFormatter.string(from: entry.timestamp))  \(entry.message)")
-                        .font(.footnote.monospacedDigit())
+                    Text(logText(for: entry))
+                        .font(highlightedLogID == entry.id ? .footnote.monospacedDigit().weight(.bold) : .footnote.monospacedDigit())
                         .lineLimit(2)
-                        .listRowInsets(EdgeInsets(top: 5, leading: 0, bottom: 5, trailing: 0))
+                        .foregroundStyle(GameLogFormatter.isScoring(entry) ? Color.blue : Color.primary)
+                        .scaleEffect(highlightedLogID == entry.id ? 1.05 : 1)
+                        .animation(.spring(response: 0.24, dampingFraction: 0.72), value: highlightedLogID == entry.id)
+                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                    .listRowBackground(Color.clear)
                 }
                 .listStyle(.plain)
             }
@@ -427,9 +633,56 @@ struct GameView: View {
         }
     }
 
-    private var selectedStats: PlayerStats {
-        guard let selectedPlayerID else { return PlayerStats() }
-        return snapshot.statsByPlayerID[selectedPlayerID, default: PlayerStats()]
+    private var currentLiveSavedGame: SavedGame {
+        var snapshotForDisplay = snapshot
+        if snapshotForDisplay.periodIsRunning,
+           !snapshotForDisplay.isPaused {
+            let now = Date()
+            closeActiveStints(in: &snapshotForDisplay, at: now)
+            closeMatchClock(in: &snapshotForDisplay, at: now)
+            closePeriodClock(in: &snapshotForDisplay, at: now)
+        }
+
+        let homeTeam = store.team(for: snapshotForDisplay.homeTeamID)
+        let awayTeam = store.team(for: snapshotForDisplay.awayTeamID)
+
+        let homePlayerIDs = dedupedGameRosterIDs(
+            primary: snapshotForDisplay.homeAvailablePlayerIDs,
+            fallback: homeTeam?.playerIDs ?? snapshotForDisplay.homeOnCourtPlayerIDs
+        )
+        let awayPlayerIDs = dedupedGameRosterIDs(
+            primary: snapshotForDisplay.awayAvailablePlayerIDs,
+            fallback: awayTeam?.playerIDs ?? snapshotForDisplay.awayOnCourtPlayerIDs
+        )
+
+        let gamePlayerIDs = unique(
+            homePlayerIDs
+                + awayPlayerIDs
+                + snapshotForDisplay.starterPlayerIDs
+                + Array(snapshotForDisplay.statsByPlayerID.keys)
+                + Array(snapshotForDisplay.playingSecondsByPlayerID.keys)
+                + Array(snapshotForDisplay.plusMinusByPlayerID.keys)
+        )
+
+        let playerNamesByID = Dictionary(uniqueKeysWithValues: gamePlayerIDs.compactMap { playerID in
+            store.player(for: playerID).map { (playerID, $0.name) }
+        })
+
+        return SavedGame(
+            id: currentGameRecordID ?? UUID(),
+            savedAt: Date(),
+            snapshot: snapshotForDisplay,
+            homeTeamName: homeTeam?.name ?? "主队",
+            awayTeamName: awayTeam?.name ?? "客队",
+            homePlayerIDs: homePlayerIDs,
+            awayPlayerIDs: awayPlayerIDs,
+            playerNamesByID: playerNamesByID
+        )
+    }
+
+    private func dedupedGameRosterIDs(primary: [UUID], fallback: [UUID]) -> [UUID] {
+        let source = primary.isEmpty ? fallback : primary
+        return unique(source)
     }
 
     private var needsNewGameSetup: Bool {
@@ -469,17 +722,56 @@ struct GameView: View {
         return snapshot.matchElapsedSeconds + max(0, clockNow.timeIntervalSince(activeSince))
     }
 
+    private var currentPeriodElapsedSeconds: TimeInterval {
+        guard snapshot.periodIsRunning,
+              !snapshot.isPaused,
+              let activeSince = snapshot.periodActiveSince else {
+            return snapshot.periodElapsedSeconds
+        }
+
+        return snapshot.periodElapsedSeconds + max(0, clockNow.timeIntervalSince(activeSince))
+    }
+
     private var pauseButtonTitle: String {
         snapshot.isPaused ? "继续" : "暂停"
     }
 
+    private var isRecordingActive: Bool {
+        snapshot.periodIsRunning && !snapshot.isPaused && !snapshot.isComplete
+    }
+
+    private var recordingIndicator: some View {
+        HStack(spacing: 5) {
+            Circle()
+                .fill(.red)
+                .frame(width: 8, height: 8)
+                .opacity(recordingIndicatorBlink ? 0.25 : 1)
+                .scaleEffect(recordingIndicatorBlink ? 0.85 : 1.05)
+
+            Text("REC")
+                .font(.caption2.monospacedDigit().weight(.bold))
+                .foregroundStyle(.red)
+        }
+        .padding(.horizontal, 7)
+        .padding(.vertical, 3)
+        .background(.red.opacity(0.10), in: Capsule())
+        .animation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true), value: recordingIndicatorBlink)
+        .onAppear { recordingIndicatorBlink = true }
+        .onDisappear { recordingIndicatorBlink = false }
+    }
+
     private func actionButton(_ title: String, systemImage: String, style: ActionButtonStyle, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button {
+            action()
+            pulseActionButton(title)
+        } label: {
             Label(title, systemImage: systemImage)
                 .font(.caption.weight(.semibold))
                 .frame(maxWidth: .infinity, minHeight: 34)
         }
         .buttonStyle(PastelActionButtonStyle(style: style))
+        .scaleEffect(actionButtonPulseKey == title ? 1.09 : 1)
+        .animation(.spring(response: 0.2, dampingFraction: 0.68), value: actionButtonPulseKey == title)
         .disabled(needsNewGameSetup)
     }
 
@@ -530,6 +822,9 @@ struct GameView: View {
             total.rebounds += stats.rebounds
             total.assists += stats.assists
             total.fouls += stats.fouls
+            total.blocks += stats.blocks
+            total.steals += stats.steals
+            total.turnovers += stats.turnovers
             return total
         }
     }
@@ -596,10 +891,6 @@ struct GameView: View {
         guard snapshot.periodIsRunning else { return stored }
         guard let activeSince = snapshot.activeSinceByPlayerID[playerID] else { return stored }
         return stored + max(0, now.timeIntervalSince(activeSince))
-    }
-
-    private func playingTimeText(for playerID: UUID) -> String {
-        Self.durationFormatter(playingSeconds(for: playerID))
     }
 
     private func selectPlayer(_ player: Player, _ side: TeamSide) {
@@ -683,17 +974,422 @@ struct GameView: View {
             return
         }
         guard isOnCourt(player.id, side: selectedSide) else { return }
-        mutateSnapshot {
-            var stats = snapshot.statsByPlayerID[player.id, default: PlayerStats()]
-            action.apply(to: &stats)
-            snapshot.statsByPlayerID[player.id] = stats
-            if action == .foul {
-                snapshot.currentPeriodFoulsBySide[selectedSide.rawValue, default: 0] += 1
+
+        let operation = BluetoothLiveOperationPayload.record(
+            action: action.liveAction,
+            playerID: player.id,
+            side: selectedSide.liveSide
+        )
+        let changed = submitLiveOperation(operation) {
+            applyRecordOperation(action: action, playerID: player.id, side: selectedSide)
+        }
+        if changed {
+            showRecordFeedback(action: action, side: selectedSide)
+        }
+    }
+
+    private func showRecordFeedback(action: StatAction, side: TeamSide) {
+        triggerTapFeedback()
+
+        guard action.points > 0 else { return }
+        withAnimation(.spring(response: 0.2, dampingFraction: 0.75)) {
+            scorePulseSide = side
+        }
+        scorePulseDismissTask?.cancel()
+        scorePulseDismissTask = Task {
+            try? await Task.sleep(for: .seconds(0.48))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                withAnimation(.easeOut(duration: 0.16)) {
+                    scorePulseSide = nil
+                }
             }
-            if action.points > 0 {
-                applyPlusMinus(points: action.points, scoringSide: selectedSide)
+        }
+    }
+
+    private func triggerTapFeedback() {
+        let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
+        feedbackGenerator.prepare()
+        feedbackGenerator.impactOccurred(intensity: 1)
+    }
+
+    private func pulseActionButton(_ key: String) {
+        withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+            actionButtonPulseKey = key
+        }
+        actionButtonPulseDismissTask?.cancel()
+        actionButtonPulseDismissTask = Task {
+            try? await Task.sleep(for: .seconds(0.18))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                withAnimation(.easeOut(duration: 0.12)) {
+                    actionButtonPulseKey = nil
+                }
             }
-            addEvent("\(player.name) \(action.message)")
+        }
+    }
+
+    private func handleInviteSyncTapped() {
+        guard currentGameRecordID != nil else {
+            collaborationAlertMessage = "请先新建比赛后再发起协同邀请。"
+            return
+        }
+        guard !needsNewGameSetup else {
+            collaborationAlertMessage = "请先完成比赛阵容设置后再邀请协同。"
+            return
+        }
+        guard !bluetooth.connectedPeers.isEmpty else {
+            collaborationAlertMessage = "请先在设置 > 蓝牙协同里连接设备。"
+            return
+        }
+
+        sendLiveInvite(to: bluetooth.connectedPeers)
+    }
+
+    private func sendLiveInvite(to peers: [MCPeerID]) {
+        let payload = buildLiveStatePayload()
+        liveVersion = 0
+        liveStateHash = stateHash(for: payload)
+        liveRole = .host
+        liveHostPeerName = nil
+        liveHostPeerID = nil
+        liveParticipantNames.removeAll()
+        localLiveOpSeq = 0
+        liveCommitHistory.removeAll()
+        peerAckVersionByDeviceID.removeAll()
+
+        guard let sessionID = bluetooth.sendLiveInvite(
+            players: store.players,
+            teams: store.teams,
+            state: payload,
+            stateVersion: liveVersion,
+            stateHash: liveStateHash,
+            to: peers
+        ) else {
+            collaborationAlertMessage = "邀请发送失败，请检查连接状态。"
+            return
+        }
+
+        activeLiveSessionID = sessionID
+        collaborationAlertMessage = "协同邀请已发送，等待对方同意。"
+    }
+
+    private func handleInviteResponse(_ response: BluetoothReceivedInviteResponse) {
+        guard response.payload.sessionID == activeLiveSessionID else { return }
+        if response.payload.accepted {
+            bluetooth.noteAcceptedLiveSession(sessionID: response.payload.sessionID, with: response.fromPeerName)
+            liveParticipantNames.insert(response.fromPeerName)
+            sendAuthoritativeSnapshot(reason: "新设备加入")
+        } else {
+            liveParticipantNames.remove(response.fromPeerName)
+        }
+    }
+
+    private func applyRemoteLiveSnapshot(_ incoming: BluetoothReceivedLiveSnapshot) {
+        let isNewSession = activeLiveSessionID != incoming.payload.sessionID
+        let needsParticipantBootstrap = liveRole != .participant
+        if isNewSession || needsParticipantBootstrap {
+            activeLiveSessionID = incoming.payload.sessionID
+            liveRole = .participant
+            liveParticipantNames.removeAll()
+            localLiveOpSeq = 0
+            liveCommitHistory.removeAll()
+            peerAckVersionByDeviceID.removeAll()
+        }
+        guard incoming.payload.sessionID == activeLiveSessionID else { return }
+        liveHostPeerName = incoming.fromPeerName
+        liveHostPeerID = incoming.fromPeerID
+        bluetooth.noteAcceptedLiveSession(sessionID: incoming.payload.sessionID, with: incoming.fromPeerName)
+        applyAuthoritativeState(
+            incoming.payload.state,
+            version: incoming.payload.version,
+            hash: incoming.payload.stateHash
+        )
+    }
+
+    private func applyAuthoritativeState(_ state: BluetoothLiveGameStatePayload, version: Int, hash: String) {
+        let previousLastLogID = snapshot.logs.last?.id
+
+        isApplyingRemoteSnapshot = true
+        defer { isApplyingRemoteSnapshot = false }
+
+        currentGameRecordID = state.gameID
+        undoStack = state.undoSnapshots
+        redoStack.removeAll()
+        snapshot = snapshotForLocalClock(fromRemote: state.snapshot)
+        trimInvalidLineups()
+        ensureSelectedPlayer()
+        autoSaveCurrentGame()
+        liveVersion = version
+        liveStateHash = hash
+
+        if let latestLogID = snapshot.logs.last?.id,
+           latestLogID != previousLastLogID {
+            highlightLatestLog(latestLogID)
+        }
+    }
+
+    private func snapshotForLiveSync(_ source: GameSnapshot) -> GameSnapshot {
+        var synced = source
+        let now = Date()
+
+        if synced.periodIsRunning && !synced.isPaused && !synced.isComplete {
+            if let activeSince = synced.matchActiveSince {
+                synced.matchElapsedSeconds += max(0, now.timeIntervalSince(activeSince))
+            }
+            synced.matchActiveSince = now
+
+            if let activeSince = synced.periodActiveSince {
+                synced.periodElapsedSeconds += max(0, now.timeIntervalSince(activeSince))
+            }
+            synced.periodActiveSince = now
+
+            for (playerID, startedAt) in synced.activeSinceByPlayerID {
+                synced.playingSecondsByPlayerID[playerID, default: 0] += max(0, now.timeIntervalSince(startedAt))
+            }
+
+            let onCourtIDs = unique(synced.homeOnCourtPlayerIDs + synced.awayOnCourtPlayerIDs)
+            synced.activeSinceByPlayerID = Dictionary(uniqueKeysWithValues: onCourtIDs.map { ($0, now) })
+        } else {
+            synced.matchActiveSince = nil
+            synced.periodActiveSince = nil
+            synced.activeSinceByPlayerID = [:]
+        }
+
+        return synced
+    }
+
+    private func snapshotForLocalClock(fromRemote source: GameSnapshot) -> GameSnapshot {
+        var adjusted = source
+        let now = Date()
+
+        if adjusted.periodIsRunning && !adjusted.isPaused && !adjusted.isComplete {
+            adjusted.matchActiveSince = now
+            adjusted.periodActiveSince = now
+            let onCourtIDs = unique(adjusted.homeOnCourtPlayerIDs + adjusted.awayOnCourtPlayerIDs)
+            adjusted.activeSinceByPlayerID = Dictionary(uniqueKeysWithValues: onCourtIDs.map { ($0, now) })
+        } else {
+            adjusted.matchActiveSince = nil
+            adjusted.periodActiveSince = nil
+            adjusted.activeSinceByPlayerID = [:]
+        }
+
+        return adjusted
+    }
+
+    private func buildLiveStatePayload() -> BluetoothLiveGameStatePayload {
+        BluetoothLiveGameStatePayload(
+            gameID: currentGameRecordID,
+            snapshot: snapshotForLiveSync(snapshot),
+            undoSnapshots: undoStack
+        )
+    }
+
+    private func stateHash(for payload: BluetoothLiveGameStatePayload) -> String {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        guard let data = try? encoder.encode(payload) else { return "" }
+        let digest = SHA256.hash(data: data)
+        return digest.map { String(format: "%02x", $0) }.joined()
+    }
+
+    private func sendAuthoritativeSnapshot(reason: String, to peers: [MCPeerID]? = nil) {
+        guard liveRole == .host,
+              let sessionID = activeLiveSessionID else {
+            return
+        }
+
+        let payload = buildLiveStatePayload()
+        liveStateHash = stateHash(for: payload)
+        bluetooth.sendLiveSnapshot(
+            sessionID: sessionID,
+            state: payload,
+            version: liveVersion,
+            stateHash: liveStateHash,
+            reason: reason,
+            to: peers
+        )
+    }
+
+    private func requestLiveResync(reason: String) {
+        guard let sessionID = activeLiveSessionID else { return }
+        bluetooth.sendLiveResyncRequest(
+            sessionID: sessionID,
+            expectedVersion: liveVersion,
+            reason: reason,
+            to: liveHostPeerID
+        )
+    }
+
+    private func handleIncomingLiveOpRequest(_ incoming: BluetoothReceivedLiveOpRequest) {
+        bluetooth.clearPendingLiveOpRequest()
+        guard liveRole == .host,
+              let sessionID = activeLiveSessionID,
+              incoming.payload.sessionID == sessionID else {
+            return
+        }
+
+        liveParticipantNames.insert(incoming.fromPeerName)
+
+        guard incoming.payload.op.baseVersion == liveVersion else {
+            sendAuthoritativeSnapshot(reason: "版本不一致，触发重同步", to: [incoming.fromPeerID])
+            return
+        }
+
+        let applied = applyLiveOperationPayload(incoming.payload.op.payload)
+        guard applied else {
+            sendAuthoritativeSnapshot(reason: "操作无法应用，触发重同步", to: [incoming.fromPeerID])
+            return
+        }
+
+        liveVersion += 1
+        let payload = buildLiveStatePayload()
+        liveStateHash = stateHash(for: payload)
+        let commit = BluetoothLiveOpCommitPayload(
+            sessionID: sessionID,
+            op: incoming.payload.op,
+            newVersion: liveVersion,
+            stateHash: liveStateHash
+        )
+        appendLiveCommitHistory(commit)
+        bluetooth.sendLiveOpCommit(sessionID: sessionID, commit: commit)
+    }
+
+    private func handleIncomingLiveOpCommit(_ incoming: BluetoothReceivedLiveOpCommit) {
+        guard liveRole == .participant,
+              let sessionID = activeLiveSessionID,
+              incoming.payload.sessionID == sessionID else {
+            return
+        }
+
+        liveHostPeerName = incoming.fromPeerName
+        liveHostPeerID = incoming.fromPeerID
+
+        guard incoming.payload.op.baseVersion == liveVersion,
+              incoming.payload.newVersion == liveVersion + 1 else {
+            requestLiveResync(reason: "收到提交版本异常")
+            return
+        }
+
+        let applied = applyLiveOperationPayload(incoming.payload.op.payload)
+        guard applied else {
+            requestLiveResync(reason: "收到提交但本地无法应用")
+            return
+        }
+
+        liveVersion = incoming.payload.newVersion
+        let computedHash = stateHash(for: buildLiveStatePayload())
+        guard computedHash == incoming.payload.stateHash else {
+            requestLiveResync(reason: "提交后哈希不一致")
+            return
+        }
+
+        liveStateHash = incoming.payload.stateHash
+        bluetooth.sendLiveOpAck(
+            sessionID: sessionID,
+            opID: incoming.payload.op.opID,
+            version: liveVersion,
+            to: liveHostPeerID
+        )
+    }
+
+    private func handleIncomingLiveOpAck(_ incoming: BluetoothReceivedLiveOpAck) {
+        bluetooth.clearLatestLiveOpAck()
+        guard liveRole == .host,
+              let sessionID = activeLiveSessionID,
+              incoming.payload.sessionID == sessionID else {
+            return
+        }
+
+        let currentVersion = peerAckVersionByDeviceID[incoming.payload.deviceID] ?? -1
+        if incoming.payload.version > currentVersion {
+            peerAckVersionByDeviceID[incoming.payload.deviceID] = incoming.payload.version
+        }
+    }
+
+    private func handleIncomingResyncRequest(_ incoming: BluetoothReceivedLiveResyncRequest) {
+        guard liveRole == .host,
+              let sessionID = activeLiveSessionID,
+              incoming.payload.sessionID == sessionID else {
+            return
+        }
+
+        liveParticipantNames.insert(incoming.fromPeerName)
+
+        if let commits = missingCommits(after: incoming.payload.expectedVersion), !commits.isEmpty {
+            for commit in commits {
+                bluetooth.sendLiveOpCommit(sessionID: sessionID, commit: commit, to: [incoming.fromPeerID])
+            }
+            return
+        }
+
+        sendAuthoritativeSnapshot(reason: "收到重同步请求", to: [incoming.fromPeerID])
+    }
+
+    private var isLiveSessionActive: Bool {
+        activeLiveSessionID != nil && liveRole != nil
+    }
+
+    private func appendLiveCommitHistory(_ commit: BluetoothLiveOpCommitPayload) {
+        liveCommitHistory.append(commit)
+        if liveCommitHistory.count > 300 {
+            liveCommitHistory.removeFirst(liveCommitHistory.count - 300)
+        }
+    }
+
+    private func missingCommits(after version: Int) -> [BluetoothLiveOpCommitPayload]? {
+        guard version < liveVersion else { return [] }
+        let expectedRange = (version + 1)...liveVersion
+        let commits = liveCommitHistory.filter { expectedRange.contains($0.newVersion) }
+            .sorted { $0.newVersion < $1.newVersion }
+        let versions = commits.map(\.newVersion)
+        let expected = Array(expectedRange)
+        return versions == expected ? commits : nil
+    }
+
+    @discardableResult
+    private func submitLiveOperation(_ payload: BluetoothLiveOperationPayload, applyLocal: () -> Bool) -> Bool {
+        guard let sessionID = activeLiveSessionID,
+              let role = liveRole else {
+            return applyLocal()
+        }
+
+        localLiveOpSeq += 1
+        let operation = BluetoothLiveOperation(
+            opID: UUID(),
+            deviceID: bluetooth.localDeviceID,
+            seq: localLiveOpSeq,
+            baseVersion: liveVersion,
+            payload: payload
+        )
+
+        switch role {
+        case .host:
+            let changed = applyLocal()
+            guard changed else { return false }
+            liveVersion += 1
+            liveStateHash = stateHash(for: buildLiveStatePayload())
+            let commit = BluetoothLiveOpCommitPayload(
+                sessionID: sessionID,
+                op: operation,
+                newVersion: liveVersion,
+                stateHash: liveStateHash
+            )
+            appendLiveCommitHistory(commit)
+            bluetooth.sendLiveOpCommit(sessionID: sessionID, commit: commit)
+            return true
+
+        case .participant:
+            let sent = bluetooth.sendLiveOpRequest(
+                sessionID: sessionID,
+                op: operation,
+                toHost: liveHostPeerID,
+                hostName: liveHostPeerName
+            )
+            if !sent {
+                collaborationAlertMessage = "操作发送失败，请检查连接后重试。"
+            }
+            return false
         }
     }
 
@@ -703,10 +1399,93 @@ struct GameView: View {
             return
         }
         let now = Date()
+        _ = submitLiveOperation(.togglePeriod(at: now)) {
+            applyTogglePeriodOperation(at: now)
+        }
+    }
+
+    private func togglePause() {
+        guard snapshot.periodIsRunning, !snapshot.isComplete else { return }
+        let now = Date()
+        _ = submitLiveOperation(.togglePause(at: now)) {
+            applyTogglePauseOperation(at: now)
+        }
+    }
+
+    @discardableResult
+    private func applyLiveOperationPayload(_ payload: BluetoothLiveOperationPayload) -> Bool {
+        switch payload {
+        case let .record(action, playerID, side):
+            guard let statAction = StatAction(liveAction: action) else { return false }
+            return applyRecordOperation(action: statAction, playerID: playerID, side: TeamSide(liveSide: side))
+
+        case let .togglePeriod(at):
+            return applyTogglePeriodOperation(at: at)
+
+        case let .togglePause(at):
+            return applyTogglePauseOperation(at: at)
+
+        case let .substitution(outgoingPlayerID, incomingPlayerID, side, at):
+            return applySubstitutionOperation(
+                outgoingPlayerID: outgoingPlayerID,
+                incomingPlayerID: incomingPlayerID,
+                side: TeamSide(liveSide: side),
+                at: at
+            )
+
+        case let .lateArrival(playerID, side):
+            return applyLateArrivalOperation(playerID: playerID, side: TeamSide(liveSide: side))
+
+        case let .finishGame(at):
+            return applyFinishGameOperation(at: at)
+
+        case .resetGame:
+            return applyResetGameOperation(keepLiveSession: true)
+
+        case .undo:
+            guard let previous = undoStack.popLast() else { return false }
+            redoStack.append(snapshot)
+            snapshot = previous
+            ensureSelectedPlayer()
+            autoSaveCurrentGame()
+            return true
+
+        case .redo:
+            guard let next = redoStack.popLast() else { return false }
+            undoStack.append(snapshot)
+            snapshot = next
+            ensureSelectedPlayer()
+            autoSaveCurrentGame()
+            return true
+        }
+    }
+
+    @discardableResult
+    private func applyRecordOperation(action: StatAction, playerID: UUID, side: TeamSide) -> Bool {
+        guard isOnCourt(playerID, side: side) else { return false }
+
+        mutateSnapshot {
+            var stats = snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+            action.apply(to: &stats)
+            snapshot.statsByPlayerID[playerID] = stats
+            if action == .foul {
+                snapshot.currentPeriodFoulsBySide[side.rawValue, default: 0] += 1
+            }
+            if action.points > 0 {
+                applyPlusMinus(points: action.points, scoringSide: side)
+            }
+            addEvent("\(name(for: playerID)) \(action.message)", playerID: playerID)
+        }
+        return true
+    }
+
+    @discardableResult
+    private func applyTogglePeriodOperation(at now: Date) -> Bool {
         mutateSnapshot {
             if snapshot.periodIsRunning {
                 closeActiveStints(at: now)
                 closeMatchClock(at: now)
+                closePeriodClock(at: now)
                 addEvent("第\(snapshot.currentPeriod)节结束")
                 snapshot.periodIsRunning = false
                 snapshot.isPaused = false
@@ -715,6 +1494,8 @@ struct GameView: View {
                     addEvent("比赛结束")
                 } else {
                     snapshot.currentPeriod += 1
+                    snapshot.periodElapsedSeconds = 0
+                    snapshot.periodActiveSince = nil
                 }
             } else {
                 trimInvalidLineups()
@@ -728,31 +1509,140 @@ struct GameView: View {
                     addEvent("客队首发：\(names(for: snapshot.awayOnCourtPlayerIDs))")
                     snapshot.startersRecorded = true
                 }
+                snapshot.periodElapsedSeconds = 0
+                snapshot.periodActiveSince = nil
                 addEvent("第\(snapshot.currentPeriod)节开始")
                 startMatchClock(at: now)
+                startPeriodClock(at: now)
                 startActiveStints(at: now)
                 snapshot.periodIsRunning = true
                 snapshot.isPaused = false
             }
         }
+        return true
     }
 
-    private func togglePause() {
-        guard snapshot.periodIsRunning, !snapshot.isComplete else { return }
-        let now = Date()
+    @discardableResult
+    private func applyTogglePauseOperation(at now: Date) -> Bool {
+        guard snapshot.periodIsRunning, !snapshot.isComplete else { return false }
+
         mutateSnapshot {
             if snapshot.isPaused {
                 snapshot.isPaused = false
                 startMatchClock(at: now)
+                startPeriodClock(at: now)
                 startActiveStints(at: now)
                 addEvent("比赛继续")
             } else {
                 closeActiveStints(at: now)
                 closeMatchClock(at: now)
+                closePeriodClock(at: now)
                 snapshot.isPaused = true
                 addEvent("比赛暂停")
             }
         }
+        return true
+    }
+
+    @discardableResult
+    private func applySubstitutionOperation(
+        outgoingPlayerID: UUID,
+        incomingPlayerID: UUID,
+        side: TeamSide,
+        at now: Date
+    ) -> Bool {
+        guard outgoingPlayerID != incomingPlayerID else { return false }
+
+        var changed = false
+        mutateSnapshot {
+            var ids = onCourtIDs(for: side)
+            guard ids.contains(outgoingPlayerID) else { return }
+
+            ids.removeAll { $0 == outgoingPlayerID }
+            if !ids.contains(incomingPlayerID) {
+                ids.append(incomingPlayerID)
+            }
+            setOnCourtIDs(ids, for: side)
+
+            if snapshot.periodIsRunning && !snapshot.isPaused {
+                closeStint(for: outgoingPlayerID, at: now)
+                startStint(for: incomingPlayerID, at: now)
+            }
+
+            addEvent("\(name(for: incomingPlayerID)) 替换 \(name(for: outgoingPlayerID))")
+            selectedPlayerID = incomingPlayerID
+            selectedSide = side
+            changed = true
+        }
+        return changed
+    }
+
+    @discardableResult
+    private func applyLateArrivalOperation(playerID: UUID, side: TeamSide) -> Bool {
+        var changed = false
+        mutateSnapshot {
+            var registered = gamePlayerIDs(for: side)
+            guard !registered.contains(playerID) else { return }
+            registered.append(playerID)
+            setGamePlayerIDs(registered, for: side)
+            addEvent("\(name(for: playerID)) 已加入出场名单")
+            changed = true
+        }
+        return changed
+    }
+
+    @discardableResult
+    private func applyFinishGameOperation(at now: Date) -> Bool {
+        guard !snapshot.isComplete else { return false }
+
+        mutateSnapshot {
+            if snapshot.periodIsRunning {
+                closeActiveStints(at: now)
+                closeMatchClock(at: now)
+                closePeriodClock(at: now)
+                snapshot.periodIsRunning = false
+            }
+            snapshot.isPaused = false
+            snapshot.isComplete = true
+            addEvent("比赛结束")
+        }
+        return true
+    }
+
+    @discardableResult
+    private func applyResetGameOperation(keepLiveSession: Bool) -> Bool {
+        if !keepLiveSession {
+            activeLiveSessionID = nil
+            liveRole = nil
+            liveHostPeerName = nil
+            liveHostPeerID = nil
+            liveParticipantNames.removeAll()
+            liveVersion = 0
+            liveStateHash = ""
+            localLiveOpSeq = 0
+            liveCommitHistory.removeAll()
+            peerAckVersionByDeviceID.removeAll()
+        }
+
+        undoStack.removeAll()
+        redoStack.removeAll()
+        currentGameRecordID = keepLiveSession ? currentGameRecordID : nil
+        snapshot = GameSnapshot(
+            homeTeamID: snapshot.homeTeamID,
+            awayTeamID: snapshot.awayTeamID,
+            periodCount: snapshot.periodCount,
+            courtPlayerCount: snapshot.courtPlayerCount,
+            resetsTeamFoulsEachPeriod: snapshot.resetsTeamFoulsEachPeriod,
+            showsReboundButton: snapshot.showsReboundButton,
+            showsAssistButton: snapshot.showsAssistButton,
+            showsFoulButton: snapshot.showsFoulButton,
+            showsBlockButton: snapshot.showsBlockButton,
+            showsStealButton: snapshot.showsStealButton,
+            showsTurnoverButton: snapshot.showsTurnoverButton
+        )
+        ensureSelectedPlayer()
+        autoSaveCurrentGame()
+        return true
     }
 
     private func startNewGame(
@@ -767,8 +1657,21 @@ struct GameView: View {
         resetsTeamFoulsEachPeriod: Bool,
         showsReboundButton: Bool,
         showsAssistButton: Bool,
-        showsFoulButton: Bool
+        showsFoulButton: Bool,
+        showsBlockButton: Bool,
+        showsStealButton: Bool,
+        showsTurnoverButton: Bool
     ) {
+        activeLiveSessionID = nil
+        liveRole = nil
+        liveHostPeerName = nil
+        liveHostPeerID = nil
+        liveParticipantNames.removeAll()
+        liveVersion = 0
+        liveStateHash = ""
+        localLiveOpSeq = 0
+        liveCommitHistory.removeAll()
+        peerAckVersionByDeviceID.removeAll()
         undoStack.removeAll()
         redoStack.removeAll()
         currentGameRecordID = UUID()
@@ -781,6 +1684,9 @@ struct GameView: View {
             showsReboundButton: showsReboundButton,
             showsAssistButton: showsAssistButton,
             showsFoulButton: showsFoulButton,
+            showsBlockButton: showsBlockButton,
+            showsStealButton: showsStealButton,
+            showsTurnoverButton: showsTurnoverButton,
             homeOnCourtPlayerIDs: homeStarterIDs,
             awayOnCourtPlayerIDs: awayStarterIDs,
             homeAvailablePlayerIDs: unique(homeStarterIDs + homeBenchIDs),
@@ -797,11 +1703,8 @@ struct GameView: View {
         let now = Date()
         closeActiveStints(in: &snapshotForSaving, at: now)
         closeMatchClock(in: &snapshotForSaving, at: now)
+        closePeriodClock(in: &snapshotForSaving, at: now)
         snapshotForSaving.periodIsRunning = false
-        mutateSnapshot(pushUndo: false) {
-            addEvent("比赛保存")
-        }
-        snapshotForSaving.logs = snapshot.logs
         currentGameRecordID = store.autoSaveGame(snapshotForSaving, gameID: currentGameRecordID, undoSnapshots: undoStack)
         saveConfirmation = "比赛已保存到历史记录。"
     }
@@ -809,15 +1712,8 @@ struct GameView: View {
     private func finishGame() {
         guard !snapshot.isComplete else { return }
         let now = Date()
-        mutateSnapshot {
-            if snapshot.periodIsRunning {
-                closeActiveStints(at: now)
-                closeMatchClock(at: now)
-                snapshot.periodIsRunning = false
-            }
-            snapshot.isPaused = false
-            snapshot.isComplete = true
-            addEvent("比赛结束")
+        _ = submitLiveOperation(.finishGame(at: now)) {
+            applyFinishGameOperation(at: now)
         }
     }
 
@@ -840,22 +1736,20 @@ struct GameView: View {
               outgoingPlayerID != incomingPlayerID else { return }
 
         let now = Date()
-        mutateSnapshot {
-            var ids = onCourtIDs(for: substitutionSide)
-            ids.removeAll { $0 == outgoingPlayerID }
-            if !ids.contains(incomingPlayerID) {
-                ids.append(incomingPlayerID)
-            }
-            setOnCourtIDs(ids, for: substitutionSide)
-
-            if snapshot.periodIsRunning && !snapshot.isPaused {
-                closeStint(for: outgoingPlayerID, at: now)
-                startStint(for: incomingPlayerID, at: now)
-            }
-
-            addEvent("\(name(for: incomingPlayerID)) 替换 \(name(for: outgoingPlayerID))")
-            selectedPlayerID = incomingPlayerID
-            selectedSide = substitutionSide
+        _ = submitLiveOperation(
+            .substitution(
+                outgoingPlayerID: outgoingPlayerID,
+                incomingPlayerID: incomingPlayerID,
+                side: substitutionSide.liveSide,
+                at: now
+            )
+        ) {
+            applySubstitutionOperation(
+                outgoingPlayerID: outgoingPlayerID,
+                incomingPlayerID: incomingPlayerID,
+                side: substitutionSide,
+                at: now
+            )
         }
     }
 
@@ -909,6 +1803,9 @@ struct GameView: View {
             showsReboundButton: snapshot.showsReboundButton,
             showsAssistButton: snapshot.showsAssistButton,
             showsFoulButton: snapshot.showsFoulButton,
+            showsBlockButton: snapshot.showsBlockButton,
+            showsStealButton: snapshot.showsStealButton,
+            showsTurnoverButton: snapshot.showsTurnoverButton,
             homeOnCourtPlayerIDs: Array(homeAvailable.prefix(courtCount)),
             awayOnCourtPlayerIDs: Array(awayAvailable.prefix(courtCount)),
             homeAvailablePlayerIDs: homeAvailable,
@@ -917,6 +1814,8 @@ struct GameView: View {
 
         var eventTime = Date().addingTimeInterval(-Double(periodCount) * 700)
         var simulatedMatchElapsedSeconds: TimeInterval = 0
+        var simulatedCurrentPeriod: Int?
+        var simulatedPeriodElapsedSeconds: TimeInterval?
 
         func onCourtIDs(for side: TeamSide) -> [UUID] {
             side == .home ? simulated.homeOnCourtPlayerIDs : simulated.awayOnCourtPlayerIDs
@@ -958,8 +1857,16 @@ struct GameView: View {
             "(\(sideScore(.home)):\(sideScore(.away)))"
         }
 
-        func appendEvent(_ message: String) {
-            simulated.logs.append(GameLogEntry(timestamp: eventTime, message: "\(message) \(scoreSuffix())"))
+        func appendEvent(_ message: String, playerID: UUID? = nil) {
+            simulated.logs.append(
+                GameLogEntry(
+                    timestamp: eventTime,
+                    message: "\(message) \(scoreSuffix())",
+                    playerID: playerID,
+                    period: simulatedCurrentPeriod,
+                    periodElapsedSeconds: simulatedPeriodElapsedSeconds
+                )
+            )
         }
 
         func addPlayingTime(_ seconds: TimeInterval) {
@@ -976,7 +1883,7 @@ struct GameView: View {
             stats.fouls += 1
             simulated.statsByPlayerID[foulerID] = stats
             simulated.currentPeriodFoulsBySide[side.rawValue, default: 0] += 1
-            appendEvent("\(name(for: foulerID)) 犯规")
+            appendEvent("\(name(for: foulerID)) 犯规", playerID: foulerID)
         }
 
         func addReboundEvent(preferredSide: TeamSide? = nil) {
@@ -990,7 +1897,7 @@ struct GameView: View {
             var stats = simulated.statsByPlayerID[rebounderID, default: PlayerStats()]
             stats.rebounds += 1
             simulated.statsByPlayerID[rebounderID] = stats
-            appendEvent("\(name(for: rebounderID)) 篮板")
+            appendEvent("\(name(for: rebounderID)) 篮板", playerID: rebounderID)
         }
 
         func addSubstitutionEvent() {
@@ -1008,6 +1915,33 @@ struct GameView: View {
             appendEvent("\(name(for: incomingID)) 替换 \(name(for: outgoingID))")
         }
 
+        func addBlockEvent() {
+            let side: TeamSide = Double.random(in: 0...1) < 0.5 ? .home : .away
+            guard let blockerID = randomOnCourtPlayerID(for: side) else { return }
+            var stats = simulated.statsByPlayerID[blockerID, default: PlayerStats()]
+            stats.blocks += 1
+            simulated.statsByPlayerID[blockerID] = stats
+            appendEvent("\(name(for: blockerID)) 封盖", playerID: blockerID)
+        }
+
+        func addStealEvent() {
+            let side: TeamSide = Double.random(in: 0...1) < 0.5 ? .home : .away
+            guard let stealerID = randomOnCourtPlayerID(for: side) else { return }
+            var stats = simulated.statsByPlayerID[stealerID, default: PlayerStats()]
+            stats.steals += 1
+            simulated.statsByPlayerID[stealerID] = stats
+            appendEvent("\(name(for: stealerID)) 抢断", playerID: stealerID)
+        }
+
+        func addTurnoverEvent() {
+            let side: TeamSide = Double.random(in: 0...1) < 0.5 ? .home : .away
+            guard let turnoverID = randomOnCourtPlayerID(for: side) else { return }
+            var stats = simulated.statsByPlayerID[turnoverID, default: PlayerStats()]
+            stats.turnovers += 1
+            simulated.statsByPlayerID[turnoverID] = stats
+            appendEvent("\(name(for: turnoverID)) 失误", playerID: turnoverID)
+        }
+
         func addShotEvent() {
             let side: TeamSide = Double.random(in: 0...1) < 0.52 ? .home : .away
             guard let shooterID = randomOnCourtPlayerID(for: side) else { return }
@@ -1020,7 +1954,7 @@ struct GameView: View {
                 stats.threeAttempts += 1
                 if isMade { stats.threeMade += 1 }
                 simulated.statsByPlayerID[shooterID] = stats
-                appendEvent("\(name(for: shooterID)) \(isMade ? "3分命中" : "3分不中")")
+                appendEvent("\(name(for: shooterID)) \(isMade ? "3分命中" : "3分不中")", playerID: shooterID)
                 if isMade {
                     applyPlusMinus(points: 3, scoringSide: side, in: &simulated)
                 }
@@ -1028,7 +1962,7 @@ struct GameView: View {
                 stats.twoAttempts += 1
                 if isMade { stats.twoMade += 1 }
                 simulated.statsByPlayerID[shooterID] = stats
-                appendEvent("\(name(for: shooterID)) \(isMade ? "2分命中" : "2分不中")")
+                appendEvent("\(name(for: shooterID)) \(isMade ? "2分命中" : "2分不中")", playerID: shooterID)
                 if isMade {
                     applyPlusMinus(points: 2, scoringSide: side, in: &simulated)
                 }
@@ -1041,7 +1975,7 @@ struct GameView: View {
                 var assistStats = simulated.statsByPlayerID[assistID, default: PlayerStats()]
                 assistStats.assists += 1
                 simulated.statsByPlayerID[assistID] = assistStats
-                appendEvent("\(name(for: assistID)) 助攻")
+                appendEvent("\(name(for: assistID)) 助攻", playerID: assistID)
             }
 
             if isMade, Double.random(in: 0...1) < 0.12 {
@@ -1052,7 +1986,7 @@ struct GameView: View {
                     bonusStats.bonusFreeThrowMade += 1
                 }
                 simulated.statsByPlayerID[shooterID] = bonusStats
-                appendEvent("\(name(for: shooterID)) \(bonusMade ? "加罚命中" : "加罚不中")")
+                appendEvent("\(name(for: shooterID)) \(bonusMade ? "加罚命中" : "加罚不中")", playerID: shooterID)
                 if bonusMade {
                     applyPlusMinus(points: 1, scoringSide: side, in: &simulated)
                 }
@@ -1066,6 +2000,8 @@ struct GameView: View {
 
         for period in 1...periodCount {
             simulated.currentPeriod = period
+            simulatedCurrentPeriod = period
+            simulatedPeriodElapsedSeconds = 0
             if simulated.resetsTeamFoulsEachPeriod {
                 simulated.currentPeriodFoulsBySide[TeamSide.home.rawValue] = 0
                 simulated.currentPeriodFoulsBySide[TeamSide.away.rawValue] = 0
@@ -1090,16 +2026,23 @@ struct GameView: View {
 
                 let delta = min(Double.random(in: 6...16), remaining)
                 elapsed += delta
+                simulatedPeriodElapsedSeconds = elapsed
                 eventTime.addTimeInterval(delta)
                 addPlayingTime(delta)
                 simulatedMatchElapsedSeconds += delta
 
                 let roll = Double.random(in: 0...1)
-                if roll < 0.80 {
+                if roll < 0.72 {
                     addShotEvent()
-                } else if roll < 0.90 {
+                } else if roll < 0.82 {
                     addFoulEvent()
-                } else if roll < 0.96 {
+                } else if roll < 0.88, snapshot.showsStealButton {
+                    addStealEvent()
+                } else if roll < 0.93, snapshot.showsBlockButton {
+                    addBlockEvent()
+                } else if roll < 0.97, snapshot.showsTurnoverButton {
+                    addTurnoverEvent()
+                } else if roll < 0.99 {
                     addSubstitutionEvent()
                 } else if snapshot.showsReboundButton {
                     addReboundEvent()
@@ -1111,8 +2054,10 @@ struct GameView: View {
                 eventTime.addTimeInterval(remaining)
                 addPlayingTime(remaining)
                 simulatedMatchElapsedSeconds += remaining
+                elapsed = periodDuration
             }
 
+            simulatedPeriodElapsedSeconds = elapsed
             appendEvent("第\(period)节结束")
         }
 
@@ -1122,6 +2067,10 @@ struct GameView: View {
         simulated.isComplete = true
         simulated.matchElapsedSeconds = simulatedMatchElapsedSeconds
         simulated.matchActiveSince = nil
+        simulated.periodElapsedSeconds = 0
+        simulated.periodActiveSince = nil
+        simulatedCurrentPeriod = nil
+        simulatedPeriodElapsedSeconds = nil
         eventTime.addTimeInterval(10)
         appendEvent("比赛结束")
 
@@ -1185,47 +2134,41 @@ struct GameView: View {
 
     private func performLateArrival() {
         guard let incomingPlayerID = lateArrivalIncomingPlayerID else { return }
-        mutateSnapshot {
-            var registered = gamePlayerIDs(for: lateArrivalSide)
-            guard !registered.contains(incomingPlayerID) else { return }
-            registered.append(incomingPlayerID)
-            setGamePlayerIDs(registered, for: lateArrivalSide)
-            addEvent("\(name(for: incomingPlayerID)) 已加入出场名单")
+        _ = submitLiveOperation(
+            .lateArrival(playerID: incomingPlayerID, side: lateArrivalSide.liveSide)
+        ) {
+            applyLateArrivalOperation(playerID: incomingPlayerID, side: lateArrivalSide)
         }
     }
 
     private func undo() {
-        guard let previous = undoStack.popLast() else { return }
-        redoStack.append(snapshot)
-        snapshot = previous
-        ensureSelectedPlayer()
-        autoSaveCurrentGame()
+        guard !undoStack.isEmpty else { return }
+        _ = submitLiveOperation(.undo) {
+            guard let previous = undoStack.popLast() else { return false }
+            redoStack.append(snapshot)
+            snapshot = previous
+            ensureSelectedPlayer()
+            autoSaveCurrentGame()
+            return true
+        }
     }
 
     private func redo() {
-        guard let next = redoStack.popLast() else { return }
-        undoStack.append(snapshot)
-        snapshot = next
-        ensureSelectedPlayer()
-        autoSaveCurrentGame()
+        guard !redoStack.isEmpty else { return }
+        _ = submitLiveOperation(.redo) {
+            guard let next = redoStack.popLast() else { return false }
+            undoStack.append(snapshot)
+            snapshot = next
+            ensureSelectedPlayer()
+            autoSaveCurrentGame()
+            return true
+        }
     }
 
     private func resetGame() {
-        undoStack.removeAll()
-        redoStack.removeAll()
-        currentGameRecordID = nil
-        snapshot = GameSnapshot(
-            homeTeamID: snapshot.homeTeamID,
-            awayTeamID: snapshot.awayTeamID,
-            periodCount: snapshot.periodCount,
-            courtPlayerCount: snapshot.courtPlayerCount,
-            resetsTeamFoulsEachPeriod: snapshot.resetsTeamFoulsEachPeriod,
-            showsReboundButton: snapshot.showsReboundButton,
-            showsAssistButton: snapshot.showsAssistButton,
-            showsFoulButton: snapshot.showsFoulButton
-        )
-        isStatsExpanded = false
-        ensureSelectedPlayer()
+        _ = submitLiveOperation(.resetGame) {
+            applyResetGameOperation(keepLiveSession: isLiveSessionActive)
+        }
     }
 
     private func mutateSnapshot(pushUndo: Bool = true, _ updates: () -> Void) {
@@ -1235,8 +2178,52 @@ struct GameView: View {
         autoSaveCurrentGame()
     }
 
-    private func addEvent(_ message: String) {
-        snapshot.logs.append(GameLogEntry(timestamp: Date(), message: "\(message) \(scoreSuffix)"))
+    private func addEvent(_ message: String, playerID: UUID? = nil) {
+        let context = eventPeriodContext(for: message)
+        let logEntry = GameLogEntry(
+            timestamp: Date(),
+            message: "\(message) \(scoreSuffix)",
+            playerID: playerID,
+            period: context.period,
+            periodElapsedSeconds: context.periodElapsedSeconds
+        )
+        snapshot.logs.append(logEntry)
+        highlightLatestLog(logEntry.id)
+    }
+
+    private func highlightLatestLog(_ logID: UUID) {
+        withAnimation(.spring(response: 0.24, dampingFraction: 0.72)) {
+            highlightedLogID = logID
+        }
+
+        highlightedLogDismissTask?.cancel()
+        highlightedLogDismissTask = Task {
+            try? await Task.sleep(for: .seconds(0.9))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                guard highlightedLogID == logID else { return }
+                withAnimation(.easeOut(duration: 0.2)) {
+                    highlightedLogID = nil
+                }
+            }
+        }
+    }
+
+    private func eventPeriodContext(for message: String) -> (period: Int?, periodElapsedSeconds: TimeInterval?) {
+        guard !["比赛结束", "比赛保存"].contains(message), snapshot.currentPeriod > 0 else {
+            return (nil, nil)
+        }
+
+        let elapsed: TimeInterval
+        if snapshot.periodIsRunning,
+           !snapshot.isPaused,
+           let activeSince = snapshot.periodActiveSince {
+            elapsed = snapshot.periodElapsedSeconds + max(0, Date().timeIntervalSince(activeSince))
+        } else {
+            elapsed = snapshot.periodElapsedSeconds
+        }
+
+        return (snapshot.currentPeriod, max(0, elapsed))
     }
 
     private var scoreSuffix: String {
@@ -1290,6 +2277,12 @@ struct GameView: View {
         }
     }
 
+    private func startPeriodClock(at date: Date) {
+        if snapshot.periodActiveSince == nil {
+            snapshot.periodActiveSince = date
+        }
+    }
+
     private func startStint(for playerID: UUID, at date: Date) {
         if snapshot.activeSinceByPlayerID[playerID] == nil {
             snapshot.activeSinceByPlayerID[playerID] = date
@@ -1315,6 +2308,16 @@ struct GameView: View {
         guard let activeSince = target.matchActiveSince else { return }
         target.matchElapsedSeconds += max(0, date.timeIntervalSince(activeSince))
         target.matchActiveSince = nil
+    }
+
+    private func closePeriodClock(at date: Date) {
+        closePeriodClock(in: &snapshot, at: date)
+    }
+
+    private func closePeriodClock(in target: inout GameSnapshot, at date: Date) {
+        guard let activeSince = target.periodActiveSince else { return }
+        target.periodElapsedSeconds += max(0, date.timeIntervalSince(activeSince))
+        target.periodActiveSince = nil
     }
 
     private func closeStint(for playerID: UUID, at date: Date) {
@@ -1354,7 +2357,8 @@ struct GameView: View {
             return nil
         }
 
-        guard let playerID = playerID(for: playerName, action: action, in: current),
+        let resolvedPlayerID = lastLog.playerID ?? playerID(for: playerName, action: action, in: current)
+        guard let playerID = resolvedPlayerID,
               let side = sideOfPlayer(playerID, in: current) else {
             return nil
         }
@@ -1442,6 +2446,19 @@ struct GameView: View {
         return String(format: "%02d:%02d", total / 60, total % 60)
     }
 
+    static func periodContextText(period: Int?, elapsedSeconds: TimeInterval?) -> String {
+        guard let period else { return "" }
+        guard let elapsedSeconds else { return "第\(period)节" }
+        return "第\(period)节 \(durationFormatter(elapsedSeconds))"
+    }
+
+    private func logText(for entry: GameLogEntry) -> String {
+        let periodText = Self.periodContextText(period: entry.period, elapsedSeconds: entry.periodElapsedSeconds)
+        return [Self.timeFormatter.string(from: entry.timestamp), periodText, entry.message]
+            .filter { !$0.isEmpty }
+            .joined(separator: "  ")
+    }
+
     static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss"
@@ -1458,6 +2475,31 @@ extension TeamSide: CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+private enum LiveCollaborationRole {
+    case host
+    case participant
+}
+
+private extension TeamSide {
+    init(liveSide: BluetoothLiveSide) {
+        switch liveSide {
+        case .home:
+            self = .home
+        case .away:
+            self = .away
+        }
+    }
+
+    var liveSide: BluetoothLiveSide {
+        switch self {
+        case .home:
+            return .home
+        case .away:
+            return .away
+        }
+    }
+}
+
 private enum GamePalette {
     static let make = Color(red: 0.78, green: 0.93, blue: 0.78)
     static let miss = Color(red: 0.86, green: 0.92, blue: 0.98)
@@ -1465,7 +2507,7 @@ private enum GamePalette {
     static let rebound = Color(red: 0.80, green: 0.90, blue: 0.99)
     static let warning = Color(red: 0.96, green: 0.80, blue: 0.80)
     static let period = Color(red: 0.36, green: 0.63, blue: 0.95)
-    static let periodEnd = Color(red: 0.52, green: 0.72, blue: 0.95)
+    static let periodEnd = Color(red: 0.96, green: 0.72, blue: 0.63)
     static let substitution = Color(red: 0.42, green: 0.67, blue: 0.95)
     static let pause = Color(red: 0.98, green: 0.82, blue: 0.45)
     static let finish = Color(red: 0.95, green: 0.48, blue: 0.44)
@@ -1514,7 +2556,7 @@ private struct PastelActionButtonStyle: ButtonStyle {
 private enum StatAction {
     case twoMade, twoMissed, threeMade, threeMissed
     case bonusMade, bonusMissed, freeThrowMade, freeThrowMissed
-    case foul, assist, rebound
+    case foul, assist, rebound, block, steal, turnover
 
     var message: String {
         switch self {
@@ -1529,6 +2571,9 @@ private enum StatAction {
         case .foul: return "犯规"
         case .assist: return "助攻"
         case .rebound: return "篮板"
+        case .block: return "封盖"
+        case .steal: return "抢断"
+        case .turnover: return "失误"
         }
     }
 
@@ -1569,6 +2614,12 @@ private enum StatAction {
             stats.assists += 1
         case .rebound:
             stats.rebounds += 1
+        case .block:
+            stats.blocks += 1
+        case .steal:
+            stats.steals += 1
+        case .turnover:
+            stats.turnovers += 1
         }
     }
 
@@ -1611,6 +2662,15 @@ private enum StatAction {
         case .rebound:
             guard stats.rebounds > 0 else { return false }
             stats.rebounds -= 1
+        case .block:
+            guard stats.blocks > 0 else { return false }
+            stats.blocks -= 1
+        case .steal:
+            guard stats.steals > 0 else { return false }
+            stats.steals -= 1
+        case .turnover:
+            guard stats.turnovers > 0 else { return false }
+            stats.turnovers -= 1
         }
         return true
     }
@@ -1626,11 +2686,51 @@ private enum StatAction {
     }
 }
 
+private extension StatAction {
+    init?(liveAction: BluetoothLiveStatAction) {
+        switch liveAction {
+        case .twoMade: self = .twoMade
+        case .twoMissed: self = .twoMissed
+        case .threeMade: self = .threeMade
+        case .threeMissed: self = .threeMissed
+        case .bonusMade: self = .bonusMade
+        case .bonusMissed: self = .bonusMissed
+        case .freeThrowMade: self = .freeThrowMade
+        case .freeThrowMissed: self = .freeThrowMissed
+        case .foul: self = .foul
+        case .assist: self = .assist
+        case .rebound: self = .rebound
+        case .block: self = .block
+        case .steal: self = .steal
+        case .turnover: self = .turnover
+        }
+    }
+
+    var liveAction: BluetoothLiveStatAction {
+        switch self {
+        case .twoMade: return .twoMade
+        case .twoMissed: return .twoMissed
+        case .threeMade: return .threeMade
+        case .threeMissed: return .threeMissed
+        case .bonusMade: return .bonusMade
+        case .bonusMissed: return .bonusMissed
+        case .freeThrowMade: return .freeThrowMade
+        case .freeThrowMissed: return .freeThrowMissed
+        case .foul: return .foul
+        case .assist: return .assist
+        case .rebound: return .rebound
+        case .block: return .block
+        case .steal: return .steal
+        case .turnover: return .turnover
+        }
+    }
+}
+
 extension StatAction: Equatable {}
 
 extension StatAction: CaseIterable {
     static var allCases: [StatAction] {
-        [.twoMade, .twoMissed, .threeMade, .threeMissed, .bonusMade, .bonusMissed, .freeThrowMade, .freeThrowMissed, .foul, .assist, .rebound]
+        [.twoMade, .twoMissed, .threeMade, .threeMissed, .bonusMade, .bonusMissed, .freeThrowMade, .freeThrowMissed, .foul, .assist, .rebound, .block, .steal, .turnover]
     }
 }
 
@@ -1639,6 +2739,7 @@ private struct CompactTeamRow: View {
     var team: Team?
     var players: [Player]
     var score: Int
+    var isScorePulsing: Bool = false
     var fouls: Int
     var foulLabel: String
     var onCourtPlayerIDs: [UUID]
@@ -1656,10 +2757,12 @@ private struct CompactTeamRow: View {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text("\(score)")
                         .font(.title.monospacedDigit().weight(.bold))
-                        .foregroundStyle(GamePalette.text)
+                        .foregroundStyle(isScorePulsing ? GamePalette.period : GamePalette.text)
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
                         .layoutPriority(1)
+                        .scaleEffect(isScorePulsing ? 1.15 : 1)
+                        .animation(.spring(response: 0.2, dampingFraction: 0.72), value: isScorePulsing)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(foulLabel)
                             .font(.caption2)
@@ -1768,28 +2871,77 @@ struct TeamStatsDisclosureView: View {
         .overlay(RoundedRectangle(cornerRadius: containerCornerRadius).stroke(containerBorder, lineWidth: 1))
     }
 
+    @ViewBuilder
     private func teamRow(_ name: String, stats: PlayerStats, fouls: Int) -> some View {
+        if style == .record {
+            recordTeamRow(name, stats: stats, fouls: fouls)
+        } else {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text(name)
+                        .font(.caption.weight(.semibold))
+                    Spacer()
+                    Text("\(stats.points)分")
+                        .font(.caption.monospacedDigit().weight(.semibold))
+                }
+                HStack(spacing: 8) {
+                    statTile("投篮", "\(stats.made)/\(stats.attempts)", percent(stats.fieldGoalRate))
+                    statTile("2分", "\(stats.twoMade)/\(stats.twoAttempts)", percent(stats.twoPointRate))
+                    statTile("3分", "\(stats.threeMade)/\(stats.threeAttempts)", percent(stats.threePointRate))
+                }
+                HStack(spacing: 8) {
+                    statTile("罚篮", "\(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)", percent(stats.freeThrowRate))
+                    statTile("板 / 助 / 犯", "\(stats.rebounds) / \(stats.assists) / \(fouls)", "")
+                    statTile("盖 / 断 / 失", "\(stats.blocks) / \(stats.steals) / \(stats.turnovers)", "")
+                }
+                HStack(spacing: 8) {
+                    statTile("高阶", "eFG \(percent(stats.effectiveFieldGoalRate))", "TS \(percent(stats.trueShootingRate))")
+                    statTile("每次出手得分", String(format: "%.2f", stats.pointsPerShot), "PTS/FGA")
+                }
+            }
+            .padding(8)
+            .background(tileBackground, in: RoundedRectangle(cornerRadius: tileCornerRadius))
+        }
+    }
+
+    private func recordTeamRow(_ name: String, stats: PlayerStats, fouls: Int) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(name)
-                    .font(.caption.weight(.semibold))
-                Spacer()
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+
+                Spacer(minLength: 8)
+
                 Text("\(stats.points)分")
-                    .font(.caption.monospacedDigit().weight(.semibold))
+                    .font(.subheadline.monospacedDigit().weight(.semibold))
             }
-            HStack(spacing: 8) {
-                statTile("投篮", "\(stats.made)/\(stats.attempts)", percent(stats.fieldGoalRate))
-                statTile("罚篮", "\(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)", percent(stats.freeThrowRate))
-                statTile("篮板 / 助攻 / 犯规", "\(stats.rebounds) / \(stats.assists) / \(fouls)", "")
-            }
-            HStack(spacing: 8) {
-                statTile("高阶", "eFG \(percent(stats.effectiveFieldGoalRate))", "TS \(percent(stats.trueShootingRate))")
-                statTile("每次出手得分", String(format: "%.2f", stats.pointsPerShot), "PTS/FGA")
-                statTile("3分", "\(stats.threeMade)/\(stats.threeAttempts)", percent(stats.threePointRate))
-            }
+
+            Text("投篮 \(stats.made)/\(stats.attempts)  2分 \(stats.twoMade)/\(stats.twoAttempts)  3分 \(stats.threeMade)/\(stats.threeAttempts)")
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+
+            Text("罚球 \(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)  板 \(stats.rebounds)  助 \(stats.assists)  犯 \(fouls)  盖 \(stats.blocks)  断 \(stats.steals)  失 \(stats.turnovers)")
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+
+            Text("eFG \(percent(stats.effectiveFieldGoalRate))  TS \(percent(stats.trueShootingRate))  PTS/FGA \(String(format: "%.2f", stats.pointsPerShot))")
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
         }
-        .padding(8)
-        .background(tileBackground, in: RoundedRectangle(cornerRadius: tileCornerRadius))
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(uiColor: .secondarySystemBackground))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Color.secondary.opacity(0.14), lineWidth: 1)
+        )
     }
 
     private func statTile(_ title: String, _ value: String, _ detail: String) -> some View {
@@ -1869,7 +3021,7 @@ private struct CollapsibleStatsView: View {
 
                 HStack(spacing: 8) {
                     statTile("罚篮", "\(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)", percent(stats.freeThrowRate))
-                    statTile("篮板 / 助攻 / 犯规", "\(stats.rebounds) / \(stats.assists) / \(stats.fouls)", "")
+                    statTile("板 / 助 / 犯 / 盖 / 断 / 失", "\(stats.rebounds) / \(stats.assists) / \(stats.fouls) / \(stats.blocks) / \(stats.steals) / \(stats.turnovers)", "")
                     statTile("高阶", "eFG \(percent(stats.effectiveFieldGoalRate))", "TS \(percent(stats.trueShootingRate))")
                 }
 
@@ -1890,6 +3042,9 @@ private struct CollapsibleStatsView: View {
                 Text("板\(stats.rebounds)")
                 Text("助\(stats.assists)")
                 Text("犯\(stats.fouls)")
+                Text("盖\(stats.blocks)")
+                Text("断\(stats.steals)")
+                Text("失\(stats.turnovers)")
             }
             .font(.caption.monospacedDigit())
         }
@@ -1948,7 +3103,10 @@ private struct NewGameSetupView: View {
     var initialShowsReboundButton: Bool
     var initialShowsAssistButton: Bool
     var initialShowsFoulButton: Bool
-    var onStart: (UUID, UUID, [UUID], [UUID], [UUID], [UUID], Int, Int, Bool, Bool, Bool, Bool) -> Void
+    var initialShowsBlockButton: Bool
+    var initialShowsStealButton: Bool
+    var initialShowsTurnoverButton: Bool
+    var onStart: (UUID, UUID, [UUID], [UUID], [UUID], [UUID], Int, Int, Bool, Bool, Bool, Bool, Bool, Bool, Bool) -> Void
 
     @State private var homeTeamID: UUID?
     @State private var awayTeamID: UUID?
@@ -1962,6 +3120,9 @@ private struct NewGameSetupView: View {
     @State private var showsReboundButton = true
     @State private var showsAssistButton = true
     @State private var showsFoulButton = true
+    @State private var showsBlockButton = true
+    @State private var showsStealButton = true
+    @State private var showsTurnoverButton = true
 
     var body: some View {
         NavigationStack {
@@ -2005,6 +3166,9 @@ private struct NewGameSetupView: View {
                     Toggle("篮板", isOn: $showsReboundButton)
                     Toggle("助攻", isOn: $showsAssistButton)
                     Toggle("犯规", isOn: $showsFoulButton)
+                    Toggle("封盖", isOn: $showsBlockButton)
+                    Toggle("抢断", isOn: $showsStealButton)
+                    Toggle("失误", isOn: $showsTurnoverButton)
                 }
 
                 starterSection(title: "主队首发", players: homePlayers, selectedIDs: $homeStarterIDs, requiredCount: requiredHomeCount)
@@ -2042,7 +3206,10 @@ private struct NewGameSetupView: View {
                             resetsTeamFoulsEachPeriod,
                             showsReboundButton,
                             showsAssistButton,
-                            showsFoulButton
+                            showsFoulButton,
+                            showsBlockButton,
+                            showsStealButton,
+                            showsTurnoverButton
                         )
                         dismiss()
                     }
@@ -2130,6 +3297,9 @@ private struct NewGameSetupView: View {
         showsReboundButton = initialShowsReboundButton
         showsAssistButton = initialShowsAssistButton
         showsFoulButton = initialShowsFoulButton
+        showsBlockButton = initialShowsBlockButton
+        showsStealButton = initialShowsStealButton
+        showsTurnoverButton = initialShowsTurnoverButton
         if awayTeamID == homeTeamID {
             awayTeamID = teams.first(where: { $0.id != homeTeamID })?.id
         }
