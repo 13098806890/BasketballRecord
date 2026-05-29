@@ -835,27 +835,27 @@ private struct TeamManagementView: View {
 
             ForEach(store.teams) { team in
                 HStack(spacing: 10) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(team.name)
+                            .font(.headline)
+                        Text(team.playerIDs.compactMap { store.player(for: $0)?.name }.joined(separator: "、"))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
                     Button {
                         editingTeam = team
                     } label: {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(team.name)
-                                .font(.headline)
-                            Text(team.playerIDs.compactMap { store.player(for: $0)?.name }.joined(separator: "、"))
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(2)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        RosterActionIcon(symbol: "pencil")
                     }
                     .buttonStyle(.plain)
 
                     Button {
                         exportingTeam = team
                     } label: {
-                        RosterActionIcon(
-                            symbol: TransferSymbol.exportData
-                        )
+                        RosterActionIcon(symbol: TransferSymbol.exportData)
                     }
                     .buttonStyle(.plain)
                 }
@@ -884,37 +884,26 @@ private struct PlayerManagementView: View {
             }
 
             ForEach(store.players) { player in
-                HStack(spacing: 8) {
-                    NavigationLink {
-                        PlayerProfileView(playerID: player.id)
-                    } label: {
-                        HStack(spacing: 12) {
-                            PlayerAvatarView(player: player, size: 44)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(player.name)
-                                    .font(.headline)
-                                Text(rosterPlayerSubtitle(player))
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
+                HStack(spacing: 12) {
+                    PlayerAvatarView(player: player, size: 44)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(player.name)
+                            .font(.headline)
+                        Text(rosterPlayerSubtitle(player))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
-
+                    Spacer()
                     Button {
                         editingPlayer = player
                     } label: {
-                        RosterActionIcon(
-                            symbol: "pencil"
-                        )
+                        RosterActionIcon(symbol: "pencil")
                     }
                     .buttonStyle(.plain)
-
                     Button {
                         exportingPlayer = player
                     } label: {
-                        RosterActionIcon(
-                            symbol: TransferSymbol.exportData
-                        )
+                        RosterActionIcon(symbol: TransferSymbol.exportData)
                     }
                     .buttonStyle(.plain)
                 }
