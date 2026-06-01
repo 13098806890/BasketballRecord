@@ -1,6 +1,14 @@
 import SwiftUI
 import UIKit
 
+private func localized(_ key: String) -> String {
+    NSLocalizedString(key, comment: "")
+}
+
+private func localizedFormat(_ key: String, _ args: CVarArg...) -> String {
+    String(format: localized(key), locale: Locale.current, arguments: args)
+}
+
 struct RosterView: View {
     @EnvironmentObject private var store: AppStore
     @State private var showingCreateEntry = false
@@ -309,12 +317,12 @@ private struct DeepSeekAPISettingsView: View {
                     }
                     .disabled(!hasSavedKey)
                 } header: {
-                    Text("DeepSeek API Key")
+                    Text(LocalizedStringKey("settings_deepseek_api_key"))
                 } footer: {
-                    Text("必须先“测试连接”成功，才可保存到钥匙串。")
+                    Text(LocalizedStringKey("deepseek_test_before_save_hint"))
                 }
 
-                Section("状态") {
+                Section(LocalizedStringKey("section_status")) {
                     HStack(spacing: 8) {
                         Image(systemName: statusIcon)
                             .foregroundStyle(statusColor)
@@ -324,11 +332,11 @@ private struct DeepSeekAPISettingsView: View {
                     }
                 }
             }
-            .navigationTitle("DeepSeek 设置")
+            .navigationTitle(LocalizedStringKey("deepseek_settings_title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("完成") {
+                    Button(LocalizedStringKey("button_done")) {
                         dismiss()
                     }
                 }
@@ -354,14 +362,16 @@ private struct DeepSeekAPISettingsView: View {
         if !statusMessage.isEmpty {
             return statusMessage
         }
-        return hasSavedKey ? "已检测到已保存 Key，可直接用于 AI 总结。" : "尚未配置 API Key。"
+        return hasSavedKey
+            ? NSLocalizedString("deepseek_status_has_saved_key", comment: "DeepSeek key saved status")
+            : NSLocalizedString("deepseek_status_no_saved_key", comment: "DeepSeek no key status")
     }
 
     private func loadSavedKey() {
         if let saved = DeepSeekKeychain.shared.loadAPIKey(), !saved.isEmpty {
             apiKey = saved
             hasSavedKey = true
-            statusMessage = "已读取已保存 Key；如要更新，请重新测试后保存。"
+            statusMessage = NSLocalizedString("deepseek_status_loaded_saved_key", comment: "DeepSeek loaded saved key")
             statusKind = .neutral
         } else {
             hasSavedKey = false
@@ -374,7 +384,7 @@ private struct DeepSeekAPISettingsView: View {
         let key = normalizedKey
         guard !key.isEmpty else {
             statusKind = .error
-            statusMessage = "请先输入 API Key。"
+            statusMessage = NSLocalizedString("deepseek_error_enter_key_first", comment: "DeepSeek empty key error")
             return
         }
 
@@ -388,14 +398,14 @@ private struct DeepSeekAPISettingsView: View {
                 await MainActor.run {
                     testedKey = key
                     statusKind = .success
-                    statusMessage = "连接测试成功，可以保存。"
+                    statusMessage = NSLocalizedString("deepseek_status_test_success", comment: "DeepSeek test success")
                     isTesting = false
                 }
             } catch {
                 await MainActor.run {
                     testedKey = nil
                     statusKind = .error
-                    statusMessage = (error as? LocalizedError)?.errorDescription ?? "测试连接失败，请稍后重试。"
+                    statusMessage = (error as? LocalizedError)?.errorDescription ?? NSLocalizedString("deepseek_error_test_failed", comment: "DeepSeek test failed")
                     isTesting = false
                 }
             }
@@ -407,10 +417,10 @@ private struct DeepSeekAPISettingsView: View {
             try DeepSeekKeychain.shared.saveAPIKey(normalizedKey)
             hasSavedKey = true
             statusKind = .success
-            statusMessage = "已保存到钥匙串。"
+            statusMessage = NSLocalizedString("deepseek_status_saved_to_keychain", comment: "DeepSeek key saved")
         } catch {
             statusKind = .error
-            statusMessage = (error as? LocalizedError)?.errorDescription ?? "保存失败，请重试。"
+            statusMessage = (error as? LocalizedError)?.errorDescription ?? NSLocalizedString("deepseek_error_save_failed", comment: "DeepSeek save failed")
         }
     }
 
@@ -421,10 +431,10 @@ private struct DeepSeekAPISettingsView: View {
             testedKey = nil
             apiKey = ""
             statusKind = .success
-            statusMessage = "已删除已保存 Key。"
+            statusMessage = NSLocalizedString("deepseek_status_removed", comment: "DeepSeek key removed")
         } catch {
             statusKind = .error
-            statusMessage = (error as? LocalizedError)?.errorDescription ?? "删除失败，请重试。"
+            statusMessage = (error as? LocalizedError)?.errorDescription ?? NSLocalizedString("deepseek_error_remove_failed", comment: "DeepSeek remove failed")
         }
     }
 }
@@ -438,18 +448,18 @@ private enum SettingsDocument: String, Identifiable {
     var title: String {
         switch self {
         case .privacy:
-            return "隐私说明"
+            return localized("settings_privacy")
         case .terms:
-            return "使用说明"
+            return localized("settings_help")
         }
     }
 
     var subtitle: String {
         switch self {
         case .privacy:
-            return "说明应用如何处理你的数据与隐私。"
+            return localized("settings_doc_privacy_subtitle")
         case .terms:
-            return "快速上手与核心功能说明。"
+            return localized("settings_doc_terms_subtitle")
         }
     }
 
@@ -472,27 +482,27 @@ private enum SettingsDocument: String, Identifiable {
             return [
                 SettingsFeatureSection(
                     icon: "lock.shield",
-                    title: "数据存储",
+                    title: localized("settings_doc_privacy_storage_title"),
                     items: [
-                        SettingsFeatureItem("默认仅保存在本机", "比赛、球队、球员和设置默认保存在本机应用沙盒，不会自动上传到开发者服务器。"),
-                        SettingsFeatureItem("你控制导入导出", "只有你主动执行分享、导入、导出或蓝牙同步时，数据才会离开当前设备。")
+                        SettingsFeatureItem(localized("settings_doc_privacy_storage_item1_title"), localized("settings_doc_privacy_storage_item1_desc")),
+                        SettingsFeatureItem(localized("settings_doc_privacy_storage_item2_title"), localized("settings_doc_privacy_storage_item2_desc"))
                     ]
                 ),
                 SettingsFeatureSection(
                     icon: "network",
-                    title: "网络与第三方服务",
+                    title: localized("settings_doc_privacy_network_title"),
                     items: [
-                        SettingsFeatureItem("蓝牙协同", "蓝牙协同仅在你连接并确认后进行，数据仅在参与设备之间传输。"),
-                        SettingsFeatureItem("AI 总结（可选）", "仅当你配置 DeepSeek API Key 并主动生成总结时，当前比赛所需数据才会发送到 DeepSeek。"),
-                        SettingsFeatureItem("API Key 安全保存", "DeepSeek API Key 保存在 iOS Keychain 中，可随时在设置里删除。")
+                        SettingsFeatureItem(localized("settings_doc_privacy_network_item1_title"), localized("settings_doc_privacy_network_item1_desc")),
+                        SettingsFeatureItem(localized("settings_doc_privacy_network_item2_title"), localized("settings_doc_privacy_network_item2_desc")),
+                        SettingsFeatureItem(localized("settings_doc_privacy_network_item3_title"), localized("settings_doc_privacy_network_item3_desc"))
                     ]
                 ),
                 SettingsFeatureSection(
                     icon: "exclamationmark.triangle",
-                    title: "使用提醒",
+                    title: localized("settings_doc_privacy_notice_title"),
                     items: [
-                        SettingsFeatureItem("删除或覆盖前先确认", "删除、覆盖、合并等操作可能影响已有数据，建议先核对内容。"),
-                        SettingsFeatureItem("迁移设备前先导出", "更换设备、卸载应用或系统重置前，建议先导出关键数据做备份。")
+                        SettingsFeatureItem(localized("settings_doc_privacy_notice_item1_title"), localized("settings_doc_privacy_notice_item1_desc")),
+                        SettingsFeatureItem(localized("settings_doc_privacy_notice_item2_title"), localized("settings_doc_privacy_notice_item2_desc"))
                     ]
                 )
             ]
@@ -500,38 +510,38 @@ private enum SettingsDocument: String, Identifiable {
             return [
                 SettingsFeatureSection(
                     icon: "play.rectangle",
-                    title: "快速上手",
+                    title: localized("settings_doc_help_quickstart_title"),
                     items: [
-                        SettingsFeatureItem("先准备阵容", "在“设置”里先新建球员与球队，至少准备两支有球员的球队。"),
-                        SettingsFeatureItem("新建比赛", "进入“记分”页点“新比赛”，选择主客队、节数、上场人数和统计按钮。"),
-                        SettingsFeatureItem("开始记录", "第一节点击开始时，在场球员记为首发；后续加入上场的球员记为替补。")
+                        SettingsFeatureItem(localized("settings_doc_help_quickstart_item1_title"), localized("settings_doc_help_quickstart_item1_desc")),
+                        SettingsFeatureItem(localized("settings_doc_help_quickstart_item2_title"), localized("settings_doc_help_quickstart_item2_desc")),
+                        SettingsFeatureItem(localized("settings_doc_help_quickstart_item3_title"), localized("settings_doc_help_quickstart_item3_desc"))
                     ]
                 ),
                 SettingsFeatureSection(
                     icon: "basketball",
-                    title: "比赛记录",
+                    title: localized("settings_doc_help_gamelog_title"),
                     items: [
-                        SettingsFeatureItem("支持多项统计", "支持2分、3分、罚球、篮板、助攻、犯规、封盖、抢断、失误。"),
-                        SettingsFeatureItem("换人与新增上场", "比赛中可随时换人；晚到球员可先“新增上场”再参与统计。"),
-                        SettingsFeatureItem("历史详情", "赛后可在比赛记录中查看球队数据、球员数据、事件日志和分节数据。")
+                        SettingsFeatureItem(localized("settings_doc_help_gamelog_item1_title"), localized("settings_doc_help_gamelog_item1_desc")),
+                        SettingsFeatureItem(localized("settings_doc_help_gamelog_item2_title"), localized("settings_doc_help_gamelog_item2_desc")),
+                        SettingsFeatureItem(localized("settings_doc_help_gamelog_item3_title"), localized("settings_doc_help_gamelog_item3_desc"))
                     ]
                 ),
                 SettingsFeatureSection(
                     icon: "dot.radiowaves.left.and.right",
-                    title: "同步与分享",
+                    title: localized("settings_doc_help_sync_title"),
                     items: [
-                        SettingsFeatureItem("蓝牙协同", "可连接附近设备，发送球队/球员/比赛数据，或加入协同记分。"),
-                        SettingsFeatureItem("导入导出", "支持按类型导入导出；导入前会先解析并提示可能覆盖内容。"),
-                        SettingsFeatureItem("数据合并", "可合并重复球员/球队，减少历史记录里的重复数据。")
+                        SettingsFeatureItem(localized("settings_doc_help_sync_item1_title"), localized("settings_doc_help_sync_item1_desc")),
+                        SettingsFeatureItem(localized("settings_doc_help_sync_item2_title"), localized("settings_doc_help_sync_item2_desc")),
+                        SettingsFeatureItem(localized("settings_doc_help_sync_item3_title"), localized("settings_doc_help_sync_item3_desc"))
                     ]
                 ),
                 SettingsFeatureSection(
                     icon: "sparkles",
-                    title: "AI 比赛总结（可选）",
+                    title: localized("settings_doc_help_ai_title"),
                     items: [
-                        SettingsFeatureItem("按需启用", "需要先在设置中配置 DeepSeek API Key，并通过测试连接后保存。"),
-                        SettingsFeatureItem("总结内容", "可生成比赛总结、MVP 与高光时刻，结果会保存到比赛记录中。"),
-                        SettingsFeatureItem("渲染展示", "AI 结果会按说明页风格展示，便于阅读和回看。")
+                        SettingsFeatureItem(localized("settings_doc_help_ai_item1_title"), localized("settings_doc_help_ai_item1_desc")),
+                        SettingsFeatureItem(localized("settings_doc_help_ai_item2_title"), localized("settings_doc_help_ai_item2_desc")),
+                        SettingsFeatureItem(localized("settings_doc_help_ai_item3_title"), localized("settings_doc_help_ai_item3_desc"))
                     ]
                 )
             ]
@@ -541,21 +551,9 @@ private enum SettingsDocument: String, Identifiable {
     var content: String {
         switch self {
         case .privacy:
-            return """
-            本应用默认将比赛、球队、球员等数据保存在本机，不会自动上传到开发者服务器。
-            仅在你主动执行导入、导出、分享、蓝牙协同或 AI 总结时，相关数据才会参与传输。
-            你可以随时在设置中管理或删除 DeepSeek API Key。
-            """
+            return localized("settings_doc_privacy_content")
         case .terms:
-            return """
-            欢迎使用「篮球生涯」。
-
-            1. 先建球员与球队，再进入“记分”页新建比赛。
-            2. 第一节开始时在场球员记为首发，后续加入上场记为替补。
-            3. 比赛支持完整技术统计、分节查看、历史回看与生涯汇总。
-            4. 可通过蓝牙协同、导入导出、合并功能进行跨设备与数据整理。
-            5. 配置 DeepSeek API Key 后，可生成并保存 AI 比赛总结。
-            """
+            return localized("settings_doc_help_content")
         }
     }
 }
@@ -620,7 +618,7 @@ private struct SettingsDocumentView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("完成") { dismiss() }
+                    Button(LocalizedStringKey("button_done")) { dismiss() }
                 }
             }
         }
@@ -787,11 +785,11 @@ private struct CareerStatDisplaySettingsView: View {
     var body: some View {
         List {
             Section {
-                Button("全部显示") {
+                Button(LocalizedStringKey("button_show_all")) {
                     store.setAllCareerStatVisibility(visible: true)
                 }
 
-                Button("全部隐藏") {
+                Button(LocalizedStringKey("button_hide_all")) {
                     store.setAllCareerStatVisibility(visible: false)
                 }
             }
@@ -806,7 +804,7 @@ private struct CareerStatDisplaySettingsView: View {
                 }
             }
         }
-        .navigationTitle("生涯数据显示")
+        .navigationTitle(LocalizedStringKey("settings_career_display"))
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -830,7 +828,7 @@ private struct TeamManagementView: View {
     var body: some View {
         List {
             if store.teams.isEmpty {
-                ContentUnavailableView("还没有球队", systemImage: "person.3.fill")
+                ContentUnavailableView(LocalizedStringKey("empty_no_teams"), systemImage: "person.3.fill")
             }
 
             ForEach(store.teams) { team in
@@ -862,7 +860,7 @@ private struct TeamManagementView: View {
             }
             .onDelete(perform: store.deleteTeams)
         }
-        .navigationTitle("球队")
+        .navigationTitle(LocalizedStringKey("settings_teams"))
         .sheet(item: $editingTeam) { team in
             TeamEditorView(team: team)
         }
@@ -880,7 +878,7 @@ private struct PlayerManagementView: View {
     var body: some View {
         List {
             if store.players.isEmpty {
-                ContentUnavailableView("还没有球员", systemImage: "person.crop.circle.badge.plus")
+                ContentUnavailableView(LocalizedStringKey("empty_no_players"), systemImage: "person.crop.circle.badge.plus")
             }
 
             ForEach(store.players) { player in
@@ -910,7 +908,7 @@ private struct PlayerManagementView: View {
             }
             .onDelete(perform: store.deletePlayers)
         }
-        .navigationTitle("球员")
+        .navigationTitle(LocalizedStringKey("settings_players"))
         .sheet(item: $editingPlayer) { player in
             PlayerEditorView(player: player)
         }
@@ -937,7 +935,7 @@ private func rosterPlayerSubtitle(_ player: Player) -> String {
     if !player.number.isEmpty { parts.append("No. \(player.number)") }
     if !player.height.isEmpty { parts.append("\(player.height)cm") }
     if !player.weight.isEmpty { parts.append("\(player.weight)kg") }
-    return parts.isEmpty ? "未填写号码、身高、体重" : parts.joined(separator: " · ")
+    return parts.isEmpty ? NSLocalizedString("player_profile_missing_basic", comment: "Missing player basics") : parts.joined(separator: " · ")
 }
 
 private struct CreateRosterItemView: View {
@@ -949,10 +947,10 @@ private struct CreateRosterItemView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("新建类型") {
-                    Picker("新建类型", selection: $kind) {
+                Section(LocalizedStringKey("section_create_type")) {
+                    Picker(LocalizedStringKey("section_create_type"), selection: $kind) {
                         ForEach(RosterImportKind.allCases) { kind in
-                            Text(kind.rawValue).tag(kind)
+                            Text(kind.localizedTitle).tag(kind)
                         }
                     }
                     .pickerStyle(.segmented)
@@ -966,18 +964,18 @@ private struct CreateRosterItemView: View {
                             showingTeamEditor = true
                         }
                     } label: {
-                        Label(kind == .player ? "新建球员" : "新建球队", systemImage: kind == .player ? "person.crop.circle.badge.plus" : "person.3.fill")
+                        Label(kind == .player ? LocalizedStringKey("button_create_player") : LocalizedStringKey("button_create_team"), systemImage: kind == .player ? "person.crop.circle.badge.plus" : "person.3.fill")
                             .symbolRenderingMode(.monochrome)
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(AppNeutralProminentButtonStyle())
                 }
             }
-            .navigationTitle("新建")
+            .navigationTitle(LocalizedStringKey("settings_new"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("关闭") { dismiss() }
+                    Button(LocalizedStringKey("button_close")) { dismiss() }
                 }
             }
             .sheet(isPresented: $showingPlayerEditor) {
@@ -997,9 +995,9 @@ private struct MergeRosterUUIDView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                Picker("合并类型", selection: $kind) {
+                Picker(LocalizedStringKey("section_merge_type"), selection: $kind) {
                     ForEach(RosterImportKind.allCases) { kind in
-                        Text(kind.rawValue).tag(kind)
+                        Text(kind.localizedTitle).tag(kind)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -1013,11 +1011,11 @@ private struct MergeRosterUUIDView: View {
                     MergeTeamUUIDView(embedded: true)
                 }
             }
-            .navigationTitle("合并")
+            .navigationTitle(LocalizedStringKey("settings_merge"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("关闭") { dismiss() }
+                    Button(LocalizedStringKey("button_close")) { dismiss() }
                 }
             }
         }
@@ -1041,7 +1039,7 @@ private struct ExportTeamPackageView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("球队") {
+                Section(LocalizedStringKey("label_team")) {
                     Text(team.name)
                 }
 
@@ -1049,7 +1047,7 @@ private struct ExportTeamPackageView: View {
                     Section {
                         HStack(spacing: 12) {
                             ProgressView()
-                            Text("正在生成压缩编码…")
+                            Text(LocalizedStringKey("transfer_generating_compressed"))
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
@@ -1057,14 +1055,14 @@ private struct ExportTeamPackageView: View {
                     }
                 } else if base64.isEmpty {
                     Section {
-                        Text("编码生成失败，请重试。")
+                        Text(LocalizedStringKey("transfer_generate_failed_retry"))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
                 } else {
-                    Section("蓝牙传输") {
+                    Section(LocalizedStringKey("section_bluetooth_transfer")) {
                         if bluetooth.connectedPeers.isEmpty {
-                            Text("暂无已连接设备，请先到设置-蓝牙协同完成连接。")
+                            Text(LocalizedStringKey("transfer_no_connected_devices_hint"))
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         } else {
@@ -1073,34 +1071,34 @@ private struct ExportTeamPackageView: View {
                                     .environmentObject(store)
                                     .environmentObject(bluetooth)
                             } label: {
-                                Label("蓝牙发送当前球队", systemImage: "dot.radiowaves.left.and.right")
+                                Label(LocalizedStringKey("transfer_send_current_team_bluetooth"), systemImage: "dot.radiowaves.left.and.right")
                             }
 
-                            Text("进入后可选择接收设备并查看传输百分比进度。")
+                            Text(LocalizedStringKey("transfer_open_to_pick_device_progress_hint"))
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
                     }
 
-                    Section("导出设置") {
+                    Section(LocalizedStringKey("section_export_settings")) {
                         Stepper(value: $segmentCount, in: 1...8) {
                             HStack {
-                                Text("分段数量")
+                                Text(LocalizedStringKey("label_segment_count"))
                                 Spacer(minLength: 8)
-                                Text("\(segmentCount)段")
+                                Text(localizedFormat("segment_count_value_format", segmentCount))
                                     .foregroundStyle(.secondary)
                             }
                         }
 
-                        Text("设为1段即不分段导出。")
+                        Text(LocalizedStringKey("export_segment_count_hint"))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
 
-                    Section("球队分享编码") {
+                    Section(LocalizedStringKey("section_team_share_code")) {
                         ForEach(Array(chunkLines.enumerated()), id: \.offset) { index, line in
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("第\(index + 1)/\(chunkLines.count)段")
+                                Text(localizedFormat("segment_progress_format", index + 1, chunkLines.count))
                                     .font(.subheadline.weight(.semibold))
 
                                 TransferCodePreview(text: line)
@@ -1110,7 +1108,7 @@ private struct ExportTeamPackageView: View {
                                     showChunkCopyFeedback(index)
                                 } label: {
                                     Label(
-                                        copiedChunkIndex == index ? "已复制" : "复制第\(index + 1)段",
+                                        copiedChunkIndex == index ? localized("status_copied") : localizedFormat("button_copy_segment_format", index + 1),
                                         systemImage: copiedChunkIndex == index ? "checkmark.circle.fill" : "doc.on.doc"
                                     )
                                         .frame(maxWidth: .infinity)
@@ -1123,18 +1121,18 @@ private struct ExportTeamPackageView: View {
 
                     Section {
                         ShareLink(item: chunkLines.joined(separator: "\n")) {
-                            Label("分享全部分段", systemImage: TransferSymbol.exportData)
+                            Label(LocalizedStringKey("button_share_all_segments"), systemImage: TransferSymbol.exportData)
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(AppSoftProminentButtonStyle())
                     }
                 }
             }
-            .navigationTitle("导出球队")
+            .navigationTitle(LocalizedStringKey("nav_export_team"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("完成") { dismiss() }
+                    Button(LocalizedStringKey("button_done")) { dismiss() }
                 }
             }
             .task(id: team.id) {
@@ -1181,10 +1179,28 @@ private struct ExportTeamPackageView: View {
 }
 
 private enum RosterImportKind: String, CaseIterable, Identifiable {
-    case team = "球队"
-    case player = "球员"
+    case team
+    case player
 
     var id: String { rawValue }
+
+    var localizedTitle: LocalizedStringKey {
+        switch self {
+        case .team:
+            return LocalizedStringKey("label_team")
+        case .player:
+            return LocalizedStringKey("label_player")
+        }
+    }
+
+    var localizedName: String {
+        switch self {
+        case .team:
+            return localized("label_team")
+        case .player:
+            return localized("label_player")
+        }
+    }
 }
 
 private struct ImportRosterPackageView: View {
@@ -1234,35 +1250,35 @@ private struct ImportRosterPackageView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("导入类型") {
-                    Picker("导入类型", selection: $importKind) {
+                Section(LocalizedStringKey("section_import_type")) {
+                    Picker(LocalizedStringKey("section_import_type"), selection: $importKind) {
                         ForEach(RosterImportKind.allCases) { kind in
-                            Text(kind.rawValue).tag(kind)
+                            Text(kind.localizedTitle).tag(kind)
                         }
                     }
                     .pickerStyle(.segmented)
                 }
 
-                Section("粘贴分享编码") {
+                Section(LocalizedStringKey("section_paste_share_code")) {
                     if isChunkedMode {
-                        Text("已识别分段导入（\(filledChunkCount)/\(chunkTotalParts)）")
+                        Text(localizedFormat("import_chunk_detected_progress_format", filledChunkCount, chunkTotalParts))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
 
                         if let chunkTransferID {
-                            Text("批次 ID: \(chunkTransferID)")
+                            Text(localizedFormat("import_batch_id_format", chunkTransferID))
                                 .font(.caption.monospaced())
                                 .foregroundStyle(.secondary)
                         }
 
                         ForEach(0..<chunkTotalParts, id: \.self) { index in
                             VStack(alignment: .leading, spacing: 6) {
-                                Text("第\(index + 1)/\(chunkTotalParts)段")
+                                Text(localizedFormat("segment_progress_format", index + 1, chunkTotalParts))
                                     .font(.caption.weight(.semibold))
 
                                 TransferCodeInput(
                                     text: binding(forChunkIndex: index),
-                                    placeholder: "粘贴第\(index + 1)段"
+                                    placeholder: localizedFormat("placeholder_paste_segment_format", index + 1)
                                 )
                                     .focused($isInputFocused)
                             }
@@ -1270,12 +1286,12 @@ private struct ImportRosterPackageView: View {
                         }
 
                         HStack(spacing: 8) {
-                            Button("从剪贴板读取分段") {
+                            Button(LocalizedStringKey("button_read_segments_from_clipboard")) {
                                 tryAutoFillFromClipboard()
                             }
                             .buttonStyle(AppSoftProminentButtonStyle())
 
-                            Button("改为单段导入") {
+                            Button(LocalizedStringKey("button_switch_single_import")) {
                                 resetToSingleMode()
                             }
                             .buttonStyle(AppSoftProminentButtonStyle())
@@ -1285,7 +1301,7 @@ private struct ImportRosterPackageView: View {
                             .focused($isInputFocused)
                     }
 
-                    Button(importKind == .team ? "解析球队数据" : "解析球员数据") {
+                    Button(importKind == .team ? localized("button_parse_team_data") : localized("button_parse_player_data")) {
                         isInputFocused = false
                         Task {
                             await decode()
@@ -1296,7 +1312,7 @@ private struct ImportRosterPackageView: View {
                     if isParsing {
                         HStack(spacing: 8) {
                             ProgressView()
-                            Text("解析中…")
+                            Text(LocalizedStringKey("status_parsing"))
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
@@ -1304,7 +1320,7 @@ private struct ImportRosterPackageView: View {
                 }
 
                 if let parseResultText {
-                    Section("解析结果") {
+                    Section(LocalizedStringKey("section_parse_result")) {
                         VStack(alignment: .leading, spacing: 8) {
                             Text(parseResultText)
                                 .font(.footnote.monospaced())
@@ -1317,15 +1333,15 @@ private struct ImportRosterPackageView: View {
                 }
 
                 if importKind == .team, let teamPackage {
-                    Section("导入预览") {
-                        LabeledContent("球队", value: teamPackage.team.name)
-                        LabeledContent("球员", value: "\(teamPackage.players.count) 人")
-                        Text("导入后会保留原 UUID，不做同名自动合并。")
+                    Section(LocalizedStringKey("section_import_preview")) {
+                        LabeledContent(localized("label_team"), value: teamPackage.team.name)
+                        LabeledContent(localized("label_player"), value: localizedFormat("count_players_people_format", teamPackage.players.count))
+                        Text(LocalizedStringKey("import_team_preview_hint"))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
 
-                    Section("球员名单") {
+                    Section(LocalizedStringKey("section_player_list")) {
                         ForEach(teamPackage.players) { player in
                             Text("\(player.name)  ·  \(player.id.uuidString)")
                                 .font(.caption.monospaced())
@@ -1338,7 +1354,7 @@ private struct ImportRosterPackageView: View {
                             _ = store.importTeamPackage(teamPackage)
                             dismiss()
                         } label: {
-                            Label("导入球队", systemImage: TransferSymbol.importData)
+                            Label(LocalizedStringKey("button_import_team"), systemImage: TransferSymbol.importData)
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(AppNeutralProminentButtonStyle())
@@ -1346,12 +1362,12 @@ private struct ImportRosterPackageView: View {
                 }
 
                 if importKind == .player, let playerPackage {
-                    Section("导入预览") {
-                        LabeledContent("球员", value: playerPackage.player.name)
-                        LabeledContent("号码", value: playerPackage.player.number.isEmpty ? "未填写" : playerPackage.player.number)
-                        LabeledContent("身高", value: playerPackage.player.height.isEmpty ? "未填写" : "\(playerPackage.player.height)cm")
-                        LabeledContent("体重", value: playerPackage.player.weight.isEmpty ? "未填写" : "\(playerPackage.player.weight)kg")
-                        Text("导入后会保留原 UUID。若 UUID 已存在，会用导入数据覆盖本机该球员。")
+                    Section(LocalizedStringKey("section_import_preview")) {
+                        LabeledContent(localized("label_player"), value: playerPackage.player.name)
+                        LabeledContent(localized("label_number"), value: playerPackage.player.number.isEmpty ? localized("text_not_set") : playerPackage.player.number)
+                        LabeledContent(localized("label_height"), value: playerPackage.player.height.isEmpty ? localized("text_not_set") : "\(playerPackage.player.height)cm")
+                        LabeledContent(localized("label_weight"), value: playerPackage.player.weight.isEmpty ? localized("text_not_set") : "\(playerPackage.player.weight)kg")
+                        Text(LocalizedStringKey("import_player_preview_hint"))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -1361,7 +1377,7 @@ private struct ImportRosterPackageView: View {
                             _ = store.importPlayerPackage(playerPackage)
                             dismiss()
                         } label: {
-                            Label("导入球员", systemImage: TransferSymbol.importData)
+                            Label(LocalizedStringKey("button_import_player"), systemImage: TransferSymbol.importData)
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(AppNeutralProminentButtonStyle())
@@ -1369,15 +1385,15 @@ private struct ImportRosterPackageView: View {
                 }
             }
             .scrollDismissesKeyboard(.immediately)
-            .navigationTitle("导入数据")
+            .navigationTitle(LocalizedStringKey("nav_import_data"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                    Button(LocalizedStringKey("button_cancel")) { dismiss() }
                 }
             }
-            .alert("已自动识别", isPresented: $isShowingClipboardAutoFillAlert) {
-                Button("知道了") { }
+            .alert(LocalizedStringKey("alert_auto_detected_title"), isPresented: $isShowingClipboardAutoFillAlert) {
+                Button(LocalizedStringKey("button_ok")) { }
             } message: {
                 Text(clipboardAutoFillMessage)
             }
@@ -1420,14 +1436,14 @@ private struct ImportRosterPackageView: View {
                 teamPackage = nil
                 playerPackage = nil
                 parseSucceeded = false
-                parseResultText = "解析失败\n类型: \(importKind.rawValue)分段\n\(message)"
+                parseResultText = localizedFormat("import_parse_failed_chunked_detail_format", importKind.localizedName, message)
                 return
             }
         } else {
             let trimmedInput = base64.trimmingCharacters(in: .whitespacesAndNewlines)
             if let (kind, chunks) = recognizedChunks(from: trimmedInput) {
                 applyChunks(chunks, kind: kind)
-                parseResultText = "已识别为分段编码，请补全所有段后再解析。"
+                parseResultText = localized("import_parse_detected_chunk_need_all_parts")
                 return
             }
             sourceText = trimmedInput
@@ -1439,7 +1455,7 @@ private struct ImportRosterPackageView: View {
                 teamPackage = nil
                 playerPackage = nil
                 parseSucceeded = false
-                parseResultText = "解析失败\n类型: 球队\n请确认粘贴的是完整分享编码。"
+                parseResultText = localized("import_parse_failed_team_not_complete")
                 return
             }
             applyTeamPackage(decoded)
@@ -1449,7 +1465,7 @@ private struct ImportRosterPackageView: View {
                 teamPackage = nil
                 playerPackage = nil
                 parseSucceeded = false
-                parseResultText = "解析失败\n类型: 球员\n请确认粘贴的是完整分享编码。"
+                parseResultText = localized("import_parse_failed_player_not_complete")
                 return
             }
             applyPlayerPackage(decoded)
@@ -1484,7 +1500,7 @@ private struct ImportRosterPackageView: View {
             }
             applyTeamPackage(decodedTeam)
             lastAutoFilledClipboardChangeCount = currentChangeCount
-            clipboardAutoFillMessage = "已从剪贴板识别到球队数据，并自动粘贴解析成功。"
+            clipboardAutoFillMessage = localized("import_clipboard_team_autofilled_success")
             isShowingClipboardAutoFillAlert = true
             return
         }
@@ -1498,7 +1514,7 @@ private struct ImportRosterPackageView: View {
             }
             applyPlayerPackage(decodedPlayer)
             lastAutoFilledClipboardChangeCount = currentChangeCount
-            clipboardAutoFillMessage = "已从剪贴板识别到球员数据，并自动粘贴解析成功。"
+            clipboardAutoFillMessage = localized("import_clipboard_player_autofilled_success")
             isShowingClipboardAutoFillAlert = true
         }
     }
@@ -1564,7 +1580,7 @@ private struct ImportRosterPackageView: View {
         }
 
         clearDecodeState()
-        clipboardAutoFillMessage = "已识别\(kind.rawValue)分段编码，已自动填充 \(filledChunkCount)/\(chunkTotalParts) 段。"
+        clipboardAutoFillMessage = localizedFormat("import_clipboard_chunk_autofill_format", kind.localizedName, filledChunkCount, chunkTotalParts)
         isShowingClipboardAutoFillAlert = true
     }
 
@@ -1592,25 +1608,23 @@ private struct ImportRosterPackageView: View {
         teamPackage = decoded
         playerPackage = nil
         parseSucceeded = true
-        parseResultText = """
-        解析成功
-        类型: 球队
-        球队: \(decoded.team.name)
-        球队UUID: \(decoded.team.id.uuidString)
-        球员数量: \(decoded.players.count)
-        """
+        parseResultText = localizedFormat(
+            "import_parse_success_team_detail_format",
+            decoded.team.name,
+            decoded.team.id.uuidString,
+            decoded.players.count
+        )
     }
 
     private func applyPlayerPackage(_ decoded: ExportedPlayerPackage) {
         playerPackage = decoded
         teamPackage = nil
         parseSucceeded = true
-        parseResultText = """
-        解析成功
-        类型: 球员
-        球员: \(decoded.player.name)
-        球员UUID: \(decoded.player.id.uuidString)
-        """
+        parseResultText = localizedFormat(
+            "import_parse_success_player_detail_format",
+            decoded.player.name,
+            decoded.player.id.uuidString
+        )
     }
 
     private func clearDecodeState() {
@@ -1638,7 +1652,7 @@ private struct ExportPlayerPackageView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("球员") {
+                Section(LocalizedStringKey("label_player")) {
                     Text(player.name)
                 }
 
@@ -1646,7 +1660,7 @@ private struct ExportPlayerPackageView: View {
                     Section {
                         HStack(spacing: 12) {
                             ProgressView()
-                            Text("正在生成压缩编码…")
+                            Text(LocalizedStringKey("transfer_generating_compressed"))
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
@@ -1654,14 +1668,14 @@ private struct ExportPlayerPackageView: View {
                     }
                 } else if base64.isEmpty {
                     Section {
-                        Text("编码生成失败，请重试。")
+                        Text(LocalizedStringKey("transfer_generate_failed_retry"))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
                 } else {
-                    Section("蓝牙传输") {
+                    Section(LocalizedStringKey("section_bluetooth_transfer")) {
                         if bluetooth.connectedPeers.isEmpty {
-                            Text("暂无已连接设备，请先到设置-蓝牙协同完成连接。")
+                            Text(LocalizedStringKey("transfer_no_connected_devices_hint"))
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         } else {
@@ -1670,34 +1684,34 @@ private struct ExportPlayerPackageView: View {
                                     .environmentObject(store)
                                     .environmentObject(bluetooth)
                             } label: {
-                                Label("蓝牙发送当前球员", systemImage: "dot.radiowaves.left.and.right")
+                                Label(LocalizedStringKey("transfer_send_current_player_bluetooth"), systemImage: "dot.radiowaves.left.and.right")
                             }
 
-                            Text("进入后可选择接收设备并查看传输百分比进度。")
+                            Text(LocalizedStringKey("transfer_open_to_pick_device_progress_hint"))
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
                     }
 
-                    Section("导出设置") {
+                    Section(LocalizedStringKey("section_export_settings")) {
                         Stepper(value: $segmentCount, in: 1...8) {
                             HStack {
-                                Text("分段数量")
+                                Text(LocalizedStringKey("label_segment_count"))
                                 Spacer(minLength: 8)
-                                Text("\(segmentCount)段")
+                                Text(localizedFormat("segment_count_value_format", segmentCount))
                                     .foregroundStyle(.secondary)
                             }
                         }
 
-                        Text("设为1段即不分段导出。")
+                        Text(LocalizedStringKey("export_segment_count_hint"))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
 
-                    Section("球员分享编码") {
+                    Section(LocalizedStringKey("section_player_share_code")) {
                         ForEach(Array(chunkLines.enumerated()), id: \.offset) { index, line in
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("第\(index + 1)/\(chunkLines.count)段")
+                                Text(localizedFormat("segment_progress_format", index + 1, chunkLines.count))
                                     .font(.subheadline.weight(.semibold))
 
                                 TransferCodePreview(text: line)
@@ -1707,7 +1721,7 @@ private struct ExportPlayerPackageView: View {
                                     showChunkCopyFeedback(index)
                                 } label: {
                                     Label(
-                                        copiedChunkIndex == index ? "已复制" : "复制第\(index + 1)段",
+                                        copiedChunkIndex == index ? localized("status_copied") : localizedFormat("button_copy_segment_format", index + 1),
                                         systemImage: copiedChunkIndex == index ? "checkmark.circle.fill" : "doc.on.doc"
                                     )
                                         .frame(maxWidth: .infinity)
@@ -1720,18 +1734,18 @@ private struct ExportPlayerPackageView: View {
 
                     Section {
                         ShareLink(item: chunkLines.joined(separator: "\n")) {
-                            Label("分享全部分段", systemImage: TransferSymbol.exportData)
+                            Label(LocalizedStringKey("button_share_all_segments"), systemImage: TransferSymbol.exportData)
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(AppSoftProminentButtonStyle())
                     }
                 }
             }
-            .navigationTitle("导出球员")
+            .navigationTitle(LocalizedStringKey("nav_export_player"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("完成") { dismiss() }
+                    Button(LocalizedStringKey("button_done")) { dismiss() }
                 }
             }
             .task(id: player.id) {
@@ -1792,11 +1806,11 @@ private struct MergePlayerUUIDView: View {
             } else {
                 NavigationStack {
                     content
-                        .navigationTitle("合并并统一UUID")
+                        .navigationTitle(LocalizedStringKey("nav_merge_players_uuid"))
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
-                                Button("关闭") { dismiss() }
+                                Button(LocalizedStringKey("button_close")) { dismiss() }
                             }
                         }
                     }
@@ -1806,16 +1820,16 @@ private struct MergePlayerUUIDView: View {
 
     private var content: some View {
         Form {
-            Section("选择合并对象") {
-                Picker("被合并球员", selection: $sourceID) {
-                    Text("请选择").tag(UUID?.none)
+            Section(LocalizedStringKey("section_select_merge_target")) {
+                Picker(LocalizedStringKey("picker_player_to_merge"), selection: $sourceID) {
+                    Text(LocalizedStringKey("text_please_select")).tag(UUID?.none)
                     ForEach(store.players) { player in
                         Text(label(for: player)).tag(Optional(player.id))
                     }
                 }
 
-                Picker("保留 UUID 球员", selection: $targetID) {
-                    Text("请选择").tag(UUID?.none)
+                Picker(LocalizedStringKey("picker_player_keep_uuid"), selection: $targetID) {
+                    Text(LocalizedStringKey("text_please_select")).tag(UUID?.none)
                     ForEach(targetCandidates) { player in
                         Text(label(for: player)).tag(Optional(player.id))
                     }
@@ -1823,7 +1837,7 @@ private struct MergePlayerUUIDView: View {
             }
 
             Section {
-                Text("执行后会把历史比赛、球队名单中的被合并球员 UUID 全部替换为保留 UUID，并删除被合并球员。")
+                Text(LocalizedStringKey("merge_player_hint"))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -1832,13 +1846,13 @@ private struct MergePlayerUUIDView: View {
                 Button(role: .destructive) {
                     merge()
                 } label: {
-                    Label("执行合并", systemImage: "arrow.triangle.merge")
+                    Label(LocalizedStringKey("button_execute_merge"), systemImage: "arrow.triangle.merge")
                 }
                 .disabled(!canMerge)
             }
 
             if let resultMessage {
-                Section("结果") {
+                Section(LocalizedStringKey("section_result")) {
                     Text(resultMessage)
                         .font(.footnote)
                 }
@@ -1863,10 +1877,10 @@ private struct MergePlayerUUIDView: View {
     private func merge() {
         guard let sourceID, let targetID else { return }
         guard let summary = store.mergePlayer(sourceID: sourceID, into: targetID) else {
-            resultMessage = "合并失败：请确认两个球员都存在且 UUID 不同。"
+            resultMessage = localized("merge_player_failed")
             return
         }
-        resultMessage = "已完成：更新球队 \(summary.updatedTeams) 支，更新历史比赛 \(summary.updatedGames) 场。"
+        resultMessage = localizedFormat("merge_player_success_format", summary.updatedTeams, summary.updatedGames)
         self.sourceID = nil
         self.targetID = nil
     }
@@ -1887,11 +1901,11 @@ private struct MergeTeamUUIDView: View {
             } else {
                 NavigationStack {
                     content
-                        .navigationTitle("合并球队并统一UUID")
+                        .navigationTitle(LocalizedStringKey("nav_merge_teams_uuid"))
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
-                                Button("关闭") { dismiss() }
+                                Button(LocalizedStringKey("button_close")) { dismiss() }
                             }
                         }
                     }
@@ -1901,16 +1915,16 @@ private struct MergeTeamUUIDView: View {
 
     private var content: some View {
         Form {
-            Section("选择合并对象") {
-                Picker("被合并球队", selection: $sourceID) {
-                    Text("请选择").tag(UUID?.none)
+            Section(LocalizedStringKey("section_select_merge_target")) {
+                Picker(LocalizedStringKey("picker_team_to_merge"), selection: $sourceID) {
+                    Text(LocalizedStringKey("text_please_select")).tag(UUID?.none)
                     ForEach(store.teams) { team in
                         Text(label(for: team)).tag(Optional(team.id))
                     }
                 }
 
-                Picker("保留 UUID 球队", selection: $targetID) {
-                    Text("请选择").tag(UUID?.none)
+                Picker(LocalizedStringKey("picker_team_keep_uuid"), selection: $targetID) {
+                    Text(LocalizedStringKey("text_please_select")).tag(UUID?.none)
                     ForEach(targetCandidates) { team in
                         Text(label(for: team)).tag(Optional(team.id))
                     }
@@ -1918,7 +1932,7 @@ private struct MergeTeamUUIDView: View {
             }
 
             Section {
-                Text("执行后会把历史比赛中的球队 UUID 迁移到保留 UUID，并删除被合并球队；目标球队会并入被合并球队里缺失的球员。")
+                Text(LocalizedStringKey("merge_team_hint"))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -1927,13 +1941,13 @@ private struct MergeTeamUUIDView: View {
                 Button(role: .destructive) {
                     merge()
                 } label: {
-                    Label("执行合并", systemImage: "arrow.triangle.merge")
+                    Label(LocalizedStringKey("button_execute_merge"), systemImage: "arrow.triangle.merge")
                 }
                 .disabled(!canMerge)
             }
 
             if let resultMessage {
-                Section("结果") {
+                Section(LocalizedStringKey("section_result")) {
                     Text(resultMessage)
                         .font(.footnote)
                 }
@@ -1958,10 +1972,10 @@ private struct MergeTeamUUIDView: View {
     private func merge() {
         guard let sourceID, let targetID else { return }
         guard let summary = store.mergeTeam(sourceID: sourceID, into: targetID) else {
-            resultMessage = "合并失败：请确认两个球队都存在且 UUID 不同。"
+            resultMessage = localized("merge_team_failed")
             return
         }
-        resultMessage = "已完成：并入球员 \(summary.mergedPlayers) 名，更新历史比赛 \(summary.updatedGames) 场。"
+        resultMessage = localizedFormat("merge_team_success_format", summary.mergedPlayers, summary.updatedGames)
         self.sourceID = nil
         self.targetID = nil
     }
@@ -1988,7 +2002,7 @@ struct PlayerProfileView: View {
                         PlayerGameSelectionView(games: allPlayerGames, selectedIDs: $selectedGameIDs)
                     } label: {
                         HStack {
-                            Label("选择比赛", systemImage: "list.bullet.rectangle")
+                            Label(LocalizedStringKey("button_choose_games"), systemImage: "list.bullet.rectangle")
                                 .font(.subheadline.weight(.semibold))
                             Spacer()
                             Text(selectionSummaryText)
@@ -2001,17 +2015,17 @@ struct PlayerProfileView: View {
                     .buttonStyle(.plain)
                         .padding(.horizontal)
 
-                    statSection("场均", values: averageValues)
+                    statSection(localized("label_average_stats"), values: averageValues)
                 }
 
                 if let fixedGame, fixedGame.snapshot.periodCount > 1 {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("数据范围")
+                        Text(LocalizedStringKey("label_data_range"))
                             .font(.headline)
-                        Picker("分节", selection: $selectedPeriod) {
-                            Text("全场").tag(Optional<Int>.none)
+                        Picker(LocalizedStringKey("picker_period"), selection: $selectedPeriod) {
+                            Text(LocalizedStringKey("label_full_game")).tag(Optional<Int>.none)
                             ForEach(1...fixedGame.snapshot.periodCount, id: \.self) { period in
-                                Text("第\(period)节").tag(Optional(period))
+                                Text(localizedFormat("label_period_number_format", period)).tag(Optional(period))
                             }
                         }
                         .pickerStyle(.segmented)
@@ -2019,7 +2033,7 @@ struct PlayerProfileView: View {
                     .padding(.horizontal)
                 }
 
-                statSection(fixedGame == nil ? "总数据" : "本场数据", values: totalValues)
+                statSection(fixedGame == nil ? localized("label_total_stats") : localized("label_this_game_stats"), values: totalValues)
 
                 if fixedGame != nil {
                     eventSection
@@ -2028,7 +2042,7 @@ struct PlayerProfileView: View {
             .padding(.vertical)
         }
         .background(Color(red: 0.97, green: 0.96, blue: 0.93))
-        .navigationTitle(player?.name ?? "球员")
+        .navigationTitle(player?.name ?? localized("label_player"))
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             syncSelectedGamesIfNeeded()
@@ -2050,7 +2064,7 @@ struct PlayerProfileView: View {
                     Text(profileSubtitle(player))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                    Text("比赛 \(filteredGames.count) 场")
+                    Text(localizedFormat("count_games_format", filteredGames.count))
                         .font(.caption.monospacedDigit().weight(.semibold))
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
@@ -2076,7 +2090,7 @@ struct PlayerProfileView: View {
             Text(title)
                 .font(.headline)
             if values.isEmpty {
-                Text("该分组暂无可显示数据")
+                Text(LocalizedStringKey("text_no_stats_in_group"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -2106,11 +2120,11 @@ struct PlayerProfileView: View {
 
     private var eventSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("事件")
+            Text(LocalizedStringKey("label_events"))
                 .font(.headline)
 
             if filteredPlayerLogs.isEmpty {
-                Text("该范围暂无该球员事件记录")
+                Text(LocalizedStringKey("text_no_player_events_for_range"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -2280,7 +2294,7 @@ struct PlayerProfileView: View {
         if !player.number.isEmpty { parts.append("No. \(player.number)") }
         if !player.height.isEmpty { parts.append("\(player.height)cm") }
         if !player.weight.isEmpty { parts.append("\(player.weight)kg") }
-        return parts.isEmpty ? "未填写基础资料" : parts.joined(separator: " · ")
+        return parts.isEmpty ? localized("player_profile_missing_basic") : parts.joined(separator: " · ")
     }
 
     private func containsPlayer(in game: SavedGame) -> Bool {
@@ -2325,13 +2339,13 @@ private struct PlayerGameSelectionView: View {
     var body: some View {
         List {
             if games.isEmpty {
-                ContentUnavailableView("没有可选比赛", systemImage: "clock.badge.questionmark")
+                ContentUnavailableView(LocalizedStringKey("text_no_selectable_games"), systemImage: "clock.badge.questionmark")
             }
 
             ForEach(monthGroups) { group in
                 DisclosureGroup {
                     HStack {
-                        Button(allSelected(in: group.games) ? "清空本月" : "全选本月") {
+                        Button(allSelected(in: group.games) ? localized("button_clear_month") : localized("button_select_month")) {
                             toggleMonthSelection(for: group.games)
                         }
                         .buttonStyle(.bordered)
@@ -2382,25 +2396,25 @@ private struct PlayerGameSelectionView: View {
                 }
             }
         }
-        .navigationTitle("选择比赛")
+        .navigationTitle(LocalizedStringKey("button_choose_games"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("全清") {
+                Button(LocalizedStringKey("button_clear_all")) {
                     selectedIDs.removeAll()
                 }
                 .disabled(selectedIDs.isEmpty)
             }
 
             ToolbarItem(placement: .confirmationAction) {
-                Button("全选") {
+                Button(LocalizedStringKey("button_select_all")) {
                     selectedIDs = Set(games.map(\.id))
                 }
                 .disabled(games.isEmpty || selectedIDs.count == games.count)
             }
 
             ToolbarItem(placement: .topBarTrailing) {
-                Button("完成") { dismiss() }
+                Button(LocalizedStringKey("button_done")) { dismiss() }
             }
         }
     }
@@ -2474,5 +2488,5 @@ private struct PlayerGameMonthGroup: Identifiable {
     var key: PlayerGameMonthKey
     var games: [SavedGame]
     var id: String { "\(key.year)-\(key.month)" }
-    var title: String { "\(key.year)年 \(key.month)月" }
+    var title: String { localizedFormat("month_title_format", key.year, key.month) }
 }

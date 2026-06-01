@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
 import UIKit
+#endif
 import MultipeerConnectivity
 import CryptoKit
 
@@ -130,8 +132,8 @@ struct GameView: View {
                     side: $substitutionSide,
                     outgoingPlayerID: $outgoingPlayerID,
                     incomingPlayerID: $incomingPlayerID,
-                    homeTeamName: store.team(for: snapshot.homeTeamID)?.name ?? "主队",
-                    awayTeamName: store.team(for: snapshot.awayTeamID)?.name ?? "客队",
+                    homeTeamName: store.team(for: snapshot.homeTeamID)?.name ?? NSLocalizedString("team_home_default", comment: "Default home team name"),
+                    awayTeamName: store.team(for: snapshot.awayTeamID)?.name ?? NSLocalizedString("team_away_default", comment: "Default away team name"),
                     homeOnCourtPlayers: players(in: snapshot.homeTeamID).filter { snapshot.homeOnCourtPlayerIDs.contains($0.id) },
                     homeBenchPlayers: benchPlayers(for: .home),
                     awayOnCourtPlayers: players(in: snapshot.awayTeamID).filter { snapshot.awayOnCourtPlayerIDs.contains($0.id) },
@@ -143,8 +145,8 @@ struct GameView: View {
                 LateArrivalEntryView(
                     side: $lateArrivalSide,
                     incomingPlayerID: $lateArrivalIncomingPlayerID,
-                    homeTeamName: store.team(for: snapshot.homeTeamID)?.name ?? "主队",
-                    awayTeamName: store.team(for: snapshot.awayTeamID)?.name ?? "客队",
+                    homeTeamName: store.team(for: snapshot.homeTeamID)?.name ?? NSLocalizedString("team_home_default", comment: "Default home team name"),
+                    awayTeamName: store.team(for: snapshot.awayTeamID)?.name ?? NSLocalizedString("team_away_default", comment: "Default away team name"),
                     homeUnregisteredPlayers: unregisteredPlayers(for: .home),
                     awayUnregisteredPlayers: unregisteredPlayers(for: .away),
                     onConfirm: performLateArrival
@@ -310,7 +312,7 @@ struct GameView: View {
                 score: score(for: snapshot.homeTeamID),
                 isScorePulsing: scorePulseSide == .home,
                 fouls: displayedTeamFouls(for: .home),
-                foulLabel: snapshot.resetsTeamFoulsEachPeriod ? "本节犯规" : "累计犯规",
+                foulLabel: snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
                 onCourtPlayerIDs: snapshot.homeOnCourtPlayerIDs,
                 selectedPlayerID: selectedPlayerID,
                 selectedSide: selectedSide,
@@ -324,7 +326,7 @@ struct GameView: View {
                 score: score(for: snapshot.awayTeamID),
                 isScorePulsing: scorePulseSide == .away,
                 fouls: displayedTeamFouls(for: .away),
-                foulLabel: snapshot.resetsTeamFoulsEachPeriod ? "本节犯规" : "累计犯规",
+                foulLabel: snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
                 onCourtPlayerIDs: snapshot.awayOnCourtPlayerIDs,
                 selectedPlayerID: selectedPlayerID,
                 selectedSide: selectedSide,
@@ -390,9 +392,9 @@ struct GameView: View {
         let roleLabel: String
         switch role {
         case .host:
-            roleLabel = "Host（主机）"
+            roleLabel = NSLocalizedString("role_host", comment: "Host role label")
         case .participant:
-            roleLabel = "Client（客户端）"
+            roleLabel = NSLocalizedString("role_client", comment: "Client role label")
         }
 
         let connectedPeerNames = Set(bluetooth.connectedPeers.map(\.displayName))
@@ -400,31 +402,31 @@ struct GameView: View {
         switch role {
         case .participant:
             guard let hostName = liveHostPeerName, !hostName.isEmpty else {
-                return ("\(roleLabel) · 协同中：等待主机状态同步", false)
+                return (String(format: NSLocalizedString("collab_status_participant_waiting_host", comment: "participant waiting host status"), roleLabel), false)
             }
             if connectedPeerNames.contains(hostName) {
-                return ("\(roleLabel) · 协同中：与 \(hostName)", false)
+                return (String(format: NSLocalizedString("collab_status_participant_with_host", comment: "participant with host"), roleLabel, hostName), false)
             }
-            return ("\(roleLabel) · 协同中断：\(hostName) 已断开", true)
+            return (String(format: NSLocalizedString("collab_status_participant_host_disconnected", comment: "participant host disconnected"), roleLabel, hostName), true)
 
         case .host:
             let knownParticipants = liveParticipantNames.sorted()
             guard !knownParticipants.isEmpty else {
-                return ("\(roleLabel) · 协同中：等待队友加入", false)
+                return (String(format: NSLocalizedString("collab_status_host_waiting_for_participants", comment: "host waiting for participants"), roleLabel), false)
             }
 
             let connected = knownParticipants.filter { connectedPeerNames.contains($0) }
             let disconnected = knownParticipants.filter { !connectedPeerNames.contains($0) }
 
             if disconnected.isEmpty {
-                return ("\(roleLabel) · 协同中：与 \(connected.joined(separator: "、"))", false)
+                return (String(format: NSLocalizedString("collab_status_host_with_connected", comment: "host with connected"), roleLabel, connected.joined(separator: "、")), false)
             }
             if connected.isEmpty {
-                return ("\(roleLabel) · 协同中断：\(disconnected.joined(separator: "、")) 已断开", true)
+                return (String(format: NSLocalizedString("collab_status_host_disconnected_some", comment: "host disconnected some"), roleLabel, disconnected.joined(separator: "、")), true)
             }
 
             return (
-                "\(roleLabel) · 协同中：与 \(connected.joined(separator: "、"))（\(disconnected.joined(separator: "、")) 已断开）",
+                String(format: NSLocalizedString("collab_status_host_mixed", comment: "host mixed connected and disconnected"), roleLabel, connected.joined(separator: "、"), disconnected.joined(separator: "、")),
                 true
             )
         }
@@ -471,7 +473,7 @@ struct GameView: View {
                 Button {
                     togglePause()
                 } label: {
-                    Label(LocalizedStringKey(pauseButtonTitle), systemImage: snapshot.isPaused ? "play.fill" : "pause.fill")
+                    Label(pauseButtonTitle, systemImage: snapshot.isPaused ? "play.fill" : "pause.fill")
                         .font(.caption.weight(.semibold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
@@ -547,13 +549,12 @@ struct GameView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(GamePalette.finish)
                 .disabled(snapshot.isComplete || snapshot.logs.isEmpty)
-                .alert("结束比赛？", isPresented: $isShowingFinishGameConfirmation) {
-                    Button("取消", role: .cancel) { }
-                    Button("确认结束") {
+                .alert(LocalizedStringKey("alert_finish_game_title"), isPresented: $isShowingFinishGameConfirmation) {
+                    Button(LocalizedStringKey("button_cancel"), role: .cancel) { }
+                    Button(LocalizedStringKey("button_confirm_finish")) {
                         finishGame()
                     }
-                } message: {
-                    Text("结束后将无法继续本场记分，确认结束当前比赛吗？")
+                } message: { Text(LocalizedStringKey("alert_finish_game_message"))
                 }
 
                 Button {
@@ -586,7 +587,7 @@ struct GameView: View {
     private var logView: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("事件")
+                Text(LocalizedStringKey("label_events"))
                     .font(.subheadline.weight(.semibold))
                 Spacer()
                 Text("\(snapshot.logs.count)")
@@ -623,7 +624,7 @@ struct GameView: View {
         if isSimulating {
             VStack(spacing: 8) {
                 ProgressView()
-                Text("模拟比赛中...")
+                Text(LocalizedStringKey("text_simulating"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -672,8 +673,8 @@ struct GameView: View {
             id: currentGameRecordID ?? UUID(),
             savedAt: Date(),
             snapshot: snapshotForDisplay,
-            homeTeamName: homeTeam?.name ?? "主队",
-            awayTeamName: awayTeam?.name ?? "客队",
+            homeTeamName: homeTeam?.name ?? NSLocalizedString("team_home_default", comment: "Default home team name"),
+            awayTeamName: awayTeam?.name ?? NSLocalizedString("team_away_default", comment: "Default away team name"),
             homePlayerIDs: homePlayerIDs,
             awayPlayerIDs: awayPlayerIDs,
             playerNamesByID: playerNamesByID
@@ -698,18 +699,19 @@ struct GameView: View {
     }
 
     private var periodSummary: String {
-        if snapshot.isComplete { return "已结束" }
+        if snapshot.isComplete { return NSLocalizedString("period_summary_finished", comment: "Period summary when game finished") }
         if snapshot.periodIsRunning {
             return snapshot.isPaused
-                ? "第\(snapshot.currentPeriod)/\(snapshot.periodCount)节(暂停)"
-                : "第\(snapshot.currentPeriod)/\(snapshot.periodCount)节中"
+                ? String(format: NSLocalizedString("period_summary_paused_format", comment: "Period paused format"), snapshot.currentPeriod, snapshot.periodCount)
+                : String(format: NSLocalizedString("period_summary_in_progress_format", comment: "Period in progress format"), snapshot.currentPeriod, snapshot.periodCount)
         }
-        return "第\(snapshot.currentPeriod)/\(snapshot.periodCount)节"
+        return String(format: NSLocalizedString("period_summary_format", comment: "Period summary format"), snapshot.currentPeriod, snapshot.periodCount)
     }
 
     private var periodButtonTitle: String {
-        if snapshot.isComplete { return "比赛结束" }
-        return "第\(snapshot.currentPeriod)节\(snapshot.periodIsRunning ? "结束" : "开始")"
+        if snapshot.isComplete { return NSLocalizedString("period_button_finished", comment: "Period button title when game finished") }
+        let action = snapshot.periodIsRunning ? NSLocalizedString("period_button_action_end", comment: "Period button action end") : NSLocalizedString("period_button_action_start", comment: "Period button action start")
+        return String(format: NSLocalizedString("period_button_toggle_format", comment: "Period button format"), snapshot.currentPeriod, action)
     }
 
     private var currentMatchElapsedSeconds: TimeInterval {
@@ -760,20 +762,26 @@ struct GameView: View {
         .onDisappear { recordingIndicatorBlink = false }
     }
 
-    private func actionButton(_ title: String, systemImage: String, style: ActionButtonStyle, action: @escaping () -> Void) -> some View {
-        Button {
+    private func actionButton(_ title: LocalizedStringKey, systemImage: String, style: ActionButtonStyle, action: @escaping () -> Void) -> some View {
+        let titleKey = String(describing: title)
+        return Button {
             action()
-            pulseActionButton(title)
+            pulseActionButton(titleKey)
         } label: {
             Label(title, systemImage: systemImage)
                 .font(.caption.weight(.semibold))
                 .frame(maxWidth: .infinity, minHeight: 34)
         }
         .buttonStyle(PastelActionButtonStyle(style: style))
-        .scaleEffect(actionButtonPulseKey == title ? 1.09 : 1)
-        .animation(.spring(response: 0.2, dampingFraction: 0.68), value: actionButtonPulseKey == title)
+        .scaleEffect(actionButtonPulseKey == titleKey ? 1.09 : 1)
+        .animation(.spring(response: 0.2, dampingFraction: 0.68), value: actionButtonPulseKey == titleKey)
         .disabled(needsNewGameSetup)
     }
+
+    private func actionButton(_ title: String, systemImage: String, style: ActionButtonStyle, action: @escaping () -> Void) -> some View {
+        actionButton(LocalizedStringKey(title), systemImage: systemImage, style: style, action: action)
+    }
+
 
     private func players(in teamID: UUID?) -> [Player] {
         guard let team = store.team(for: teamID) else { return [] }
@@ -958,19 +966,19 @@ struct GameView: View {
 
     private func record(_ action: StatAction) {
         guard !snapshot.isComplete else {
-            statAlertMessage = "比赛已结束"
+            statAlertMessage = NSLocalizedString("stat_game_already_finished", comment: "Game already finished message")
             return
         }
         guard !snapshot.isPaused else {
-            statAlertMessage = "比赛暂停中"
+            statAlertMessage = NSLocalizedString("stat_game_paused", comment: "Game paused message")
             return
         }
         guard snapshot.periodIsRunning else {
-            statAlertMessage = "第\(snapshot.currentPeriod)节比赛未开始"
+            statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: "Period not started message"), snapshot.currentPeriod)
             return
         }
         guard let player = selectedPlayer else {
-            statAlertMessage = "请先选择球员"
+            statAlertMessage = NSLocalizedString("stat_select_player_first", comment: "Please select a player message")
             return
         }
         guard isOnCourt(player.id, side: selectedSide) else { return }
@@ -1031,15 +1039,15 @@ struct GameView: View {
 
     private func handleInviteSyncTapped() {
         guard currentGameRecordID != nil else {
-            collaborationAlertMessage = "请先新建比赛后再发起协同邀请。"
+            collaborationAlertMessage = NSLocalizedString("collab_invite_before_new_game", comment: "Prompt user to create a new game before inviting")
             return
         }
         guard !needsNewGameSetup else {
-            collaborationAlertMessage = "请先完成比赛阵容设置后再邀请协同。"
+            collaborationAlertMessage = NSLocalizedString("collab_invite_complete_lineup", comment: "Prompt user to complete lineup before inviting collab")
             return
         }
         guard !bluetooth.connectedPeers.isEmpty else {
-            collaborationAlertMessage = "请先在设置 > 蓝牙协同里连接设备。"
+            collaborationAlertMessage = NSLocalizedString("collab_no_connected_devices", comment: "Prompt to connect devices in settings before inviting")
             return
         }
 
@@ -1066,12 +1074,12 @@ struct GameView: View {
             stateHash: liveStateHash,
             to: peers
         ) else {
-            collaborationAlertMessage = "邀请发送失败，请检查连接状态。"
+            collaborationAlertMessage = NSLocalizedString("collab_invite_send_failed", comment: "Invite send failed message")
             return
         }
 
         activeLiveSessionID = sessionID
-        collaborationAlertMessage = "协同邀请已发送，等待对方同意。"
+        collaborationAlertMessage = NSLocalizedString("collab_invite_sent_waiting", comment: "Invite sent, waiting message")
     }
 
     private func handleInviteResponse(_ response: BluetoothReceivedInviteResponse) {
@@ -1387,7 +1395,7 @@ struct GameView: View {
                 hostName: liveHostPeerName
             )
             if !sent {
-                collaborationAlertMessage = "操作发送失败，请检查连接后重试。"
+                collaborationAlertMessage = NSLocalizedString("collab_operation_send_failed", comment: "Operation send failed")
             }
             return false
         }
@@ -1474,7 +1482,7 @@ struct GameView: View {
             if action.points > 0 {
                 applyPlusMinus(points: action.points, scoringSide: side)
             }
-            addEvent("\(name(for: playerID)) \(action.message)", playerID: playerID)
+            addEvent("\(name(for: playerID)) \(action.message)", playerID: playerID, eventCode: action.eventCode)
         }
         return true
     }
@@ -1486,12 +1494,15 @@ struct GameView: View {
                 closeActiveStints(at: now)
                 closeMatchClock(at: now)
                 closePeriodClock(at: now)
-                addEvent("第\(snapshot.currentPeriod)节结束")
+                addEvent(
+                    String(format: NSLocalizedString("event_period_end_format", comment: "Period end event format"), snapshot.currentPeriod),
+                    eventCode: "event.period_end"
+                )
                 snapshot.periodIsRunning = false
                 snapshot.isPaused = false
                 if snapshot.currentPeriod >= snapshot.periodCount {
                     snapshot.isComplete = true
-                    addEvent("比赛结束")
+                    addEvent(NSLocalizedString("event_game_end", comment: "Game end event"), eventCode: "event.game_end")
                 } else {
                     snapshot.currentPeriod += 1
                     snapshot.periodElapsedSeconds = 0
@@ -1505,13 +1516,22 @@ struct GameView: View {
                 }
                 if !snapshot.startersRecorded {
                     snapshot.starterPlayerIDs = unique(snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs)
-                    addEvent("主队首发：\(names(for: snapshot.homeOnCourtPlayerIDs))")
-                    addEvent("客队首发：\(names(for: snapshot.awayOnCourtPlayerIDs))")
+                    addEvent(
+                        String(format: NSLocalizedString("event_starters_home_format", comment: "Home starters event format"), names(for: snapshot.homeOnCourtPlayerIDs)),
+                        eventCode: "event.starters_home"
+                    )
+                    addEvent(
+                        String(format: NSLocalizedString("event_starters_away_format", comment: "Away starters event format"), names(for: snapshot.awayOnCourtPlayerIDs)),
+                        eventCode: "event.starters_away"
+                    )
                     snapshot.startersRecorded = true
                 }
                 snapshot.periodElapsedSeconds = 0
                 snapshot.periodActiveSince = nil
-                addEvent("第\(snapshot.currentPeriod)节开始")
+                addEvent(
+                    String(format: NSLocalizedString("event_period_start_format", comment: "Period start event format"), snapshot.currentPeriod),
+                    eventCode: "event.period_start"
+                )
                 startMatchClock(at: now)
                 startPeriodClock(at: now)
                 startActiveStints(at: now)
@@ -1532,13 +1552,13 @@ struct GameView: View {
                 startMatchClock(at: now)
                 startPeriodClock(at: now)
                 startActiveStints(at: now)
-                addEvent("比赛继续")
+                addEvent(NSLocalizedString("event_game_resumed", comment: "Game resumed event"), eventCode: "event.resume")
             } else {
                 closeActiveStints(at: now)
                 closeMatchClock(at: now)
                 closePeriodClock(at: now)
                 snapshot.isPaused = true
-                addEvent("比赛暂停")
+                addEvent(NSLocalizedString("event_game_paused", comment: "Game paused event"), eventCode: "event.pause")
             }
         }
         return true
@@ -1569,7 +1589,14 @@ struct GameView: View {
                 startStint(for: incomingPlayerID, at: now)
             }
 
-            addEvent("\(name(for: incomingPlayerID)) 替换 \(name(for: outgoingPlayerID))")
+            addEvent(
+                String(
+                    format: NSLocalizedString("event_substitution_format", comment: "Substitution event format"),
+                    name(for: incomingPlayerID),
+                    name(for: outgoingPlayerID)
+                ),
+                eventCode: "event.substitution"
+            )
             selectedPlayerID = incomingPlayerID
             selectedSide = side
             changed = true
@@ -1585,7 +1612,10 @@ struct GameView: View {
             guard !registered.contains(playerID) else { return }
             registered.append(playerID)
             setGamePlayerIDs(registered, for: side)
-            addEvent("\(name(for: playerID)) 已加入出场名单")
+            addEvent(
+                String(format: NSLocalizedString("event_late_arrival_format", comment: "Late arrival event format"), name(for: playerID)),
+                eventCode: "event.late_arrival"
+            )
             changed = true
         }
         return changed
@@ -1604,7 +1634,7 @@ struct GameView: View {
             }
             snapshot.isPaused = false
             snapshot.isComplete = true
-            addEvent("比赛结束")
+            addEvent(NSLocalizedString("event_game_end", comment: "Game end event"), eventCode: "event.game_end")
         }
         return true
     }
@@ -1706,7 +1736,7 @@ struct GameView: View {
         closePeriodClock(in: &snapshotForSaving, at: now)
         snapshotForSaving.periodIsRunning = false
         currentGameRecordID = store.autoSaveGame(snapshotForSaving, gameID: currentGameRecordID, undoSnapshots: undoStack)
-        saveConfirmation = "比赛已保存到历史记录。"
+        saveConfirmation = NSLocalizedString("game_saved_to_history", comment: "Saved to history confirmation")
     }
 
     private func finishGame() {
@@ -1785,7 +1815,7 @@ struct GameView: View {
 
     private func simulateGame() {
         guard let context = simulationContext() else {
-            simulationAlertMessage = "至少需要两支有球员的球队才能模拟比赛。"
+            simulationAlertMessage = NSLocalizedString("simulate_need_two_teams_with_players", comment: "Need two teams with players to simulate")
             return
         }
 
@@ -1857,11 +1887,12 @@ struct GameView: View {
             "(\(sideScore(.home)):\(sideScore(.away)))"
         }
 
-        func appendEvent(_ message: String, playerID: UUID? = nil) {
+        func appendEvent(_ message: String, playerID: UUID? = nil, eventCode: String? = nil) {
+            let encodedMessage = message + (eventCode.map { " [event:\($0)]" } ?? "")
             simulated.logs.append(
                 GameLogEntry(
                     timestamp: eventTime,
-                    message: "\(message) \(scoreSuffix())",
+                    message: "\(encodedMessage) \(scoreSuffix())",
                     playerID: playerID,
                     period: simulatedCurrentPeriod,
                     periodElapsedSeconds: simulatedPeriodElapsedSeconds
@@ -1883,7 +1914,7 @@ struct GameView: View {
             stats.fouls += 1
             simulated.statsByPlayerID[foulerID] = stats
             simulated.currentPeriodFoulsBySide[side.rawValue, default: 0] += 1
-            appendEvent("\(name(for: foulerID)) 犯规", playerID: foulerID)
+            appendEvent("\(name(for: foulerID)) \(StatAction.foul.message)", playerID: foulerID, eventCode: StatAction.foul.eventCode)
         }
 
         func addReboundEvent(preferredSide: TeamSide? = nil) {
@@ -1897,7 +1928,7 @@ struct GameView: View {
             var stats = simulated.statsByPlayerID[rebounderID, default: PlayerStats()]
             stats.rebounds += 1
             simulated.statsByPlayerID[rebounderID] = stats
-            appendEvent("\(name(for: rebounderID)) 篮板", playerID: rebounderID)
+            appendEvent("\(name(for: rebounderID)) \(StatAction.rebound.message)", playerID: rebounderID, eventCode: StatAction.rebound.eventCode)
         }
 
         func addSubstitutionEvent() {
@@ -1912,7 +1943,14 @@ struct GameView: View {
             nextOnCourt.removeAll { $0 == outgoingID }
             nextOnCourt.append(incomingID)
             setOnCourtIDs(nextOnCourt, for: side)
-            appendEvent("\(name(for: incomingID)) 替换 \(name(for: outgoingID))")
+            appendEvent(
+                String(
+                    format: NSLocalizedString("event_substitution_format", comment: "Substitution event format"),
+                    name(for: incomingID),
+                    name(for: outgoingID)
+                ),
+                eventCode: "event.substitution"
+            )
         }
 
         func addBlockEvent() {
@@ -1921,7 +1959,7 @@ struct GameView: View {
             var stats = simulated.statsByPlayerID[blockerID, default: PlayerStats()]
             stats.blocks += 1
             simulated.statsByPlayerID[blockerID] = stats
-            appendEvent("\(name(for: blockerID)) 封盖", playerID: blockerID)
+            appendEvent("\(name(for: blockerID)) \(StatAction.block.message)", playerID: blockerID, eventCode: StatAction.block.eventCode)
         }
 
         func addStealEvent() {
@@ -1930,7 +1968,7 @@ struct GameView: View {
             var stats = simulated.statsByPlayerID[stealerID, default: PlayerStats()]
             stats.steals += 1
             simulated.statsByPlayerID[stealerID] = stats
-            appendEvent("\(name(for: stealerID)) 抢断", playerID: stealerID)
+            appendEvent("\(name(for: stealerID)) \(StatAction.steal.message)", playerID: stealerID, eventCode: StatAction.steal.eventCode)
         }
 
         func addTurnoverEvent() {
@@ -1939,7 +1977,7 @@ struct GameView: View {
             var stats = simulated.statsByPlayerID[turnoverID, default: PlayerStats()]
             stats.turnovers += 1
             simulated.statsByPlayerID[turnoverID] = stats
-            appendEvent("\(name(for: turnoverID)) 失误", playerID: turnoverID)
+            appendEvent("\(name(for: turnoverID)) \(StatAction.turnover.message)", playerID: turnoverID, eventCode: StatAction.turnover.eventCode)
         }
 
         func addShotEvent() {
@@ -1954,7 +1992,8 @@ struct GameView: View {
                 stats.threeAttempts += 1
                 if isMade { stats.threeMade += 1 }
                 simulated.statsByPlayerID[shooterID] = stats
-                appendEvent("\(name(for: shooterID)) \(isMade ? "3分命中" : "3分不中")", playerID: shooterID)
+                let action: StatAction = isMade ? .threeMade : .threeMissed
+                appendEvent("\(name(for: shooterID)) \(action.message)", playerID: shooterID, eventCode: action.eventCode)
                 if isMade {
                     applyPlusMinus(points: 3, scoringSide: side, in: &simulated)
                 }
@@ -1962,7 +2001,8 @@ struct GameView: View {
                 stats.twoAttempts += 1
                 if isMade { stats.twoMade += 1 }
                 simulated.statsByPlayerID[shooterID] = stats
-                appendEvent("\(name(for: shooterID)) \(isMade ? "2分命中" : "2分不中")", playerID: shooterID)
+                let action: StatAction = isMade ? .twoMade : .twoMissed
+                appendEvent("\(name(for: shooterID)) \(action.message)", playerID: shooterID, eventCode: action.eventCode)
                 if isMade {
                     applyPlusMinus(points: 2, scoringSide: side, in: &simulated)
                 }
@@ -1975,7 +2015,7 @@ struct GameView: View {
                 var assistStats = simulated.statsByPlayerID[assistID, default: PlayerStats()]
                 assistStats.assists += 1
                 simulated.statsByPlayerID[assistID] = assistStats
-                appendEvent("\(name(for: assistID)) 助攻", playerID: assistID)
+                appendEvent("\(name(for: assistID)) \(StatAction.assist.message)", playerID: assistID, eventCode: StatAction.assist.eventCode)
             }
 
             if isMade, Double.random(in: 0...1) < 0.12 {
@@ -1986,7 +2026,11 @@ struct GameView: View {
                     bonusStats.bonusFreeThrowMade += 1
                 }
                 simulated.statsByPlayerID[shooterID] = bonusStats
-                appendEvent("\(name(for: shooterID)) \(bonusMade ? "加罚命中" : "加罚不中")", playerID: shooterID)
+                appendEvent(
+                    "\(name(for: shooterID)) \(bonusMade ? StatAction.bonusMade.message : StatAction.bonusMissed.message)",
+                    playerID: shooterID,
+                    eventCode: bonusMade ? StatAction.bonusMade.eventCode : StatAction.bonusMissed.eventCode
+                )
                 if bonusMade {
                     applyPlusMinus(points: 1, scoringSide: side, in: &simulated)
                 }
@@ -2009,12 +2053,21 @@ struct GameView: View {
 
             if !simulated.startersRecorded {
                 simulated.starterPlayerIDs = unique(simulated.homeOnCourtPlayerIDs + simulated.awayOnCourtPlayerIDs)
-                appendEvent("主队首发：\(names(for: simulated.homeOnCourtPlayerIDs))")
-                appendEvent("客队首发：\(names(for: simulated.awayOnCourtPlayerIDs))")
+                appendEvent(
+                    String(format: NSLocalizedString("event_starters_home_format", comment: "Home starters event format"), names(for: simulated.homeOnCourtPlayerIDs)),
+                    eventCode: "event.starters_home"
+                )
+                appendEvent(
+                    String(format: NSLocalizedString("event_starters_away_format", comment: "Away starters event format"), names(for: simulated.awayOnCourtPlayerIDs)),
+                    eventCode: "event.starters_away"
+                )
                 simulated.startersRecorded = true
             }
 
-            appendEvent("第\(period)节开始")
+            appendEvent(
+                String(format: NSLocalizedString("event_period_start_format", comment: "Period start event format"), period),
+                eventCode: "event.period_start"
+            )
 
             let periodDuration = Double.random(in: 630...690)
             var elapsed: TimeInterval = 0
@@ -2058,7 +2111,10 @@ struct GameView: View {
             }
 
             simulatedPeriodElapsedSeconds = elapsed
-            appendEvent("第\(period)节结束")
+            appendEvent(
+                String(format: NSLocalizedString("event_period_end_format", comment: "Period end event format"), period),
+                eventCode: "event.period_end"
+            )
         }
 
         simulated.currentPeriod = periodCount
@@ -2072,7 +2128,7 @@ struct GameView: View {
         simulatedCurrentPeriod = nil
         simulatedPeriodElapsedSeconds = nil
         eventTime.addTimeInterval(10)
-        appendEvent("比赛结束")
+        appendEvent(NSLocalizedString("event_game_end", comment: "Game end event"), eventCode: "event.game_end")
 
         undoStack.removeAll()
         redoStack.removeAll()
@@ -2082,7 +2138,7 @@ struct GameView: View {
         selectedSide = .home
         ensureSelectedPlayer()
         autoSaveCurrentGame()
-        saveConfirmation = "已生成一场模拟比赛并保存到历史记录。"
+        saveConfirmation = NSLocalizedString("game_saved_to_history", comment: "Saved to history confirmation")
     }
 
     private struct SimulationContext {
@@ -2178,11 +2234,13 @@ struct GameView: View {
         autoSaveCurrentGame()
     }
 
-    private func addEvent(_ message: String, playerID: UUID? = nil) {
-        let context = eventPeriodContext(for: message)
+    private func addEvent(_ message: String, playerID: UUID? = nil, eventCode: String? = nil) {
+        let context = eventPeriodContext(for: message, eventCode: eventCode)
+        let encodedMessage = message + (eventCode.map { " [event:\($0)]" } ?? "")
+        let fullMessage = "\(encodedMessage) \(scoreSuffix)"
         let logEntry = GameLogEntry(
             timestamp: Date(),
-            message: "\(message) \(scoreSuffix)",
+            message: fullMessage,
             playerID: playerID,
             period: context.period,
             periodElapsedSeconds: context.periodElapsedSeconds
@@ -2209,8 +2267,19 @@ struct GameView: View {
         }
     }
 
-    private func eventPeriodContext(for message: String) -> (period: Int?, periodElapsedSeconds: TimeInterval?) {
-        guard !["比赛结束", "比赛保存"].contains(message), snapshot.currentPeriod > 0 else {
+    private func eventPeriodContext(for message: String, eventCode: String?) -> (period: Int?, periodElapsedSeconds: TimeInterval?) {
+        let nonPeriodEventCodes: Set<String> = ["event.game_end", "event.game_saved"]
+        let nonPeriodMessages: Set<String> = [
+            NSLocalizedString("event_game_end", comment: "Game end event"),
+            NSLocalizedString("event_game_saved", comment: "Game saved event")
+        ]
+
+        if let eventCode,
+           nonPeriodEventCodes.contains(eventCode) {
+            return (nil, nil)
+        }
+
+        guard !nonPeriodMessages.contains(message), snapshot.currentPeriod > 0 else {
             return (nil, nil)
         }
 
@@ -2344,11 +2413,15 @@ struct GameView: View {
         var previous = current
         previous.logs.removeLast()
 
-        if normalizedMessage == "比赛保存" {
+        let lastEventCode = GameLogFormatter.extractEventCode(from: lastLog.message)
+
+        if lastEventCode == "event.game_saved"
+            || normalizedMessage == NSLocalizedString("event_game_saved", comment: "Game saved event") {
             return previous
         }
 
-        if normalizedMessage == "比赛结束" {
+        if lastEventCode == "event.game_end"
+            || normalizedMessage == NSLocalizedString("event_game_end", comment: "Game end event") {
             previous.isComplete = false
             return previous
         }
@@ -2380,23 +2453,7 @@ struct GameView: View {
     }
 
     private func normalizedLogMessage(_ message: String) -> String {
-        guard message.hasSuffix(")"),
-              let start = message.lastIndex(of: "("),
-              start > message.startIndex else {
-            return message
-        }
-
-        let scoreText = message[message.index(after: start)..<message.index(before: message.endIndex)]
-        let parts = scoreText.split(separator: ":")
-        guard parts.count == 2,
-              Int(parts[0]) != nil,
-              Int(parts[1]) != nil else {
-            return message
-        }
-
-        let beforeScore = message[..<start]
-        guard beforeScore.last == " " else { return message }
-        return String(beforeScore.dropLast())
+        GameLogFormatter.normalizedMessage(message)
     }
 
     private func playerID(for playerName: String, action: StatAction, in current: GameSnapshot) -> UUID? {
@@ -2428,12 +2485,12 @@ struct GameView: View {
     }
 
     private func name(for playerID: UUID) -> String {
-        store.player(for: playerID)?.name ?? "未知球员"
+        store.player(for: playerID)?.name ?? NSLocalizedString("unknown_player", comment: "Unknown player fallback")
     }
 
     private func names(for playerIDs: [UUID]) -> String {
         let text = playerIDs.map { name(for: $0) }.joined(separator: "、")
-        return text.isEmpty ? "未设置" : text
+        return text.isEmpty ? NSLocalizedString("text_not_set", comment: "Not set fallback") : text
     }
 
     private func unique(_ ids: [UUID]) -> [UUID] {
@@ -2448,8 +2505,14 @@ struct GameView: View {
 
     static func periodContextText(period: Int?, elapsedSeconds: TimeInterval?) -> String {
         guard let period else { return "" }
-        guard let elapsedSeconds else { return "第\(period)节" }
-        return "第\(period)节 \(durationFormatter(elapsedSeconds))"
+        guard let elapsedSeconds else {
+            return String(format: NSLocalizedString("period_context_only_format", comment: "Period context without elapsed time"), period)
+        }
+        return String(
+            format: NSLocalizedString("period_context_with_time_format", comment: "Period context with elapsed time"),
+            period,
+            durationFormatter(elapsedSeconds)
+        )
     }
 
     private func logText(for entry: GameLogEntry) -> String {
@@ -2473,6 +2536,15 @@ enum TeamSide: String {
 
 extension TeamSide: CaseIterable, Identifiable {
     var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .home:
+            return NSLocalizedString("team_home_default", comment: "Home team")
+        case .away:
+            return NSLocalizedString("team_away_default", comment: "Away team")
+        }
+    }
 }
 
 private enum LiveCollaborationRole {
@@ -2558,22 +2630,41 @@ private enum StatAction {
     case bonusMade, bonusMissed, freeThrowMade, freeThrowMissed
     case foul, assist, rebound, block, steal, turnover
 
+    var eventCode: String {
+        switch self {
+        case .twoMade: return "stat.twoMade"
+        case .twoMissed: return "stat.twoMissed"
+        case .threeMade: return "stat.threeMade"
+        case .threeMissed: return "stat.threeMissed"
+        case .bonusMade: return "stat.bonusMade"
+        case .bonusMissed: return "stat.bonusMissed"
+        case .freeThrowMade: return "stat.freeThrowMade"
+        case .freeThrowMissed: return "stat.freeThrowMissed"
+        case .foul: return "stat.foul"
+        case .assist: return "stat.assist"
+        case .rebound: return "stat.rebound"
+        case .block: return "stat.block"
+        case .steal: return "stat.steal"
+        case .turnover: return "stat.turnover"
+        }
+    }
+
     var message: String {
         switch self {
-        case .twoMade: return "2分命中"
-        case .twoMissed: return "2分不中"
-        case .threeMade: return "3分命中"
-        case .threeMissed: return "3分不中"
-        case .bonusMade: return "加罚命中"
-        case .bonusMissed: return "加罚不中"
-        case .freeThrowMade: return "罚篮命中"
-        case .freeThrowMissed: return "罚篮不中"
-        case .foul: return "犯规"
-        case .assist: return "助攻"
-        case .rebound: return "篮板"
-        case .block: return "封盖"
-        case .steal: return "抢断"
-        case .turnover: return "失误"
+        case .twoMade: return NSLocalizedString("action_two_made", comment: "Two-point made")
+        case .twoMissed: return NSLocalizedString("action_two_missed", comment: "Two-point missed")
+        case .threeMade: return NSLocalizedString("action_three_made", comment: "Three-point made")
+        case .threeMissed: return NSLocalizedString("action_three_missed", comment: "Three-point missed")
+        case .bonusMade: return NSLocalizedString("action_bonus_made", comment: "Bonus free throw made")
+        case .bonusMissed: return NSLocalizedString("action_bonus_missed", comment: "Bonus free throw missed")
+        case .freeThrowMade: return NSLocalizedString("action_free_made", comment: "Free throw made")
+        case .freeThrowMissed: return NSLocalizedString("action_free_missed", comment: "Free throw missed")
+        case .foul: return NSLocalizedString("action_foul", comment: "Foul")
+        case .assist: return NSLocalizedString("action_assist", comment: "Assist")
+        case .rebound: return NSLocalizedString("action_rebound", comment: "Rebound")
+        case .block: return NSLocalizedString("action_block", comment: "Block")
+        case .steal: return NSLocalizedString("action_steal", comment: "Steal")
+        case .turnover: return NSLocalizedString("action_turnover", comment: "Turnover")
         }
     }
 
@@ -2676,9 +2767,19 @@ private enum StatAction {
     }
 
     static func parseLog(_ message: String) -> (playerName: String, action: StatAction)? {
+        if let eventCode = GameLogFormatter.extractEventCode(from: message),
+           let action = allCases.first(where: { $0.eventCode == eventCode }) {
+            let normalized = GameLogFormatter.normalizedMessage(message)
+            guard normalized.hasSuffix(action.message) else { return nil }
+            let name = String(normalized.dropLast(action.message.count)).trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty else { return nil }
+            return (name, action)
+        }
+
+        let normalized = GameLogFormatter.normalizedMessage(message)
         for action in allCases {
-            guard message.hasSuffix(action.message) else { continue }
-            let name = String(message.dropLast(action.message.count)).trimmingCharacters(in: .whitespaces)
+            guard normalized.hasSuffix(action.message) else { continue }
+            let name = String(normalized.dropLast(action.message.count)).trimmingCharacters(in: .whitespacesAndNewlines)
             guard !name.isEmpty else { return nil }
             return (name, action)
         }
@@ -2750,7 +2851,7 @@ private struct CompactTeamRow: View {
     var body: some View {
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(team?.name ?? side.rawValue)
+                Text(team?.name ?? side.displayName)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -2775,7 +2876,7 @@ private struct CompactTeamRow: View {
             .frame(minWidth: 114, alignment: .leading)
 
             if players.isEmpty {
-                Text("无球员")
+                Text(LocalizedStringKey("text_no_players"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -2858,7 +2959,7 @@ struct TeamStatsDisclosureView: View {
             .padding(.top, 8)
         } label: {
             HStack {
-                Text("球队数据")
+                Text(LocalizedStringKey("label_team_stats"))
                     .font(.subheadline.weight(.semibold))
                 Spacer()
                 Text("\(homeStats.points)-\(awayStats.points)")
@@ -2881,22 +2982,22 @@ struct TeamStatsDisclosureView: View {
                     Text(name)
                         .font(.caption.weight(.semibold))
                     Spacer()
-                    Text("\(stats.points)分")
+                    Text(String(format: NSLocalizedString("stats_points_format", comment: "Points format"), stats.points))
                         .font(.caption.monospacedDigit().weight(.semibold))
                 }
                 HStack(spacing: 8) {
-                    statTile("投篮", "\(stats.made)/\(stats.attempts)", percent(stats.fieldGoalRate))
-                    statTile("2分", "\(stats.twoMade)/\(stats.twoAttempts)", percent(stats.twoPointRate))
-                    statTile("3分", "\(stats.threeMade)/\(stats.threeAttempts)", percent(stats.threePointRate))
+                    statTile(NSLocalizedString("stats_field_goal", comment: "Field goal"), "\(stats.made)/\(stats.attempts)", percent(stats.fieldGoalRate))
+                    statTile(NSLocalizedString("stats_two_point", comment: "Two-point"), "\(stats.twoMade)/\(stats.twoAttempts)", percent(stats.twoPointRate))
+                    statTile(NSLocalizedString("stats_three_point", comment: "Three-point"), "\(stats.threeMade)/\(stats.threeAttempts)", percent(stats.threePointRate))
                 }
                 HStack(spacing: 8) {
-                    statTile("罚篮", "\(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)", percent(stats.freeThrowRate))
-                    statTile("板 / 助 / 犯", "\(stats.rebounds) / \(stats.assists) / \(fouls)", "")
-                    statTile("盖 / 断 / 失", "\(stats.blocks) / \(stats.steals) / \(stats.turnovers)", "")
+                    statTile(NSLocalizedString("stats_free_throw", comment: "Free throw"), "\(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)", percent(stats.freeThrowRate))
+                    statTile(NSLocalizedString("stats_raf_format", comment: "Rebounds assists fouls"), "\(stats.rebounds) / \(stats.assists) / \(fouls)", "")
+                    statTile(NSLocalizedString("stats_bst_format", comment: "Blocks steals turnovers"), "\(stats.blocks) / \(stats.steals) / \(stats.turnovers)", "")
                 }
                 HStack(spacing: 8) {
-                    statTile("高阶", "eFG \(percent(stats.effectiveFieldGoalRate))", "TS \(percent(stats.trueShootingRate))")
-                    statTile("每次出手得分", String(format: "%.2f", stats.pointsPerShot), "PTS/FGA")
+                    statTile(NSLocalizedString("stats_advanced", comment: "Advanced stats"), "eFG \(percent(stats.effectiveFieldGoalRate))", "TS \(percent(stats.trueShootingRate))")
+                    statTile(NSLocalizedString("stats_points_per_shot", comment: "Points per shot"), String(format: "%.2f", stats.pointsPerShot), "PTS/FGA")
                 }
             }
             .padding(8)
@@ -2913,16 +3014,38 @@ struct TeamStatsDisclosureView: View {
 
                 Spacer(minLength: 8)
 
-                Text("\(stats.points)分")
+                Text(String(format: NSLocalizedString("stats_points_format", comment: "Points format"), stats.points))
                     .font(.subheadline.monospacedDigit().weight(.semibold))
             }
 
-            Text("投篮 \(stats.made)/\(stats.attempts)  2分 \(stats.twoMade)/\(stats.twoAttempts)  3分 \(stats.threeMade)/\(stats.threeAttempts)")
+            Text(
+                String(
+                    format: NSLocalizedString("stats_record_shooting_format", comment: "Record row shooting stats"),
+                    stats.made,
+                    stats.attempts,
+                    stats.twoMade,
+                    stats.twoAttempts,
+                    stats.threeMade,
+                    stats.threeAttempts
+                )
+            )
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
 
-            Text("罚球 \(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)  板 \(stats.rebounds)  助 \(stats.assists)  犯 \(fouls)  盖 \(stats.blocks)  断 \(stats.steals)  失 \(stats.turnovers)")
+            Text(
+                String(
+                    format: NSLocalizedString("stats_record_misc_format", comment: "Record row misc stats"),
+                    stats.allFreeThrowMade,
+                    stats.allFreeThrowAttempts,
+                    stats.rebounds,
+                    stats.assists,
+                    fouls,
+                    stats.blocks,
+                    stats.steals,
+                    stats.turnovers
+                )
+            )
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
@@ -3014,37 +3137,37 @@ private struct CollapsibleStatsView: View {
         DisclosureGroup(isExpanded: $isExpanded) {
             VStack(spacing: 8) {
                 HStack(spacing: 8) {
-                    statTile("投篮", "\(stats.made)/\(stats.attempts)", percent(stats.fieldGoalRate))
-                    statTile("2分", "\(stats.twoMade)/\(stats.twoAttempts)", percent(stats.twoPointRate))
-                    statTile("3分", "\(stats.threeMade)/\(stats.threeAttempts)", percent(stats.threePointRate))
+                    statTile(NSLocalizedString("stats_field_goal", comment: "Field goal"), "\(stats.made)/\(stats.attempts)", percent(stats.fieldGoalRate))
+                    statTile(NSLocalizedString("stats_two_point", comment: "Two-point"), "\(stats.twoMade)/\(stats.twoAttempts)", percent(stats.twoPointRate))
+                    statTile(NSLocalizedString("stats_three_point", comment: "Three-point"), "\(stats.threeMade)/\(stats.threeAttempts)", percent(stats.threePointRate))
                 }
 
                 HStack(spacing: 8) {
-                    statTile("罚篮", "\(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)", percent(stats.freeThrowRate))
-                    statTile("板 / 助 / 犯 / 盖 / 断 / 失", "\(stats.rebounds) / \(stats.assists) / \(stats.fouls) / \(stats.blocks) / \(stats.steals) / \(stats.turnovers)", "")
-                    statTile("高阶", "eFG \(percent(stats.effectiveFieldGoalRate))", "TS \(percent(stats.trueShootingRate))")
+                    statTile(NSLocalizedString("stats_free_throw", comment: "Free throw"), "\(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)", percent(stats.freeThrowRate))
+                    statTile(NSLocalizedString("stats_full_misc_format", comment: "Rebounds assists fouls blocks steals turnovers"), "\(stats.rebounds) / \(stats.assists) / \(stats.fouls) / \(stats.blocks) / \(stats.steals) / \(stats.turnovers)", "")
+                    statTile(NSLocalizedString("stats_advanced", comment: "Advanced stats"), "eFG \(percent(stats.effectiveFieldGoalRate))", "TS \(percent(stats.trueShootingRate))")
                 }
 
                 HStack(spacing: 8) {
-                    statTile("每次出手得分", pointsPerShotText, "PTS/FGA")
-                    statTile("正负值", plusMinusText, "在场净胜分")
-                    statTile("上场时间", playingTime, "")
+                    statTile(NSLocalizedString("stats_points_per_shot", comment: "Points per shot"), pointsPerShotText, "PTS/FGA")
+                    statTile(NSLocalizedString("stats_plus_minus", comment: "Plus minus"), plusMinusText, NSLocalizedString("stats_plus_minus_footnote", comment: "Plus minus footnote"))
+                    statTile(NSLocalizedString("stats_playing_time", comment: "Playing time"), playingTime, "")
                 }
             }
             .padding(.top, 8)
         } label: {
             HStack(spacing: 10) {
-                Text(player?.name ?? "选择球员")
+                Text(player?.name ?? NSLocalizedString("select_player", comment: "Select player"))
                     .font(.subheadline.weight(.semibold))
                 Spacer()
-                Text("\(stats.points)分")
+                Text(String(format: NSLocalizedString("stats_points_format", comment: "Points format"), stats.points))
                 Text(playingTime)
-                Text("板\(stats.rebounds)")
-                Text("助\(stats.assists)")
-                Text("犯\(stats.fouls)")
-                Text("盖\(stats.blocks)")
-                Text("断\(stats.steals)")
-                Text("失\(stats.turnovers)")
+                Text(String(format: NSLocalizedString("stats_rebound_short_format", comment: "Rebound short format"), stats.rebounds))
+                Text(String(format: NSLocalizedString("stats_assist_short_format", comment: "Assist short format"), stats.assists))
+                Text(String(format: NSLocalizedString("stats_foul_short_format", comment: "Foul short format"), stats.fouls))
+                Text(String(format: NSLocalizedString("stats_block_short_format", comment: "Block short format"), stats.blocks))
+                Text(String(format: NSLocalizedString("stats_steal_short_format", comment: "Steal short format"), stats.steals))
+                Text(String(format: NSLocalizedString("stats_turnover_short_format", comment: "Turnover short format"), stats.turnovers))
             }
             .font(.caption.monospacedDigit())
         }
@@ -3128,12 +3251,12 @@ private struct NewGameSetupView: View {
         NavigationStack {
             Form {
                 Section(LocalizedStringKey("section_teams")) {
-                    Picker("主队", selection: $homeTeamID) {
+                    Picker(LocalizedStringKey("picker_home_team"), selection: $homeTeamID) {
                         ForEach(teams) { team in
                             Text(team.name).tag(Optional(team.id))
                         }
                     }
-                    Picker("客队", selection: $awayTeamID) {
+                    Picker(LocalizedStringKey("picker_away_team"), selection: $awayTeamID) {
                         ForEach(teams) { team in
                             Text(team.name).tag(Optional(team.id))
                         }
@@ -3143,44 +3266,44 @@ private struct NewGameSetupView: View {
                 Section(LocalizedStringKey("section_game_settings")) {
                     Stepper(value: $periodCount, in: 1...8) {
                         HStack {
-                            Text("比赛节数")
+                            Text(LocalizedStringKey("label_period_count"))
                             Spacer()
-                            Text("\(periodCount)节")
+                            Text(String(format: NSLocalizedString("count_periods_format", comment: "Periods count"), periodCount))
                                 .foregroundStyle(.secondary)
                         }
                     }
 
                     Stepper(value: $courtPlayerCount, in: 1...8) {
                         HStack {
-                            Text("首发人数")
+                            Text(LocalizedStringKey("label_starter_count"))
                             Spacer()
-                            Text("\(courtPlayerCount)人")
+                            Text(String(format: NSLocalizedString("count_players_format", comment: "Players count"), courtPlayerCount))
                                 .foregroundStyle(.secondary)
                         }
                     }
 
-                    Toggle("每节球队犯规清零", isOn: $resetsTeamFoulsEachPeriod)
+                    Toggle(LocalizedStringKey("toggle_reset_team_fouls_each_period"), isOn: $resetsTeamFoulsEachPeriod)
                 }
 
                 Section(LocalizedStringKey("section_scoring_buttons")) {
-                    Toggle("篮板", isOn: $showsReboundButton)
-                    Toggle("助攻", isOn: $showsAssistButton)
-                    Toggle("犯规", isOn: $showsFoulButton)
-                    Toggle("封盖", isOn: $showsBlockButton)
-                    Toggle("抢断", isOn: $showsStealButton)
-                    Toggle("失误", isOn: $showsTurnoverButton)
+                    Toggle(LocalizedStringKey("action_rebound"), isOn: $showsReboundButton)
+                    Toggle(LocalizedStringKey("action_assist"), isOn: $showsAssistButton)
+                    Toggle(LocalizedStringKey("action_foul"), isOn: $showsFoulButton)
+                    Toggle(LocalizedStringKey("action_block"), isOn: $showsBlockButton)
+                    Toggle(LocalizedStringKey("action_steal"), isOn: $showsStealButton)
+                    Toggle(LocalizedStringKey("action_turnover"), isOn: $showsTurnoverButton)
                 }
 
-                starterSection(title: LocalizedStringKey("starter_home_title"), players: homePlayers, selectedIDs: $homeStarterIDs, requiredCount: requiredHomeCount)
+                starterSection(title: NSLocalizedString("starter_home_title", comment: "Home starters"), players: homePlayers, selectedIDs: $homeStarterIDs, requiredCount: requiredHomeCount)
                 benchSection(
-                    title: "主队替补",
+                    title: NSLocalizedString("starter_home_bench_title", comment: "Home bench title"),
                     players: homeBenchCandidates,
                     selectedIDs: $homeBenchIDs
                 )
 
-                starterSection(title: LocalizedStringKey("starter_away_title"), players: awayPlayers, selectedIDs: $awayStarterIDs, requiredCount: requiredAwayCount)
+                starterSection(title: NSLocalizedString("starter_away_title", comment: "Away starters"), players: awayPlayers, selectedIDs: $awayStarterIDs, requiredCount: requiredAwayCount)
                 benchSection(
-                    title: "客队替补",
+                    title: NSLocalizedString("starter_away_bench_title", comment: "Away bench title"),
                     players: awayBenchCandidates,
                     selectedIDs: $awayBenchIDs
                 )
@@ -3241,9 +3364,9 @@ private struct NewGameSetupView: View {
     }
 
     private func starterSection(title: String, players: [Player], selectedIDs: Binding<[UUID]>, requiredCount: Int) -> some View {
-        Section("\(title) · 选择 \(requiredCount) 人") {
+        Section(String(format: NSLocalizedString("section_starter_select_format", comment: "Starter section title"), title, requiredCount)) {
             if players.isEmpty {
-                Text("这支球队还没有球员")
+                Text(LocalizedStringKey("text_team_has_no_players"))
                     .foregroundStyle(.secondary)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -3252,7 +3375,7 @@ private struct NewGameSetupView: View {
                             SelectablePlayerAvatarButton(
                                 player: player,
                                 isSelected: selectedIDs.wrappedValue.contains(player.id),
-                                badge: selectedIDs.wrappedValue.contains(player.id) ? "首发" : nil
+                                badge: selectedIDs.wrappedValue.contains(player.id) ? NSLocalizedString("badge_starter", comment: "Starter badge") : nil
                             ) {
                                 toggle(player.id, in: selectedIDs, limit: requiredCount)
                             }
@@ -3265,9 +3388,9 @@ private struct NewGameSetupView: View {
     }
 
     private func benchSection(title: String, players: [Player], selectedIDs: Binding<[UUID]>) -> some View {
-        Section("\(title) · 可选") {
+        Section(String(format: NSLocalizedString("section_bench_optional_format", comment: "Bench section title"), title)) {
             if players.isEmpty {
-                Text("当前没有可选替补")
+                Text(LocalizedStringKey("text_no_optional_bench"))
                     .foregroundStyle(.secondary)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -3276,7 +3399,7 @@ private struct NewGameSetupView: View {
                             SelectablePlayerAvatarButton(
                                 player: player,
                                 isSelected: selectedIDs.wrappedValue.contains(player.id),
-                                badge: selectedIDs.wrappedValue.contains(player.id) ? "替补" : nil
+                                badge: selectedIDs.wrappedValue.contains(player.id) ? NSLocalizedString("badge_bench", comment: "Bench badge") : nil
                             ) {
                                 toggleBench(player.id, in: selectedIDs)
                             }
@@ -3366,7 +3489,7 @@ private struct SubstitutionView: View {
         NavigationStack {
             VStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 10) {
-                    Picker("球队", selection: $side) {
+                    Picker(LocalizedStringKey("picker_team"), selection: $side) {
                         Text(homeTeamName).tag(TeamSide.home)
                         Text(awayTeamName).tag(TeamSide.away)
                     }
@@ -3375,9 +3498,9 @@ private struct SubstitutionView: View {
                 .padding(.horizontal)
 
                 VStack(alignment: .leading, spacing: 8) {
-                    sectionHeader("换下", selectedName(for: outgoingPlayerID))
+                    sectionHeader(NSLocalizedString("section_substitute_out", comment: "Substitute out"), selectedName(for: outgoingPlayerID))
                     if onCourtPlayers.isEmpty {
-                        Text("没有已标记在场的球员")
+                        Text(LocalizedStringKey("text_no_on_court_players"))
                             .foregroundStyle(.secondary)
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -3386,7 +3509,7 @@ private struct SubstitutionView: View {
                                     SelectablePlayerAvatarButton(
                                         player: player,
                                         isSelected: outgoingPlayerID == player.id,
-                                        badge: outgoingPlayerID == player.id ? "换下" : nil
+                                        badge: outgoingPlayerID == player.id ? NSLocalizedString("badge_sub_out", comment: "Substitute out badge") : nil
                                     ) {
                                         outgoingPlayerID = player.id
                                     }
@@ -3399,9 +3522,9 @@ private struct SubstitutionView: View {
                 .padding(.horizontal)
 
                 VStack(alignment: .leading, spacing: 8) {
-                    sectionHeader("换上", selectedName(for: incomingPlayerID))
+                    sectionHeader(NSLocalizedString("section_substitute_in", comment: "Substitute in"), selectedName(for: incomingPlayerID))
                     if benchPlayers.isEmpty {
-                        Text("没有可换上的替补球员")
+                        Text(LocalizedStringKey("text_no_bench_to_sub_in"))
                             .foregroundStyle(.secondary)
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -3410,7 +3533,7 @@ private struct SubstitutionView: View {
                                     SelectablePlayerAvatarButton(
                                         player: player,
                                         isSelected: incomingPlayerID == player.id,
-                                        badge: incomingPlayerID == player.id ? "换上" : nil
+                                        badge: incomingPlayerID == player.id ? NSLocalizedString("badge_sub_in", comment: "Substitute in badge") : nil
                                     ) {
                                         incomingPlayerID = player.id
                                     }
@@ -3425,14 +3548,14 @@ private struct SubstitutionView: View {
                 Spacer()
             }
             .padding(.top)
-            .navigationTitle("换人")
+            .navigationTitle(LocalizedStringKey("nav_substitution"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                    Button(LocalizedStringKey("button_cancel")) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("记录") {
+                    Button(LocalizedStringKey("button_record")) {
                         onConfirm()
                         dismiss()
                     }
@@ -3451,8 +3574,8 @@ private struct SubstitutionView: View {
     }
 
     private func selectedName(for id: UUID?) -> String {
-        guard let id else { return "未选择" }
-        return (onCourtPlayers + benchPlayers).first(where: { $0.id == id })?.name ?? "未选择"
+        guard let id else { return NSLocalizedString("text_not_selected", comment: "Not selected") }
+        return (onCourtPlayers + benchPlayers).first(where: { $0.id == id })?.name ?? NSLocalizedString("text_not_selected", comment: "Not selected")
     }
 
     private func sectionHeader(_ title: String, _ detail: String) -> some View {
@@ -3482,7 +3605,7 @@ private struct LateArrivalEntryView: View {
         NavigationStack {
             VStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 10) {
-                    Picker("球队", selection: $side) {
+                    Picker(LocalizedStringKey("picker_team"), selection: $side) {
                         Text(homeTeamName).tag(TeamSide.home)
                         Text(awayTeamName).tag(TeamSide.away)
                     }
@@ -3491,9 +3614,9 @@ private struct LateArrivalEntryView: View {
                 .padding(.horizontal)
 
                 VStack(alignment: .leading, spacing: 8) {
-                    sectionHeader("新增到出场名单", selectedName(for: incomingPlayerID))
+                    sectionHeader(NSLocalizedString("section_add_to_roster", comment: "Add to roster"), selectedName(for: incomingPlayerID))
                     if incomingPlayers.isEmpty {
-                        Text("没有可新增上场的球员")
+                        Text(LocalizedStringKey("text_no_late_arrival_players"))
                             .foregroundStyle(.secondary)
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -3502,7 +3625,7 @@ private struct LateArrivalEntryView: View {
                                     SelectablePlayerAvatarButton(
                                         player: player,
                                         isSelected: incomingPlayerID == player.id,
-                                        badge: incomingPlayerID == player.id ? "上场" : nil
+                                        badge: incomingPlayerID == player.id ? NSLocalizedString("badge_on_court", comment: "On-court badge") : nil
                                     ) {
                                         incomingPlayerID = player.id
                                     }
@@ -3517,14 +3640,14 @@ private struct LateArrivalEntryView: View {
                 Spacer()
             }
             .padding(.top)
-            .navigationTitle("新增上场")
+            .navigationTitle(LocalizedStringKey("nav_late_arrival"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                    Button(LocalizedStringKey("button_cancel")) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("记录") {
+                    Button(LocalizedStringKey("button_record")) {
                         onConfirm()
                         dismiss()
                     }
@@ -3539,8 +3662,8 @@ private struct LateArrivalEntryView: View {
     }
 
     private func selectedName(for id: UUID?) -> String {
-        guard let id else { return "未选择" }
-        return incomingPlayers.first(where: { $0.id == id })?.name ?? "未选择"
+        guard let id else { return NSLocalizedString("text_not_selected", comment: "Not selected") }
+        return incomingPlayers.first(where: { $0.id == id })?.name ?? NSLocalizedString("text_not_selected", comment: "Not selected")
     }
 
     private func sectionHeader(_ title: String, _ detail: String) -> some View {

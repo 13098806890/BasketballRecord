@@ -68,8 +68,12 @@ struct SavedGameAnalyzer {
             )
 
             guard let period = inferredPeriod,
-                  let (playerName, action) = LoggedAction.parse(from: normalizedMessage),
-                  let playerID = entry.playerID ?? resolvePlayerIDByName(playerName) else {
+                  let (playerName, action) = LoggedAction.parse(from: normalizedMessage) else {
+                continue
+            }
+
+            let resolvedByName = playerName.isEmpty ? nil : resolvePlayerIDByName(playerName)
+            guard let playerID = entry.playerID ?? resolvedByName else {
                 continue
             }
 
@@ -135,14 +139,73 @@ struct SavedGameAnalyzer {
             }
         }
 
+        var englishSuffix: String {
+            switch self {
+            case .twoMade: return "2PT Made"
+            case .twoMissed: return "2PT Missed"
+            case .threeMade: return "3PT Made"
+            case .threeMissed: return "3PT Missed"
+            case .bonusMade: return "And-1 Made"
+            case .bonusMissed: return "And-1 Missed"
+            case .freeThrowMade: return "FT Made"
+            case .freeThrowMissed: return "FT Missed"
+            case .foul: return "Foul"
+            case .assist: return "Assist"
+            case .rebound: return "Rebound"
+            case .block: return "Block"
+            case .steal: return "Steal"
+            case .turnover: return "Turnover"
+            }
+        }
+
+        var suffixCandidates: [String] {
+            [suffix, englishSuffix]
+        }
+
+        var eventCode: String {
+            switch self {
+            case .twoMade: return "stat.twoMade"
+            case .twoMissed: return "stat.twoMissed"
+            case .threeMade: return "stat.threeMade"
+            case .threeMissed: return "stat.threeMissed"
+            case .bonusMade: return "stat.bonusMade"
+            case .bonusMissed: return "stat.bonusMissed"
+            case .freeThrowMade: return "stat.freeThrowMade"
+            case .freeThrowMissed: return "stat.freeThrowMissed"
+            case .foul: return "stat.foul"
+            case .assist: return "stat.assist"
+            case .rebound: return "stat.rebound"
+            case .block: return "stat.block"
+            case .steal: return "stat.steal"
+            case .turnover: return "stat.turnover"
+            }
+        }
+
         static func parse(from message: String) -> (playerName: String, action: LoggedAction)? {
-            for action in allCases {
-                guard message.hasSuffix(action.suffix) else { continue }
-                let playerName = String(message.dropLast(action.suffix.count)).trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !playerName.isEmpty else { return nil }
+            let normalized = GameLogFormatter.normalizedMessage(message)
+
+            if let code = GameLogFormatter.extractEventCode(from: message),
+               let action = allCases.first(where: { $0.eventCode == code }) {
+                let playerName = extractPlayerName(from: normalized, action: action)
                 return (playerName, action)
             }
+
+            // Fallback: legacy suffix-based parsing (language-dependent)
+            for action in allCases {
+                let playerName = extractPlayerName(from: normalized, action: action)
+                guard !playerName.isEmpty else { return nil }
+                if action.suffixCandidates.contains(where: { normalized.hasSuffix($0) }) {
+                    return (playerName, action)
+                }
+            }
             return nil
+        }
+
+        private static func extractPlayerName(from normalized: String, action: LoggedAction) -> String {
+            for suffix in action.suffixCandidates where normalized.hasSuffix(suffix) {
+                return String(normalized.dropLast(suffix.count)).trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            return normalized.trimmingCharacters(in: .whitespacesAndNewlines)
         }
 
         func apply(to stats: inout PlayerStats) {
@@ -193,23 +256,35 @@ enum GameLogFormatter {
     }
 
     static func normalizedMessage(_ message: String) -> String {
-        guard message.hasSuffix(")"),
-              let start = message.lastIndex(of: "("),
-              start > message.startIndex else {
-            return message
+        let withoutTag = cleanedMessage(message).trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard withoutTag.hasSuffix(")"),
+              let start = withoutTag.lastIndex(of: "("),
+              start > withoutTag.startIndex else {
+            return withoutTag
         }
 
-        let scoreText = message[message.index(after: start)..<message.index(before: message.endIndex)]
+        let scoreText = withoutTag[withoutTag.index(after: start)..<withoutTag.index(before: withoutTag.endIndex)]
         let parts = scoreText.split(separator: ":")
         guard parts.count == 2,
               Int(parts[0]) != nil,
               Int(parts[1]) != nil else {
-            return message
+            return withoutTag
         }
 
-        let beforeScore = message[..<start]
-        guard beforeScore.last == " " else { return message }
-        return String(beforeScore.dropLast())
+        let beforeScore = withoutTag[..<start]
+        return String(beforeScore).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    static func extractEventCode(from message: String) -> String? {
+        guard let start = message.range(of: "[event:") else { return nil }
+        guard let end = message.range(of: "]", range: start.upperBound..<message.endIndex) else { return nil }
+        let code = String(message[start.upperBound..<end.lowerBound])
+        return code.isEmpty ? nil : code
+    }
+
+    private static func cleanedMessage(_ message: String) -> String {
+        message.replacingOccurrences(of: "\\s*\\[event:[^\\]]+\\]", with: "", options: .regularExpression)
     }
 
     static func isScoring(_ log: PeriodAwareLog) -> Bool {
@@ -225,31 +300,58 @@ enum GameLogFormatter {
     }
 
     static func startedPeriodNumber(from message: String) -> Int? {
-        guard message.hasSuffix("节开始") else { return nil }
-        return periodNumber(in: message)
+        if extractEventCode(from: message) == "event.period_start" {
+            return periodNumber(in: normalizedMessage(message))
+        }
+
+        let normalized = normalizedMessage(message)
+        guard normalized.hasSuffix("节开始") else { return nil }
+        return periodNumber(in: normalized)
     }
 
     static func endedPeriodNumber(from message: String) -> Int? {
-        guard message.hasSuffix("节结束") else { return nil }
-        return periodNumber(in: message)
+        if extractEventCode(from: message) == "event.period_end" {
+            return periodNumber(in: normalizedMessage(message))
+        }
+
+        let normalized = normalizedMessage(message)
+        guard normalized.hasSuffix("节结束") else { return nil }
+        return periodNumber(in: normalized)
     }
 
     private static func periodNumber(in message: String) -> Int? {
         guard let start = message.firstIndex(of: "第"),
               let end = message.firstIndex(of: "节"),
               start < end else {
-            return nil
+            let digits = message.filter(\.isNumber)
+            return Int(digits)
         }
         let numberText = message[message.index(after: start)..<end]
         return Int(numberText)
     }
 
     private static func isScoringMessage(_ message: String) -> Bool {
+        if let code = extractEventCode(from: message) {
+            let scoringEventCodes: Set<String> = [
+                "stat.twoMade",
+                "stat.threeMade",
+                "stat.bonusMade",
+                "stat.freeThrowMade"
+            ]
+            if scoringEventCodes.contains(code) {
+                return true
+            }
+        }
+
         let normalized = normalizedMessage(message)
         return normalized.contains("2分命中")
             || normalized.contains("3分命中")
             || normalized.contains("加罚命中")
             || normalized.contains("罚篮命中")
+            || normalized.contains("2PT Made")
+            || normalized.contains("3PT Made")
+            || normalized.contains("And-1 Made")
+            || normalized.contains("FT Made")
     }
 
     private static func timeString(_ date: Date) -> String {
