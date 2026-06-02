@@ -85,14 +85,14 @@ enum DeepSeekKeychainError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .emptyKey:
-            return "API Key 不能为空。"
+            return NSLocalizedString("deepseek_keychain_empty", comment: "API Key cannot be empty")
         case .invalidEncoding:
-            return "API Key 编码失败，请重试。"
+            return NSLocalizedString("deepseek_keychain_encode_failed", comment: "API Key encode failed")
         case let .osStatus(status):
             if let message = SecCopyErrorMessageString(status, nil) as String? {
-                return "Keychain 操作失败：\(message)"
+                return String(format: NSLocalizedString("deepseek_keychain_failed_format", comment: "Keychain failed"), message)
             }
-            return "Keychain 操作失败（\(status)）。"
+            return String(format: NSLocalizedString("deepseek_keychain_failed_status_format", comment: "Keychain failed status"), "\(status)")
         }
     }
 }

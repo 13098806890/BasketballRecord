@@ -62,7 +62,7 @@ struct TransferCodePreview: View {
 
 struct TransferCodeInput: View {
     @Binding var text: String
-    var placeholder: String = "粘贴分享编码"
+    var placeholder: String = NSLocalizedString("transfer_placeholder_paste_code", comment: "Paste share code")
 
     var body: some View {
         TextField(placeholder, text: $text)

@@ -1,0 +1,4 @@
+/* Autorizzazioni */
+"NSLocalNetworkUsageDescription" = "Per scoprire e connettere i dispositivi nelle vicinanze per sincronizzare i giochi e i dati del team.";
+"NSBonjourServiceTypesUsageDescription" = "Per sincronizzare i giochi e i dati del team tra i dispositivi.";
+"NSPhotoLibraryUsageDescription" = "Per selezionare foto avatar per i giocatori.";

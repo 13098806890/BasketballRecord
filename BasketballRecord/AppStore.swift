@@ -1,5 +1,24 @@
 import SwiftUI
 
+/**
+ AppStore - Central data manager for Basketball Record app
+ 
+ ## Game Group Policy (groupID)
+ 
+ The `SavedGame.groupID` field is LOCAL to each device and should NEVER be synced across devices.
+ 
+ ### Rules:
+ - **Export**: ExportGameRecord strips groupID - games exported never carry group info
+ - **Bluetooth Sync (Send)**: sendStoreSync() removes groupID from all games before transmission
+ - **Bluetooth Sync (Receive)**: 
+     - New incoming games have groupID set to nil
+     - Existing games keep their local groupID (don't let incoming data overwrite it)
+ - **Import from Code**: remappedGame() sets groupID to nil for all imported games
+ - **Local Merges**: remappedGameForPlayerMerge() and remappedGameForTeamMerge() preserve local groupID
+ 
+ This ensures each device manages its own game organization independently.
+ */
+
 @MainActor
 final class AppStore: ObservableObject {
     struct TeamImportSummary {
@@ -63,6 +82,10 @@ final class AppStore: ObservableObject {
     }
 
     @Published var savedGames: [SavedGame] = [] {
+        didSet { scheduleSave() }
+    }
+
+    @Published var gameGroups: [GameGroup] = [] {
         didSet { scheduleSave() }
     }
 
@@ -187,10 +210,16 @@ final class AppStore: ObservableObject {
 
         for incoming in incomingGames {
             if let existingIndex = nextGames.firstIndex(where: { $0.id == incoming.id }) {
-                nextGames[existingIndex] = incoming
+                // Preserve local groupID when upserting - don't overwrite with incoming groupID
+                var updatedGame = incoming
+                updatedGame.groupID = nextGames[existingIndex].groupID
+                nextGames[existingIndex] = updatedGame
                 updated += 1
             } else {
-                nextGames.append(incoming)
+                // New game - strip groupID from incoming data to ensure clean sync
+                var newGame = incoming
+                newGame.groupID = nil
+                nextGames.append(newGame)
                 inserted += 1
             }
         }
@@ -259,7 +288,7 @@ final class AppStore: ObservableObject {
             if let player = player(for: playerID) {
                 return ExportPlayer(player: player)
             }
-            return ExportPlayer(id: playerID, name: game.playerNamesByID[playerID] ?? "未知球员")
+            return ExportPlayer(id: playerID, name: game.playerNamesByID[playerID] ?? NSLocalizedString("player_unknown_default", comment: "Unknown player"))
         }
 
         let exportedTeams = [
@@ -276,7 +305,7 @@ final class AppStore: ObservableObject {
             if let player = player(for: playerID) {
                 return ExportPlayer(player: player)
             }
-            return ExportPlayer(id: playerID, name: "未知球员")
+            return ExportPlayer(id: playerID, name: NSLocalizedString("player_unknown_default", comment: "Unknown player"))
         }
         let package = ExportedTeamPackage(team: ExportTeam(team: team), players: exportedPlayers)
         return TransferCodec.encode(package)
@@ -320,7 +349,7 @@ final class AppStore: ObservableObject {
         }
 
         for playerID in package.team.playerIDs where !existingPlayerIDs.contains(playerID) {
-            nextPlayers.append(Player(id: playerID, name: "未知球员"))
+            nextPlayers.append(Player(id: playerID, name: NSLocalizedString("player_unknown_default", comment: "Unknown player")))
             existingPlayerIDs.insert(playerID)
             addedPlayers += 1
         }
@@ -432,7 +461,77 @@ final class AppStore: ObservableObject {
         savedGames[index].aiSummary = summary
     }
 
-    @discardableResult
+    // MARK: - Game Group Management
+
+    func addGameGroup(_ name: String, description: String? = nil) -> GameGroup {
+        let group = GameGroup(name: name, description: description)
+        gameGroups.append(group)
+        return group
+    }
+
+    func updateGameGroup(_ group: GameGroup) {
+        guard let index = gameGroups.firstIndex(where: { $0.id == group.id }) else { return }
+        gameGroups[index] = group
+    }
+
+    func deleteGameGroup(_ groupID: UUID) {
+        gameGroups.removeAll { $0.id == groupID }
+    }
+
+    func addGameToGroup(_ gameID: UUID, groupID: UUID?) {
+        guard let gameIndex = savedGames.firstIndex(where: { $0.id == gameID }) else { return }
+
+        // Remove from old group if exists
+        if let oldGroupID = savedGames[gameIndex].groupID {
+            if let oldGroupIndex = gameGroups.firstIndex(where: { $0.id == oldGroupID }) {
+                gameGroups[oldGroupIndex].gameIDs.removeAll { $0 == gameID }
+            }
+        }
+
+        // Add to new group
+        savedGames[gameIndex].groupID = groupID
+        if let newGroupID = groupID {
+            if let newGroupIndex = gameGroups.firstIndex(where: { $0.id == newGroupID }) {
+                if !gameGroups[newGroupIndex].gameIDs.contains(gameID) {
+                    gameGroups[newGroupIndex].gameIDs.append(gameID)
+                }
+            }
+        }
+    }
+
+    /// Batch assign a set of gameIDs to a group, or remove them from all groups.
+    /// Triggers `scheduleSave()` only once instead of per-game.
+    func batchSetGamesGroup(_ gameIDs: Set<UUID>, groupID: UUID?) {
+        for gameID in gameIDs {
+            guard let gameIndex = savedGames.firstIndex(where: { $0.id == gameID }) else { continue }
+
+            if let oldGroupID = savedGames[gameIndex].groupID {
+                if let oldGroupIndex = gameGroups.firstIndex(where: { $0.id == oldGroupID }) {
+                    gameGroups[oldGroupIndex].gameIDs.removeAll { $0 == gameID }
+                }
+            }
+
+            savedGames[gameIndex].groupID = groupID
+            if let newGroupID = groupID {
+                if let newGroupIndex = gameGroups.firstIndex(where: { $0.id == newGroupID }) {
+                    if !gameGroups[newGroupIndex].gameIDs.contains(gameID) {
+                        gameGroups[newGroupIndex].gameIDs.append(gameID)
+                    }
+                }
+            }
+        }
+        scheduleSave()
+    }
+
+    func gamesInGroup(_ groupID: UUID) -> [SavedGame] {
+        savedGames.filter { $0.groupID == groupID }
+    }
+
+    func group(for gameID: UUID) -> GameGroup? {
+        guard let groupID = savedGames.first(where: { $0.id == gameID })?.groupID else { return nil }
+        return gameGroups.first { $0.id == groupID }
+    }
+
     func mergePlayer(sourceID: UUID, into targetID: UUID) -> PlayerMergeSummary? {
         guard sourceID != targetID else { return nil }
         guard let sourceIndex = players.firstIndex(where: { $0.id == sourceID }),
@@ -507,6 +606,7 @@ final class AppStore: ObservableObject {
             players: players,
             teams: teams,
             savedGames: savedGames,
+            gameGroups: gameGroups,
             hiddenCareerStatItems: hiddenCareerStatItems,
             keepsScreenAwake: keepsScreenAwake,
             showsSimulationButton: showsSimulationButton
@@ -545,6 +645,7 @@ final class AppStore: ObservableObject {
         players = payload.players
         teams = payload.teams
         savedGames = payload.savedGames
+        gameGroups = payload.gameGroups
         hiddenCareerStatItems = payload.hiddenCareerStatItems
         keepsScreenAwake = payload.keepsScreenAwake
         showsSimulationButton = payload.showsSimulationButton
@@ -552,15 +653,15 @@ final class AppStore: ObservableObject {
 
     private func seedSampleData() {
         let samplePlayers = [
-            Player(name: "张三", height: "180", weight: "76", number: "7"),
-            Player(name: "李四", height: "186", weight: "82", number: "11"),
-            Player(name: "王五", height: "178", weight: "72", number: "23"),
-            Player(name: "赵六", height: "192", weight: "88", number: "33")
+            Player(name: NSLocalizedString("sample_player_1", comment: "Sample player 1"), height: "180", weight: "76", number: "7"),
+            Player(name: NSLocalizedString("sample_player_2", comment: "Sample player 2"), height: "186", weight: "82", number: "11"),
+            Player(name: NSLocalizedString("sample_player_3", comment: "Sample player 3"), height: "178", weight: "72", number: "23"),
+            Player(name: NSLocalizedString("sample_player_4", comment: "Sample player 4"), height: "192", weight: "88", number: "33")
         ]
         players = samplePlayers
         teams = [
-            Team(name: "主队", playerIDs: Array(samplePlayers.prefix(2).map(\.id))),
-            Team(name: "客队", playerIDs: Array(samplePlayers.suffix(2).map(\.id)))
+            Team(name: NSLocalizedString("team_home_default", comment: "Home team"), playerIDs: Array(samplePlayers.prefix(2).map(\.id))),
+            Team(name: NSLocalizedString("team_away_default", comment: "Away team"), playerIDs: Array(samplePlayers.suffix(2).map(\.id)))
         ]
     }
 
@@ -596,8 +697,8 @@ final class AppStore: ObservableObject {
             id: id,
             savedAt: savedAt,
             snapshot: snapshot,
-            homeTeamName: homeTeam?.name ?? "主队",
-            awayTeamName: awayTeam?.name ?? "客队",
+            homeTeamName: homeTeam?.name ?? NSLocalizedString("team_home_default", comment: "Home team"),
+            awayTeamName: awayTeam?.name ?? NSLocalizedString("team_away_default", comment: "Away team"),
             homePlayerIDs: homePlayerIDs,
             awayPlayerIDs: awayPlayerIDs,
             playerNamesByID: playerNames
@@ -630,7 +731,8 @@ final class AppStore: ObservableObject {
             awayTeamName: team(for: snapshot.awayTeamID)?.name ?? game.awayTeamName,
             homePlayerIDs: homePlayerIDs,
             awayPlayerIDs: awayPlayerIDs,
-            playerNamesByID: playerNames
+            playerNamesByID: playerNames,
+            groupID: nil  // Always strip groupID on import - it's local to each device
         )
     }
 
@@ -704,7 +806,8 @@ final class AppStore: ObservableObject {
             awayTeamName: game.awayTeamName,
             homePlayerIDs: remapDedupedIDs(game.homePlayerIDs, sourceID: sourceID, targetID: targetID),
             awayPlayerIDs: remapDedupedIDs(game.awayPlayerIDs, sourceID: sourceID, targetID: targetID),
-            playerNamesByID: names
+            playerNamesByID: names,
+            groupID: game.groupID  // Preserve groupID for local merges
         )
     }
 
@@ -821,7 +924,8 @@ final class AppStore: ObservableObject {
             awayTeamName: awayChanged ? targetName : game.awayTeamName,
             homePlayerIDs: game.homePlayerIDs,
             awayPlayerIDs: game.awayPlayerIDs,
-            playerNamesByID: game.playerNamesByID
+            playerNamesByID: game.playerNamesByID,
+            groupID: game.groupID  // Preserve groupID for local merges
         )
     }
 
@@ -916,6 +1020,7 @@ private struct StorePayload: Codable {
     var players: [Player]
     var teams: [Team]
     var savedGames: [SavedGame]
+    var gameGroups: [GameGroup]
     var hiddenCareerStatItems: Set<CareerStatItem>
     var keepsScreenAwake: Bool
     var showsSimulationButton: Bool
@@ -924,6 +1029,7 @@ private struct StorePayload: Codable {
         players: [Player],
         teams: [Team],
         savedGames: [SavedGame] = [],
+        gameGroups: [GameGroup] = [],
         hiddenCareerStatItems: Set<CareerStatItem> = [],
         keepsScreenAwake: Bool = true,
         showsSimulationButton: Bool = false
@@ -931,6 +1037,7 @@ private struct StorePayload: Codable {
         self.players = players
         self.teams = teams
         self.savedGames = savedGames
+        self.gameGroups = gameGroups
         self.hiddenCareerStatItems = hiddenCareerStatItems
         self.keepsScreenAwake = keepsScreenAwake
         self.showsSimulationButton = showsSimulationButton
@@ -941,6 +1048,7 @@ private struct StorePayload: Codable {
         players = try container.decode([Player].self, forKey: .players)
         teams = try container.decode([Team].self, forKey: .teams)
         savedGames = try container.decodeIfPresent([SavedGame].self, forKey: .savedGames) ?? []
+        gameGroups = try container.decodeIfPresent([GameGroup].self, forKey: .gameGroups) ?? []
         hiddenCareerStatItems = try container.decodeIfPresent(Set<CareerStatItem>.self, forKey: .hiddenCareerStatItems) ?? []
         keepsScreenAwake = try container.decodeIfPresent(Bool.self, forKey: .keepsScreenAwake) ?? true
         showsSimulationButton = try container.decodeIfPresent(Bool.self, forKey: .showsSimulationButton) ?? false

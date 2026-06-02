@@ -186,6 +186,8 @@
 "stats_bst_format" = "BLK / STL / POUR";
 "stats_advanced" = "Avancé";
 "stats_points_per_shot" = "Points/Shot";
+"stats_true_shooting" = "TS%";
+"stat_label_efg" = "eFG%";
 "stats_record_shooting_format" = "FG   PH0    PH1   2PT   PH2    PH3   3PT   PH4    PH5";
 "stats_record_misc_format" = "FT   PH0    PH1   REB   PH2   AST   PH3   FOUL   PH4   BLK   PH5   STL   PH6   AU   PH7";
 "stats_full_misc_format" = "BRE / AST / FOUL / BLK / STL / TO";
@@ -478,3 +480,30 @@
 "transfer_send_current_player_bluetooth" = "Envoyer le lecteur actuel via Bluetooth";
 "transfer_send_current_team_bluetooth" = "Envoyer l'équipe actuelle via Bluetooth";
 "search_player_prompt" = "Rechercher les lecteurs";
+"section_advanced_stats" = "Advanced";
+"game_group_selected_filter" = "Filtrer par";
+
+/* Common buttons */
+"common_cancel" = "Annuler";
+"common_save" = "Enregistrer";
+"game_group_assigned_label" = "Group";
+
+/* Transfer keywords for cross-device sharing */
+"transfer_keyword_game" = "Basketball Record-Game Export";
+"transfer_keyword_team" = "Basketball Record-Team Export";
+"transfer_keyword_player" = "Basketball Record-Player Export";
+
+/* AI prompt instructions */
+"ai_prompt_req_1" = "- Output Markdown directly without ```markdown or ``` code fence wrapping.";
+"ai_prompt_req_2" = "- Do not output literal \\n or \\\\n; use actual line breaks.";
+"ai_prompt_req_3" = "- Keep blank lines between titles, paragraphs, and lists for clear formatting.";
+"ai_prompt_req_4" = "- Highlight moments should prioritize: consecutive scoring, team runs, clutch shots, key rebounds, assist chains, key blocks.";
+"ai_prompt_req_5" = "- Describe highlight moments based on the game event log.";
+"ai_prompt_req_6" = "- Do not invent players or events not provided.";
+"ai_prompt_req_7" = "- If data is insufficient, clearly state 'based on available records'.";
+"ai_prompt_req_8" = "- This app reliably records only: 2-point made/missed, 3-point made/missed, free throw made/missed, assist, rebound, foul, substitution, period start/end.";
+"ai_prompt_req_9" = "- If the log does not specify shot type (layup/mid-range/floater/dunk), do not describe specific shot types; write 'two-point made' or 'three-point made'.";
+"ai_prompt_req_10" = "- You may make reasonable inferences from score changes and consecutive events, but use tentative language like 'possibly/likely'; do not present inferences as confirmed facts.";
+"ai_prompt_req_11" = "- Do not use phrases like 'according to', 'reference event', or 'evidence' in the final output; do not attach citation brackets after each highlight.";
+"ai_prompt_req_12" = "- In highlight moments, if 'Period X, Minute Y, Second Z' info is provided, prioritize including in the corresponding entry.";
+"ai_prompt_req_13" = "- When using numeric expressions like 'highest/lowest/most/least', they must match the 【Numeric Validation】 section; do not modify values.";

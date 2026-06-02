@@ -56,11 +56,11 @@
 
 ## 版本
 
-- 当前版本：`1.06`
+- 当前版本：`1.08`
 
 ## Release Notes
 
-- 版本日志：`RELEASE_NOTES.md`
+- [版本日志](RELEASE_NOTES.md)
 
 ## App Store 上架文档
 

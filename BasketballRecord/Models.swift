@@ -104,6 +104,43 @@ struct ExportTeam: Identifiable, Codable, Hashable {
     }
 }
 
+// MARK: - GameGroup
+
+struct GameGroup: Identifiable, Codable, Hashable {
+    var id = UUID()
+    var name: String
+    var description: String? = nil
+    var gameIDs: [UUID] = []
+    var createdAt: Date = Date()
+    var color: String? = nil
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        description: String? = nil,
+        gameIDs: [UUID] = [],
+        createdAt: Date = Date(),
+        color: String? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.description = description
+        self.gameIDs = gameIDs
+        self.createdAt = createdAt
+        self.color = color
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        name = try container.decode(String.self, forKey: .name)
+        description = try container.decodeIfPresent(String.self, forKey: .description)
+        gameIDs = try container.decodeIfPresent([UUID].self, forKey: .gameIDs) ?? []
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+        color = try container.decodeIfPresent(String.self, forKey: .color)
+    }
+}
+
 struct ExportedGamePackage: Codable, Hashable {
     var players: [ExportPlayer]
     var teams: [ExportTeam]
@@ -185,8 +222,8 @@ struct ExportGameRecord: Codable, Hashable {
         aiSummary = try container.decodeIfPresent(String.self, forKey: .aiSummary)
         previousSnapshot = try container.decodeIfPresent(GameSnapshot.self, forKey: .previousSnapshot)
         undoSnapshots = try container.decodeIfPresent([GameSnapshot].self, forKey: .undoSnapshots) ?? []
-        homeTeamName = try container.decodeIfPresent(String.self, forKey: .homeTeamName) ?? "主队"
-        awayTeamName = try container.decodeIfPresent(String.self, forKey: .awayTeamName) ?? "客队"
+        homeTeamName = try container.decodeIfPresent(String.self, forKey: .homeTeamName) ?? NSLocalizedString("team_home_default", comment: "Home")
+        awayTeamName = try container.decodeIfPresent(String.self, forKey: .awayTeamName) ?? NSLocalizedString("team_away_default", comment: "Away")
         homePlayerIDs = try container.decodeIfPresent([UUID].self, forKey: .homePlayerIDs) ?? []
         awayPlayerIDs = try container.decodeIfPresent([UUID].self, forKey: .awayPlayerIDs) ?? []
         playerNamesByID = try container.decodeIfPresent([UUID: String].self, forKey: .playerNamesByID) ?? [:]
@@ -687,6 +724,7 @@ struct GameLogEntry: Identifiable, Codable, Hashable {
     var id = UUID()
     var timestamp: Date
     var message: String
+    var eventCode: String?
     var playerID: UUID?
     var period: Int?
     var periodElapsedSeconds: TimeInterval?
@@ -695,6 +733,7 @@ struct GameLogEntry: Identifiable, Codable, Hashable {
         id: UUID = UUID(),
         timestamp: Date,
         message: String,
+        eventCode: String? = nil,
         playerID: UUID? = nil,
         period: Int? = nil,
         periodElapsedSeconds: TimeInterval? = nil
@@ -702,6 +741,7 @@ struct GameLogEntry: Identifiable, Codable, Hashable {
         self.id = id
         self.timestamp = timestamp
         self.message = message
+        self.eventCode = eventCode
         self.playerID = playerID
         self.period = period
         self.periodElapsedSeconds = periodElapsedSeconds
@@ -712,9 +752,15 @@ struct GameLogEntry: Identifiable, Codable, Hashable {
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         timestamp = try container.decode(Date.self, forKey: .timestamp)
         message = try container.decode(String.self, forKey: .message)
+        eventCode = try container.decodeIfPresent(String.self, forKey: .eventCode)
         playerID = try container.decodeIfPresent(UUID.self, forKey: .playerID)
         period = try container.decodeIfPresent(Int.self, forKey: .period)
         periodElapsedSeconds = try container.decodeIfPresent(TimeInterval.self, forKey: .periodElapsedSeconds)
+
+        // Backward compatibility: extract eventCode from message if not stored separately
+        if eventCode == nil, let code = GameLogFormatter.extractEventCode(from: message) {
+            eventCode = code
+        }
     }
 }
 
@@ -725,9 +771,9 @@ enum PlayerGameRole: String, Codable, Hashable {
     var title: String {
         switch self {
         case .starter:
-            return "首发"
+            return NSLocalizedString("stat_label_starter", comment: "Starter")
         case .bench:
-            return "替补"
+            return NSLocalizedString("stat_label_bench", comment: "Bench")
         }
     }
 }
@@ -741,9 +787,9 @@ enum CareerStatSection: String, CaseIterable, Codable, Identifiable {
     var title: String {
         switch self {
         case .total:
-            return "总数据"
+            return NSLocalizedString("stat_section_total", comment: "Total")
         case .average:
-            return "场均"
+            return NSLocalizedString("stat_section_average", comment: "Average")
         }
     }
 }
@@ -818,61 +864,61 @@ enum CareerStatItem: String, CaseIterable, Codable, Identifiable {
     var title: String {
         switch self {
         case .totalPoints:
-            return "得分"
+            return NSLocalizedString("stat_label_points", comment: "Points")
         case .totalRebounds:
-            return "篮板"
+            return NSLocalizedString("stat_label_rebounds", comment: "Rebounds")
         case .totalAssists:
-            return "助攻"
+            return NSLocalizedString("stat_label_assists", comment: "Assists")
         case .totalFouls:
-            return "犯规"
+            return NSLocalizedString("stat_label_fouls", comment: "Fouls")
         case .totalBlocks:
-            return "封盖"
+            return NSLocalizedString("stat_label_blocks", comment: "Blocks")
         case .totalSteals:
-            return "抢断"
+            return NSLocalizedString("stat_label_steals", comment: "Steals")
         case .totalTurnovers:
-            return "失误"
+            return NSLocalizedString("stat_label_turnovers", comment: "Turnovers")
         case .totalStarterGames:
-            return "首发场次"
+            return NSLocalizedString("stat_label_starter_games", comment: "Starter games")
         case .totalBenchGames:
-            return "替补场次"
+            return NSLocalizedString("stat_label_bench_games", comment: "Bench games")
         case .totalMinutes:
-            return "时间"
+            return NSLocalizedString("stat_label_minutes", comment: "Minutes")
         case .totalPlusMinus:
-            return "正负值"
+            return NSLocalizedString("stats_plus_minus", comment: "Plus/minus")
         case .totalTwoPoint:
-            return "2分投篮"
+            return NSLocalizedString("stat_label_2pt_attempts", comment: "2PT attempts")
         case .totalThreePoint:
-            return "3分投篮"
+            return NSLocalizedString("stat_label_3pt_attempts", comment: "3PT attempts")
         case .totalFreeThrow:
-            return "罚球"
+            return NSLocalizedString("stat_label_free_throw", comment: "Free throw")
         case .averagePoints:
-            return "场均得分"
+            return NSLocalizedString("stat_label_avg_points", comment: "Avg points")
         case .averageRebounds:
-            return "场均篮板"
+            return NSLocalizedString("stat_label_avg_rebounds", comment: "Avg rebounds")
         case .averageAssists:
-            return "场均助攻"
+            return NSLocalizedString("stat_label_avg_assists", comment: "Avg assists")
         case .averageFouls:
-            return "场均犯规"
+            return NSLocalizedString("stat_label_avg_fouls", comment: "Avg fouls")
         case .averageBlocks:
-            return "场均封盖"
+            return NSLocalizedString("stat_label_avg_blocks", comment: "Avg blocks")
         case .averageSteals:
-            return "场均抢断"
+            return NSLocalizedString("stat_label_avg_steals", comment: "Avg steals")
         case .averageTurnovers:
-            return "场均失误"
+            return NSLocalizedString("stat_label_avg_turnovers", comment: "Avg turnovers")
         case .averageMinutes:
-            return "场均时间"
+            return NSLocalizedString("stat_label_avg_minutes", comment: "Avg minutes")
         case .averagePlusMinus:
-            return "场均正负值"
+            return NSLocalizedString("stat_label_avg_plus_minus", comment: "Avg plus/minus")
         case .averageTwoMade:
-            return "场均2分命中"
+            return NSLocalizedString("stat_label_avg_2pt_made", comment: "Avg 2PT made")
         case .averageThreeMade:
-            return "场均3分命中"
+            return NSLocalizedString("stat_label_avg_3pt_made", comment: "Avg 3PT made")
         case .averageFreeThrowMade:
-            return "场均罚球命中"
+            return NSLocalizedString("stat_label_avg_free_throw_made", comment: "Avg FT made")
         case .averageThreePointRate:
-            return "三分命中率"
+            return NSLocalizedString("stat_label_3pt_rate", comment: "3PT rate")
         case .averageFreeThrowRate:
-            return "罚球命中率"
+            return NSLocalizedString("stat_label_free_throw_rate", comment: "FT rate")
         }
     }
 }
@@ -1024,6 +1070,7 @@ struct SavedGame: Identifiable, Codable, Hashable {
     var homePlayerIDs: [UUID]
     var awayPlayerIDs: [UUID]
     var playerNamesByID: [UUID: String]
+    var groupID: UUID? = nil  // 分组ID
 
     init(
         id: UUID = UUID(),
@@ -1036,7 +1083,8 @@ struct SavedGame: Identifiable, Codable, Hashable {
         awayTeamName: String,
         homePlayerIDs: [UUID],
         awayPlayerIDs: [UUID],
-        playerNamesByID: [UUID: String]
+        playerNamesByID: [UUID: String],
+        groupID: UUID? = nil
     ) {
         self.id = id
         self.savedAt = savedAt
@@ -1049,6 +1097,7 @@ struct SavedGame: Identifiable, Codable, Hashable {
         self.homePlayerIDs = homePlayerIDs
         self.awayPlayerIDs = awayPlayerIDs
         self.playerNamesByID = playerNamesByID
+        self.groupID = groupID
     }
 
     init(from decoder: Decoder) throws {
@@ -1059,11 +1108,12 @@ struct SavedGame: Identifiable, Codable, Hashable {
         aiSummary = try container.decodeIfPresent(String.self, forKey: .aiSummary)
         previousSnapshot = try container.decodeIfPresent(GameSnapshot.self, forKey: .previousSnapshot)
         undoSnapshots = try container.decodeIfPresent([GameSnapshot].self, forKey: .undoSnapshots) ?? []
-        homeTeamName = try container.decodeIfPresent(String.self, forKey: .homeTeamName) ?? "主队"
-        awayTeamName = try container.decodeIfPresent(String.self, forKey: .awayTeamName) ?? "客队"
+        homeTeamName = try container.decodeIfPresent(String.self, forKey: .homeTeamName) ?? NSLocalizedString("team_home_default", comment: "Home")
+        awayTeamName = try container.decodeIfPresent(String.self, forKey: .awayTeamName) ?? NSLocalizedString("team_away_default", comment: "Away")
         homePlayerIDs = try container.decodeIfPresent([UUID].self, forKey: .homePlayerIDs) ?? []
         awayPlayerIDs = try container.decodeIfPresent([UUID].self, forKey: .awayPlayerIDs) ?? []
         playerNamesByID = try container.decodeIfPresent([UUID: String].self, forKey: .playerNamesByID) ?? [:]
+        groupID = try container.decodeIfPresent(UUID.self, forKey: .groupID)
     }
 }
 

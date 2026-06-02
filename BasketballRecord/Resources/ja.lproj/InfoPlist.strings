@@ -1,0 +1,4 @@
+/* パーミッション */
+"NSLocalNetworkUsageDescription" = "近くのデバイスを検出して接続し、ゲームとチームデータを同期します。";
+"NSBonjourServiceTypesUsageDescription" = "デバイス間でゲームとチームデータを同期します。";
+"NSPhotoLibraryUsageDescription" = "プレイヤーのアバター写真を選択します。";

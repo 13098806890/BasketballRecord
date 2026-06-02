@@ -18,13 +18,13 @@ struct TeamEditorView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("球队") {
-                    TextField("球队名称", text: $name)
+                Section(LocalizedStringKey("label_team")) {
+                    TextField(LocalizedStringKey("team_name_placeholder"), text: $name)
                 }
 
-                Section("选择球员") {
+                Section(LocalizedStringKey("team_select_players")) {
                     if store.players.isEmpty {
-                        ContentUnavailableView("先添加球员", systemImage: "person.crop.circle.badge.plus")
+                        ContentUnavailableView(LocalizedStringKey("team_no_players_hint"), systemImage: "person.crop.circle.badge.plus")
                     }
 
                     ForEach(store.players) { player in
@@ -44,13 +44,13 @@ struct TeamEditorView: View {
                     }
                 }
             }
-            .navigationTitle(team == nil ? "新建球队" : "编辑球队")
+            .navigationTitle(LocalizedStringKey(team == nil ? "nav_new_team" : "nav_edit_team"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                    Button(LocalizedStringKey("button_cancel")) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") { save() }
+                    Button(LocalizedStringKey("button_save")) { save() }
                         .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }

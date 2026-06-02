@@ -67,10 +67,15 @@ struct SavedGameAnalyzer {
                 )
             )
 
-            guard let period = inferredPeriod,
-                  let (playerName, action) = LoggedAction.parse(from: normalizedMessage) else {
-                continue
+            guard let period = inferredPeriod else { continue }
+
+            let parsedAction: (playerName: String, action: LoggedAction)?
+            if let code = entry.eventCode {
+                parsedAction = LoggedAction.allCases.first(where: { $0.eventCode == code }).map { ("", $0) }
+            } else {
+                parsedAction = LoggedAction.parse(from: normalizedMessage)
             }
+            guard let (playerName, action) = parsedAction else { continue }
 
             let resolvedByName = playerName.isEmpty ? nil : resolvePlayerIDByName(playerName)
             guard let playerID = entry.playerID ?? resolvedByName else {
@@ -250,7 +255,7 @@ struct SavedGameAnalyzer {
 enum GameLogFormatter {
     static func lineText(for log: PeriodAwareLog) -> String {
         let periodText = GameView.periodContextText(period: log.inferredPeriod, elapsedSeconds: log.entry.periodElapsedSeconds)
-        return [timeString(log.entry.timestamp), periodText, log.entry.message]
+        return [timeString(log.entry.timestamp), periodText, normalizedMessage(log.entry.message)]
             .filter { !$0.isEmpty }
             .joined(separator: "  ")
     }
@@ -288,11 +293,14 @@ enum GameLogFormatter {
     }
 
     static func isScoring(_ log: PeriodAwareLog) -> Bool {
-        isScoringMessage(log.entry.message)
+        isScoring(log.entry)
     }
 
     static func isScoring(_ entry: GameLogEntry) -> Bool {
-        isScoringMessage(entry.message)
+        if let code = entry.eventCode {
+            return scoringEventCodes.contains(code)
+        }
+        return isScoringMessage(entry.message)
     }
 
     static func periodNumber(fromControlMessage message: String) -> Int? {
@@ -330,14 +338,15 @@ enum GameLogFormatter {
         return Int(numberText)
     }
 
+    private static let scoringEventCodes: Set<String> = [
+        "stat.twoMade",
+        "stat.threeMade",
+        "stat.bonusMade",
+        "stat.freeThrowMade"
+    ]
+
     private static func isScoringMessage(_ message: String) -> Bool {
         if let code = extractEventCode(from: message) {
-            let scoringEventCodes: Set<String> = [
-                "stat.twoMade",
-                "stat.threeMade",
-                "stat.bonusMade",
-                "stat.freeThrowMade"
-            ]
             if scoringEventCodes.contains(code) {
                 return true
             }

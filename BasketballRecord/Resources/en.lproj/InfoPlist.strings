@@ -1,0 +1,4 @@
+/* Permissions */
+"NSLocalNetworkUsageDescription" = "To discover and connect nearby devices for syncing games and team data.";
+"NSBonjourServiceTypesUsageDescription" = "To sync games and team data between devices.";
+"NSPhotoLibraryUsageDescription" = "To select avatar photos for players.";

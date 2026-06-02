@@ -7,10 +7,13 @@ struct DeepSeekService {
     private let model = "deepseek-chat"
 
     func testConnection(apiKey: String) async throws {
+        let systemRole = NSLocalizedString("ai_system_role", comment: "AI system role")
+        let testPrompt = NSLocalizedString("ai_test_connection_prompt", comment: "Test connection prompt")
+
         _ = try await sendChat(
             messages: [
-                DeepSeekChatMessage(role: "system", content: "You are a helpful assistant."),
-                DeepSeekChatMessage(role: "user", content: "请仅回复：连接成功")
+                DeepSeekChatMessage(role: "system", content: systemRole),
+                DeepSeekChatMessage(role: "user", content: testPrompt)
             ],
             apiKey: apiKey,
             temperature: 0,
@@ -19,9 +22,11 @@ struct DeepSeekService {
     }
 
     func generateSummary(prompt: String, apiKey: String) async throws -> String {
-        try await sendChat(
+        let systemRole = NSLocalizedString("ai_system_role", comment: "AI system role")
+
+        return try await sendChat(
             messages: [
-                DeepSeekChatMessage(role: "system", content: "你是专业篮球解说与数据分析师。"),
+                DeepSeekChatMessage(role: "system", content: systemRole),
                 DeepSeekChatMessage(role: "user", content: prompt)
             ],
             apiKey: apiKey,
@@ -85,7 +90,7 @@ struct DeepSeekService {
             return text
         }
 
-        return "服务暂时不可用。"
+        return NSLocalizedString("deepseek_error_unavailable", comment: "Service unavailable")
     }
 }
 
@@ -98,13 +103,13 @@ enum DeepSeekServiceError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingAPIKey:
-            return "请先填写 DeepSeek API Key。"
+            return NSLocalizedString("deepseek_error_missing_api_key", comment: "Missing API Key")
         case .invalidResponse:
-            return "连接成功，但响应格式异常。"
+            return NSLocalizedString("deepseek_error_bad_response", comment: "Bad response")
         case .emptyResponse:
-            return "模型返回为空，请稍后重试。"
+            return NSLocalizedString("deepseek_error_empty_response", comment: "Empty response")
         case let .serverError(statusCode, message):
-            return "请求失败（\(statusCode)）：\(message)"
+            return String(format: NSLocalizedString("deepseek_error_request_failed_format", comment: "Request failed"), statusCode, message)
         }
     }
 }

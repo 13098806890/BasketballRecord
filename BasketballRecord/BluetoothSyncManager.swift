@@ -191,13 +191,13 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
         }
 
         if let outgoingID = outgoingStoreSyncTransfers.keys.first {
-            return cancelOutgoingStoreSyncTransfer(id: outgoingID, reason: "发送方已取消同步", notifyPeer: true)
+            return cancelOutgoingStoreSyncTransfer(id: outgoingID, reason: NSLocalizedString("sync_reason_sender_cancelled", comment: "Sender cancelled"), notifyPeer: true)
         }
 
         if let incoming = incomingStoreSyncTransfers.first {
             let payload = BluetoothStoreSyncCancelPayload(
                 transferID: incoming.key,
-                reason: "接收方已取消同步"
+                reason: NSLocalizedString("sync_reason_receiver_cancelled", comment: "Receiver cancelled")
             )
             _ = send(.storeSyncCancel(payload), to: [incoming.value.sourcePeer])
             incomingStoreSyncTransfers.removeValue(forKey: incoming.key)
@@ -291,8 +291,16 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
             statusMessage = NSLocalizedString("status_no_available_connection", comment: "No available connected device")
             return false
         }
+
+        // Strip groupID from games before sending - groupID is local to each device
+        let gamesWithoutGroups = savedGames.map { game -> SavedGame in
+            var cleanGame = game
+            cleanGame.groupID = nil
+            return cleanGame
+        }
+
         return sendStoreSyncOffer(
-            payload: BluetoothStoreSyncPayload(players: players, teams: teams, savedGames: savedGames),
+            payload: BluetoothStoreSyncPayload(players: players, teams: teams, savedGames: gamesWithoutGroups),
             to: firstPeer
         )
     }
@@ -405,7 +413,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
             session.connectedPeers.contains(where: { $0 == candidate })
         }
         guard !targets.isEmpty else {
-            statusMessage = "暂无可邀请的已连接设备"
+            statusMessage = NSLocalizedString("status_no_invitable_devices", comment: "No connectable devices")
             return nil
         }
 
@@ -429,7 +437,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
         guard ok else { return nil }
 
         liveSessionParticipants[sessionID] = Set(targets.map(\.displayName))
-        statusMessage = "协同邀请已发送"
+        statusMessage = NSLocalizedString("status_collab_invite_sent", comment: "Collab invite sent")
         return sessionID
     }
 
@@ -604,7 +612,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
 
     private func startSendingStoreSyncTransfer(_ transferID: UUID) {
         guard let transfer = outgoingStoreSyncTransfers[transferID] else { return }
-        setStoreSyncProcessing(active: true, message: "正在发送数据…")
+        setStoreSyncProcessing(active: true, message: NSLocalizedString("status_sending_data", comment: "Sending data"))
         lastOutgoingProgressUpdateAt = nil
 
         outgoingStoreSyncProgress = BluetoothStoreSyncProgress(
@@ -788,8 +796,8 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
             guard computedHash == snapshotHash else {
                 DispatchQueue.main.async { [weak self] in
                     guard let self else { return }
-                    self.sendStoreSyncReceiveAck(transferID: transferID, to: peer, success: false, reason: "哈希校验失败")
-                    self.updateStoreSyncStatus("接收完成但哈希校验失败，请重新传输")
+                    self.sendStoreSyncReceiveAck(transferID: transferID, to: peer, success: false, reason: NSLocalizedString("sync_reason_hash_failed", comment: "Hash check failed"))
+                    self.updateStoreSyncStatus(NSLocalizedString("status_receive_hash_failed_retry", comment: "Receive hash failed retry"))
                     self.incomingStoreSyncProgress = nil
                     self.lastIncomingProgressUpdateAt = nil
                     self.setStoreSyncProcessing(active: false, message: nil)
@@ -970,11 +978,16 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
 
     private static func defaultPeerName() -> String {
         let systemName = UIDevice.current.name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !systemName.isEmpty else { return "篮球设备" }
+        guard !systemName.isEmpty else { return NSLocalizedString("device_default_basketball", comment: "Basketball device default") }
 
         let genericNames = ["iphone", "ipad"]
         if genericNames.contains(systemName.lowercased()) {
-            let suffix = UIDevice.current.identifierForVendor?.uuidString.suffix(4) ?? "设备"
+            let suffix: String
+            if let s = UIDevice.current.identifierForVendor?.uuidString.suffix(4) {
+                suffix = String(s)
+            } else {
+                suffix = NSLocalizedString("device_default_name", comment: "Device default")
+            }
             return "\(systemName)-\(suffix)"
         }
 
@@ -1077,17 +1090,17 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
 
         let ok = send(.storeSyncOffer(prepared.offer), to: [prepared.targetPeer])
         if ok {
-            updateStoreSyncStatus("已发送请求，等待 \(prepared.targetPeer.displayName) 确认（尚未开始传输）")
+            updateStoreSyncStatus(String(format: NSLocalizedString("status_request_sent_waiting_peer_format", comment: "Request sent waiting peer"), prepared.targetPeer.displayName))
         } else {
             outgoingStoreSyncTransfers.removeValue(forKey: prepared.offer.transferID)
             clearOutgoingTransferCancellationMark(prepared.offer.transferID)
             refreshStoreSyncSendingState()
-            updateStoreSyncStatus("发送请求失败，请检查连接状态后重试")
+            updateStoreSyncStatus(NSLocalizedString("status_send_request_failed", comment: "Send request failed"))
         }
         return ok
     }
 
-    private func updateStoreSyncStatus(_ message: String, title: String = "同步状态", showGlobalAlert: Bool = true) {
+    private func updateStoreSyncStatus(_ message: String, title: String = NSLocalizedString("title_sync_status", comment: "Sync status title"), showGlobalAlert: Bool = true) {
         let apply = {
             if showGlobalAlert {
                 self.postGlobalBluetoothAlert(title: title, message: message)
@@ -1176,7 +1189,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
         lastOutgoingProgressUpdateAt = nil
         refreshStoreSyncSendingState()
         setStoreSyncProcessing(active: false, message: nil)
-        updateStoreSyncStatus("已取消发送给 \(transfer.targetPeer.displayName) 的同步任务")
+        updateStoreSyncStatus(String(format: NSLocalizedString("status_outgoing_sync_cancelled_format", comment: "Outgoing sync cancelled"), transfer.targetPeer.displayName))
         return true
     }
 
@@ -1253,9 +1266,9 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
 
         let reason = payload.reason?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let reason, !reason.isEmpty {
-            updateStoreSyncStatus("\(peer.displayName) 已取消同步（\(reason)）")
+            updateStoreSyncStatus(String(format: NSLocalizedString("status_peer_cancelled_with_reason_format", comment: "Peer cancelled with reason"), peer.displayName, reason))
         } else {
-            updateStoreSyncStatus("\(peer.displayName) 已取消同步")
+            updateStoreSyncStatus(String(format: NSLocalizedString("status_peer_cancelled_format", comment: "Peer cancelled"), peer.displayName))
         }
     }
 
@@ -1299,14 +1312,14 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
 
     private func localizedNetworkFailure(prefix: String, error: Error) -> String {
         if isBonjourConfigurationMissing(error) {
-            return "\(prefix)失败：系统报告 Bonjour 配置缺失（-72008）。请确认安装最新构建并重装 App 后重试。"
+            return String(format: NSLocalizedString("network_error_bonjour_missing_format", comment: "Bonjour missing"), prefix)
         }
 
         if isLocalPermissionDenied(error) {
-            return "\(prefix)失败：本地网络权限未允许，请到系统设置打开“本地网络”。"
+            return String(format: NSLocalizedString("network_error_local_permission_format", comment: "Local permission"), prefix)
         }
 
-        return "\(prefix)失败：\(error.localizedDescription)"
+        return String(format: NSLocalizedString("network_error_other_format", comment: "Network other"), prefix, error.localizedDescription)
     }
 
     private func addDiscoveredPeer(_ peer: MCPeerID) {
@@ -1336,7 +1349,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
         switch message {
         case let .storeSync(payload):
             pendingStoreSync = BluetoothReceivedStoreSync(fromPeerName: peer.displayName, payload: payload)
-            statusMessage = "收到 \(peer.displayName) 的数据同步"
+            statusMessage = String(format: NSLocalizedString("status_received_data_sync_format", comment: "Received data sync"), peer.displayName)
 
         case let .storeSyncOffer(payload):
             pendingStoreSyncOffer = BluetoothReceivedStoreSyncOffer(
@@ -1344,13 +1357,13 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
                 fromPeerName: peer.displayName,
                 payload: payload
             )
-            statusMessage = "收到 \(peer.displayName) 的同步请求"
+            statusMessage = String(format: NSLocalizedString("status_received_sync_request_format", comment: "Received sync request"), peer.displayName)
 
         case let .storeSyncOfferResponse(payload):
             guard let transfer = outgoingStoreSyncTransfers[payload.transferID] else { return }
             if payload.accepted {
-                setStoreSyncProcessing(active: true, message: "对方已确认，正在启动传输…")
-                updateStoreSyncStatus("\(peer.displayName) 已确认接收，开始传输", showGlobalAlert: false)
+                setStoreSyncProcessing(active: true, message: NSLocalizedString("status_peer_confirmed_starting_transfer", comment: "Peer confirmed starting transfer"))
+                updateStoreSyncStatus(String(format: NSLocalizedString("status_peer_confirmed_receiving_format", comment: "Peer confirmed receiving"), peer.displayName), showGlobalAlert: false)
                 startSendingStoreSyncTransfer(payload.transferID)
             } else {
                 outgoingStoreSyncTransfers.removeValue(forKey: payload.transferID)
@@ -1359,7 +1372,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
                 outgoingStoreSyncProgress = nil
                 lastOutgoingProgressUpdateAt = nil
                 setStoreSyncProcessing(active: false, message: nil)
-                updateStoreSyncStatus("\(transfer.targetPeer.displayName) 已拒绝本次同步")
+                updateStoreSyncStatus(String(format: NSLocalizedString("status_peer_rejected_format", comment: "Peer rejected"), transfer.targetPeer.displayName))
             }
 
         case let .storeSyncChunk(payload):
@@ -1382,13 +1395,13 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
             setStoreSyncProcessing(active: false, message: nil)
 
             if payload.received {
-                updateStoreSyncStatus("\(transfer.targetPeer.displayName) 已确认完整接收，本次同步完成")
+                updateStoreSyncStatus(String(format: NSLocalizedString("status_peer_confirmed_complete_format", comment: "Peer confirmed complete"), transfer.targetPeer.displayName))
             } else {
                 let reason = payload.reason?.trimmingCharacters(in: .whitespacesAndNewlines)
                 if let reason, !reason.isEmpty {
-                    updateStoreSyncStatus("\(transfer.targetPeer.displayName) 接收失败（\(reason)）")
+                    updateStoreSyncStatus(String(format: NSLocalizedString("status_peer_receive_failed_reason_format", comment: "Peer receive failed reason"), transfer.targetPeer.displayName, reason))
                 } else {
-                    updateStoreSyncStatus("\(transfer.targetPeer.displayName) 接收失败，请重试")
+                    updateStoreSyncStatus(String(format: NSLocalizedString("status_peer_receive_failed_retry_format", comment: "Peer receive failed retry"), transfer.targetPeer.displayName))
                 }
             }
 
@@ -1398,17 +1411,17 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
                 fromPeerName: peer.displayName,
                 payload: payload
             )
-            statusMessage = "收到协同记分邀请"
+            statusMessage = NSLocalizedString("status_received_collab_invite", comment: "Received collab invite")
 
         case let .liveInviteResponse(payload):
             if payload.accepted {
                 liveSessionParticipants[payload.sessionID, default: []].insert(peer.displayName)
-                statusMessage = "\(peer.displayName) 已加入协同比赛"
-                postGlobalBluetoothAlert(title: "蓝牙协同", message: "\(peer.displayName) 已加入协同比赛")
+                statusMessage = String(format: NSLocalizedString("status_peer_joined_collab_format", comment: "Peer joined collab"), peer.displayName)
+                postGlobalBluetoothAlert(title: NSLocalizedString("alert_bluetooth_collab_title", comment: "Bluetooth collab title"), message: String(format: NSLocalizedString("status_peer_joined_collab_format", comment: "Peer joined collab"), peer.displayName))
             } else {
                 liveSessionParticipants[payload.sessionID, default: []].remove(peer.displayName)
-                statusMessage = "\(peer.displayName) 拒绝了协同邀请"
-                postGlobalBluetoothAlert(title: "蓝牙协同", message: "\(peer.displayName) 拒绝了协同邀请")
+                statusMessage = String(format: NSLocalizedString("status_peer_rejected_collab_format", comment: "Peer rejected collab"), peer.displayName)
+                postGlobalBluetoothAlert(title: NSLocalizedString("alert_bluetooth_collab_title", comment: "Bluetooth collab title"), message: String(format: NSLocalizedString("status_peer_rejected_collab_format", comment: "Peer rejected collab"), peer.displayName))
             }
             latestInviteResponse = BluetoothReceivedInviteResponse(fromPeerName: peer.displayName, payload: payload)
 
@@ -1459,7 +1472,7 @@ extension BluetoothSyncManager: MCNearbyServiceAdvertiserDelegate {
         invitationHandler: @escaping (Bool, MCSession?) -> Void
     ) {
         DispatchQueue.main.async {
-            self.statusMessage = "\(peerID.displayName) 正在请求连接"
+            self.statusMessage = String(format: NSLocalizedString("status_peer_requesting_connection_format", comment: "Peer requesting connection"), peerID.displayName)
             invitationHandler(true, self.session)
         }
     }
@@ -1472,7 +1485,7 @@ extension BluetoothSyncManager: MCNearbyServiceAdvertiserDelegate {
             if self.isLocalPermissionDenied(error) {
                 self.localNetworkPermissionStatus = .denied
             }
-            self.statusMessage = self.localizedNetworkFailure(prefix: "蓝牙广播", error: error)
+            self.statusMessage = self.localizedNetworkFailure(prefix: NSLocalizedString("bluetooth_broadcast", comment: "Bluetooth broadcast"), error: error)
             self.stopAdvertising()
         }
     }
@@ -1500,7 +1513,7 @@ extension BluetoothSyncManager: MCNearbyServiceBrowserDelegate {
             if self.isLocalPermissionDenied(error) {
                 self.localNetworkPermissionStatus = .denied
             }
-            self.statusMessage = self.localizedNetworkFailure(prefix: "设备搜索", error: error)
+            self.statusMessage = self.localizedNetworkFailure(prefix: NSLocalizedString("device_search", comment: "Device search"), error: error)
             self.stopBrowsing()
         }
     }
@@ -1512,18 +1525,18 @@ extension BluetoothSyncManager: MCSessionDelegate {
             self.updateConnectedPeers()
             switch state {
             case .connected:
-                self.statusMessage = "已连接 \(peerID.displayName)"
+                self.statusMessage = String(format: NSLocalizedString("status_peer_connected_format", comment: "Peer connected"), peerID.displayName)
             case .connecting:
-                self.statusMessage = "连接中：\(peerID.displayName)"
+                self.statusMessage = String(format: NSLocalizedString("status_connecting_to_format", comment: "Connecting to"), peerID.displayName)
             case .notConnected:
                 let cleaned = self.cleanupStoreSyncTransfers(for: peerID)
                 if cleaned {
-                    self.updateStoreSyncStatus("已断开 \(peerID.displayName)，同步任务已取消")
+                    self.updateStoreSyncStatus(String(format: NSLocalizedString("status_peer_disconnected_sync_cancelled_format", comment: "Peer disconnected sync cancelled"), peerID.displayName))
                 } else {
-                    self.statusMessage = "已断开 \(peerID.displayName)"
+                    self.statusMessage = String(format: NSLocalizedString("status_peer_disconnected_format", comment: "Peer disconnected"), peerID.displayName)
                 }
             @unknown default:
-                self.statusMessage = "连接状态更新：\(peerID.displayName)"
+                self.statusMessage = String(format: NSLocalizedString("status_connection_updated_format", comment: "Connection updated"), peerID.displayName)
             }
         }
     }
@@ -1531,7 +1544,7 @@ extension BluetoothSyncManager: MCSessionDelegate {
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
         guard let message = decodeMessage(data) else {
             DispatchQueue.main.async {
-                self.statusMessage = "收到无法解析的蓝牙数据"
+                self.statusMessage = NSLocalizedString("status_received_unparseable_bluetooth", comment: "Received unparseable bluetooth")
             }
             return
         }

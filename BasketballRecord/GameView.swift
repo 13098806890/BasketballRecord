@@ -50,6 +50,7 @@ struct GameView: View {
     @State private var actionButtonPulseKey: String?
     @State private var actionButtonPulseDismissTask: Task<Void, Never>?
     @State private var recordingIndicatorBlink = false
+    @State private var blinkTimer: Timer?
     @State private var highlightedLogID: UUID?
     @State private var highlightedLogDismissTask: Task<Void, Never>?
 
@@ -747,8 +748,7 @@ struct GameView: View {
             Circle()
                 .fill(.red)
                 .frame(width: 8, height: 8)
-                .opacity(recordingIndicatorBlink ? 0.25 : 1)
-                .scaleEffect(recordingIndicatorBlink ? 0.85 : 1.05)
+                .scaleEffect(recordingIndicatorBlink ? 1.05 : 0.85)
 
             Text(LocalizedStringKey("label_rec"))
                 .font(.caption2.monospacedDigit().weight(.bold))
@@ -757,9 +757,19 @@ struct GameView: View {
         .padding(.horizontal, 7)
         .padding(.vertical, 3)
         .background(.red.opacity(0.10), in: Capsule())
-        .animation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true), value: recordingIndicatorBlink)
-        .onAppear { recordingIndicatorBlink = true }
-        .onDisappear { recordingIndicatorBlink = false }
+        .onAppear {
+            recordingIndicatorBlink = true
+            blinkTimer?.invalidate()
+            blinkTimer = Timer.scheduledTimer(withTimeInterval: 0.7, repeats: true) { _ in
+                withAnimation(.easeInOut(duration: 0.35)) {
+                    recordingIndicatorBlink.toggle()
+                }
+            }
+        }
+        .onDisappear {
+            blinkTimer?.invalidate()
+            blinkTimer = nil
+        }
     }
 
     private func actionButton(_ title: LocalizedStringKey, systemImage: String, style: ActionButtonStyle, action: @escaping () -> Void) -> some View {
@@ -983,13 +993,15 @@ struct GameView: View {
         }
         guard isOnCourt(player.id, side: selectedSide) else { return }
 
+        let now = Date()
         let operation = BluetoothLiveOperationPayload.record(
             action: action.liveAction,
             playerID: player.id,
-            side: selectedSide.liveSide
+            side: selectedSide.liveSide,
+            at: now
         )
         let changed = submitLiveOperation(operation) {
-            applyRecordOperation(action: action, playerID: player.id, side: selectedSide)
+            applyRecordOperation(action: action, playerID: player.id, side: selectedSide, at: now)
         }
         if changed {
             showRecordFeedback(action: action, side: selectedSide)
@@ -999,7 +1011,14 @@ struct GameView: View {
     private func showRecordFeedback(action: StatAction, side: TeamSide) {
         triggerTapFeedback()
 
-        guard action.points > 0 else { return }
+        if action.points > 0 {
+            Task {
+                try? await Task.sleep(for: .milliseconds(60))
+                triggerTapFeedback()
+            }
+        } else {
+            return
+        }
         withAnimation(.spring(response: 0.2, dampingFraction: 0.75)) {
             scorePulseSide = side
         }
@@ -1016,7 +1035,7 @@ struct GameView: View {
     }
 
     private func triggerTapFeedback() {
-        let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
+        let feedbackGenerator = UIImpactFeedbackGenerator(style: .heavy)
         feedbackGenerator.prepare()
         feedbackGenerator.impactOccurred(intensity: 1)
     }
@@ -1423,9 +1442,9 @@ struct GameView: View {
     @discardableResult
     private func applyLiveOperationPayload(_ payload: BluetoothLiveOperationPayload) -> Bool {
         switch payload {
-        case let .record(action, playerID, side):
+        case let .record(action, playerID, side, at):
             guard let statAction = StatAction(liveAction: action) else { return false }
-            return applyRecordOperation(action: statAction, playerID: playerID, side: TeamSide(liveSide: side))
+            return applyRecordOperation(action: statAction, playerID: playerID, side: TeamSide(liveSide: side), at: at)
 
         case let .togglePeriod(at):
             return applyTogglePeriodOperation(at: at)
@@ -1469,7 +1488,7 @@ struct GameView: View {
     }
 
     @discardableResult
-    private func applyRecordOperation(action: StatAction, playerID: UUID, side: TeamSide) -> Bool {
+    private func applyRecordOperation(action: StatAction, playerID: UUID, side: TeamSide, at: Date? = nil) -> Bool {
         guard isOnCourt(playerID, side: side) else { return false }
 
         mutateSnapshot {
@@ -1482,7 +1501,7 @@ struct GameView: View {
             if action.points > 0 {
                 applyPlusMinus(points: action.points, scoringSide: side)
             }
-            addEvent("\(name(for: playerID)) \(action.message)", playerID: playerID, eventCode: action.eventCode)
+            addEvent("\(name(for: playerID)) \(action.message)", playerID: playerID, eventCode: action.eventCode, at: at)
         }
         return true
     }
@@ -1888,11 +1907,11 @@ struct GameView: View {
         }
 
         func appendEvent(_ message: String, playerID: UUID? = nil, eventCode: String? = nil) {
-            let encodedMessage = message + (eventCode.map { " [event:\($0)]" } ?? "")
             simulated.logs.append(
                 GameLogEntry(
                     timestamp: eventTime,
-                    message: "\(encodedMessage) \(scoreSuffix())",
+                    message: "\(message) \(scoreSuffix())",
+                    eventCode: eventCode,
                     playerID: playerID,
                     period: simulatedCurrentPeriod,
                     periodElapsedSeconds: simulatedPeriodElapsedSeconds
@@ -2234,13 +2253,13 @@ struct GameView: View {
         autoSaveCurrentGame()
     }
 
-    private func addEvent(_ message: String, playerID: UUID? = nil, eventCode: String? = nil) {
+    private func addEvent(_ message: String, playerID: UUID? = nil, eventCode: String? = nil, at: Date? = nil) {
         let context = eventPeriodContext(for: message, eventCode: eventCode)
-        let encodedMessage = message + (eventCode.map { " [event:\($0)]" } ?? "")
-        let fullMessage = "\(encodedMessage) \(scoreSuffix)"
+        let fullMessage = "\(message) \(scoreSuffix)"
         let logEntry = GameLogEntry(
-            timestamp: Date(),
+            timestamp: at ?? Date(),
             message: fullMessage,
+            eventCode: eventCode,
             playerID: playerID,
             period: context.period,
             periodElapsedSeconds: context.periodElapsedSeconds
@@ -2413,7 +2432,7 @@ struct GameView: View {
         var previous = current
         previous.logs.removeLast()
 
-        let lastEventCode = GameLogFormatter.extractEventCode(from: lastLog.message)
+        let lastEventCode = lastLog.eventCode ?? GameLogFormatter.extractEventCode(from: lastLog.message)
 
         if lastEventCode == "event.game_saved"
             || normalizedMessage == NSLocalizedString("event_game_saved", comment: "Game saved event") {
@@ -2426,7 +2445,7 @@ struct GameView: View {
             return previous
         }
 
-        guard let (playerName, action) = StatAction.parseLog(normalizedMessage) else {
+        guard let (playerName, action) = StatAction.parseLog(normalizedMessage, eventCode: lastLog.eventCode) else {
             return nil
         }
 
@@ -2766,8 +2785,8 @@ private enum StatAction {
         return true
     }
 
-    static func parseLog(_ message: String) -> (playerName: String, action: StatAction)? {
-        if let eventCode = GameLogFormatter.extractEventCode(from: message),
+    static func parseLog(_ message: String, eventCode: String? = nil) -> (playerName: String, action: StatAction)? {
+        if let eventCode = eventCode ?? GameLogFormatter.extractEventCode(from: message),
            let action = allCases.first(where: { $0.eventCode == eventCode }) {
             let normalized = GameLogFormatter.normalizedMessage(message)
             guard normalized.hasSuffix(action.message) else { return nil }

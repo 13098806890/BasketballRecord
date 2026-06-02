@@ -131,7 +131,7 @@ enum BluetoothLiveStatAction: String, Codable, Hashable {
 }
 
 enum BluetoothLiveOperationPayload: Codable, Hashable {
-    case record(action: BluetoothLiveStatAction, playerID: UUID, side: BluetoothLiveSide)
+    case record(action: BluetoothLiveStatAction, playerID: UUID, side: BluetoothLiveSide, at: Date)
     case togglePeriod(at: Date)
     case togglePause(at: Date)
     case substitution(outgoingPlayerID: UUID, incomingPlayerID: UUID, side: BluetoothLiveSide, at: Date)

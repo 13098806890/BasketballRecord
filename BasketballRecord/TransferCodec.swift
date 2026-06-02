@@ -145,9 +145,27 @@ enum GameShareChunkAssembleResult {
 }
 
 enum GameShareChunkCodec {
-    static let keyword = "篮球生涯手账-比赛导出"
-    static let teamKeyword = "篮球生涯手账-球队导出"
-    static let playerKeyword = "篮球生涯手账-球员导出"
+    // Keep original keywords for backward compatibility with existing exports
+    static let keywordLegacy = "篮球生涯手账-比赛导出"
+    static let teamKeywordLegacy = "篮球生涯手账-球队导出"
+    static let playerKeywordLegacy = "篮球生涯手账-球员导出"
+
+    // Use localized keywords for new exports
+    static var keyword: String {
+        NSLocalizedString("transfer_keyword_game", comment: "Game export keyword")
+    }
+    static var teamKeyword: String {
+        NSLocalizedString("transfer_keyword_team", comment: "Team export keyword")
+    }
+    static var playerKeyword: String {
+        NSLocalizedString("transfer_keyword_player", comment: "Player export keyword")
+    }
+
+    // All keywords to try when parsing (localized first, then legacy for backward compatibility)
+    static var allKeywords: [String] {
+        [keyword, keywordLegacy, teamKeywordLegacy, playerKeywordLegacy]
+    }
+
     static let scheme = "BSG2"
 
     static func generateTransferID() -> String {
@@ -158,8 +176,9 @@ enum GameShareChunkCodec {
         payload: String,
         preferredParts: Int,
         transferID: String,
-        keyword: String = keyword
+        keyword: String? = nil
     ) -> [String] {
+        let actualKeyword = keyword ?? Self.keyword
         let trimmedPayload = payload.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedPayload.isEmpty else { return [] }
 
@@ -170,11 +189,11 @@ enum GameShareChunkCodec {
         return chunks.enumerated().map { offset, chunk in
             let part = offset + 1
             let checksum = checksumHex(for: chunk)
-            return "\(keyword)-\(part)/\(totalParts):\(scheme)|id=\(transferID)|crc=\(checksum)|\(chunk)"
+            return "\(actualKeyword)-\(part)/\(totalParts):\(scheme)|id=\(transferID)|crc=\(checksum)|\(chunk)"
         }
     }
 
-    static func parseChunkLine(_ text: String, expectedKeyword: String = keyword) -> GameShareChunk? {
+    static func parseChunkLine(_ text: String, expectedKeyword: String? = nil) -> GameShareChunk? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
 
@@ -184,100 +203,112 @@ enum GameShareChunkCodec {
         let title = String(segments[0])
         let body = String(segments[1])
 
-        let prefix = "\(expectedKeyword)-"
-        guard title.hasPrefix(prefix) else { return nil }
-
-        let partInfo = String(title.dropFirst(prefix.count))
-        let partNumbers = partInfo.split(separator: "/", maxSplits: 1, omittingEmptySubsequences: false)
-        guard partNumbers.count == 2,
-              let partIndex = Int(partNumbers[0]),
-              let totalParts = Int(partNumbers[1]),
-              partIndex >= 1,
-              totalParts >= 1,
-              partIndex <= totalParts else {
-            return nil
+        // Determine which keywords to try
+        let keywordsToTry: [String]
+        if let expectedKeyword = expectedKeyword {
+            keywordsToTry = [expectedKeyword]
+        } else {
+            keywordsToTry = allKeywords
         }
 
-        let fields = body.split(separator: "|", maxSplits: 3, omittingEmptySubsequences: false)
-        guard fields.count == 4,
-              fields[0] == Substring(scheme) else {
-            return nil
+        for keyword in keywordsToTry {
+            let prefix = "\(keyword)-"
+            guard title.hasPrefix(prefix) else { continue }
+
+            let partInfo = String(title.dropFirst(prefix.count))
+            let partNumbers = partInfo.split(separator: "/", maxSplits: 1, omittingEmptySubsequences: false)
+            guard partNumbers.count == 2,
+                  let partIndex = Int(partNumbers[0]),
+                  let totalParts = Int(partNumbers[1]),
+                  partIndex >= 1,
+                  totalParts >= 1,
+                  partIndex <= totalParts else {
+                continue
+            }
+
+            let fields = body.split(separator: "|", maxSplits: 3, omittingEmptySubsequences: false)
+            guard fields.count == 4,
+                  fields[0] == Substring(scheme) else {
+                continue
+            }
+
+            let idField = String(fields[1])
+            let crcField = String(fields[2])
+            let payload = String(fields[3])
+
+            guard idField.hasPrefix("id="), crcField.hasPrefix("crc=") else {
+                continue
+            }
+
+            let transferID = String(idField.dropFirst(3)).uppercased()
+            let checksum = String(crcField.dropFirst(4)).uppercased()
+            guard !transferID.isEmpty, !payload.isEmpty else {
+                continue
+            }
+
+            guard checksumHex(for: payload) == checksum else {
+                continue
+            }
+
+            return GameShareChunk(
+                transferID: transferID,
+                partIndex: partIndex,
+                totalParts: totalParts,
+                checksum: checksum,
+                payload: payload,
+                rawLine: trimmed
+            )
         }
-
-        let idField = String(fields[1])
-        let crcField = String(fields[2])
-        let payload = String(fields[3])
-
-        guard idField.hasPrefix("id="), crcField.hasPrefix("crc=") else {
-            return nil
-        }
-
-        let transferID = String(idField.dropFirst(3)).uppercased()
-        let checksum = String(crcField.dropFirst(4)).uppercased()
-        guard !transferID.isEmpty, !payload.isEmpty else {
-            return nil
-        }
-
-        guard checksumHex(for: payload) == checksum else {
-            return nil
-        }
-
-        return GameShareChunk(
-            transferID: transferID,
-            partIndex: partIndex,
-            totalParts: totalParts,
-            checksum: checksum,
-            payload: payload,
-            rawLine: trimmed
-        )
+        return nil
     }
 
-    static func parseChunks(in text: String, expectedKeyword: String = keyword) -> [GameShareChunk] {
+    static func parseChunks(in text: String, expectedKeyword: String? = nil) -> [GameShareChunk] {
         text
             .components(separatedBy: .newlines)
             .compactMap { parseChunkLine($0, expectedKeyword: expectedKeyword) }
     }
 
-    static func looksLikeChunkText(_ text: String, keyword: String = keyword) -> Bool {
-        text.contains(keyword) && text.contains(scheme)
+    static func looksLikeChunkText(_ text: String, keyword: String? = nil) -> Bool {
+        let kw = keyword ?? Self.keyword
+        return text.contains(kw) && text.contains(scheme)
     }
 
-    static func assemblePayload(from lines: [String], expectedKeyword: String = keyword) -> GameShareChunkAssembleResult {
+    static func assemblePayload(from lines: [String], expectedKeyword: String? = nil) -> GameShareChunkAssembleResult {
         let nonEmptyLines = lines
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
         guard !nonEmptyLines.isEmpty else {
-            return .failure("请先粘贴完整分段编码。")
+            return .failure(NSLocalizedString("transfer_error_paste_complete", comment: "Paste complete share code"))
         }
 
         var chunks: [GameShareChunk] = []
         for (index, line) in nonEmptyLines.enumerated() {
             guard let chunk = parseChunkLine(line, expectedKeyword: expectedKeyword) else {
-                return .failure("第\(index + 1)段格式错误或校验失败，请确认复制完整。")
+                return .failure(String(format: NSLocalizedString("transfer_error_chunk_format_failed_format", comment: "Chunk format failed"), index + 1))
             }
             chunks.append(chunk)
         }
 
         guard let first = chunks.first else {
-            return .failure("未识别到有效分段编码。")
+            return .failure(NSLocalizedString("transfer_error_no_valid_chunk", comment: "No valid chunk"))
         }
 
         for chunk in chunks {
             guard chunk.transferID == first.transferID else {
-                return .failure("检测到不同批次的分段编码（id 不一致）。")
+                return .failure(NSLocalizedString("transfer_error_different_batch_id", comment: "Different batch"))
             }
             guard chunk.totalParts == first.totalParts else {
-                return .failure("检测到分段总数不一致，请检查是否混入了其他比赛编码。")
+                return .failure(NSLocalizedString("transfer_error_total_parts_mismatch", comment: "Total parts mismatch"))
             }
         }
 
         let grouped = Dictionary(grouping: chunks, by: \.partIndex)
         for part in 1...first.totalParts {
             guard let partChunks = grouped[part], !partChunks.isEmpty else {
-                return .failure("缺少第\(part)/\(first.totalParts)段编码。")
+                return .failure(String(format: NSLocalizedString("transfer_error_missing_chunk_format", comment: "Missing chunk"), part, first.totalParts))
             }
             if partChunks.count > 1 {
-                return .failure("第\(part)/\(first.totalParts)段重复，请仅保留一条。")
+                return .failure(String(format: NSLocalizedString("transfer_error_duplicate_chunk_format", comment: "Duplicate chunk"), part, first.totalParts))
             }
         }
 

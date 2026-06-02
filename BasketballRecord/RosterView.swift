@@ -66,6 +66,16 @@ struct RosterView: View {
 
                 Section(LocalizedStringKey("settings_section_data_management")) {
                     NavigationLink {
+                        GameGroupManagementView(store: store)
+                    } label: {
+                        settingsRow(
+                            title: LocalizedStringKey("game_group_nav_title"),
+                            systemImage: "folder.fill",
+                            countText: "\(store.gameGroups.count)"
+                        )
+                    }
+
+                    NavigationLink {
                         TeamManagementView()
                     } label: {
                         settingsRow(
@@ -1985,6 +1995,7 @@ struct PlayerProfileView: View {
     @EnvironmentObject private var store: AppStore
     var playerID: UUID
     var fixedGame: SavedGame? = nil
+    @Binding var selectedGroupID: UUID?
     @State private var selectedGameIDs: Set<UUID> = []
     @State private var hasInitializedGameSelection = false
     @State private var selectedPeriod: Int? = nil
@@ -2015,7 +2026,29 @@ struct PlayerProfileView: View {
                     .buttonStyle(.plain)
                         .padding(.horizontal)
 
+                    if let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(NSLocalizedString("game_group_selected_filter", comment: "Filtering by"))
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text(group.name)
+                                    .font(.headline)
+                            }
+                            Spacer()
+                            Button(action: { selectedGroupID = nil }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+
                     statSection(localized("label_average_stats"), values: averageValues)
+
+                    if fixedGame == nil {
+                        statSection(localized("section_advanced_stats"), values: advancedValues)
+                    }
                 }
 
                 if let fixedGame, fixedGame.snapshot.periodCount > 1 {
@@ -2129,17 +2162,16 @@ struct PlayerProfileView: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(12)
-                    .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 8))
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 8) {
+                    LazyVStack(spacing: 4) {
                         ForEach(filteredPlayerLogs) { log in
                             Text(GameLogFormatter.lineText(for: log))
                                 .font(.caption.monospacedDigit())
                                 .foregroundStyle(GameLogFormatter.isScoring(log) ? Color.blue : Color.primary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(10)
-                                .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 8))
+                                .padding(.vertical, 6)
+                                .padding(.horizontal, 12)
                         }
                     }
                 }
@@ -2150,9 +2182,14 @@ struct PlayerProfileView: View {
     }
 
     private var allPlayerGames: [SavedGame] {
-        store.savedGames
+        let games = store.savedGames
             .filter { containsPlayer(in: $0) }
             .sorted { $0.savedAt > $1.savedAt }
+
+        if let selectedGroupID = selectedGroupID {
+            return games.filter { $0.groupID == selectedGroupID }
+        }
+        return games
     }
 
     private var selectionSummaryText: String {
@@ -2277,6 +2314,15 @@ struct PlayerProfileView: View {
         }
     }
 
+    private var advancedValues: [(String, String)] {
+        let stats = totalStats
+        return [
+            (NSLocalizedString("stat_label_efg", comment: "eFG%"), percent(stats.effectiveFieldGoalRate)),
+            (NSLocalizedString("stats_true_shooting", comment: "TS%"), percent(stats.trueShootingRate)),
+            (NSLocalizedString("stats_points_per_shot", comment: "PTS/FGA"), String(format: "%.2f", stats.pointsPerShot))
+        ]
+    }
+
     private func madeAttemptRate(made: Int, attempts: Int, rate: Double) -> String {
         "\(made)/\(attempts)  \(percent(rate))"
     }
@@ -2332,14 +2378,35 @@ struct PlayerProfileView: View {
 }
 
 private struct PlayerGameSelectionView: View {
+    @EnvironmentObject private var store: AppStore
     @Environment(\.dismiss) private var dismiss
     var games: [SavedGame]
     @Binding var selectedIDs: Set<UUID>
+    @State private var selectedGroupID: UUID? = nil
 
     var body: some View {
         List {
             if games.isEmpty {
                 ContentUnavailableView(LocalizedStringKey("text_no_selectable_games"), systemImage: "clock.badge.questionmark")
+            }
+
+            if let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
+                Section {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(NSLocalizedString("game_group_selected_filter", comment: "Filtering by"))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(group.name)
+                                .font(.headline)
+                        }
+                        Spacer()
+                        Button(action: { selectedGroupID = nil }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.gray)
+                        }
+                    }
+                }
             }
 
             ForEach(monthGroups) { group in
@@ -2399,6 +2466,10 @@ private struct PlayerGameSelectionView: View {
         .navigationTitle(LocalizedStringKey("button_choose_games"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
+            }
+
             ToolbarItem(placement: .cancellationAction) {
                 Button(LocalizedStringKey("button_clear_all")) {
                     selectedIDs.removeAll()
@@ -2421,7 +2492,13 @@ private struct PlayerGameSelectionView: View {
 
     private var monthGroups: [PlayerGameMonthGroup] {
         let calendar = Calendar.current
-        let grouped = Dictionary(grouping: games) { game in
+        
+        // Filter games by selected group if any
+        let filteredGames = selectedGroupID.map { groupID in
+            games.filter { $0.groupID == groupID }
+        } ?? games
+        
+        let grouped = Dictionary(grouping: filteredGames) { game in
             let components = calendar.dateComponents([.year, .month], from: game.savedAt)
             return PlayerGameMonthKey(year: components.year ?? 0, month: components.month ?? 0)
         }
