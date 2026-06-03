@@ -34,4 +34,4 @@ Without this permission, the Bluetooth sync feature cannot discover nearby devic
 
 ### Contact
 
-If you have any questions, please contact: doxie@strategy.com
+If you have any questions, please contact: classicalxie@163.com

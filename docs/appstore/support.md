@@ -30,7 +30,7 @@ Deleted data cannot be recovered. Please export backups before deletion.
 If you need further assistance, please open an issue on GitHub:
 https://github.com/13098806890/BasketballRecord/issues
 
-Or contact us via email: doxie@strategy.com
+Or contact us via email: classicalxie@163.com
 
 ## Version
 
@@ -72,7 +72,7 @@ Or contact us via email: doxie@strategy.com
 如需更多帮助，请在 GitHub 提交 Issue：
 https://github.com/13098806890/BasketballRecord/issues
 
-或发送邮件至：doxie@strategy.com
+或发送邮件至：classicalxie@163.com
 
 ## 版本信息
 
