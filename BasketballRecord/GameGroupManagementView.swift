@@ -206,26 +206,11 @@ struct GameGroupEditView: View {
             updatedGroup.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
             updatedGroup.description = description.isEmpty ? nil : description.trimmingCharacters(in: .whitespacesAndNewlines)
             updatedGroup.gameIDs = Array(selectedGameIDs)
-
+            store.syncGameGroupMembership(groupID: group.id, gameIDs: Array(selectedGameIDs))
             store.updateGameGroup(updatedGroup)
-
-            // Sync game groupIDs with the new selection
-            let oldIDs = Set(group.gameIDs)
-            let removedIDs = oldIDs.subtracting(selectedGameIDs)
-            let addedIDs = selectedGameIDs.subtracting(oldIDs)
-
-            if !removedIDs.isEmpty {
-                store.batchSetGamesGroup(removedIDs, groupID: nil)
-            }
-            if !addedIDs.isEmpty {
-                store.batchSetGamesGroup(addedIDs, groupID: group.id)
-            }
         } else {
             let newGroup = store.addGameGroup(name.trimmingCharacters(in: .whitespacesAndNewlines), description: description.isEmpty ? nil : description.trimmingCharacters(in: .whitespacesAndNewlines))
-
-            if !selectedGameIDs.isEmpty {
-                store.batchSetGamesGroup(selectedGameIDs, groupID: newGroup.id)
-            }
+            store.syncGameGroupMembership(groupID: newGroup.id, gameIDs: Array(selectedGameIDs))
         }
         dismiss()
     }

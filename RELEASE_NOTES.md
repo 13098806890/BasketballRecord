@@ -1,5 +1,52 @@
 # Release Notes
 
+## 1.09 (2026-06-03)
+
+### 亮点
+
+- 新增 Pro 订阅系统（月度/年度），球队分组、蓝牙协同、iCloud 存储、AI 总结为 Pro 功能。
+- 比赛支持多分组，一场比赛可同时归属多个分组。
+- 新增 iCloud 云存储，可选择比赛同步到云端。
+- 新增比赛锁定功能，锁定后不可删除。
+- 新增每节自动结束条件（按时间/按比分）。
+- 支持多 AI Provider（DeepSeek / OpenAI / Anthropic），可选模型。
+- 蓝牙传输进度修复：发送方不再提前显示 100%。
+- 蓝牙新增照片传输开关。
+
+### 新增与改进
+
+- 订阅与 Pro
+	- 新增 `PurchaseManager`（StoreKit2），支持 `com.doxie.basketball.pro.monthly` 和 `com.doxie.basketball.pro.yearly`。
+	- 点击球队分组、蓝牙协同、AI 总结、iCloud 等 Pro 功能时弹出购买页。
+- 多分组
+	- `SavedGame.groupID: UUID?` → `groupIDs: [UUID]`，旧数据自动兼容迁移。
+	- `GameGroupPicker` 支持多选勾选状态显示。
+- iCloud 存储
+	- 设置页 iCloud 存储入口（Pro 可见），可逐场切换云端/本地。
+	- 使用 `NSUbiquitousKeyValueStore` 跨设备同步。
+- 比赛锁定
+	- `SavedGame.isLocked` 字段，历史列表左滑锁定/解锁，锁定行隐藏删除按钮。
+- 每节自动结束
+	- 新增 `PeriodEndCondition`（按时间 / 按比分），新建比赛时可设置。
+	- 时间到或比分达上限时自动结束节次，弹出 Alert + 震动。
+	- 设置值通过 `@AppStorage` 持久化。
+- AI 多 Provider
+	- 新增 `AIService` + `AIKeychain`，支持 DeepSeek / OpenAI / Anthropic。
+	- 设置页可切换 Provider 和模型，API Key 按 Provider 分别存储。
+- 蓝牙传输
+	- 进度修复：`fractionCompleted` 在确认前 cap 为 0.99，不再提前 100%。
+	- 新增照片传输开关（`label_include_photos_in_sync`）。
+- UI 优化
+	- 新建比赛键盘增加 "完成" 收起按钮。
+	- 蓝牙同步进度弹窗由 Alert 改为 Sheet，进度实时更新。
+- 删除
+	- 移除显示模拟比赛按钮设置及对应代码。
+
+### 兼容性
+
+- iOS 17.6+
+- Xcode 17+
+
 ## 1.08 (2026-06-02)
 
 ### 亮点

@@ -97,8 +97,35 @@ final class AppStore: ObservableObject {
         didSet { scheduleSave() }
     }
 
-    @Published var showsSimulationButton = false {
+    var isPro: Bool {
+        PurchaseManager.shared.isPro
+    }
+
+    @Published var showsBluetoothGamesButton = false {
         didSet { scheduleSave() }
+    }
+
+    @Published var cloudEnabledGameIDs: Set<UUID> = []
+
+    func toggleCloudStorage(for gameID: UUID) {
+        if cloudEnabledGameIDs.contains(gameID) {
+            cloudEnabledGameIDs.remove(gameID)
+        } else {
+            cloudEnabledGameIDs.insert(gameID)
+        }
+        saveCloudEnabledGameIDs()
+    }
+
+    private func saveCloudEnabledGameIDs() {
+        let ids = Array(cloudEnabledGameIDs).map(\.uuidString)
+        NSUbiquitousKeyValueStore.default.set(ids, forKey: "cloud_enabled_game_ids")
+        NSUbiquitousKeyValueStore.default.synchronize()
+    }
+
+    private func loadCloudEnabledGameIDs() {
+        if let ids = NSUbiquitousKeyValueStore.default.array(forKey: "cloud_enabled_game_ids") as? [String] {
+            cloudEnabledGameIDs = Set(ids.compactMap(UUID.init))
+        }
     }
 
     private let storageKey = "basketball-record-store-v1"
@@ -107,6 +134,14 @@ final class AppStore: ObservableObject {
 
     init() {
         load()
+        loadCloudEnabledGameIDs()
+        NotificationCenter.default.addObserver(self, selector: #selector(cloudStoreDidChange), name: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: NSUbiquitousKeyValueStore.default)
+    }
+
+    @objc private func cloudStoreDidChange() {
+        DispatchQueue.main.async { [weak self] in
+            self?.loadCloudEnabledGameIDs()
+        }
     }
 
     func player(for id: UUID) -> Player? {
@@ -210,15 +245,15 @@ final class AppStore: ObservableObject {
 
         for incoming in incomingGames {
             if let existingIndex = nextGames.firstIndex(where: { $0.id == incoming.id }) {
-                // Preserve local groupID when upserting - don't overwrite with incoming groupID
+                // Preserve local groupIDs when upserting - don't overwrite with incoming
                 var updatedGame = incoming
-                updatedGame.groupID = nextGames[existingIndex].groupID
+                updatedGame.groupIDs = nextGames[existingIndex].groupIDs
                 nextGames[existingIndex] = updatedGame
                 updated += 1
             } else {
-                // New game - strip groupID from incoming data to ensure clean sync
+                // New game - strip groupIDs from incoming data to ensure clean sync
                 var newGame = incoming
-                newGame.groupID = nil
+                newGame.groupIDs = []
                 nextGames.append(newGame)
                 inserted += 1
             }
@@ -478,58 +513,52 @@ final class AppStore: ObservableObject {
         gameGroups.removeAll { $0.id == groupID }
     }
 
-    func addGameToGroup(_ gameID: UUID, groupID: UUID?) {
+    func toggleGameGroup(_ gameID: UUID, groupID: UUID) {
         guard let gameIndex = savedGames.firstIndex(where: { $0.id == gameID }) else { return }
+        guard let groupIndex = gameGroups.firstIndex(where: { $0.id == groupID }) else { return }
 
-        // Remove from old group if exists
-        if let oldGroupID = savedGames[gameIndex].groupID {
-            if let oldGroupIndex = gameGroups.firstIndex(where: { $0.id == oldGroupID }) {
-                gameGroups[oldGroupIndex].gameIDs.removeAll { $0 == gameID }
-            }
-        }
-
-        // Add to new group
-        savedGames[gameIndex].groupID = groupID
-        if let newGroupID = groupID {
-            if let newGroupIndex = gameGroups.firstIndex(where: { $0.id == newGroupID }) {
-                if !gameGroups[newGroupIndex].gameIDs.contains(gameID) {
-                    gameGroups[newGroupIndex].gameIDs.append(gameID)
-                }
+        if savedGames[gameIndex].groupIDs.contains(groupID) {
+            savedGames[gameIndex].groupIDs.removeAll { $0 == groupID }
+            gameGroups[groupIndex].gameIDs.removeAll { $0 == gameID }
+        } else {
+            savedGames[gameIndex].groupIDs.append(groupID)
+            if !gameGroups[groupIndex].gameIDs.contains(gameID) {
+                gameGroups[groupIndex].gameIDs.append(gameID)
             }
         }
     }
 
-    /// Batch assign a set of gameIDs to a group, or remove them from all groups.
-    /// Triggers `scheduleSave()` only once instead of per-game.
-    func batchSetGamesGroup(_ gameIDs: Set<UUID>, groupID: UUID?) {
-        for gameID in gameIDs {
-            guard let gameIndex = savedGames.firstIndex(where: { $0.id == gameID }) else { continue }
+    func gamesInGroup(_ groupID: UUID) -> [SavedGame] {
+        savedGames.filter { $0.groupIDs.contains(groupID) }
+    }
 
-            if let oldGroupID = savedGames[gameIndex].groupID {
-                if let oldGroupIndex = gameGroups.firstIndex(where: { $0.id == oldGroupID }) {
-                    gameGroups[oldGroupIndex].gameIDs.removeAll { $0 == gameID }
-                }
+    func groups(for gameID: UUID) -> [GameGroup] {
+        guard let game = savedGames.first(where: { $0.id == gameID }) else { return [] }
+        return gameGroups.filter { game.groupIDs.contains($0.id) }
+    }
+
+    func syncGameGroupMembership(groupID: UUID, gameIDs: [UUID]) {
+        guard let groupIndex = gameGroups.firstIndex(where: { $0.id == groupID }) else { return }
+        let oldGameIDs = Set(gameGroups[groupIndex].gameIDs)
+        let newGameIDs = Set(gameIDs)
+        let added = newGameIDs.subtracting(oldGameIDs)
+        let removed = oldGameIDs.subtracting(newGameIDs)
+
+        gameGroups[groupIndex].gameIDs = gameIDs
+
+        for gameID in removed {
+            if let gameIndex = savedGames.firstIndex(where: { $0.id == gameID }) {
+                savedGames[gameIndex].groupIDs.removeAll { $0 == groupID }
             }
-
-            savedGames[gameIndex].groupID = groupID
-            if let newGroupID = groupID {
-                if let newGroupIndex = gameGroups.firstIndex(where: { $0.id == newGroupID }) {
-                    if !gameGroups[newGroupIndex].gameIDs.contains(gameID) {
-                        gameGroups[newGroupIndex].gameIDs.append(gameID)
-                    }
+        }
+        for gameID in added {
+            if let gameIndex = savedGames.firstIndex(where: { $0.id == gameID }) {
+                if !savedGames[gameIndex].groupIDs.contains(groupID) {
+                    savedGames[gameIndex].groupIDs.append(groupID)
                 }
             }
         }
         scheduleSave()
-    }
-
-    func gamesInGroup(_ groupID: UUID) -> [SavedGame] {
-        savedGames.filter { $0.groupID == groupID }
-    }
-
-    func group(for gameID: UUID) -> GameGroup? {
-        guard let groupID = savedGames.first(where: { $0.id == gameID })?.groupID else { return nil }
-        return gameGroups.first { $0.id == groupID }
     }
 
     func mergePlayer(sourceID: UUID, into targetID: UUID) -> PlayerMergeSummary? {
@@ -609,7 +638,7 @@ final class AppStore: ObservableObject {
             gameGroups: gameGroups,
             hiddenCareerStatItems: hiddenCareerStatItems,
             keepsScreenAwake: keepsScreenAwake,
-            showsSimulationButton: showsSimulationButton
+            showsBluetoothGamesButton: showsBluetoothGamesButton
         )
         guard let data = try? JSONEncoder().encode(payload) else { return }
         UserDefaults.standard.set(data, forKey: storageKey)
@@ -648,7 +677,7 @@ final class AppStore: ObservableObject {
         gameGroups = payload.gameGroups
         hiddenCareerStatItems = payload.hiddenCareerStatItems
         keepsScreenAwake = payload.keepsScreenAwake
-        showsSimulationButton = payload.showsSimulationButton
+        showsBluetoothGamesButton = payload.showsBluetoothGamesButton
     }
 
     private func seedSampleData() {
@@ -732,7 +761,7 @@ final class AppStore: ObservableObject {
             homePlayerIDs: homePlayerIDs,
             awayPlayerIDs: awayPlayerIDs,
             playerNamesByID: playerNames,
-            groupID: nil  // Always strip groupID on import - it's local to each device
+            groupIDs: []  // Always strip groupIDs on import - it's local to each device
         )
     }
 
@@ -807,7 +836,7 @@ final class AppStore: ObservableObject {
             homePlayerIDs: remapDedupedIDs(game.homePlayerIDs, sourceID: sourceID, targetID: targetID),
             awayPlayerIDs: remapDedupedIDs(game.awayPlayerIDs, sourceID: sourceID, targetID: targetID),
             playerNamesByID: names,
-            groupID: game.groupID  // Preserve groupID for local merges
+            groupIDs: game.groupIDs  // Preserve groupIDs for local merges
         )
     }
 
@@ -925,7 +954,7 @@ final class AppStore: ObservableObject {
             homePlayerIDs: game.homePlayerIDs,
             awayPlayerIDs: game.awayPlayerIDs,
             playerNamesByID: game.playerNamesByID,
-            groupID: game.groupID  // Preserve groupID for local merges
+            groupIDs: game.groupIDs  // Preserve groupIDs for local merges
         )
     }
 
@@ -1023,7 +1052,7 @@ private struct StorePayload: Codable {
     var gameGroups: [GameGroup]
     var hiddenCareerStatItems: Set<CareerStatItem>
     var keepsScreenAwake: Bool
-    var showsSimulationButton: Bool
+    var showsBluetoothGamesButton: Bool
 
     init(
         players: [Player],
@@ -1032,7 +1061,7 @@ private struct StorePayload: Codable {
         gameGroups: [GameGroup] = [],
         hiddenCareerStatItems: Set<CareerStatItem> = [],
         keepsScreenAwake: Bool = true,
-        showsSimulationButton: Bool = false
+        showsBluetoothGamesButton: Bool = false
     ) {
         self.players = players
         self.teams = teams
@@ -1040,7 +1069,7 @@ private struct StorePayload: Codable {
         self.gameGroups = gameGroups
         self.hiddenCareerStatItems = hiddenCareerStatItems
         self.keepsScreenAwake = keepsScreenAwake
-        self.showsSimulationButton = showsSimulationButton
+        self.showsBluetoothGamesButton = showsBluetoothGamesButton
     }
 
     init(from decoder: Decoder) throws {
@@ -1051,6 +1080,9 @@ private struct StorePayload: Codable {
         gameGroups = try container.decodeIfPresent([GameGroup].self, forKey: .gameGroups) ?? []
         hiddenCareerStatItems = try container.decodeIfPresent(Set<CareerStatItem>.self, forKey: .hiddenCareerStatItems) ?? []
         keepsScreenAwake = try container.decodeIfPresent(Bool.self, forKey: .keepsScreenAwake) ?? true
-        showsSimulationButton = try container.decodeIfPresent(Bool.self, forKey: .showsSimulationButton) ?? false
+        showsBluetoothGamesButton = try container.decodeIfPresent(Bool.self, forKey: .showsBluetoothGamesButton) ?? false
+        // Backward compat: ignore legacy showsSimulationButton
+        let legacyContainer = try decoder.container(keyedBy: AnyCodingKey.self)
+        _ = try? legacyContainer.decodeIfPresent(Bool.self, forKey: AnyCodingKey(stringValue: "showsSimulationButton"))
     }
 }

@@ -16,6 +16,7 @@ struct RosterView: View {
     @State private var showingMergeEntry = false
     @State private var showingDeepSeekConfig = false
     @State private var showingSettingsDocument: SettingsDocument?
+    @State private var isShowingPurchase = false
 
     var body: some View {
         NavigationStack {
@@ -38,19 +39,31 @@ struct RosterView: View {
                     }
 
                     HStack(spacing: 12) {
-                        Image(systemName: "sparkles")
+                        Image(systemName: "dot.radiowaves.left.and.right")
                             .font(.subheadline.weight(.semibold))
                             .symbolRenderingMode(.monochrome)
                             .foregroundStyle(.secondary)
                             .frame(width: 28, height: 28)
 
-                        Text(LocalizedStringKey("settings_show_simulation_button"))
+                        Text(LocalizedStringKey("settings_show_bluetooth_button"))
                             .font(.body.weight(.medium))
 
                         Spacer()
 
-                        Toggle("", isOn: $store.showsSimulationButton)
+                        Toggle("", isOn: $store.showsBluetoothGamesButton)
                             .labelsHidden()
+                    }
+
+                    if store.isPro {
+                        NavigationLink {
+                            CloudStorageView()
+                        } label: {
+                            settingsRow(
+                                title: LocalizedStringKey("settings_cloud_storage"),
+                                systemImage: "icloud.fill",
+                                countText: "\(store.cloudEnabledGameIDs.count)"
+                            )
+                        }
                     }
 
                     NavigationLink {
@@ -73,6 +86,14 @@ struct RosterView: View {
                             systemImage: "folder.fill",
                             countText: "\(store.gameGroups.count)"
                         )
+                    }
+                    .disabled(!store.isPro)
+                    .overlay {
+                        if !store.isPro {
+                            Color.clear
+                                .contentShape(Rectangle())
+                                .onTapGesture { isShowingPurchase = true }
+                        }
                     }
 
                     NavigationLink {
@@ -118,6 +139,14 @@ struct RosterView: View {
                             countText: nil
                         )
                     }
+                    .disabled(!store.isPro)
+                    .overlay {
+                        if !store.isPro {
+                            Color.clear
+                                .contentShape(Rectangle())
+                                .onTapGesture { isShowingPurchase = true }
+                        }
+                    }
 
                     Button {
                         showingRosterImport = true
@@ -145,12 +174,15 @@ struct RosterView: View {
                 }
 
                 Section(LocalizedStringKey("settings_section_ai")) {
-
                     Button {
-                        showingDeepSeekConfig = true
+                        if store.isPro {
+                            showingDeepSeekConfig = true
+                        } else {
+                            isShowingPurchase = true
+                        }
                     } label: {
                         settingsRow(
-                            title: LocalizedStringKey("settings_deepseek_api_key"),
+                            title: LocalizedStringKey("settings_ai"),
                             systemImage: "sparkles",
                             countText: nil,
                             showsDisclosure: true
@@ -204,7 +236,10 @@ struct RosterView: View {
                 MergeRosterUUIDView()
             }
             .sheet(isPresented: $showingDeepSeekConfig) {
-                DeepSeekAPISettingsView()
+                AISettingsView()
+            }
+            .sheet(isPresented: $isShowingPurchase) {
+                ProSubscribeView()
             }
             .sheet(item: $showingSettingsDocument) { document in
                 SettingsDocumentView(document: document)
@@ -253,20 +288,88 @@ struct RosterView: View {
     }
 }
 
-private struct DeepSeekAPISettingsView: View {
+private struct ProSubscribeView: View {
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Image(systemName: "crown.fill")
+                    .font(.system(size: 48))
+                    .foregroundStyle(.blue)
+
+                Text(LocalizedStringKey("pro_description"))
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+
+                if let product = PurchaseManager.shared.monthlyProduct {
+                    Button {
+                        Task { try? await PurchaseManager.shared.purchase(product) }
+                    } label: {
+                        HStack {
+                            Text(LocalizedStringKey("button_subscribe_monthly"))
+                            Spacer()
+                            Text(product.displayPrice)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                }
+
+                if let product = PurchaseManager.shared.yearlyProduct {
+                    Button {
+                        Task { try? await PurchaseManager.shared.purchase(product) }
+                    } label: {
+                        HStack {
+                            Text(LocalizedStringKey("button_subscribe_yearly"))
+                            Spacer()
+                            Text(product.displayPrice)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .tint(.orange)
+                }
+
+                Button(LocalizedStringKey("button_restore")) {
+                    Task { await PurchaseManager.shared.restore() }
+                }
+                .font(.caption)
+            }
+            .padding()
+            .navigationTitle(LocalizedStringKey("section_pro"))
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .presentationDetents([.medium])
+    }
+}
+
+private struct AISettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("ai_selected_provider") private var selectedProviderRaw = AIProvider.deepseek.rawValue
+    @AppStorage("ai_selected_model_id") private var selectedModelID = AIProvider.defaultModel.id
 
     @State private var apiKey = ""
     @State private var isTesting = false
-    @State private var testedKey: String?
     @State private var hasSavedKey = false
     @State private var statusMessage = ""
     @State private var statusKind: StatusKind = .neutral
 
+    private var selectedProvider: AIProvider {
+        AIProvider(rawValue: selectedProviderRaw) ?? .deepseek
+    }
+
+    private var availableModels: [AIModel] {
+        selectedProvider.models
+    }
+
+    private var selectedModel: AIModel {
+        availableModels.first { $0.id == selectedModelID } ?? availableModels.first ?? AIProvider.defaultModel
+    }
+
     private enum StatusKind {
-        case neutral
-        case success
-        case error
+        case neutral, success, error
     }
 
     private var normalizedKey: String {
@@ -277,14 +380,13 @@ private struct DeepSeekAPISettingsView: View {
         !normalizedKey.isEmpty && testedKey == normalizedKey
     }
 
+    @State private var testedKey: String?
+
     private var statusColor: Color {
         switch statusKind {
-        case .neutral:
-            return .secondary
-        case .success:
-            return .green
-        case .error:
-            return .red
+        case .neutral: return .secondary
+        case .success: return .green
+        case .error: return .red
         }
     }
 
@@ -292,22 +394,37 @@ private struct DeepSeekAPISettingsView: View {
         NavigationStack {
             Form {
                 Section {
-                    SecureField(LocalizedStringKey("deepseek_enter_api_key"), text: $apiKey)
+                    Picker(LocalizedStringKey("label_ai_provider"), selection: $selectedProviderRaw) {
+                        ForEach(AIProvider.allCases) { provider in
+                            Text(provider.displayName).tag(provider.rawValue)
+                        }
+                    }
+                    .onChange(of: selectedProviderRaw) { _, newValue in
+                        let provider = AIProvider(rawValue: newValue) ?? .deepseek
+                        if !provider.models.contains(where: { $0.id == selectedModelID }) {
+                            selectedModelID = provider.models.first?.id ?? ""
+                        }
+                        loadSavedKey()
+                    }
+
+                    Picker(LocalizedStringKey("label_ai_model"), selection: $selectedModelID) {
+                        ForEach(availableModels) { model in
+                            Text(model.displayName).tag(model.id)
+                        }
+                    }
+
+                    SecureField(LocalizedStringKey("field_ai_api_key"), text: $apiKey)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .onChange(of: apiKey) { _, _ in
-                            if testedKey != normalizedKey {
-                                testedKey = nil
-                            }
+                            if testedKey != normalizedKey { testedKey = nil }
                         }
 
                     Button {
                         testConnection()
                     } label: {
                         HStack {
-                            if isTesting {
-                                ProgressView()
-                            }
+                            if isTesting { ProgressView() }
                             Text(isTesting ? LocalizedStringKey("deepseek_testing") : LocalizedStringKey("deepseek_test"))
                         }
                         .frame(maxWidth: .infinity)
@@ -327,7 +444,7 @@ private struct DeepSeekAPISettingsView: View {
                     }
                     .disabled(!hasSavedKey)
                 } header: {
-                    Text(LocalizedStringKey("settings_deepseek_api_key"))
+                    Text(LocalizedStringKey("settings_section_ai_config"))
                 } footer: {
                     Text(LocalizedStringKey("deepseek_test_before_save_hint"))
                 }
@@ -342,48 +459,40 @@ private struct DeepSeekAPISettingsView: View {
                     }
                 }
             }
-            .navigationTitle(LocalizedStringKey("deepseek_settings_title"))
+            .navigationTitle(LocalizedStringKey("settings_ai"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(LocalizedStringKey("button_done")) {
-                        dismiss()
-                    }
+                    Button(LocalizedStringKey("button_done")) { dismiss() }
                 }
             }
-            .onAppear {
-                loadSavedKey()
-            }
+            .onAppear { loadSavedKey() }
         }
     }
 
     private var statusIcon: String {
         switch statusKind {
-        case .neutral:
-            return hasSavedKey ? "checkmark.seal" : "info.circle"
-        case .success:
-            return "checkmark.circle.fill"
-        case .error:
-            return "xmark.circle.fill"
+        case .neutral: return hasSavedKey ? "checkmark.seal" : "info.circle"
+        case .success: return "checkmark.circle.fill"
+        case .error: return "xmark.circle.fill"
         }
     }
 
     private var statusText: String {
-        if !statusMessage.isEmpty {
-            return statusMessage
-        }
+        if !statusMessage.isEmpty { return statusMessage }
         return hasSavedKey
-            ? NSLocalizedString("deepseek_status_has_saved_key", comment: "DeepSeek key saved status")
-            : NSLocalizedString("deepseek_status_no_saved_key", comment: "DeepSeek no key status")
+            ? NSLocalizedString("deepseek_status_has_saved_key", comment: "Saved key")
+            : NSLocalizedString("deepseek_status_no_saved_key", comment: "No key")
     }
 
     private func loadSavedKey() {
-        if let saved = DeepSeekKeychain.shared.loadAPIKey(), !saved.isEmpty {
+        if let saved = AIKeychain.shared.loadAPIKey(for: selectedProvider), !saved.isEmpty {
             apiKey = saved
             hasSavedKey = true
-            statusMessage = NSLocalizedString("deepseek_status_loaded_saved_key", comment: "DeepSeek loaded saved key")
+            statusMessage = NSLocalizedString("deepseek_status_loaded_saved_key", comment: "Loaded saved key")
             statusKind = .neutral
         } else {
+            apiKey = ""
             hasSavedKey = false
             statusMessage = ""
             statusKind = .neutral
@@ -391,32 +500,24 @@ private struct DeepSeekAPISettingsView: View {
     }
 
     private func testConnection() {
-        let key = normalizedKey
-        guard !key.isEmpty else {
-            statusKind = .error
-            statusMessage = NSLocalizedString("deepseek_error_enter_key_first", comment: "DeepSeek empty key error")
-            return
-        }
-
+        guard !normalizedKey.isEmpty else { return }
         isTesting = true
+        statusMessage = NSLocalizedString("deepseek_testing", comment: "Testing")
         statusKind = .neutral
-        statusMessage = ""
-
         Task {
             do {
-                try await DeepSeekService.shared.testConnection(apiKey: key)
+                try await AIService.shared.testConnection(model: selectedModel, apiKey: normalizedKey)
                 await MainActor.run {
-                    testedKey = key
-                    statusKind = .success
-                    statusMessage = NSLocalizedString("deepseek_status_test_success", comment: "DeepSeek test success")
+                    testedKey = normalizedKey
                     isTesting = false
+                    statusMessage = NSLocalizedString("deepseek_test_success", comment: "Success")
+                    statusKind = .success
                 }
             } catch {
                 await MainActor.run {
-                    testedKey = nil
-                    statusKind = .error
-                    statusMessage = (error as? LocalizedError)?.errorDescription ?? NSLocalizedString("deepseek_error_test_failed", comment: "DeepSeek test failed")
                     isTesting = false
+                    statusMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                    statusKind = .error
                 }
             }
         }
@@ -424,27 +525,27 @@ private struct DeepSeekAPISettingsView: View {
 
     private func saveKey() {
         do {
-            try DeepSeekKeychain.shared.saveAPIKey(normalizedKey)
+            try AIKeychain.shared.saveAPIKey(normalizedKey, for: selectedProvider)
             hasSavedKey = true
+            statusMessage = NSLocalizedString("deepseek_key_saved", comment: "Saved")
             statusKind = .success
-            statusMessage = NSLocalizedString("deepseek_status_saved_to_keychain", comment: "DeepSeek key saved")
         } catch {
+            statusMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             statusKind = .error
-            statusMessage = (error as? LocalizedError)?.errorDescription ?? NSLocalizedString("deepseek_error_save_failed", comment: "DeepSeek save failed")
         }
     }
 
     private func removeSavedKey() {
         do {
-            try DeepSeekKeychain.shared.removeAPIKey()
+            try AIKeychain.shared.removeAPIKey(for: selectedProvider)
+            apiKey = ""
             hasSavedKey = false
             testedKey = nil
-            apiKey = ""
-            statusKind = .success
-            statusMessage = NSLocalizedString("deepseek_status_removed", comment: "DeepSeek key removed")
+            statusMessage = NSLocalizedString("deepseek_key_removed", comment: "Removed")
+            statusKind = .neutral
         } catch {
+            statusMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             statusKind = .error
-            statusMessage = (error as? LocalizedError)?.errorDescription ?? NSLocalizedString("deepseek_error_remove_failed", comment: "DeepSeek remove failed")
         }
     }
 }
@@ -2187,7 +2288,7 @@ struct PlayerProfileView: View {
             .sorted { $0.savedAt > $1.savedAt }
 
         if let selectedGroupID = selectedGroupID {
-            return games.filter { $0.groupID == selectedGroupID }
+            return games.filter { $0.groupIDs.contains(selectedGroupID) }
         }
         return games
     }
@@ -2495,7 +2596,7 @@ private struct PlayerGameSelectionView: View {
         
         // Filter games by selected group if any
         let filteredGames = selectedGroupID.map { groupID in
-            games.filter { $0.groupID == groupID }
+            games.filter { $0.groupIDs.contains(groupID) }
         } ?? games
         
         let grouped = Dictionary(grouping: filteredGames) { game in
@@ -2566,4 +2667,120 @@ private struct PlayerGameMonthGroup: Identifiable {
     var games: [SavedGame]
     var id: String { "\(key.year)-\(key.month)" }
     var title: String { localizedFormat("month_title_format", key.year, key.month) }
+}
+
+
+struct CollaborativeGameListView: View {
+    @EnvironmentObject private var store: AppStore
+
+    private var games: [SavedGame] {
+        store.savedGames.filter { $0.snapshot.wasBluetoothCollaborated }
+            .sorted { $0.savedAt > $1.savedAt }
+    }
+
+    var body: some View {
+        List {
+            if games.isEmpty {
+                ContentUnavailableView(LocalizedStringKey("empty_no_bluetooth_games"), systemImage: "dot.radiowaves.left.and.right")
+            }
+            ForEach(games) { game in
+                NavigationLink {
+                    SavedGameDetailView(game: game)
+                } label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("\(game.homeTeamName) vs \(game.awayTeamName)")
+                            .font(.headline)
+                        Text(Self.dateFormatter.string(from: game.savedAt))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+        }
+        .navigationTitle(LocalizedStringKey("settings_bluetooth_games"))
+    }
+
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd HH:mm"
+        return f
+    }()
+}
+
+struct CloudStorageView: View {
+    @EnvironmentObject private var store: AppStore
+
+    private var cloudGames: [SavedGame] {
+        store.savedGames.filter { store.cloudEnabledGameIDs.contains($0.id) }
+            .sorted { $0.savedAt > $1.savedAt }
+    }
+
+    private var localOnlyGames: [SavedGame] {
+        store.savedGames.filter { !store.cloudEnabledGameIDs.contains($0.id) }
+            .sorted { $0.savedAt > $1.savedAt }
+    }
+
+    var body: some View {
+        List {
+            Section {
+                Text(LocalizedStringKey("cloud_storage_description"))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            if !cloudGames.isEmpty {
+                Section(LocalizedStringKey("section_cloud_enabled")) {
+                    ForEach(cloudGames) { game in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("\(game.homeTeamName) vs \(game.awayTeamName)")
+                                    .font(.subheadline)
+                                Text(Self.dateFormatter.string(from: game.savedAt))
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "icloud.fill")
+                                .foregroundStyle(.blue)
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            store.toggleCloudStorage(for: game.id)
+                        }
+                    }
+                }
+            }
+
+            if !localOnlyGames.isEmpty {
+                Section(LocalizedStringKey("section_local_only")) {
+                    ForEach(localOnlyGames) { game in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("\(game.homeTeamName) vs \(game.awayTeamName)")
+                                    .font(.subheadline)
+                                Text(Self.dateFormatter.string(from: game.savedAt))
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "icloud.slash")
+                                .foregroundStyle(.secondary)
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            store.toggleCloudStorage(for: game.id)
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle(LocalizedStringKey("settings_cloud_storage"))
+    }
+
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd HH:mm"
+        return f
+    }()
 }

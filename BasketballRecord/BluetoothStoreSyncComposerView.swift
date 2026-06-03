@@ -23,6 +23,7 @@ struct BluetoothStoreSyncComposerView: View {
     @State private var selectedGameIDs: Set<UUID> = []
     @State private var alertMessage: String?
     @State private var didApplyPreset = false
+    @AppStorage("bluetooth_include_photos") private var includePhotos = true
 
     init(preset: BluetoothStoreSyncComposerPreset = .all) {
         self.preset = preset
@@ -214,6 +215,12 @@ struct BluetoothStoreSyncComposerView: View {
                             }
                         }
                     }
+                }
+            }
+
+            Section {
+                Toggle(isOn: $includePhotos) {
+                    Label(LocalizedStringKey("label_include_photos_in_sync"), systemImage: "photo")
                 }
             }
 
@@ -441,8 +448,14 @@ struct BluetoothStoreSyncComposerView: View {
             playersForTransfer = teamLinkedPlayers
         }
 
+        let finalPlayers = includePhotos ? playersForTransfer : playersForTransfer.map { p in
+            var copy = p
+            copy.photoData = nil
+            return copy
+        }
+
         let payload = BluetoothStoreSyncPayload(
-            players: playersForTransfer,
+            players: finalPlayers,
             teams: filteredTeams,
             savedGames: filteredSavedGames
         )

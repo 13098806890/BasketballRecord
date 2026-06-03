@@ -78,6 +78,7 @@
 				BR0000000000000000000021 /* BasketballRecordTests */,
 				BR0000000000000000000004 /* Products */,
 				BR0000000000000000000023 /* XCTest.framework */,
+				DA0F33F52FCEE1A50036914C /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -88,6 +89,13 @@
 				BR0000000000000000000020 /* BasketballRecordTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		DA0F33F52FCEE1A50036914C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -353,7 +361,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
-			CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 86AC9J72SZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;

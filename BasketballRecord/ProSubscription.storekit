@@ -1,0 +1,57 @@
+{
+  "identifier" : "F27794A9",
+  "nonSyncingSchema" : true,
+  "products" : [
+    {
+      "displayPrice" : "订阅 Pro",
+      "familyShareable" : false,
+      "groupNumber" : 1,
+      "internalDescription" : "月度订阅，解锁全部Pro功能",
+      "localizations" : [
+        {
+          "description" : "月度订阅，解锁球队分组、蓝牙传输协同、iCloud存储、AI总结等全部Pro功能",
+          "displayName" : "篮球生涯 Pro 月度",
+          "locale" : "zh_CN"
+        },
+        {
+          "description" : "Monthly subscription unlocking all Pro features",
+          "displayName" : "Basketball Record Pro Monthly",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.doxie.basketball.pro.monthly",
+      "recurringSubscriptionPeriod" : "P1M",
+      "subscriptionGroupID" : "228B11A0",
+      "type" : "RecurringSubscription"
+    },
+    {
+      "displayPrice" : "订阅 Pro 年度",
+      "familyShareable" : false,
+      "groupNumber" : 1,
+      "internalDescription" : "年度订阅，解锁全部Pro功能",
+      "localizations" : [
+        {
+          "description" : "年度订阅，解锁球队分组、蓝牙传输协同、iCloud存储、AI总结等全部Pro功能",
+          "displayName" : "篮球生涯 Pro 年度",
+          "locale" : "zh_CN"
+        },
+        {
+          "description" : "Yearly subscription unlocking all Pro features",
+          "displayName" : "Basketball Record Pro Yearly",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.doxie.basketball.pro.yearly",
+      "recurringSubscriptionPeriod" : "P1Y",
+      "subscriptionGroupID" : "228B11A0",
+      "type" : "RecurringSubscription"
+    }
+  ],
+  "schemaVersion" : 1.0,
+  "settings" : {
+    "autoRecurring" : true,
+    "autoRenewEnabled" : true,
+    "locale" : "zh_CN",
+    "storeKitVersion" : "2.0"
+  }
+}

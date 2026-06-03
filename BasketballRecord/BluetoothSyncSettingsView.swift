@@ -198,7 +198,7 @@ struct BluetoothSyncSettingsView: View {
             if let outgoing = bluetooth.outgoingStoreSyncProgress {
                 Section(LocalizedStringKey("section_send_progress")) {
                     ProgressView(value: outgoing.fractionCompleted)
-                    Text(String(format: NSLocalizedString("progress_sending_to_format", comment: "Sending progress"), outgoing.peerName, progressDetailText(outgoing)))
+                    Text("\(outgoing.peerName) · \(progressDetailText(outgoing))")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -207,7 +207,7 @@ struct BluetoothSyncSettingsView: View {
             if let incoming = bluetooth.incomingStoreSyncProgress {
                 Section(LocalizedStringKey("section_receive_progress")) {
                     ProgressView(value: incoming.fractionCompleted)
-                    Text(String(format: NSLocalizedString("progress_received_from_format", comment: "Received progress"), incoming.peerName, progressDetailText(incoming)))
+                    Text("\(incoming.peerName) · \(progressDetailText(incoming))")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

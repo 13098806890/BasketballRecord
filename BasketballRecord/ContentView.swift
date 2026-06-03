@@ -156,18 +156,56 @@ struct ContentView: View {
                 )
             }
         }
-        .alert(LocalizedStringKey("alert_store_sync_processing"), isPresented: $isShowingStoreSyncBusyAlert) {
-            Button(LocalizedStringKey("button_cancel_sync"), role: .destructive) {
-                _ = bluetooth.cancelCurrentStoreSyncTask()
-                suppressBusyAlertUntilIdle = false
-                isShowingStoreSyncBusyAlert = false
+        .sheet(isPresented: $isShowingStoreSyncBusyAlert) {
+            NavigationStack {
+                VStack(spacing: 16) {
+                    let outgoing = bluetooth.outgoingStoreSyncProgress
+                    let incoming = bluetooth.incomingStoreSyncProgress
+                    let progress = outgoing ?? incoming
+
+                    if let progress {
+                        VStack(spacing: 8) {
+                            ProgressView(value: progress.fractionCompleted)
+                                .tint(.blue)
+
+                            Text(loadingTitle)
+                                .font(.subheadline.weight(.semibold))
+
+                            Text(loadingSubtitle)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        VStack(spacing: 8) {
+                            ProgressView()
+                                .controlSize(.small)
+
+                            Text(storeSyncBusyAlertText)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .padding()
+                .navigationTitle(LocalizedStringKey("alert_store_sync_processing"))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(LocalizedStringKey("button_continue_in_background")) {
+                            suppressBusyAlertUntilIdle = true
+                            isShowingStoreSyncBusyAlert = false
+                        }
+                    }
+                    ToolbarItem(placement: .destructiveAction) {
+                        Button(LocalizedStringKey("button_cancel_sync"), role: .destructive) {
+                            _ = bluetooth.cancelCurrentStoreSyncTask()
+                            suppressBusyAlertUntilIdle = false
+                            isShowingStoreSyncBusyAlert = false
+                        }
+                    }
+                }
             }
-            Button(LocalizedStringKey("button_continue_in_background"), role: .cancel) {
-                suppressBusyAlertUntilIdle = true
-                isShowingStoreSyncBusyAlert = false
-            }
-        } message: {
-            Text(storeSyncBusyAlertText)
+            .presentationDetents([.medium])
         }
     }
 
@@ -500,8 +538,10 @@ struct CareerView: View {
             }
             .navigationTitle(LocalizedStringKey("tab_career"))
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
+                if store.isPro {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
+                    }
                 }
             }
         }
@@ -808,13 +848,25 @@ struct HistoryView: View {
                             } label: {
                                 SavedGameRow(game: game)
                             }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            .swipeActions(edge: .leading, allowsFullSwipe: false) {
                                 Button {
-                                    pendingSwipeDeleteGame = game
+                                    if let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) {
+                                        store.savedGames[idx].isLocked.toggle()
+                                    }
                                 } label: {
-                                    Label(LocalizedStringKey("label_delete"), systemImage: "trash")
+                                    Label(LocalizedStringKey(game.isLocked ? "label_unlock" : "label_lock"), systemImage: game.isLocked ? "lock.open" : "lock")
                                 }
-                                .tint(.red)
+                                .tint(.orange)
+                            }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                if !game.isLocked {
+                                    Button {
+                                        pendingSwipeDeleteGame = game
+                                    } label: {
+                                        Label(LocalizedStringKey("label_delete"), systemImage: "trash")
+                                    }
+                                    .tint(.red)
+                                }
                             }
                         }
                     } label: {
@@ -840,7 +892,9 @@ struct HistoryView: View {
         .searchable(text: $searchText, prompt: LocalizedStringKey("search_player_prompt"))
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
-                GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
+                if store.isPro {
+                    GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
+                }
 
                 Button {
                     isShowingDelete = true
@@ -895,7 +949,7 @@ struct HistoryView: View {
 
         // Filter by group if selected
         if let selectedGroupID = selectedGroupID {
-            games = games.filter { $0.groupID == selectedGroupID }
+            games = games.filter { $0.groupIDs.contains(selectedGroupID) }
         }
 
         // Filter by search text
@@ -1074,6 +1128,11 @@ private struct SavedGameRow: View {
             }
 
             HStack {
+                if game.isLocked {
+                    Image(systemName: "lock.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                }
                 Text(Self.dateFormatter.string(from: game.savedAt))
                 Spacer()
             }
@@ -1130,7 +1189,7 @@ struct SavedGameDetailView: View {
         self.displayMode = displayMode
 
         _aiSummary = State(initialValue: game.aiSummary ?? "")
-        _selectedGroupID = State(initialValue: game.groupID)
+        _selectedGroupID = State(initialValue: game.groupIDs.first)
 
         let initialAnalyzer = SavedGameAnalyzer(game: game) { name in
             game.playerNamesByID.first(where: { $0.value == name })?.key
@@ -1140,28 +1199,7 @@ struct SavedGameDetailView: View {
 
     var body: some View {
         List {
-            // Show current group assignment if any
-            if let group = store.group(for: game.id) {
-                Section {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(NSLocalizedString("game_group_assigned_label", comment: "Assigned to"))
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Text(group.name)
-                                .font(.headline)
-                        }
-                        Spacer()
-                        Button(action: {
-                            store.addGameToGroup(game.id, groupID: nil)
-                            selectedGroupID = nil
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.gray)
-                        }
-                    }
-                }
-            }
+            groupAssignmentSection
 
             Section {
                 HStack {
@@ -1226,7 +1264,7 @@ struct SavedGameDetailView: View {
                             Label(LocalizedStringKey(isGeneratingAISummary ? "button_ai_generating" : "button_ai_generate_summary"), systemImage: "sparkles")
                         }
                     }
-                    .disabled(isGeneratingAISummary || deepSeekAPIKey == nil)
+                    .disabled(isGeneratingAISummary || !store.isPro || aiConfig == nil)
 
                     if let aiSummaryError {
                         Text(aiSummaryError)
@@ -1235,7 +1273,7 @@ struct SavedGameDetailView: View {
                     }
 
                     if aiSummary.isEmpty {
-                        Text(LocalizedStringKey(deepSeekAPIKey == nil ? "text_ai_waiting_key" : "text_ai_will_generate"))
+                        Text(LocalizedStringKey(!store.isPro ? "text_ai_pro_required" : (aiConfig == nil ? "text_ai_waiting_key" : "text_ai_will_generate")))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     } else {
@@ -1250,8 +1288,7 @@ struct SavedGameDetailView: View {
         .toolbar {
             if displayMode == .history {
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    GameGroupPicker(store: store, selectedGroupID: $selectedGroupID, iconName: "folder.badge.plus")
-                    
+                    GameGroupPicker(store: store, selectedGroupID: $selectedGroupID, iconName: "folder.badge.plus", checkedGroupIDs: Set(store.groups(for: game.id).map(\.id)))
                     Button {
                         isShowingExport = true
                     } label: {
@@ -1264,7 +1301,12 @@ struct SavedGameDetailView: View {
             ExportGameView(game: game)
         }
         .onChange(of: selectedGroupID) { _, newValue in
-            store.addGameToGroup(game.id, groupID: newValue)
+            if let groupID = newValue {
+                store.toggleGameGroup(game.id, groupID: groupID)
+                DispatchQueue.main.async {
+                    selectedGroupID = nil
+                }
+            }
         }
         .onAppear {
             sanitizeSelectedPeriod()
@@ -1332,6 +1374,33 @@ struct SavedGameDetailView: View {
                     Text(String(format: NSLocalizedString("stats_line_format", comment: "Stats line"), playingTime, stats.made, stats.attempts, stats.allFreeThrowMade, stats.allFreeThrowAttempts, stats.rebounds, stats.assists, stats.fouls, stats.blocks, stats.steals, stats.turnovers))
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var groupAssignmentSection: some View {
+        let assignedGroups = store.groups(for: game.id)
+        if !assignedGroups.isEmpty {
+            Section {
+                ForEach(assignedGroups) { group in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(NSLocalizedString("game_group_assigned_label", comment: "Assigned to"))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(group.name)
+                                .font(.headline)
+                        }
+                        Spacer()
+                        Button(action: {
+                            store.toggleGameGroup(game.id, groupID: group.id)
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.gray)
+                        }
+                    }
                 }
             }
         }
@@ -1442,12 +1511,16 @@ struct SavedGameDetailView: View {
         GameLogFormatter.lineText(for: item)
     }
 
-    private var deepSeekAPIKey: String? {
-        guard let key = DeepSeekKeychain.shared.loadAPIKey()?.trimmingCharacters(in: .whitespacesAndNewlines),
+    private var aiConfig: (provider: AIProvider, model: AIModel, apiKey: String)? {
+        let raw = UserDefaults.standard.string(forKey: "ai_selected_provider") ?? AIProvider.deepseek.rawValue
+        let provider = AIProvider(rawValue: raw) ?? .deepseek
+        let modelID = UserDefaults.standard.string(forKey: "ai_selected_model_id") ?? AIProvider.defaultModel.id
+        let model = provider.models.first { $0.id == modelID } ?? provider.models.first ?? AIProvider.defaultModel
+        guard let key = AIKeychain.shared.loadAPIKey(for: provider)?.trimmingCharacters(in: .whitespacesAndNewlines),
               !key.isEmpty else {
             return nil
         }
-        return key
+        return (provider, model, key)
     }
 
     private var aiSummaryStyledView: some View {
@@ -1533,7 +1606,7 @@ struct SavedGameDetailView: View {
     }
 
     private func generateAISummary() {
-        guard let apiKey = deepSeekAPIKey else {
+        guard let config = aiConfig else {
             aiSummaryError = NSLocalizedString("alert_ai_no_api_key", comment: "AI no API key")
             return
         }
@@ -1544,7 +1617,8 @@ struct SavedGameDetailView: View {
 
         Task {
             do {
-                let summary = try await DeepSeekService.shared.generateSummary(prompt: prompt, apiKey: apiKey)
+                let systemRole = NSLocalizedString("ai_system_role", comment: "AI system role")
+                let summary = try await AIService.shared.sendChat(model: config.model, apiKey: config.apiKey, systemPrompt: systemRole, userPrompt: prompt)
                 let normalizedSummary = normalizeAISummary(summary)
                 await MainActor.run {
                     aiSummary = normalizedSummary
@@ -1563,7 +1637,6 @@ struct SavedGameDetailView: View {
     private func summaryPrompt() -> String {
         let homeScore = score(for: game.snapshot.homeTeamID)
         let awayScore = score(for: game.snapshot.awayTeamID)
-        let highlightClues = highlightCluesText()
         let numericFacts = numericFactsText()
 
         let playerLines = allPlayerIDsForSummary().map { playerID in
@@ -1647,6 +1720,7 @@ struct SavedGameDetailView: View {
         \(req11)
         \(req12)
         \(req13)
+        - Expand the game summary into a detailed, paragraph-by-paragraph analysis of each period's key plays, momentum shifts, and player contributions.
 
         \(gameInfoLabel)
         \(dateFormatted)
@@ -1897,190 +1971,8 @@ struct SavedGameDetailView: View {
         var items: [String]
     }
 
-    private func highlightCluesText() -> String {
-        let clues = extractHighlightClues()
-        if clues.isEmpty {
-            return "- 未提取到明确高光线索，请仅基于日志谨慎总结。"
-        }
-        return clues.prefix(10).map { "- \($0)" }.joined(separator: "\n")
-    }
 
-    private func extractHighlightClues() -> [String] {
-        let events = parsedHighlightEvents()
-        guard !events.isEmpty else { return [] }
 
-        var clues: [String] = []
-
-        let scoringEvents = events.filter {
-            if case .score = $0.kind { return true }
-            return false
-        }
-
-        var index = 0
-        while index < scoringEvents.count {
-            let start = index
-            guard let playerID = scoringEvents[index].playerID else {
-                index += 1
-                continue
-            }
-
-            var totalPoints = scoringEvents[index].points
-            var hitCount = 1
-            var end = index
-
-            while end + 1 < scoringEvents.count,
-                  scoringEvents[end + 1].playerID == playerID {
-                end += 1
-                hitCount += 1
-                totalPoints += scoringEvents[end].points
-            }
-
-            if hitCount >= 2, totalPoints >= 4 {
-                let timing = highlightRangeText(start: scoringEvents[start], end: scoringEvents[end])
-                let timingSuffix = timing.map { "，\($0)" } ?? ""
-                clues.append("个人连续得分：\(playerName(playerID)) 连得 \(totalPoints) 分（\(hitCount) 次命中\(timingSuffix)）")
-            }
-
-            index = end + 1
-        }
-
-        index = 0
-        while index < scoringEvents.count {
-            let start = index
-            guard let side = scoringEvents[index].side else {
-                index += 1
-                continue
-            }
-
-            var totalPoints = scoringEvents[index].points
-            var hitCount = 1
-            var end = index
-
-            while end + 1 < scoringEvents.count,
-                  scoringEvents[end + 1].side == side {
-                end += 1
-                hitCount += 1
-                totalPoints += scoringEvents[end].points
-            }
-
-            if hitCount >= 3, totalPoints >= 6 {
-                let timing = highlightRangeText(start: scoringEvents[start], end: scoringEvents[end])
-                let timingSuffix = timing.map { "，\($0)" } ?? ""
-                clues.append("球队连续得分：\(teamName(for: side)) 连得 \(totalPoints) 分（\(hitCount) 次命中\(timingSuffix)）")
-            }
-
-            index = end + 1
-        }
-
-        for event in events {
-            switch event.kind {
-            case .score(let points):
-                guard let side = event.side,
-                      let homeAfter = event.homeScore,
-                      let awayAfter = event.awayScore else { continue }
-
-                var homeBefore = homeAfter
-                var awayBefore = awayAfter
-                if side == .home {
-                    homeBefore -= points
-                } else {
-                    awayBefore -= points
-                }
-
-                let diffBefore = abs(homeBefore - awayBefore)
-                let diffAfter = abs(homeAfter - awayAfter)
-                if min(diffBefore, diffAfter) <= 3 {
-                    let timingSuffix = highlightMomentText(for: event).map { "（\($0)）" } ?? ""
-                    clues.append("焦灼比分关键球：\(playerName(event.playerID)) 命中 \(points) 分\(timingSuffix)")
-                }
-
-            case .rebound:
-                if let home = event.homeScore,
-                   let away = event.awayScore,
-                   abs(home - away) <= 3 {
-                    let timingSuffix = highlightMomentText(for: event).map { "（\($0)）" } ?? ""
-                    clues.append("焦灼比分关键篮板：\(playerName(event.playerID))\(timingSuffix)")
-                }
-
-            case .block:
-                if let home = event.homeScore,
-                   let away = event.awayScore,
-                   abs(home - away) <= 3 {
-                    let timingSuffix = highlightMomentText(for: event).map { "（\($0)）" } ?? ""
-                    clues.append("焦灼比分关键封盖：\(playerName(event.playerID))\(timingSuffix)")
-                }
-
-            case .assist, .other:
-                continue
-            }
-        }
-
-        let assistEvents = events.filter { $0.kind == .assist }
-        index = 0
-        while index < assistEvents.count {
-            let start = index
-            guard let playerID = assistEvents[index].playerID else {
-                index += 1
-                continue
-            }
-
-            var count = 1
-            var end = index
-            while end + 1 < assistEvents.count,
-                  assistEvents[end + 1].playerID == playerID {
-                end += 1
-                count += 1
-            }
-
-            if count >= 2 {
-                if let timing = highlightRangeText(start: assistEvents[start], end: assistEvents[end]) {
-                    clues.append("连续助攻：\(playerName(playerID)) 连续 \(count) 次助攻（\(timing)）")
-                } else {
-                    clues.append("连续助攻：\(playerName(playerID)) 连续 \(count) 次助攻")
-                }
-            }
-
-            index = end + 1
-        }
-
-        var seen: Set<String> = []
-        return clues.filter { seen.insert($0).inserted }
-    }
-
-    private func parsedHighlightEvents() -> [ParsedHighlightEvent] {
-        periodAwareLogs.map { item in
-            let entry = item.entry
-            let (cleanMessage, homeScore, awayScore) = parseMessageAndScore(entry.message)
-            let side = side(for: item.resolvedPlayerID)
-            return ParsedHighlightEvent(
-                entry: entry,
-                inferredPeriod: item.inferredPeriod,
-                cleanMessage: cleanMessage,
-                homeScore: homeScore,
-                awayScore: awayScore,
-                playerID: item.resolvedPlayerID,
-                side: side,
-                kind: highlightKind(for: cleanMessage)
-            )
-        }
-    }
-
-    private func parseMessageAndScore(_ message: String) -> (String, Int?, Int?) {
-        guard let leftParenthesis = message.lastIndex(of: "("),
-              message.hasSuffix(")") else {
-            return (message, nil, nil)
-        }
-
-        let cleanMessage = message[..<leftParenthesis].trimmingCharacters(in: .whitespacesAndNewlines)
-        let scoreBody = message[message.index(after: leftParenthesis)..<message.index(before: message.endIndex)]
-        let components = scoreBody.split(separator: ":")
-        guard components.count == 2,
-              let homeScore = Int(components[0]),
-              let awayScore = Int(components[1]) else {
-            return (String(cleanMessage), nil, nil)
-        }
-        return (String(cleanMessage), homeScore, awayScore)
-    }
 
     private func side(for playerID: UUID?) -> TeamSide? {
         guard let playerID else { return nil }
@@ -2092,76 +1984,6 @@ struct SavedGameDetailView: View {
     private func playerName(_ playerID: UUID?) -> String {
         guard let playerID else { return "未知球员" }
         return game.playerNamesByID[playerID] ?? store.player(for: playerID)?.name ?? "未知球员"
-    }
-
-    private func teamName(for side: TeamSide) -> String {
-        side == .home ? game.homeTeamName : game.awayTeamName
-    }
-
-    private func highlightKind(for message: String) -> HighlightKind {
-        if message.contains("3分命中") { return .score(points: 3) }
-        if message.contains("2分命中") { return .score(points: 2) }
-        if message.contains("加罚命中") || message.contains("罚篮命中") { return .score(points: 1) }
-        if message.contains("助攻") { return .assist }
-        if message.contains("篮板") { return .rebound }
-        if message.contains("封盖") { return .block }
-        return .other
-    }
-
-    private func highlightMomentText(for event: ParsedHighlightEvent) -> String? {
-        let period = event.inferredPeriod ?? event.entry.period
-        return periodMinuteText(period: period, elapsedSeconds: event.entry.periodElapsedSeconds)
-    }
-
-    private func highlightRangeText(start: ParsedHighlightEvent, end: ParsedHighlightEvent) -> String? {
-        let startText = highlightMomentText(for: start)
-        let endText = highlightMomentText(for: end)
-
-        if let startText, let endText {
-            return startText == endText ? startText : "\(startText)-\(endText)"
-        }
-
-        return startText ?? endText
-    }
-
-    private func periodMinuteText(period: Int?, elapsedSeconds: TimeInterval?) -> String? {
-        guard let period else { return nil }
-        guard let elapsedSeconds else { return "第\(period)节" }
-
-        let totalSeconds = max(0, Int(elapsedSeconds.rounded(.down)))
-        let minute = totalSeconds / 60
-        let second = totalSeconds % 60
-        return "第\(period)节 第\(minute)分\(String(format: "%02d", second))秒"
-    }
-
-    private struct ParsedHighlightEvent {
-        let entry: GameLogEntry
-        let inferredPeriod: Int?
-        let cleanMessage: String
-        let homeScore: Int?
-        let awayScore: Int?
-        let playerID: UUID?
-        let side: TeamSide?
-        let kind: HighlightKind
-
-        var evidence: String {
-            "\(GameView.timeFormatter.string(from: entry.timestamp)) \(cleanMessage)"
-        }
-
-        var points: Int {
-            if case let .score(points) = kind {
-                return points
-            }
-            return 0
-        }
-    }
-
-    private enum HighlightKind: Equatable {
-        case score(points: Int)
-        case assist
-        case rebound
-        case block
-        case other
     }
 
     private func numericFactsText() -> String {

@@ -31,7 +31,7 @@ struct DeepSeekService {
             ],
             apiKey: apiKey,
             temperature: 0.6,
-            maxTokens: 1200
+            maxTokens: 2500
         )
     }
 

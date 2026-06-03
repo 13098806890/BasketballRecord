@@ -4,6 +4,7 @@ struct GameGroupPicker: View {
     @ObservedObject var store: AppStore
     @Binding var selectedGroupID: UUID?
     var iconName: String? = nil
+    var checkedGroupIDs: Set<UUID>? = nil
 
     var body: some View {
         Menu {
@@ -22,7 +23,7 @@ struct GameGroupPicker: View {
                 ForEach(store.gameGroups, id: \.id) { group in
                     Button(action: { selectedGroupID = group.id }) {
                         HStack {
-                            if selectedGroupID == group.id {
+                            if selectedGroupID == group.id || checkedGroupIDs?.contains(group.id) == true {
                                 Image(systemName: "checkmark")
                             }
                             Text(group.name)
@@ -75,7 +76,7 @@ struct GameGroupBadge: View {
                 GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
 
                 GameGroupBadge(groupName: selectedGroupID.flatMap { id in
-                    store.group(for: .init()).map { $0.name }
+                    store.groups(for: .init()).first.map { $0.name }
                 })
 
                 Spacer()

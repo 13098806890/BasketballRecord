@@ -63,10 +63,13 @@ struct BluetoothStoreSyncProgress: Identifiable {
     let transferredBytes: Int
     let totalBytes: Int
     let isSending: Bool
+    let isConfirmed: Bool
 
     var fractionCompleted: Double {
         guard totalChunks > 0 else { return 0 }
-        return min(1, Double(transferredChunks) / Double(totalChunks))
+        if isConfirmed { return 1 }
+        let raw = Double(transferredChunks) / Double(totalChunks)
+        return min(raw, 0.99)
     }
 }
 

@@ -923,6 +923,12 @@ enum CareerStatItem: String, CaseIterable, Codable, Identifiable {
     }
 }
 
+enum PeriodEndCondition: String, Codable, CaseIterable, Identifiable {
+    case byTime
+    case byScore
+    var id: String { rawValue }
+}
+
 struct GameSnapshot: Codable, Hashable {
     var statsByPlayerID: [UUID: PlayerStats] = [:]
     var logs: [GameLogEntry] = []
@@ -932,7 +938,11 @@ struct GameSnapshot: Codable, Hashable {
     var currentPeriod: Int = 1
     var periodIsRunning = false
     var isComplete = false
+    var wasBluetoothCollaborated = false
     var courtPlayerCount = 4
+    var periodEndCondition: PeriodEndCondition = .byTime
+    var periodTimeLimit: Int = 12
+    var periodScoreLimit: Int = 30
     var resetsTeamFoulsEachPeriod = true
     var showsReboundButton = true 
     var showsAssistButton = true
@@ -987,7 +997,10 @@ struct GameSnapshot: Codable, Hashable {
         matchElapsedSeconds: TimeInterval = 0,
         matchActiveSince: Date? = nil,
         periodElapsedSeconds: TimeInterval = 0,
-        periodActiveSince: Date? = nil
+        periodActiveSince: Date? = nil,
+        periodEndCondition: PeriodEndCondition = .byTime,
+        periodTimeLimit: Int = 12,
+        periodScoreLimit: Int = 30
     ) {
         self.statsByPlayerID = statsByPlayerID
         self.logs = logs
@@ -998,6 +1011,9 @@ struct GameSnapshot: Codable, Hashable {
         self.periodIsRunning = periodIsRunning
         self.isComplete = isComplete
         self.courtPlayerCount = courtPlayerCount
+        self.periodEndCondition = periodEndCondition
+        self.periodTimeLimit = periodTimeLimit
+        self.periodScoreLimit = periodScoreLimit
         self.resetsTeamFoulsEachPeriod = resetsTeamFoulsEachPeriod
         self.showsReboundButton = showsReboundButton
         self.showsAssistButton = showsAssistButton
@@ -1055,6 +1071,9 @@ struct GameSnapshot: Codable, Hashable {
         matchActiveSince = try container.decodeIfPresent(Date.self, forKey: .matchActiveSince)
         periodElapsedSeconds = try container.decodeIfPresent(TimeInterval.self, forKey: .periodElapsedSeconds) ?? 0
         periodActiveSince = try container.decodeIfPresent(Date.self, forKey: .periodActiveSince)
+        periodEndCondition = try container.decodeIfPresent(PeriodEndCondition.self, forKey: .periodEndCondition) ?? .byTime
+        periodTimeLimit = try container.decodeIfPresent(Int.self, forKey: .periodTimeLimit) ?? 12
+        periodScoreLimit = try container.decodeIfPresent(Int.self, forKey: .periodScoreLimit) ?? 30
     }
 }
 
@@ -1070,7 +1089,8 @@ struct SavedGame: Identifiable, Codable, Hashable {
     var homePlayerIDs: [UUID]
     var awayPlayerIDs: [UUID]
     var playerNamesByID: [UUID: String]
-    var groupID: UUID? = nil  // 分组ID
+    var groupIDs: [UUID] = []
+    var isLocked = false
 
     init(
         id: UUID = UUID(),
@@ -1084,7 +1104,7 @@ struct SavedGame: Identifiable, Codable, Hashable {
         homePlayerIDs: [UUID],
         awayPlayerIDs: [UUID],
         playerNamesByID: [UUID: String],
-        groupID: UUID? = nil
+        groupIDs: [UUID] = []
     ) {
         self.id = id
         self.savedAt = savedAt
@@ -1097,7 +1117,7 @@ struct SavedGame: Identifiable, Codable, Hashable {
         self.homePlayerIDs = homePlayerIDs
         self.awayPlayerIDs = awayPlayerIDs
         self.playerNamesByID = playerNamesByID
-        self.groupID = groupID
+        self.groupIDs = groupIDs
     }
 
     init(from decoder: Decoder) throws {
@@ -1113,8 +1133,22 @@ struct SavedGame: Identifiable, Codable, Hashable {
         homePlayerIDs = try container.decodeIfPresent([UUID].self, forKey: .homePlayerIDs) ?? []
         awayPlayerIDs = try container.decodeIfPresent([UUID].self, forKey: .awayPlayerIDs) ?? []
         playerNamesByID = try container.decodeIfPresent([UUID: String].self, forKey: .playerNamesByID) ?? [:]
-        groupID = try container.decodeIfPresent(UUID.self, forKey: .groupID)
+        groupIDs = try container.decodeIfPresent([UUID].self, forKey: .groupIDs) ?? []
+        isLocked = try container.decodeIfPresent(Bool.self, forKey: .isLocked) ?? false
+
+        // Backward compat: decode legacy single groupID
+        if groupIDs.isEmpty, let legacy = try? decoder.container(keyedBy: AnyCodingKey.self)
+            .decodeIfPresent(UUID.self, forKey: AnyCodingKey(stringValue: "groupID")) {
+            groupIDs = [legacy]
+        }
     }
+}
+
+struct AnyCodingKey: CodingKey {
+    var stringValue: String
+    var intValue: Int?
+    init(stringValue: String) { self.stringValue = stringValue; self.intValue = nil }
+    init?(intValue: Int) { self.intValue = intValue; self.stringValue = "\(intValue)" }
 }
 
 extension SavedGame {

@@ -295,7 +295,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
         // Strip groupID from games before sending - groupID is local to each device
         let gamesWithoutGroups = savedGames.map { game -> SavedGame in
             var cleanGame = game
-            cleanGame.groupID = nil
+            cleanGame.groupIDs = []
             return cleanGame
         }
 
@@ -385,7 +385,8 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
                 totalChunks: offer.payload.totalChunks,
                 transferredBytes: 0,
                 totalBytes: offer.payload.totalBytes,
-                isSending: false
+                isSending: false,
+                isConfirmed: false
             )
             updateStoreSyncStatus(String(format: NSLocalizedString("update_confirmed_waiting_for_peer_start_transfer", comment: "Confirmed receive, waiting for peer to start transfer"), offer.fromPeerName))
         } else {
@@ -622,7 +623,8 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
             totalChunks: transfer.offer.totalChunks,
             transferredBytes: 0,
             totalBytes: transfer.offer.totalBytes,
-            isSending: true
+            isSending: true,
+            isConfirmed: false
         )
         storeSyncTransferQueue.async { [weak self] in
             self?.performOutgoingStoreSyncTransfer(transferID: transferID, transfer: transfer)
@@ -688,7 +690,8 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
                         totalChunks: transfer.offer.totalChunks,
                         transferredBytes: sentBytes,
                         totalBytes: transfer.offer.totalBytes,
-                        isSending: true
+                        isSending: true,
+                        isConfirmed: false
                     )
                 }
             }
@@ -710,7 +713,8 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
                 totalChunks: transfer.offer.totalChunks,
                 transferredBytes: transfer.offer.totalBytes,
                 totalBytes: transfer.offer.totalBytes,
-                isSending: true
+                isSending: true,
+                isConfirmed: false
             )
             self.updateStoreSyncStatus(String(format: NSLocalizedString("update_data_sent_waiting_peer_confirm", comment: "Data sent, waiting for peer to verify and confirm"), transfer.targetPeer.displayName), showGlobalAlert: false)
 
@@ -762,7 +766,8 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
                 totalChunks: transfer.offer.totalChunks,
                 transferredBytes: min(transfer.receivedBytes, transfer.offer.totalBytes),
                 totalBytes: transfer.offer.totalBytes,
-                isSending: false
+                isSending: false,
+                isConfirmed: false
             )
         }
 
@@ -1385,14 +1390,42 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
 
         case let .storeSyncReceiveAck(payload):
             guard let transfer = outgoingStoreSyncTransfers[payload.transferID] else { return }
-            outgoingStoreSyncTransfers.removeValue(forKey: payload.transferID)
-            clearOutgoingTransferCancellationMark(payload.transferID)
-            if outgoingStoreSyncProgress?.id == payload.transferID {
-                outgoingStoreSyncProgress = nil
+
+            if payload.received {
+                // Show confirmed progress briefly before clearing
+                if outgoingStoreSyncProgress?.id == payload.transferID {
+                    outgoingStoreSyncProgress = BluetoothStoreSyncProgress(
+                        id: payload.transferID,
+                        peerName: transfer.targetPeer.displayName,
+                        transferredChunks: transfer.offer.totalChunks,
+                        totalChunks: transfer.offer.totalChunks,
+                        transferredBytes: transfer.offer.totalBytes,
+                        totalBytes: transfer.offer.totalBytes,
+                        isSending: true,
+                        isConfirmed: true
+                    )
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                    guard let self else { return }
+                    self.outgoingStoreSyncTransfers.removeValue(forKey: payload.transferID)
+                    self.clearOutgoingTransferCancellationMark(payload.transferID)
+                    if self.outgoingStoreSyncProgress?.id == payload.transferID {
+                        self.outgoingStoreSyncProgress = nil
+                    }
+                    self.lastOutgoingProgressUpdateAt = nil
+                    self.refreshStoreSyncSendingState()
+                    self.setStoreSyncProcessing(active: false, message: nil)
+                }
+            } else {
+                outgoingStoreSyncTransfers.removeValue(forKey: payload.transferID)
+                clearOutgoingTransferCancellationMark(payload.transferID)
+                if outgoingStoreSyncProgress?.id == payload.transferID {
+                    outgoingStoreSyncProgress = nil
+                }
+                lastOutgoingProgressUpdateAt = nil
+                refreshStoreSyncSendingState()
+                setStoreSyncProcessing(active: false, message: nil)
             }
-            lastOutgoingProgressUpdateAt = nil
-            refreshStoreSyncSendingState()
-            setStoreSyncProcessing(active: false, message: nil)
 
             if payload.received {
                 updateStoreSyncStatus(String(format: NSLocalizedString("status_peer_confirmed_complete_format", comment: "Peer confirmed complete"), transfer.targetPeer.displayName))

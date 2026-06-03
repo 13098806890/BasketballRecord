@@ -53,6 +53,8 @@ struct GameView: View {
     @State private var blinkTimer: Timer?
     @State private var highlightedLogID: UUID?
     @State private var highlightedLogDismissTask: Task<Void, Never>?
+    @State private var showAutoEndAlert = false
+    @State private var autoEndAlertMessage = ""
 
     private let matchClockTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -81,20 +83,13 @@ struct GameView: View {
                             Label(LocalizedStringKey("button_new_game"), systemImage: "plus.circle")
                         }
 
-                        Button {
-                            handleInviteSyncTapped()
-                        } label: {
-                            Label(LocalizedStringKey("button_invite_collab"), systemImage: "dot.radiowaves.left.and.right")
-                        }
-                        .disabled(currentGameRecordID == nil || needsNewGameSetup || bluetooth.connectedPeers.isEmpty)
-
-                        if store.showsSimulationButton {
+                        if store.showsBluetoothGamesButton {
                             Button {
-                                handleSimulateTapped()
+                                handleInviteSyncTapped()
                             } label: {
-                                Label(LocalizedStringKey("button_simulate"), systemImage: "sparkles")
+                                Label(LocalizedStringKey("button_invite_collab"), systemImage: "dot.radiowaves.left.and.right")
                             }
-                            .disabled(isSimulating)
+                            .disabled(currentGameRecordID == nil || needsNewGameSetup || bluetooth.connectedPeers.isEmpty)
                         }
 
                         Button {
@@ -116,16 +111,7 @@ struct GameView: View {
                     playersForTeam: players(in:),
                     initialHomeTeamID: snapshot.homeTeamID,
                     initialAwayTeamID: snapshot.awayTeamID,
-                    initialPeriodCount: snapshot.periodCount,
-                    initialCourtPlayerCount: snapshot.courtPlayerCount,
-                    initialResetsTeamFoulsEachPeriod: snapshot.resetsTeamFoulsEachPeriod,
-                    initialShowsReboundButton: snapshot.showsReboundButton,
-                    initialShowsAssistButton: snapshot.showsAssistButton,
-                    initialShowsFoulButton: snapshot.showsFoulButton,
-                    initialShowsBlockButton: snapshot.showsBlockButton,
-                    initialShowsStealButton: snapshot.showsStealButton,
-                    initialShowsTurnoverButton: snapshot.showsTurnoverButton,
-                    onStart: startNewGame
+                    onStart: startNewGame(with:)
                 )
             }
             .sheet(isPresented: $isShowingSubstitution) {
@@ -213,6 +199,11 @@ struct GameView: View {
             } message: {
                 Text(collaborationAlertMessage ?? "")
             }
+            .alert(LocalizedStringKey("alert_period_auto_ended_title"), isPresented: $showAutoEndAlert) {
+                Button(LocalizedStringKey("button_ok")) { }
+            } message: {
+                Text(autoEndAlertMessage)
+            }
     }
 
     private var lifecycleWrappedView: some View {
@@ -222,6 +213,9 @@ struct GameView: View {
             }
             .onReceive(matchClockTicker) { date in
                 clockNow = date
+                if snapshot.periodEndCondition == .byTime {
+                    checkAndAutoEndPeriod()
+                }
             }
             .onChange(of: bluetooth.latestLiveSnapshot?.id) { _, _ in
                 guard let incoming = bluetooth.latestLiveSnapshot else { return }
@@ -1040,6 +1034,29 @@ struct GameView: View {
         feedbackGenerator.impactOccurred(intensity: 1)
     }
 
+    private func checkAndAutoEndPeriod() {
+        guard snapshot.periodIsRunning, !snapshot.isPaused, !snapshot.isComplete else { return }
+
+        switch snapshot.periodEndCondition {
+        case .byTime:
+            let limit = TimeInterval(snapshot.periodTimeLimit * 60)
+            guard currentPeriodElapsedSeconds >= limit else { return }
+            autoEndAlertMessage = String(format: NSLocalizedString("alert_period_auto_ended_time_format", comment: "Period ended by time"), snapshot.currentPeriod)
+
+        case .byScore:
+            let homeScore = score(for: snapshot.homeTeamID)
+            let awayScore = score(for: snapshot.awayTeamID)
+            let scoreThreshold = snapshot.periodScoreLimit * snapshot.currentPeriod
+            guard homeScore >= scoreThreshold || awayScore >= scoreThreshold else { return }
+            autoEndAlertMessage = String(format: NSLocalizedString("alert_period_auto_ended_score_format", comment: "Period ended by score"), snapshot.currentPeriod)
+        }
+
+        let now = Date()
+        applyTogglePeriodOperation(at: now)
+        showAutoEndAlert = true
+        UINotificationFeedbackGenerator().notificationOccurred(.warning)
+    }
+
     private func pulseActionButton(_ key: String) {
         withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
             actionButtonPulseKey = key
@@ -1503,6 +1520,9 @@ struct GameView: View {
             }
             addEvent("\(name(for: playerID)) \(action.message)", playerID: playerID, eventCode: action.eventCode, at: at)
         }
+        if action.points > 0, snapshot.periodEndCondition == .byScore {
+            checkAndAutoEndPeriod()
+        }
         return true
     }
 
@@ -1694,23 +1714,7 @@ struct GameView: View {
         return true
     }
 
-    private func startNewGame(
-        homeTeamID: UUID,
-        awayTeamID: UUID,
-        homeStarterIDs: [UUID],
-        awayStarterIDs: [UUID],
-        homeBenchIDs: [UUID],
-        awayBenchIDs: [UUID],
-        periodCount: Int,
-        courtPlayerCount: Int,
-        resetsTeamFoulsEachPeriod: Bool,
-        showsReboundButton: Bool,
-        showsAssistButton: Bool,
-        showsFoulButton: Bool,
-        showsBlockButton: Bool,
-        showsStealButton: Bool,
-        showsTurnoverButton: Bool
-    ) {
+    private func startNewGame(with config: GameSetupConfig) {
         activeLiveSessionID = nil
         liveRole = nil
         liveHostPeerName = nil
@@ -1725,21 +1729,24 @@ struct GameView: View {
         redoStack.removeAll()
         currentGameRecordID = UUID()
         snapshot = GameSnapshot(
-            homeTeamID: homeTeamID,
-            awayTeamID: awayTeamID,
-            periodCount: periodCount,
-            courtPlayerCount: courtPlayerCount,
-            resetsTeamFoulsEachPeriod: resetsTeamFoulsEachPeriod,
-            showsReboundButton: showsReboundButton,
-            showsAssistButton: showsAssistButton,
-            showsFoulButton: showsFoulButton,
-            showsBlockButton: showsBlockButton,
-            showsStealButton: showsStealButton,
-            showsTurnoverButton: showsTurnoverButton,
-            homeOnCourtPlayerIDs: homeStarterIDs,
-            awayOnCourtPlayerIDs: awayStarterIDs,
-            homeAvailablePlayerIDs: unique(homeStarterIDs + homeBenchIDs),
-            awayAvailablePlayerIDs: unique(awayStarterIDs + awayBenchIDs)
+            homeTeamID: config.homeTeamID,
+            awayTeamID: config.awayTeamID,
+            periodCount: config.periodCount,
+            courtPlayerCount: config.courtPlayerCount,
+            resetsTeamFoulsEachPeriod: config.resetsTeamFoulsEachPeriod,
+            showsReboundButton: config.showsReboundButton,
+            showsAssistButton: config.showsAssistButton,
+            showsFoulButton: config.showsFoulButton,
+            showsBlockButton: config.showsBlockButton,
+            showsStealButton: config.showsStealButton,
+            showsTurnoverButton: config.showsTurnoverButton,
+            homeOnCourtPlayerIDs: config.homeStarterIDs,
+            awayOnCourtPlayerIDs: config.awayStarterIDs,
+            homeAvailablePlayerIDs: unique(config.homeStarterIDs + config.homeBenchIDs),
+            awayAvailablePlayerIDs: unique(config.awayStarterIDs + config.awayBenchIDs),
+            periodEndCondition: config.periodEndCondition,
+            periodTimeLimit: config.periodTimeLimit,
+            periodScoreLimit: config.periodScoreLimit
         )
         selectedPlayerID = nil
         selectedSide = .home
@@ -2319,15 +2326,19 @@ struct GameView: View {
     }
 
     private func autoSaveCurrentGame() {
-        if snapshot.logs.isEmpty {
+        var snapshotForSaving = snapshot
+        if activeLiveSessionID != nil {
+            snapshotForSaving.wasBluetoothCollaborated = true
+        }
+        if snapshotForSaving.logs.isEmpty {
             guard let currentGameRecordID,
                   store.savedGames.contains(where: { $0.id == currentGameRecordID }) else {
                 return
             }
-            self.currentGameRecordID = store.autoSaveGame(snapshot, gameID: currentGameRecordID, undoSnapshots: undoStack)
+            self.currentGameRecordID = store.autoSaveGame(snapshotForSaving, gameID: currentGameRecordID, undoSnapshots: undoStack)
             return
         }
-        currentGameRecordID = store.autoSaveGame(snapshot, gameID: currentGameRecordID, undoSnapshots: undoStack)
+        currentGameRecordID = store.autoSaveGame(snapshotForSaving, gameID: currentGameRecordID, undoSnapshots: undoStack)
     }
 
     private func restoreLatestGameIfNeeded() {
@@ -3233,22 +3244,34 @@ private struct CollapsibleStatsView: View {
     }
 }
 
+private struct GameSetupConfig {
+    var homeTeamID: UUID
+    var awayTeamID: UUID
+    var homeStarterIDs: [UUID]
+    var awayStarterIDs: [UUID]
+    var homeBenchIDs: [UUID]
+    var awayBenchIDs: [UUID]
+    var periodCount: Int
+    var courtPlayerCount: Int
+    var resetsTeamFoulsEachPeriod: Bool
+    var showsReboundButton: Bool
+    var showsAssistButton: Bool
+    var showsFoulButton: Bool
+    var showsBlockButton: Bool
+    var showsStealButton: Bool
+    var showsTurnoverButton: Bool
+    var periodEndCondition: PeriodEndCondition
+    var periodTimeLimit: Int
+    var periodScoreLimit: Int
+}
+
 private struct NewGameSetupView: View {
     @Environment(\.dismiss) private var dismiss
     var teams: [Team]
     var playersForTeam: (UUID?) -> [Player]
     var initialHomeTeamID: UUID?
     var initialAwayTeamID: UUID?
-    var initialPeriodCount: Int
-    var initialCourtPlayerCount: Int
-    var initialResetsTeamFoulsEachPeriod: Bool
-    var initialShowsReboundButton: Bool
-    var initialShowsAssistButton: Bool
-    var initialShowsFoulButton: Bool
-    var initialShowsBlockButton: Bool
-    var initialShowsStealButton: Bool
-    var initialShowsTurnoverButton: Bool
-    var onStart: (UUID, UUID, [UUID], [UUID], [UUID], [UUID], Int, Int, Bool, Bool, Bool, Bool, Bool, Bool, Bool) -> Void
+    var onStart: (GameSetupConfig) -> Void
 
     @State private var homeTeamID: UUID?
     @State private var awayTeamID: UUID?
@@ -3256,15 +3279,18 @@ private struct NewGameSetupView: View {
     @State private var awayStarterIDs: [UUID] = []
     @State private var homeBenchIDs: [UUID] = []
     @State private var awayBenchIDs: [UUID] = []
-    @State private var periodCount = 4
-    @State private var courtPlayerCount = 4
-    @State private var resetsTeamFoulsEachPeriod = true
-    @State private var showsReboundButton = true
-    @State private var showsAssistButton = true
-    @State private var showsFoulButton = true
-    @State private var showsBlockButton = true
-    @State private var showsStealButton = true
-    @State private var showsTurnoverButton = true
+    @AppStorage("setup_period_count") private var periodCount = 4
+    @AppStorage("setup_court_player_count") private var courtPlayerCount = 4
+    @AppStorage("setup_reset_fouls") private var resetsTeamFoulsEachPeriod = true
+    @AppStorage("setup_show_rebound") private var showsReboundButton = true
+    @AppStorage("setup_show_assist") private var showsAssistButton = true
+    @AppStorage("setup_show_foul") private var showsFoulButton = true
+    @AppStorage("setup_show_block") private var showsBlockButton = true
+    @AppStorage("setup_show_steal") private var showsStealButton = true
+    @AppStorage("setup_show_turnover") private var showsTurnoverButton = true
+    @AppStorage("setup_period_end_condition") private var periodEndCondition = PeriodEndCondition.byTime
+    @AppStorage("setup_period_time_limit") private var periodTimeLimit = 12
+    @AppStorage("setup_period_score_limit") private var periodScoreLimit = 30
 
     var body: some View {
         NavigationStack {
@@ -3302,6 +3328,35 @@ private struct NewGameSetupView: View {
                     }
 
                     Toggle(LocalizedStringKey("toggle_reset_team_fouls_each_period"), isOn: $resetsTeamFoulsEachPeriod)
+
+                    Picker(LocalizedStringKey("label_period_end_condition"), selection: $periodEndCondition) {
+                        Text(LocalizedStringKey("period_end_by_time")).tag(PeriodEndCondition.byTime)
+                        Text(LocalizedStringKey("period_end_by_score")).tag(PeriodEndCondition.byScore)
+                    }
+
+                    if periodEndCondition == .byTime {
+                        HStack {
+                            Text(LocalizedStringKey("label_period_time_limit"))
+                            Spacer()
+                            TextField(LocalizedStringKey("label_minutes"), value: $periodTimeLimit, format: .number)
+                                .keyboardType(.numberPad)
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 60)
+                            Text(LocalizedStringKey("label_minutes_unit"))
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        HStack {
+                            Text(LocalizedStringKey("label_period_score_limit"))
+                            Spacer()
+                            TextField(LocalizedStringKey("label_points"), value: $periodScoreLimit, format: .number)
+                                .keyboardType(.numberPad)
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 60)
+                            Text(LocalizedStringKey("label_points_unit"))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
 
                 Section(LocalizedStringKey("section_scoring_buttons")) {
@@ -3333,26 +3388,35 @@ private struct NewGameSetupView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(LocalizedStringKey("button_cancel")) { dismiss() }
                 }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button(LocalizedStringKey("button_done")) {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(LocalizedStringKey("button_start")) {
                         guard let homeTeamID, let awayTeamID else { return }
-                        onStart(
-                            homeTeamID,
-                            awayTeamID,
-                            homeStarterIDs,
-                            awayStarterIDs,
-                            homeBenchIDs,
-                            awayBenchIDs,
-                            periodCount,
-                            courtPlayerCount,
-                            resetsTeamFoulsEachPeriod,
-                            showsReboundButton,
-                            showsAssistButton,
-                            showsFoulButton,
-                            showsBlockButton,
-                            showsStealButton,
-                            showsTurnoverButton
-                        )
+                        onStart(GameSetupConfig(
+                            homeTeamID: homeTeamID,
+                            awayTeamID: awayTeamID,
+                            homeStarterIDs: homeStarterIDs,
+                            awayStarterIDs: awayStarterIDs,
+                            homeBenchIDs: homeBenchIDs,
+                            awayBenchIDs: awayBenchIDs,
+                            periodCount: periodCount,
+                            courtPlayerCount: courtPlayerCount,
+                            resetsTeamFoulsEachPeriod: resetsTeamFoulsEachPeriod,
+                            showsReboundButton: showsReboundButton,
+                            showsAssistButton: showsAssistButton,
+                            showsFoulButton: showsFoulButton,
+                            showsBlockButton: showsBlockButton,
+                            showsStealButton: showsStealButton,
+                            showsTurnoverButton: showsTurnoverButton,
+                            periodEndCondition: periodEndCondition,
+                            periodTimeLimit: periodTimeLimit,
+                            periodScoreLimit: periodScoreLimit
+                        ))
                         dismiss()
                     }
                     .disabled(!canStart)
@@ -3433,15 +3497,10 @@ private struct NewGameSetupView: View {
     private func prepareDefaults() {
         homeTeamID = initialHomeTeamID ?? teams.first?.id
         awayTeamID = initialAwayTeamID ?? teams.dropFirst().first?.id
-        periodCount = min(max(initialPeriodCount, 1), 8)
-        courtPlayerCount = min(max(initialCourtPlayerCount, 1), 8)
-        resetsTeamFoulsEachPeriod = initialResetsTeamFoulsEachPeriod
-        showsReboundButton = initialShowsReboundButton
-        showsAssistButton = initialShowsAssistButton
-        showsFoulButton = initialShowsFoulButton
-        showsBlockButton = initialShowsBlockButton
-        showsStealButton = initialShowsStealButton
-        showsTurnoverButton = initialShowsTurnoverButton
+        periodCount = max(periodCount, 1)
+        courtPlayerCount = max(courtPlayerCount, 1)
+        periodTimeLimit = max(periodTimeLimit, 1)
+        periodScoreLimit = max(periodScoreLimit, 1)
         if awayTeamID == homeTeamID {
             awayTeamID = teams.first(where: { $0.id != homeTeamID })?.id
         }
