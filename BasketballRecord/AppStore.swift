@@ -134,9 +134,24 @@ final class AppStore: ObservableObject {
     }
 
     private let storageKey = "basketball-record-store-v1"
+    private let storageFileName = "appstore_v2.json"
     private var saveTask: Task<Void, Never>?
     private let saveDebounceNanoseconds: UInt64 = 500_000_000
     private var cancellables = Set<AnyCancellable>()
+
+    private var storageFileURL: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            .appendingPathComponent(storageFileName)
+    }
+
+    private var photosDir: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            .appendingPathComponent("player_photos", isDirectory: true)
+    }
+
+    private func photoFile(for playerID: UUID) -> URL {
+        photosDir.appendingPathComponent("\(playerID.uuidString).jpg")
+    }
 
     init() {
         load()
@@ -651,8 +666,18 @@ final class AppStore: ObservableObject {
     }
 
     private func save() {
+        // Strip photoData to keep the main payload small
+        var strippedPlayers = players
+        try? FileManager.default.createDirectory(at: photosDir, withIntermediateDirectories: true)
+        for i in strippedPlayers.indices {
+            if let data = strippedPlayers[i].photoData {
+                try? data.write(to: photoFile(for: strippedPlayers[i].id), options: .atomic)
+                strippedPlayers[i].photoData = nil
+            }
+        }
+
         let payload = StorePayload(
-            players: players,
+            players: strippedPlayers,
             teams: teams,
             savedGames: savedGames,
             gameGroups: gameGroups,
@@ -661,7 +686,7 @@ final class AppStore: ObservableObject {
             showsBluetoothGamesButton: showsBluetoothGamesButton
         )
         guard let data = try? JSONEncoder().encode(payload) else { return }
-        UserDefaults.standard.set(data, forKey: storageKey)
+        try? data.write(to: storageFileURL, options: .atomic)
     }
 
     private func scheduleSave() {
@@ -679,19 +704,52 @@ final class AppStore: ObservableObject {
     }
 
     private func load() {
-        guard let data = UserDefaults.standard.data(forKey: storageKey) else {
+        // Try file first, fall back to UserDefaults (legacy migration)
+        var data = try? Data(contentsOf: storageFileURL)
+        var migratedFromUserDefaults = false
+        if data == nil {
+            data = UserDefaults.standard.data(forKey: storageKey)
+            if data != nil {
+                migratedFromUserDefaults = true
+            }
+        }
+
+        guard let storeData = data else {
             seedSampleData()
             return
         }
 
-        guard let payload = try? JSONDecoder().decode(StorePayload.self, from: data) else {
+        guard let payload = try? JSONDecoder().decode(StorePayload.self, from: storeData) else {
+            // If UserDefaults data fails to decode, don't clear it - let the user recover
+            if migratedFromUserDefaults {
+                // Keep old UserDefaults data, try again next launch
+                players = []
+                teams = []
+                savedGames = []
+                return
+            }
             players = []
             teams = []
             savedGames = []
             return
         }
 
-        players = payload.players
+        // Migrate: write to file and clear UserDefaults only after successful decode
+        if migratedFromUserDefaults {
+            try? storeData.write(to: storageFileURL, options: .atomic)
+            UserDefaults.standard.removeObject(forKey: storageKey)
+        }
+
+        // Restore photos from separate files
+        var restoredPlayers = payload.players
+        for i in restoredPlayers.indices {
+            let fileURL = photoFile(for: restoredPlayers[i].id)
+            if let photoData = try? Data(contentsOf: fileURL), !photoData.isEmpty {
+                restoredPlayers[i].photoData = photoData
+            }
+        }
+
+        players = restoredPlayers
         teams = payload.teams
         savedGames = payload.savedGames
         gameGroups = payload.gameGroups

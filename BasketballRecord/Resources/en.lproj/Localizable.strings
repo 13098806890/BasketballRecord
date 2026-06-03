@@ -23,6 +23,10 @@
 "cloud_storage_description" = "Tap a game to enable or disable cloud storage. Cloud-stored games sync across your devices.";
 "section_cloud_enabled" = "In iCloud";
 "section_local_only" = "Local Only";
+"icloud_error_no_account" = "Please sign in to iCloud in System Settings.";
+"icloud_error_restricted" = "iCloud access is restricted on this device.";
+"icloud_error_could_not_determine" = "Could not determine iCloud account status.";
+"icloud_error_unknown" = "Unknown iCloud error.";
 "cloud_syncing" = "Syncing...";
 "cloud_sync_now" = "Sync Now";
 "pro_feature_groups_1" = "Create and manage game groups for easy filtering";

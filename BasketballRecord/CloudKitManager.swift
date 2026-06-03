@@ -12,14 +12,45 @@ final class CloudKitManager: ObservableObject {
     private let database: CKDatabase
     private let recordType = "GameRecord"
 
+    private var isAvailable: Bool = true
+
     private init() {
         container = CKContainer.default()
         database = container.privateCloudDatabase
     }
 
+    /// Check if iCloud + CloudKit are available. Returns nil on success, or an error string.
+    func checkAvailability() async -> String? {
+        do {
+            let status = try await container.accountStatus()
+            switch status {
+            case .available:
+                isAvailable = true
+                return nil
+            case .noAccount:
+                return NSLocalizedString("icloud_error_no_account", comment: "No iCloud account")
+            case .restricted:
+                return NSLocalizedString("icloud_error_restricted", comment: "iCloud restricted")
+            case .couldNotDetermine:
+                return NSLocalizedString("icloud_error_could_not_determine", comment: "Could not determine")
+            @unknown default:
+                return NSLocalizedString("icloud_error_unknown", comment: "Unknown iCloud status")
+            }
+        } catch {
+            // "Could not get container configuration" - container not set up yet
+            lastSyncError = error.localizedDescription
+            return error.localizedDescription
+        }
+    }
+
     // MARK: - Public API
 
     func uploadGame(_ game: SavedGame) async {
+        if let error = await checkAvailability() {
+            lastSyncError = error
+            return
+        }
+
         do {
             let data = try JSONEncoder().encode(game)
             let recordID = CKRecord.ID(recordName: game.id.uuidString)
@@ -46,6 +77,10 @@ final class CloudKitManager: ObservableObject {
     }
 
     func deleteGame(_ gameID: UUID) async {
+        if let error = await checkAvailability() {
+            lastSyncError = error
+            return
+        }
         do {
             let recordID = CKRecord.ID(recordName: gameID.uuidString)
             try await database.deleteRecord(withID: recordID)
@@ -57,6 +92,11 @@ final class CloudKitManager: ObservableObject {
     }
 
     func fetchAllGames() async -> [SavedGame] {
+        if let error = await checkAvailability() {
+            lastSyncError = error
+            return []
+        }
+
         let query = CKQuery(recordType: recordType, predicate: NSPredicate(value: true))
         query.sortDescriptors = [NSSortDescriptor(key: "updatedAt", ascending: false)]
 
@@ -75,6 +115,14 @@ final class CloudKitManager: ObservableObject {
                 games.append(game)
             }
         } catch {
+            // "record type not found" means no games uploaded yet - not an error
+            let err = error as NSError
+            if err.domain == CKErrorDomain {
+                let code = CKError.Code(rawValue: err.code) ?? .unknownItem
+                if code == .unknownItem || code == .zoneNotFound || code == .userDeletedZone {
+                    return []
+                }
+            }
             lastSyncError = error.localizedDescription
         }
 

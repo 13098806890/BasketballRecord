@@ -43,6 +43,10 @@
 "cloud_storage_description" = "点击比赛来开启或关闭云存储。存储在云端的比赛会在各设备间同步。";
 "section_cloud_enabled" = "已存云端";
 "section_local_only" = "仅本地";
+"icloud_error_no_account" = "请在系统设置中登录 iCloud 账号。";
+"icloud_error_restricted" = "此设备 iCloud 访问受限。";
+"icloud_error_could_not_determine" = "无法确定 iCloud 账号状态。";
+"icloud_error_unknown" = "未知 iCloud 错误。";
 "cloud_syncing" = "同步中...";
 "cloud_sync_now" = "立即同步";
 "pro_feature_groups_1" = "创建和管理比赛分组，快速筛选查看";
