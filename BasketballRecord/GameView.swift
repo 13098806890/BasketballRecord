@@ -12,6 +12,7 @@ struct GameView: View {
     @State private var snapshot = GameSnapshot()
     @State private var undoStack: [GameSnapshot] = []
     @State private var redoStack: [GameSnapshot] = []
+    @State private var hasMigratedUndo = false
     @State private var currentGameRecordID: UUID?
     @State private var hasRestoredLatestGame = false
     @State private var selectedPlayerID: UUID?
@@ -1487,8 +1488,23 @@ struct GameView: View {
             return applyResetGameOperation(keepLiveSession: true)
 
         case .undo:
-            guard let previous = undoStack.popLast() else { return false }
-            redoStack.append(snapshot)
+            // Try action-based undo first (revert last log)
+            let now = Date()
+            var redoSnapshot = snapshot
+            closeActiveStints(in: &redoSnapshot, at: now)
+            closeMatchClock(in: &redoSnapshot, at: now)
+            closePeriodClock(in: &redoSnapshot, at: now)
+            redoStack.append(redoSnapshot)
+
+            if revertLastAction() {
+                autoSaveCurrentGame()
+                return true
+            }
+            // Fallback: snapshot-based undo
+            guard let previous = undoStack.popLast() else {
+                redoStack.removeLast()
+                return false
+            }
             snapshot = previous
             ensureSelectedPlayer()
             autoSaveCurrentGame()
@@ -1497,6 +1513,7 @@ struct GameView: View {
         case .redo:
             guard let next = redoStack.popLast() else { return false }
             undoStack.append(snapshot)
+            if undoStack.count > 30 { undoStack.removeFirst(undoStack.count - 30) }
             snapshot = next
             ensureSelectedPlayer()
             autoSaveCurrentGame()
@@ -1634,6 +1651,7 @@ struct GameView: View {
                     name(for: incomingPlayerID),
                     name(for: outgoingPlayerID)
                 ),
+                playerID: incomingPlayerID,
                 eventCode: "event.substitution"
             )
             selectedPlayerID = incomingPlayerID
@@ -2240,6 +2258,7 @@ struct GameView: View {
         _ = submitLiveOperation(.redo) {
             guard let next = redoStack.popLast() else { return false }
             undoStack.append(snapshot)
+            if undoStack.count > 30 { undoStack.removeFirst(undoStack.count - 30) }
             snapshot = next
             ensureSelectedPlayer()
             autoSaveCurrentGame()
@@ -2254,7 +2273,10 @@ struct GameView: View {
     }
 
     private func mutateSnapshot(pushUndo: Bool = true, _ updates: () -> Void) {
-        if pushUndo { undoStack.append(snapshot) }
+        if pushUndo {
+            undoStack.append(snapshot)
+            if undoStack.count > 30 { undoStack.removeFirst(undoStack.count - 30) }
+        }
         redoStack.removeAll()
         updates()
         autoSaveCurrentGame()
@@ -2347,13 +2369,7 @@ struct GameView: View {
 
         if let latest = store.latestUnfinishedGame() {
             snapshot = latest.snapshot
-            if !latest.undoSnapshots.isEmpty {
-                undoStack = latest.undoSnapshots
-            } else if let previous = latest.previousSnapshot ?? legacyPreviousSnapshot(from: latest.snapshot) {
-                undoStack = [previous]
-            } else {
-                undoStack = []
-            }
+            undoStack = []
             redoStack.removeAll()
             currentGameRecordID = latest.id
             trimInvalidLineups()
@@ -2434,6 +2450,99 @@ struct GameView: View {
         let defendingIDs = scoringSide == .home ? target.awayOnCourtPlayerIDs : target.homeOnCourtPlayerIDs
         scoringIDs.forEach { target.plusMinusByPlayerID[$0, default: 0] += points }
         defendingIDs.forEach { target.plusMinusByPlayerID[$0, default: 0] -= points }
+    }
+
+    /// Revert the last action directly on the current snapshot. Returns true if successful.
+    @discardableResult
+    private func revertLastAction() -> Bool {
+        guard let lastLog = snapshot.logs.last else { return false }
+        let normalizedMessage = normalizedLogMessage(lastLog.message)
+        let lastEventCode = lastLog.eventCode ?? GameLogFormatter.extractEventCode(from: lastLog.message)
+
+        snapshot.logs.removeLast()
+
+        switch lastEventCode {
+        case "event.game_saved":
+            return true
+
+        case "event.game_end":
+            snapshot.isComplete = false
+            return true
+
+        case "event.substitution":
+            guard let incomingID = lastLog.playerID else { return false }
+            guard let side = sideOfPlayer(incomingID, in: snapshot) else { return false }
+            // Parse outgoing player name from message
+            let message = lastLog.message
+            guard let range = message.range(of: " 替换 ") ?? message.range(of: " vs ") else { return false }
+            let outgoingName = String(message[range.upperBound...]).trimmingCharacters(in: .whitespaces)
+            guard let outgoingID = playerID(for: outgoingName, action: .rebound, in: snapshot) else { return false }
+            // Swap back: remove incoming, add outgoing
+            if side == .home {
+                snapshot.homeOnCourtPlayerIDs.removeAll { $0 == incomingID }
+                if !snapshot.homeOnCourtPlayerIDs.contains(outgoingID) {
+                    snapshot.homeOnCourtPlayerIDs.append(outgoingID)
+                }
+            } else {
+                snapshot.awayOnCourtPlayerIDs.removeAll { $0 == incomingID }
+                if !snapshot.awayOnCourtPlayerIDs.contains(outgoingID) {
+                    snapshot.awayOnCourtPlayerIDs.append(outgoingID)
+                }
+            }
+            return true
+
+        case "event.period_start":
+            // Revert starting a period: period was ended, just mark it not running
+            snapshot.periodIsRunning = false
+            snapshot.periodElapsedSeconds = 0
+            snapshot.periodActiveSince = nil
+            return true
+
+        case "event.period_end":
+            // Revert ending a period: period was running, mark it running again
+            if snapshot.currentPeriod > 1 {
+                snapshot.currentPeriod -= 1
+            }
+            snapshot.periodIsRunning = true
+            return true
+
+        case "event.late_arrival":
+            // Remove the late-arriving player from team roster
+            guard let playerID = lastLog.playerID else { return false }
+            if snapshot.homeAvailablePlayerIDs.contains(playerID) {
+                snapshot.homeAvailablePlayerIDs.removeAll { $0 == playerID }
+            } else if snapshot.awayAvailablePlayerIDs.contains(playerID) {
+                snapshot.awayAvailablePlayerIDs.removeAll { $0 == playerID }
+            }
+            return true
+
+        default:
+            // Handle stat actions: revert stats
+            guard let (playerName, action) = StatAction.parseLog(normalizedMessage, eventCode: lastLog.eventCode) else {
+                return false
+            }
+
+            let resolvedPlayerID = lastLog.playerID ?? playerID(for: playerName, action: action, in: snapshot)
+            guard let playerID = resolvedPlayerID,
+                  let side = sideOfPlayer(playerID, in: snapshot) else {
+                return false
+            }
+
+            var stats = snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+            guard action.revert(on: &stats) else { return false }
+            snapshot.statsByPlayerID[playerID] = stats
+
+            if action == .foul {
+                let currentFouls = snapshot.currentPeriodFoulsBySide[side.rawValue, default: 0]
+                snapshot.currentPeriodFoulsBySide[side.rawValue] = max(0, currentFouls - 1)
+            }
+
+            if action.points > 0 {
+                applyPlusMinus(points: -action.points, scoringSide: side, in: &snapshot)
+            }
+
+            return true
+        }
     }
 
     private func legacyPreviousSnapshot(from current: GameSnapshot) -> GameSnapshot? {

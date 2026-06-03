@@ -1157,7 +1157,7 @@ private struct SavedGameRow: View {
     }
 
     private var title: String {
-        "\(game.homeTeamName) vs \(game.awayTeamName)"
+        game.displayTitle
     }
 
     private var scoreLine: String {
@@ -1197,6 +1197,7 @@ struct SavedGameDetailView: View {
     @State private var aiSummaryError: String?
     @State private var periodAnalysis = SavedGamePeriodAnalysis()
     @State private var selectedGroupID: UUID?
+    @State private var editDisplayName = ""
 
     init(game: SavedGame, displayMode: DisplayMode = .history) {
         self.game = game
@@ -1214,6 +1215,21 @@ struct SavedGameDetailView: View {
     var body: some View {
         List {
             groupAssignmentSection
+
+            Section {
+                HStack(spacing: 8) {
+                    TextField(LocalizedStringKey("label_game_name"), text: $editDisplayName)
+                        .font(.headline)
+                        .onSubmit {
+                            if let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) {
+                                store.savedGames[idx].displayName = editDisplayName
+                            }
+                        }
+                    Image(systemName: "pencil")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
 
             Section {
                 HStack {
@@ -1333,6 +1349,7 @@ struct SavedGameDetailView: View {
             }
         }
         .onAppear {
+            editDisplayName = game.displayName
             sanitizeSelectedPeriod()
             if displayMode == .history,
                aiSummary.isEmpty,

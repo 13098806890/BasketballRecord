@@ -2815,6 +2815,8 @@ struct CloudStorageView: View {
     @EnvironmentObject private var store: AppStore
     @StateObject private var cloudKit = CloudKitManager.shared
     @State private var isSyncing = false
+    @State private var expandedCloudSections: Set<String> = []
+    @State private var expandedLocalSections: Set<String> = []
 
     private var cloudGames: [SavedGame] {
         store.savedGames.filter { store.cloudEnabledGameIDs.contains($0.id) }
@@ -2825,6 +2827,8 @@ struct CloudStorageView: View {
         store.savedGames.filter { !store.cloudEnabledGameIDs.contains($0.id) }
             .sorted { $0.savedAt > $1.savedAt }
     }
+
+    private var allGroups: [GameGroup] { store.gameGroups }
 
     var body: some View {
         List {
@@ -2854,53 +2858,94 @@ struct CloudStorageView: View {
                 }
             }
 
-            if !cloudGames.isEmpty {
+            let cloudSubs = buildGroupedSections(games: cloudGames)
+            if !cloudSubs.isEmpty {
                 Section(LocalizedStringKey("section_cloud_enabled")) {
-                    ForEach(cloudGames) { game in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("\(game.homeTeamName) vs \(game.awayTeamName)")
-                                    .font(.subheadline)
-                                Text(Self.dateFormatter.string(from: game.savedAt))
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
+                    ForEach(cloudSubs, id: \.name) { sub in
+                        DisclosureGroup(sub.name, isExpanded: Binding(
+                            get: { expandedCloudSections.contains(sub.name) },
+                            set: { if $0 { expandedCloudSections.insert(sub.name) } else { expandedCloudSections.remove(sub.name) } }
+                        )) {
+                            ForEach(sub.games) { game in
+                                gameRow(game: game, isCloud: true)
                             }
-                            Spacer()
-                            Image(systemName: "icloud.fill")
-                                .foregroundStyle(.blue)
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            store.toggleCloudStorage(for: game.id)
                         }
                     }
                 }
             }
 
-            if !localOnlyGames.isEmpty {
+            let localSubs = buildGroupedSections(games: localOnlyGames)
+            if !localSubs.isEmpty {
                 Section(LocalizedStringKey("section_local_only")) {
-                    ForEach(localOnlyGames) { game in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("\(game.homeTeamName) vs \(game.awayTeamName)")
-                                    .font(.subheadline)
-                                Text(Self.dateFormatter.string(from: game.savedAt))
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
+                    ForEach(localSubs, id: \.name) { sub in
+                        DisclosureGroup(sub.name, isExpanded: Binding(
+                            get: { expandedLocalSections.contains(sub.name) },
+                            set: { if $0 { expandedLocalSections.insert(sub.name) } else { expandedLocalSections.remove(sub.name) } }
+                        )) {
+                            ForEach(sub.games) { game in
+                                gameRow(game: game, isCloud: false)
                             }
-                            Spacer()
-                            Image(systemName: "icloud.slash")
-                                .foregroundStyle(.secondary)
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            store.toggleCloudStorage(for: game.id)
                         }
                     }
                 }
             }
         }
         .navigationTitle(LocalizedStringKey("settings_cloud_storage"))
+    }
+
+    private struct GameSubSection {
+        var name: String
+        var games: [SavedGame]
+    }
+
+    private func buildGroupedSections(games: [SavedGame]) -> [GameSubSection] {
+        var remaining = Set(games.map(\.id))
+        var subs: [GameSubSection] = []
+
+        for group in allGroups {
+            let groupGames = games.filter { $0.groupIDs.contains(group.id) }
+            if !groupGames.isEmpty {
+                subs.append(GameSubSection(name: group.name, games: groupGames))
+                for g in groupGames { remaining.remove(g.id) }
+            }
+        }
+
+        let ungrouped = games.filter { remaining.contains($0.id) }
+        if !ungrouped.isEmpty {
+            subs.append(GameSubSection(name: NSLocalizedString("game_group_ungrouped", comment: "Ungrouped"), games: ungrouped))
+        }
+
+        return subs
+    }
+
+    private func gameRow(game: SavedGame, isCloud: Bool) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(game.displayTitle)
+                    .font(.subheadline)
+                HStack(spacing: 6) {
+                    Text(Self.dateFormatter.string(from: game.savedAt))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Text(scoreLine(for: game))
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            Image(systemName: isCloud ? "icloud.fill" : "icloud.slash")
+                .foregroundStyle(isCloud ? .blue : .secondary)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            store.toggleCloudStorage(for: game.id)
+        }
+    }
+
+    private func scoreLine(for game: SavedGame) -> String {
+        let homeScore = game.homePlayerIDs.reduce(0) { $0 + (game.snapshot.statsByPlayerID[$1]?.points ?? 0) }
+        let awayScore = game.awayPlayerIDs.reduce(0) { $0 + (game.snapshot.statsByPlayerID[$1]?.points ?? 0) }
+        return "\(homeScore) - \(awayScore)"
     }
 
     private func sync() {

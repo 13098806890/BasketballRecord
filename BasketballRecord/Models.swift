@@ -1091,6 +1091,11 @@ struct SavedGame: Identifiable, Codable, Hashable {
     var playerNamesByID: [UUID: String]
     var groupIDs: [UUID] = []
     var isLocked = false
+    var displayName: String = ""
+
+    var displayTitle: String {
+        displayName.isEmpty ? "\(homeTeamName) vs \(awayTeamName)" : displayName
+    }
 
     init(
         id: UUID = UUID(),
@@ -1135,6 +1140,7 @@ struct SavedGame: Identifiable, Codable, Hashable {
         playerNamesByID = try container.decodeIfPresent([UUID: String].self, forKey: .playerNamesByID) ?? [:]
         groupIDs = try container.decodeIfPresent([UUID].self, forKey: .groupIDs) ?? []
         isLocked = try container.decodeIfPresent(Bool.self, forKey: .isLocked) ?? false
+        displayName = try container.decodeIfPresent(String.self, forKey: .displayName) ?? ""
 
         // Backward compat: decode legacy single groupID
         if groupIDs.isEmpty, let legacy = try? decoder.container(keyedBy: AnyCodingKey.self)

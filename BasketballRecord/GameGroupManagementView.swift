@@ -140,21 +140,16 @@ struct GameGroupEditView: View {
                         ForEach(allGames, id: \.id) { game in
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    HStack(spacing: 4) {
-                                        Text(game.homeTeamName)
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                        Text("vs")
+                                    Text(game.displayTitle)
+                                        .font(.subheadline)
+                                    HStack(spacing: 6) {
+                                        Text(dateFormatter.string(from: game.savedAt))
                                             .font(.caption2)
                                             .foregroundColor(.secondary)
-                                        Text(game.awayTeamName)
-                                            .font(.caption)
+                                        Text(scoreLine(for: game))
+                                            .font(.caption2.monospacedDigit())
                                             .foregroundColor(.secondary)
                                     }
-
-                                    Text(dateFormatter.string(from: game.savedAt))
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
                                 }
 
                                 Spacer()
@@ -213,6 +208,12 @@ struct GameGroupEditView: View {
             store.syncGameGroupMembership(groupID: newGroup.id, gameIDs: Array(selectedGameIDs))
         }
         dismiss()
+    }
+
+    private func scoreLine(for game: SavedGame) -> String {
+        let homeScore = game.homePlayerIDs.reduce(0) { $0 + (game.snapshot.statsByPlayerID[$1]?.points ?? 0) }
+        let awayScore = game.awayPlayerIDs.reduce(0) { $0 + (game.snapshot.statsByPlayerID[$1]?.points ?? 0) }
+        return "\(homeScore) - \(awayScore)"
     }
 
     private var dateFormatter: DateFormatter {

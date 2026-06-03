@@ -27,6 +27,8 @@
 "icloud_error_restricted" = "iCloud access is restricted on this device.";
 "icloud_error_could_not_determine" = "Could not determine iCloud account status.";
 "icloud_error_unknown" = "Unknown iCloud error.";
+"game_group_ungrouped" = "Ungrouped";
+"label_game_name" = "Game Name";
 "cloud_syncing" = "Syncing...";
 "cloud_sync_now" = "Sync Now";
 "pro_feature_groups_1" = "Create and manage game groups for easy filtering";

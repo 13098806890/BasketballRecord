@@ -319,12 +319,10 @@ final class AppStore: ObservableObject {
     @discardableResult
     func autoSaveGame(_ snapshot: GameSnapshot, gameID: UUID?, undoSnapshots: [GameSnapshot] = []) -> UUID {
         let targetID = gameID ?? UUID()
-        let existingGame = savedGames.first(where: { $0.id == targetID })
-        let previousSnapshot = existingGame?.snapshot
         var game = buildSavedGame(id: targetID, snapshot: snapshot, savedAt: Date())
-        game.aiSummary = existingGame?.aiSummary
-        game.previousSnapshot = previousSnapshot
-        game.undoSnapshots = undoSnapshots
+        if let existingGame = savedGames.first(where: { $0.id == targetID }) {
+            game.aiSummary = existingGame.aiSummary
+        }
 
         if let existingIndex = savedGames.firstIndex(where: { $0.id == targetID }) {
             savedGames[existingIndex] = game
@@ -673,18 +671,79 @@ final class AppStore: ObservableObject {
         return TeamMergeSummary(mergedPlayers: addedPlayers.count, updatedGames: updatedGames)
     }
 
+    private func safeWrite<T: Encodable>(_ value: T, forKey key: String) {
+        guard var data = try? JSONEncoder().encode(value) else {
+            print("[Storage] Failed to encode \(key)")
+            return
+        }
+        print("[Storage] Writing \(key): \(data.count) bytes")
+
+        // If it's a game with excessive undo snapshots, trim them
+        if key.hasPrefix("game_"), var game = value as? SavedGame {
+            if game.undoSnapshots.count > 30 || game.previousSnapshot != nil {
+                let originalCount = data.count
+                let trimmedUndo = game.undoSnapshots.count > 30
+                let trimmedPrev = game.previousSnapshot != nil
+                if trimmedUndo {
+                    game.undoSnapshots = Array(game.undoSnapshots.suffix(30))
+                }
+                game.previousSnapshot = nil
+                if let newData = try? JSONEncoder().encode(game) {
+                    print("[Storage] Trimmed game \(key): undo \(game.undoSnapshots.count)->\(trimmedUndo ? 30 : game.undoSnapshots.count), prev=\(trimmedPrev ? "removed" : "none"). Size: \(originalCount)->\(newData.count) bytes")
+                    data = newData
+                }
+            }
+        }
+
+        if data.count >= 3_000_000 {
+            let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+                .appendingPathComponent("\(key).json")
+            try? data.write(to: fileURL, options: .atomic)
+            print("[Storage] Wrote \(key) to file instead of UserDefaults")
+            return
+        }
+        UserDefaults.standard.set(data, forKey: key)
+        print("[Storage] Wrote \(key) to UserDefaults OK")
+    }
+
+    private func safeRead<T: Decodable>(_ type: T.Type, forKey key: String) -> T? {
+        if let data = UserDefaults.standard.data(forKey: key) {
+            if let value = try? JSONDecoder().decode(type, from: data) {
+                return value
+            }
+        }
+        // Fallback: try file
+        let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            .appendingPathComponent("\(key).json")
+        if let data = try? Data(contentsOf: fileURL),
+           let value = try? JSONDecoder().decode(type, from: data) {
+            // Trim oversized game on load
+            if key.hasPrefix("game_"), var game = value as? SavedGame {
+                if game.undoSnapshots.count > 30 {
+                    print("[Storage] Trimming undo stack on load: \(game.undoSnapshots.count) -> 30")
+                    game.undoSnapshots = Array(game.undoSnapshots.suffix(30))
+                }
+                game.previousSnapshot = nil
+                return game as? T
+            }
+            return value
+        }
+        return nil
+    }
+
     private func save() {
         // Strip photoData and save as separate files
         var strippedPlayers = players
         try? FileManager.default.createDirectory(at: photosDir, withIntermediateDirectories: true)
         for i in strippedPlayers.indices {
             if let data = strippedPlayers[i].photoData {
+                print("[Storage] Photo for \(strippedPlayers[i].name): \(data.count) bytes")
                 try? data.write(to: photoFile(for: strippedPlayers[i].id), options: .atomic)
                 strippedPlayers[i].photoData = nil
             }
         }
 
-        // Save meta (players, teams, settings) - small, one key
+        // Save meta (players, teams, settings)
         let meta = StoreMeta(
             players: strippedPlayers,
             teams: teams,
@@ -693,19 +752,13 @@ final class AppStore: ObservableObject {
             keepsScreenAwake: keepsScreenAwake,
             showsBluetoothGamesButton: showsBluetoothGamesButton
         )
-        if let data = try? JSONEncoder().encode(meta) {
-            UserDefaults.standard.set(data, forKey: metaKey)
-        }
+        safeWrite(meta, forKey: metaKey)
 
-        // Save each game individually to avoid 4MB limit
+        // Save each game individually
         let gameIDs = savedGames.map(\.id)
-        if let data = try? JSONEncoder().encode(gameIDs) {
-            UserDefaults.standard.set(data, forKey: gamesIndexKey)
-        }
+        safeWrite(gameIDs, forKey: gamesIndexKey)
         for game in savedGames {
-            if let data = try? JSONEncoder().encode(game) {
-                UserDefaults.standard.set(data, forKey: gameKey(for: game.id))
-            }
+            safeWrite(game, forKey: gameKey(for: game.id))
         }
     }
 
@@ -728,8 +781,7 @@ final class AppStore: ObservableObject {
         if migrateFromLegacyStorage() { return }
 
         // Load meta (players, teams, settings)
-        if let data = UserDefaults.standard.data(forKey: metaKey),
-           let meta = try? JSONDecoder().decode(StoreMeta.self, from: data) {
+        if let meta: StoreMeta = safeRead(StoreMeta.self, forKey: metaKey) {
 
             var restoredPlayers = meta.players
             for i in restoredPlayers.indices {
@@ -750,12 +802,10 @@ final class AppStore: ObservableObject {
         }
 
         // Load games individually
-        if let data = UserDefaults.standard.data(forKey: gamesIndexKey),
-           let gameIDs = try? JSONDecoder().decode([UUID].self, from: data) {
+        if let gameIDs: [UUID] = safeRead([UUID].self, forKey: gamesIndexKey) {
             var loaded: [SavedGame] = []
             for id in gameIDs {
-                if let gameData = UserDefaults.standard.data(forKey: gameKey(for: id)),
-                   let game = try? JSONDecoder().decode(SavedGame.self, from: gameData) {
+                if let game: SavedGame = safeRead(SavedGame.self, forKey: gameKey(for: id)) {
                     loaded.append(game)
                 }
             }
@@ -774,12 +824,18 @@ final class AppStore: ObservableObject {
             data = UserDefaults.standard.data(forKey: storageKey)
             source = "userdefaults"
         }
-        guard let storeData = data else { return false }
+        guard let storeData = data else {
+            print("[Migration] No legacy data found")
+            return false
+        }
 
+        print("[Migration] Found \(source) data: \(storeData.count) bytes")
         guard let payload = try? JSONDecoder().decode(StorePayload.self, from: storeData) else {
+            print("[Migration] Failed to decode legacy data (may be corrupted)")
             // Keep old data around for debugging, but don't use it
             return false
         }
+        print("[Migration] Decoded \(payload.savedGames.count) games, \(payload.players.count) players")
 
         // Migrate to new split format
         var restoredPlayers = payload.players
@@ -812,6 +868,8 @@ final class AppStore: ObservableObject {
                 UserDefaults.standard.set(data, forKey: gameKey(for: game.id))
             }
         }
+
+        print("[Migration] Migration complete: \(payload.savedGames.count) games, \(payload.players.count) players")
 
         // Set loaded data
         players = restoredPlayers
