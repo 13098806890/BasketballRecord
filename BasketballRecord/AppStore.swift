@@ -134,15 +134,14 @@ final class AppStore: ObservableObject {
     }
 
     private let storageKey = "basketball-record-store-v1"
-    private let storageFileName = "appstore_v2.json"
     private var saveTask: Task<Void, Never>?
     private let saveDebounceNanoseconds: UInt64 = 500_000_000
     private var cancellables = Set<AnyCancellable>()
 
-    private var storageFileURL: URL {
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            .appendingPathComponent(storageFileName)
-    }
+    // MARK: - Storage keys
+    private let metaKey = "store_meta"
+    private let gamesIndexKey = "store_games_index"
+    private func gameKey(for id: UUID) -> String { "game_\(id.uuidString)" }
 
     private var photosDir: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -151,6 +150,15 @@ final class AppStore: ObservableObject {
 
     private func photoFile(for playerID: UUID) -> URL {
         photosDir.appendingPathComponent("\(playerID.uuidString).jpg")
+    }
+
+    private struct StoreMeta: Codable {
+        var players: [Player]
+        var teams: [Team]
+        var gameGroups: [GameGroup]
+        var hiddenCareerStatItems: Set<CareerStatItem>
+        var keepsScreenAwake: Bool
+        var showsBluetoothGamesButton: Bool
     }
 
     init() {
@@ -666,7 +674,7 @@ final class AppStore: ObservableObject {
     }
 
     private func save() {
-        // Strip photoData to keep the main payload small
+        // Strip photoData and save as separate files
         var strippedPlayers = players
         try? FileManager.default.createDirectory(at: photosDir, withIntermediateDirectories: true)
         for i in strippedPlayers.indices {
@@ -676,17 +684,29 @@ final class AppStore: ObservableObject {
             }
         }
 
-        let payload = StorePayload(
+        // Save meta (players, teams, settings) - small, one key
+        let meta = StoreMeta(
             players: strippedPlayers,
             teams: teams,
-            savedGames: savedGames,
             gameGroups: gameGroups,
             hiddenCareerStatItems: hiddenCareerStatItems,
             keepsScreenAwake: keepsScreenAwake,
             showsBluetoothGamesButton: showsBluetoothGamesButton
         )
-        guard let data = try? JSONEncoder().encode(payload) else { return }
-        try? data.write(to: storageFileURL, options: .atomic)
+        if let data = try? JSONEncoder().encode(meta) {
+            UserDefaults.standard.set(data, forKey: metaKey)
+        }
+
+        // Save each game individually to avoid 4MB limit
+        let gameIDs = savedGames.map(\.id)
+        if let data = try? JSONEncoder().encode(gameIDs) {
+            UserDefaults.standard.set(data, forKey: gamesIndexKey)
+        }
+        for game in savedGames {
+            if let data = try? JSONEncoder().encode(game) {
+                UserDefaults.standard.set(data, forKey: gameKey(for: game.id))
+            }
+        }
     }
 
     private func scheduleSave() {
@@ -704,51 +724,96 @@ final class AppStore: ObservableObject {
     }
 
     private func load() {
-        // Try file first, fall back to UserDefaults (legacy migration)
-        var data = try? Data(contentsOf: storageFileURL)
-        var migratedFromUserDefaults = false
+        // Try loading from the old monolithic format first (migration)
+        if migrateFromLegacyStorage() { return }
+
+        // Load meta (players, teams, settings)
+        if let data = UserDefaults.standard.data(forKey: metaKey),
+           let meta = try? JSONDecoder().decode(StoreMeta.self, from: data) {
+
+            var restoredPlayers = meta.players
+            for i in restoredPlayers.indices {
+                let fileURL = photoFile(for: restoredPlayers[i].id)
+                if let photoData = try? Data(contentsOf: fileURL), !photoData.isEmpty {
+                    restoredPlayers[i].photoData = photoData
+                }
+            }
+
+            players = restoredPlayers
+            teams = meta.teams
+            gameGroups = meta.gameGroups
+            hiddenCareerStatItems = meta.hiddenCareerStatItems
+            keepsScreenAwake = meta.keepsScreenAwake
+            showsBluetoothGamesButton = meta.showsBluetoothGamesButton
+        } else {
+            seedSampleData()
+        }
+
+        // Load games individually
+        if let data = UserDefaults.standard.data(forKey: gamesIndexKey),
+           let gameIDs = try? JSONDecoder().decode([UUID].self, from: data) {
+            var loaded: [SavedGame] = []
+            for id in gameIDs {
+                if let gameData = UserDefaults.standard.data(forKey: gameKey(for: id)),
+                   let game = try? JSONDecoder().decode(SavedGame.self, from: gameData) {
+                    loaded.append(game)
+                }
+            }
+            savedGames = loaded
+        }
+    }
+
+    /// Migrate from old monolithic UserDefaults or file storage to split keys
+    private func migrateFromLegacyStorage() -> Bool {
+        // Check for old file-based storage first
+        let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            .appendingPathComponent("appstore_v2.json")
+        var data = try? Data(contentsOf: fileURL)
+        var source = "file"
         if data == nil {
             data = UserDefaults.standard.data(forKey: storageKey)
-            if data != nil {
-                migratedFromUserDefaults = true
-            }
+            source = "userdefaults"
         }
-
-        guard let storeData = data else {
-            seedSampleData()
-            return
-        }
+        guard let storeData = data else { return false }
 
         guard let payload = try? JSONDecoder().decode(StorePayload.self, from: storeData) else {
-            // If UserDefaults data fails to decode, don't clear it - let the user recover
-            if migratedFromUserDefaults {
-                // Keep old UserDefaults data, try again next launch
-                players = []
-                teams = []
-                savedGames = []
-                return
-            }
-            players = []
-            teams = []
-            savedGames = []
-            return
+            // Keep old data around for debugging, but don't use it
+            return false
         }
 
-        // Migrate: write to file and clear UserDefaults only after successful decode
-        if migratedFromUserDefaults {
-            try? storeData.write(to: storageFileURL, options: .atomic)
-            UserDefaults.standard.removeObject(forKey: storageKey)
-        }
-
-        // Restore photos from separate files
+        // Migrate to new split format
         var restoredPlayers = payload.players
+        try? FileManager.default.createDirectory(at: photosDir, withIntermediateDirectories: true)
         for i in restoredPlayers.indices {
-            let fileURL = photoFile(for: restoredPlayers[i].id)
-            if let photoData = try? Data(contentsOf: fileURL), !photoData.isEmpty {
-                restoredPlayers[i].photoData = photoData
+            if let photoData = restoredPlayers[i].photoData {
+                try? photoData.write(to: photoFile(for: restoredPlayers[i].id), options: .atomic)
+                restoredPlayers[i].photoData = nil
             }
         }
 
+        let meta = StoreMeta(
+            players: restoredPlayers,
+            teams: payload.teams,
+            gameGroups: payload.gameGroups,
+            hiddenCareerStatItems: payload.hiddenCareerStatItems,
+            keepsScreenAwake: payload.keepsScreenAwake,
+            showsBluetoothGamesButton: payload.showsBluetoothGamesButton
+        )
+        if let data = try? JSONEncoder().encode(meta) {
+            UserDefaults.standard.set(data, forKey: metaKey)
+        }
+
+        let gameIDs = payload.savedGames.map(\.id)
+        if let data = try? JSONEncoder().encode(gameIDs) {
+            UserDefaults.standard.set(data, forKey: gamesIndexKey)
+        }
+        for game in payload.savedGames {
+            if let data = try? JSONEncoder().encode(game) {
+                UserDefaults.standard.set(data, forKey: gameKey(for: game.id))
+            }
+        }
+
+        // Set loaded data
         players = restoredPlayers
         teams = payload.teams
         savedGames = payload.savedGames
@@ -756,6 +821,14 @@ final class AppStore: ObservableObject {
         hiddenCareerStatItems = payload.hiddenCareerStatItems
         keepsScreenAwake = payload.keepsScreenAwake
         showsBluetoothGamesButton = payload.showsBluetoothGamesButton
+
+        // Clean up old storage
+        if source == "file" {
+            try? FileManager.default.removeItem(at: fileURL)
+        }
+        UserDefaults.standard.removeObject(forKey: storageKey)
+
+        return true
     }
 
     private func seedSampleData() {
