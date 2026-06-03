@@ -457,7 +457,7 @@ struct BluetoothStoreSyncComposerView: View {
         let payload = BluetoothStoreSyncPayload(
             players: finalPlayers,
             teams: filteredTeams,
-            savedGames: filteredSavedGames
+            savedGames: filteredSavedGames.map { $0.strippedForTransfer() }
         )
 
         let hasData = !payload.players.isEmpty || !payload.teams.isEmpty || !payload.savedGames.isEmpty

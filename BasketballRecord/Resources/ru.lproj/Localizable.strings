@@ -573,3 +573,9 @@
 "cloud_syncing" = "Syncing...";
 "cloud_sync_now" = "Sync Now";
 
+
+"game_group_ungrouped" = "Ungrouped";
+"cloud_unavailable_hint" = "Enable iCloud in System Settings and sign in to your account.";
+"section_cloud_only" = "Cloud Only";
+"label_game_name" = "Game Name";
+

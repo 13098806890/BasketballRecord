@@ -108,6 +108,17 @@ final class AppStore: ObservableObject {
 
     @Published var cloudEnabledGameIDs: Set<UUID> = []
 
+    func downloadFromCloud(_ game: SavedGame) {
+        if !savedGames.contains(where: { $0.id == game.id }) {
+            savedGames.append(game)
+            savedGames.sort { $0.savedAt > $1.savedAt }
+        }
+        if !cloudEnabledGameIDs.contains(game.id) {
+            cloudEnabledGameIDs.insert(game.id)
+        }
+        saveCloudEnabledGameIDs()
+    }
+
     func toggleCloudStorage(for gameID: UUID) {
         if cloudEnabledGameIDs.contains(gameID) {
             cloudEnabledGameIDs.remove(gameID)
@@ -777,6 +788,14 @@ final class AppStore: ObservableObject {
     }
 
     private func load() {
+        // If new format keys exist, clean up old legacy storage silently
+        if UserDefaults.standard.data(forKey: metaKey) != nil {
+            UserDefaults.standard.removeObject(forKey: storageKey)
+            let oldFile = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+                .appendingPathComponent("appstore_v2.json")
+            try? FileManager.default.removeItem(at: oldFile)
+        }
+
         // Try loading from the old monolithic format first (migration)
         if migrateFromLegacyStorage() { return }
 
@@ -806,7 +825,11 @@ final class AppStore: ObservableObject {
             var loaded: [SavedGame] = []
             for id in gameIDs {
                 if let game: SavedGame = safeRead(SavedGame.self, forKey: gameKey(for: id)) {
-                    loaded.append(game)
+                    // Strip any leftover undo snapshots from old storage
+                    var clean = game
+                    clean.undoSnapshots = []
+                    clean.previousSnapshot = nil
+                    loaded.append(clean)
                 }
             }
             savedGames = loaded

@@ -2248,11 +2248,8 @@ struct PlayerProfileView: View {
                         .padding(.horizontal)
                     }
 
+                    statSection(localized("section_advanced_stats"), values: advancedValues)
                     statSection(localized("label_average_stats"), values: averageValues)
-
-                    if fixedGame == nil {
-                        statSection(localized("section_advanced_stats"), values: advancedValues)
-                    }
                 }
 
                 if let fixedGame, fixedGame.snapshot.periodCount > 1 {
@@ -2269,8 +2266,6 @@ struct PlayerProfileView: View {
                     }
                     .padding(.horizontal)
                 }
-
-                statSection(fixedGame == nil ? localized("label_total_stats") : localized("label_this_game_stats"), values: totalValues)
 
                 if fixedGame != nil {
                     eventSection
@@ -2817,6 +2812,7 @@ struct CloudStorageView: View {
     @State private var isSyncing = false
     @State private var expandedCloudSections: Set<String> = []
     @State private var expandedLocalSections: Set<String> = []
+    @State private var cloudOnlyGames: [SavedGame] = []
 
     private var cloudGames: [SavedGame] {
         store.savedGames.filter { store.cloudEnabledGameIDs.contains($0.id) }
@@ -2889,8 +2885,46 @@ struct CloudStorageView: View {
                     }
                 }
             }
+
+            if let error = cloudKit.lastSyncError, cloudOnlyGames.isEmpty {
+                Section(LocalizedStringKey("section_cloud_only")) {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                    Text(LocalizedStringKey("cloud_unavailable_hint"))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } else if !cloudOnlyGames.isEmpty {
+                Section(LocalizedStringKey("section_cloud_only")) {
+                    ForEach(cloudOnlyGames) { game in
+                        HStack {
+                            gameRow(game: game, isCloud: true)
+                            Button {
+                                store.downloadFromCloud(game)
+                                refreshCloudOnly()
+                            } label: {
+                                Image(systemName: "arrow.down.circle.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(.blue)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
         }
         .navigationTitle(LocalizedStringKey("settings_cloud_storage"))
+        .onAppear { refreshCloudOnly() }
+        .onChange(of: store.savedGames.count) { _, _ in refreshCloudOnly() }
+    }
+
+    private func refreshCloudOnly() {
+        Task {
+            let allCloud = await CloudKitManager.shared.fetchGames(ids: store.cloudEnabledGameIDs)
+            let localIDs = Set(store.savedGames.map(\.id))
+            cloudOnlyGames = allCloud.filter { !localIDs.contains($0.id) }
+        }
     }
 
     private struct GameSubSection {
@@ -2952,6 +2986,7 @@ struct CloudStorageView: View {
         isSyncing = true
         Task {
             await store.syncCloudGames()
+            refreshCloudOnly()
             isSyncing = false
         }
     }

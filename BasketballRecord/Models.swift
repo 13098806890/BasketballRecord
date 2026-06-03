@@ -1094,7 +1094,10 @@ struct SavedGame: Identifiable, Codable, Hashable {
     var displayName: String = ""
 
     var displayTitle: String {
-        displayName.isEmpty ? "\(homeTeamName) vs \(awayTeamName)" : displayName
+        if displayName.isEmpty {
+            return "\(homeTeamName) vs \(awayTeamName)"
+        }
+        return "\(displayName)（\(homeTeamName) vs \(awayTeamName)）"
     }
 
     init(
@@ -1158,6 +1161,15 @@ struct AnyCodingKey: CodingKey {
 }
 
 extension SavedGame {
+    /// Returns a copy with transfer-irrelevant fields stripped (snapshots, local-only metadata)
+    func strippedForTransfer() -> SavedGame {
+        var copy = self
+        copy.undoSnapshots = []
+        copy.previousSnapshot = nil
+        copy.groupIDs = []
+        return copy
+    }
+
     func didParticipate(_ playerID: UUID) -> Bool {
         if snapshot.starterPlayerIDs.contains(playerID) { return true }
         if snapshot.playingSecondsByPlayerID[playerID, default: 0] > 0 { return true }

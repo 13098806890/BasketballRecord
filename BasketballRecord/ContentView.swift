@@ -1270,17 +1270,8 @@ struct SavedGameDetailView: View {
                 .listRowSeparator(.hidden)
             }
 
-            Section(String(format: NSLocalizedString("section_team_players_data_format", comment: "Team players data"), game.homeTeamName)) {
-                ForEach(game.homePlayerIDs, id: \.self) { playerID in
-                    playerStatRow(for: playerID)
-                }
-            }
-
-            Section(String(format: NSLocalizedString("section_team_players_data_format", comment: "Team players data"), game.awayTeamName)) {
-                ForEach(game.awayPlayerIDs, id: \.self) { playerID in
-                    playerStatRow(for: playerID)
-                }
-            }
+            homePlayerSection
+            awayPlayerSection
 
             if displayMode == .history {
                 Section(LocalizedStringKey("section_ai_game_summary")) {
@@ -1416,6 +1407,22 @@ struct SavedGameDetailView: View {
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
+            }
+        }
+    }
+
+    private var homePlayerSection: some View {
+        Section(String(format: NSLocalizedString("section_team_players_data_format", comment: "Team players data"), game.homeTeamName)) {
+            ForEach(game.homePlayerIDs, id: \.self) { playerID in
+                playerStatRow(for: playerID)
+            }
+        }
+    }
+
+    private var awayPlayerSection: some View {
+        Section(String(format: NSLocalizedString("section_team_players_data_format", comment: "Team players data"), game.awayTeamName)) {
+            ForEach(game.awayPlayerIDs, id: \.self) { playerID in
+                playerStatRow(for: playerID)
             }
         }
     }

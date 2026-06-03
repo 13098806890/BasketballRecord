@@ -292,15 +292,11 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
             return false
         }
 
-        // Strip groupID from games before sending - groupID is local to each device
-        let gamesWithoutGroups = savedGames.map { game -> SavedGame in
-            var cleanGame = game
-            cleanGame.groupIDs = []
-            return cleanGame
-        }
+        // Strip local-only data from games before sending
+        let cleanGames = savedGames.map { $0.strippedForTransfer() }
 
         return sendStoreSyncOffer(
-            payload: BluetoothStoreSyncPayload(players: players, teams: teams, savedGames: gamesWithoutGroups),
+            payload: BluetoothStoreSyncPayload(players: players, teams: teams, savedGames: cleanGames),
             to: firstPeer
         )
     }

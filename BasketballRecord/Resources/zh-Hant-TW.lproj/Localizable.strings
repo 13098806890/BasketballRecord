@@ -833,3 +833,9 @@
 "cloud_syncing" = "同步中...";
 "cloud_sync_now" = "立即同步";
 
+
+"game_group_ungrouped" = "未分組";
+"cloud_unavailable_hint" = "請前往系統設定開啟 iCloud 並登入帳號。";
+"section_cloud_only" = "僅雲端";
+"label_game_name" = "比賽名稱";
+
