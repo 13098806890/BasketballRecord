@@ -2498,6 +2498,7 @@ struct PlayerProfileView: View {
             (localized("stat_label_2pt"), "\(stats.twoMade)/\(stats.twoAttempts)  \(percent(stats.twoPointRate))"),
             (localized("stat_label_3pt"), "\(stats.threeMade)/\(stats.threeAttempts)  \(percent(stats.threePointRate))"),
             (localized("stat_label_free_throw"), "\(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)  \(percent(stats.freeThrowRate))"),
+            ("eFG / TS", "\(percent(stats.effectiveFieldGoalRate)) / \(percent(stats.trueShootingRate))"),
         ]
         return items
     }
@@ -2510,12 +2511,13 @@ struct PlayerProfileView: View {
         return [
             ("\(localized("label_games_count"))", "\(games) (\(localized("stat_label_starter")) \(starterGameCount)/\(localized("stat_label_bench")) \(benchGameCount))"),
             ("\(localized("stats_pts_min"))", "\(stats.points) / \(mins)"),
-            ("\(localized("stats_total_points"))", "\(stats.points)"),
             ("\(localized("stats_field_goal"))", "\(stats.made)/\(stats.attempts)  \(percent(stats.fieldGoalRate))"),
             ("\(localized("stat_label_2pt"))", "\(stats.twoMade)/\(stats.twoAttempts)  \(percent(stats.twoPointRate))"),
             ("\(localized("stat_label_3pt"))", "\(stats.threeMade)/\(stats.threeAttempts)  \(percent(stats.threePointRate))"),
             ("\(localized("stat_label_free_throw"))", "\(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)  \(percent(stats.freeThrowRate))"),
             ("\(localized("stats_plus_minus"))", pmText),
+            ("\(localized("stats_rebound_assist_steal_block"))", "\(stats.rebounds) / \(stats.assists) / \(stats.steals) / \(stats.blocks)"),
+            ("\(localized("stats_foul_turnover"))", "\(stats.fouls) / \(stats.turnovers)"),
         ]
     }
 
@@ -2558,14 +2560,16 @@ struct PlayerProfileView: View {
             (localized("stat_label_2pt"), "\(avg(stats.twoMade))/\(avg(stats.twoAttempts))  \(percent(stats.twoPointRate))"),
             (localized("stat_label_3pt"), "\(avg(stats.threeMade))/\(avg(stats.threeAttempts))  \(percent(stats.threePointRate))"),
             (localized("stat_label_free_throw"), "\(avg(stats.allFreeThrowMade))/\(avg(stats.allFreeThrowAttempts))  \(percent(stats.freeThrowRate))"),
+            (localized("stats_plus_minus"), String(format: "%.1f", Double(totalPlusMinus) / Double(games))),
         ]
     }
 
     private var advancedValues: [(String, String)] {
         let stats = totalStats
+        let efg = percent(stats.effectiveFieldGoalRate)
+        let ts = percent(stats.trueShootingRate)
         return [
-            (NSLocalizedString("stat_label_efg", comment: "eFG%"), percent(stats.effectiveFieldGoalRate)),
-            (NSLocalizedString("stats_true_shooting", comment: "TS%"), percent(stats.trueShootingRate)),
+            ("eFG / TS", "\(efg) / \(ts)"),
             (NSLocalizedString("stats_points_per_shot", comment: "PTS/FGA"), String(format: "%.2f", stats.pointsPerShot))
         ]
     }
