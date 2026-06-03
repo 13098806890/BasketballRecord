@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 /**
  AppStore - Central data manager for Basketball Record app
@@ -110,8 +111,12 @@ final class AppStore: ObservableObject {
     func toggleCloudStorage(for gameID: UUID) {
         if cloudEnabledGameIDs.contains(gameID) {
             cloudEnabledGameIDs.remove(gameID)
+            Task { await CloudKitManager.shared.deleteGame(gameID) }
         } else {
             cloudEnabledGameIDs.insert(gameID)
+            if let game = savedGames.first(where: { $0.id == gameID }) {
+                Task { await CloudKitManager.shared.uploadGame(game) }
+            }
         }
         saveCloudEnabledGameIDs()
     }
@@ -131,11 +136,26 @@ final class AppStore: ObservableObject {
     private let storageKey = "basketball-record-store-v1"
     private var saveTask: Task<Void, Never>?
     private let saveDebounceNanoseconds: UInt64 = 500_000_000
+    private var cancellables = Set<AnyCancellable>()
 
     init() {
         load()
         loadCloudEnabledGameIDs()
         NotificationCenter.default.addObserver(self, selector: #selector(cloudStoreDidChange), name: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: NSUbiquitousKeyValueStore.default)
+        Task { await syncCloudGames() }
+
+        // Forward PurchaseManager.isPro changes so all store observers re-render
+        PurchaseManager.shared.$isPro
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &cancellables)
+    }
+
+    func syncCloudGames() async {
+        let newGames = await CloudKitManager.shared.sync(cloudEnabledIDs: cloudEnabledGameIDs, localGames: savedGames)
+        guard !newGames.isEmpty else { return }
+        savedGames.append(contentsOf: newGames)
+        savedGames.sort { $0.savedAt > $1.savedAt }
     }
 
     @objc private func cloudStoreDidChange() {

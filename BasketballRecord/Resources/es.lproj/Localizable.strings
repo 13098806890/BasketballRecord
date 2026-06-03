@@ -543,3 +543,31 @@
 "label_lock" = "Lock";
 "label_unlock" = "Unlock";
 
+
+"pro_feature_groups_1" = "Create and manage game groups for easy filtering";
+"pro_feature_bluetooth_1" = "Sync game data between devices via Bluetooth";
+"pro_feature_bluetooth_2" = "Real-time collaborative scoring with other devices";
+"pro_feature_cloud_1" = "Store game data in iCloud across your devices";
+"pro_feature_cloud_2" = "Choose which games to upload individually";
+"pro_feature_ai_1" = "Generate AI-powered game summaries";
+"pro_feature_ai_2" = "Support for DeepSeek, OpenAI, and Anthropic";
+"settings_doc_help_groups_title" = "Game Groups";
+"settings_doc_help_groups_item1_title" = "Create groups to organize your games";
+"settings_doc_help_groups_item1_desc" = "Add unlimited custom groups like Playoffs or Spring League.";
+"settings_doc_help_groups_item2_title" = "Multi-group support";
+"settings_doc_help_groups_item2_desc" = "A single game can belong to multiple groups at the same time.";
+"settings_doc_help_gamelog_item4_title" = "Auto-end period";
+"settings_doc_help_gamelog_item4_desc" = "Set time or score limits - the app automatically ends the period.";
+"settings_doc_help_cloud_title" = "iCloud Storage";
+"settings_doc_help_cloud_item1_title" = "Upload games to iCloud";
+"settings_doc_help_cloud_item1_desc" = "Choose individual games to store in iCloud and access from all your devices.";
+"settings_doc_help_cloud_item2_title" = "Automatic sync";
+"settings_doc_help_cloud_item2_desc" = "Games uploaded from one device are automatically available on your other devices.";
+"settings_doc_help_pro_title" = "Basketball Record Pro";
+"settings_doc_help_pro_item1_title" = "Unlock advanced features";
+"settings_doc_help_pro_item1_desc" = "Game groups, Bluetooth sync, iCloud, and AI require Pro subscription.";
+"settings_doc_help_pro_item2_title" = "Monthly or yearly";
+"settings_doc_help_pro_item2_desc" = "Choose a plan that works for you, cancel anytime.";
+"cloud_syncing" = "Syncing...";
+"cloud_sync_now" = "Sync Now";
+

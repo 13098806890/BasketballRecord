@@ -54,15 +54,21 @@ struct RosterView: View {
                             .labelsHidden()
                     }
 
-                    if store.isPro {
-                        NavigationLink {
-                            CloudStorageView()
-                        } label: {
-                            settingsRow(
-                                title: LocalizedStringKey("settings_cloud_storage"),
-                                systemImage: "icloud.fill",
-                                countText: "\(store.cloudEnabledGameIDs.count)"
-                            )
+                    NavigationLink {
+                        CloudStorageView()
+                    } label: {
+                        settingsRow(
+                            title: LocalizedStringKey("settings_cloud_storage"),
+                            systemImage: "icloud.fill",
+                            countText: "\(store.cloudEnabledGameIDs.count)"
+                        )
+                    }
+                    .disabled(!store.isPro)
+                    .overlay {
+                        if !store.isPro {
+                            Color.clear
+                                .contentShape(Rectangle())
+                                .onTapGesture { isShowingPurchase = true }
                         }
                     }
 
@@ -199,7 +205,6 @@ struct RosterView: View {
                             title: LocalizedStringKey("settings_help"),
                             systemImage: "doc.text.fill",
                             countText: nil,
-                            iconColor: .blue,
                             showsDisclosure: true
                         )
                     }
@@ -212,7 +217,6 @@ struct RosterView: View {
                             title: LocalizedStringKey("settings_privacy"),
                             systemImage: "hand.raised.fill",
                             countText: nil,
-                            iconColor: .blue,
                             showsDisclosure: true
                         )
                     }
@@ -220,7 +224,7 @@ struct RosterView: View {
 
                     settingsRow(
                         title: LocalizedStringKey("settings_version"),
-                        systemImage: "number.circle.fill",
+                        systemImage: "info.circle.fill",
                         countText: appVersionText
                     )
                 }
@@ -240,6 +244,9 @@ struct RosterView: View {
             }
             .sheet(isPresented: $isShowingPurchase) {
                 ProSubscribeView()
+            }
+            .onChange(of: PurchaseManager.shared.isPro) { _, isPro in
+                if isPro { isShowingPurchase = false }
             }
             .sheet(item: $showingSettingsDocument) { document in
                 SettingsDocumentView(document: document)
@@ -289,59 +296,130 @@ struct RosterView: View {
 }
 
 private struct ProSubscribeView: View {
+    private let features: [SettingsFeatureSection] = [
+        SettingsFeatureSection(icon: "folder.fill", title: localized("game_group_nav_title"), items: [
+            SettingsFeatureItem(localized("pro_feature_groups_1"), ""),
+        ]),
+        SettingsFeatureSection(icon: "dot.radiowaves.left.and.right", title: localized("settings_bluetooth_sync"), items: [
+            SettingsFeatureItem(localized("pro_feature_bluetooth_1"), ""),
+            SettingsFeatureItem(localized("pro_feature_bluetooth_2"), ""),
+        ]),
+        SettingsFeatureSection(icon: "icloud.fill", title: localized("settings_cloud_storage"), items: [
+            SettingsFeatureItem(localized("pro_feature_cloud_1"), ""),
+            SettingsFeatureItem(localized("pro_feature_cloud_2"), ""),
+        ]),
+        SettingsFeatureSection(icon: "sparkles", title: localized("settings_ai"), items: [
+            SettingsFeatureItem(localized("pro_feature_ai_1"), ""),
+            SettingsFeatureItem(localized("pro_feature_ai_2"), ""),
+        ]),
+    ]
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                Image(systemName: "crown.fill")
-                    .font(.system(size: 48))
-                    .foregroundStyle(.blue)
-
-                Text(LocalizedStringKey("pro_description"))
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-
-                if let product = PurchaseManager.shared.monthlyProduct {
-                    Button {
-                        Task { try? await PurchaseManager.shared.purchase(product) }
-                    } label: {
-                        HStack {
-                            Text(LocalizedStringKey("button_subscribe_monthly"))
-                            Spacer()
-                            Text(product.displayPrice)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "crown.fill")
+                            .font(.title2)
+                            .foregroundStyle(.blue)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(LocalizedStringKey("section_pro"))
+                                .font(.headline)
+                            Text(LocalizedStringKey("pro_description"))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
-                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
 
-                if let product = PurchaseManager.shared.yearlyProduct {
-                    Button {
-                        Task { try? await PurchaseManager.shared.purchase(product) }
-                    } label: {
-                        HStack {
-                            Text(LocalizedStringKey("button_subscribe_yearly"))
-                            Spacer()
-                            Text(product.displayPrice)
+                    VStack(alignment: .leading, spacing: 16) {
+                        ForEach(features) { section in
+                            featureSectionView(section)
                         }
-                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .tint(.orange)
-                }
+                    .padding(.horizontal, 16)
 
-                Button(LocalizedStringKey("button_restore")) {
-                    Task { await PurchaseManager.shared.restore() }
+                    VStack(spacing: 10) {
+                        if let product = PurchaseManager.shared.monthlyProduct {
+                            Button {
+                                Task { try? await PurchaseManager.shared.purchase(product) }
+                            } label: {
+                                HStack {
+                                    Text(LocalizedStringKey("button_subscribe_monthly"))
+                                    Spacer()
+                                    Text(product.displayPrice)
+                                }
+                                .padding(.horizontal, 4)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                        }
+
+                        if let product = PurchaseManager.shared.yearlyProduct {
+                            Button {
+                                Task { try? await PurchaseManager.shared.purchase(product) }
+                            } label: {
+                                HStack {
+                                    Text(LocalizedStringKey("button_subscribe_yearly"))
+                                    Spacer()
+                                    Text(product.displayPrice)
+                                }
+                                .padding(.horizontal, 4)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                            .tint(.orange)
+                        }
+
+                        Button(LocalizedStringKey("button_restore")) {
+                            Task { await PurchaseManager.shared.restore() }
+                        }
+                        .font(.caption)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 16)
                 }
-                .font(.caption)
             }
-            .padding()
             .navigationTitle(LocalizedStringKey("section_pro"))
             .navigationBarTitleDisplayMode(.inline)
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.large])
+    }
+
+    @ViewBuilder
+    private func featureSectionView(_ section: SettingsFeatureSection) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: section.icon)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.blue)
+                    .frame(width: 22)
+
+                Text(section.title)
+                    .font(.subheadline.weight(.semibold))
+            }
+
+            ForEach(section.items) { item in
+                HStack(alignment: .top, spacing: 8) {
+                    Circle()
+                        .fill(Color.blue.opacity(0.3))
+                        .frame(width: 5, height: 5)
+                        .padding(.top, 6)
+
+                    Text(item.title)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.leading, 30)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(uiColor: .secondarySystemBackground))
+        )
     }
 }
 
@@ -629,12 +707,21 @@ private enum SettingsDocument: String, Identifiable {
                     ]
                 ),
                 SettingsFeatureSection(
+                    icon: "folder.fill",
+                    title: localized("settings_doc_help_groups_title"),
+                    items: [
+                        SettingsFeatureItem(localized("settings_doc_help_groups_item1_title"), localized("settings_doc_help_groups_item1_desc")),
+                        SettingsFeatureItem(localized("settings_doc_help_groups_item2_title"), localized("settings_doc_help_groups_item2_desc")),
+                    ]
+                ),
+                SettingsFeatureSection(
                     icon: "basketball",
                     title: localized("settings_doc_help_gamelog_title"),
                     items: [
                         SettingsFeatureItem(localized("settings_doc_help_gamelog_item1_title"), localized("settings_doc_help_gamelog_item1_desc")),
                         SettingsFeatureItem(localized("settings_doc_help_gamelog_item2_title"), localized("settings_doc_help_gamelog_item2_desc")),
-                        SettingsFeatureItem(localized("settings_doc_help_gamelog_item3_title"), localized("settings_doc_help_gamelog_item3_desc"))
+                        SettingsFeatureItem(localized("settings_doc_help_gamelog_item3_title"), localized("settings_doc_help_gamelog_item3_desc")),
+                        SettingsFeatureItem(localized("settings_doc_help_gamelog_item4_title"), localized("settings_doc_help_gamelog_item4_desc")),
                     ]
                 ),
                 SettingsFeatureSection(
@@ -647,6 +734,14 @@ private enum SettingsDocument: String, Identifiable {
                     ]
                 ),
                 SettingsFeatureSection(
+                    icon: "icloud.fill",
+                    title: localized("settings_doc_help_cloud_title"),
+                    items: [
+                        SettingsFeatureItem(localized("settings_doc_help_cloud_item1_title"), localized("settings_doc_help_cloud_item1_desc")),
+                        SettingsFeatureItem(localized("settings_doc_help_cloud_item2_title"), localized("settings_doc_help_cloud_item2_desc")),
+                    ]
+                ),
+                SettingsFeatureSection(
                     icon: "sparkles",
                     title: localized("settings_doc_help_ai_title"),
                     items: [
@@ -654,7 +749,15 @@ private enum SettingsDocument: String, Identifiable {
                         SettingsFeatureItem(localized("settings_doc_help_ai_item2_title"), localized("settings_doc_help_ai_item2_desc")),
                         SettingsFeatureItem(localized("settings_doc_help_ai_item3_title"), localized("settings_doc_help_ai_item3_desc"))
                     ]
-                )
+                ),
+                SettingsFeatureSection(
+                    icon: "crown.fill",
+                    title: localized("settings_doc_help_pro_title"),
+                    items: [
+                        SettingsFeatureItem(localized("settings_doc_help_pro_item1_title"), localized("settings_doc_help_pro_item1_desc")),
+                        SettingsFeatureItem(localized("settings_doc_help_pro_item2_title"), localized("settings_doc_help_pro_item2_desc")),
+                    ]
+                ),
             ]
         }
     }
@@ -2710,6 +2813,8 @@ struct CollaborativeGameListView: View {
 
 struct CloudStorageView: View {
     @EnvironmentObject private var store: AppStore
+    @StateObject private var cloudKit = CloudKitManager.shared
+    @State private var isSyncing = false
 
     private var cloudGames: [SavedGame] {
         store.savedGames.filter { store.cloudEnabledGameIDs.contains($0.id) }
@@ -2727,6 +2832,26 @@ struct CloudStorageView: View {
                 Text(LocalizedStringKey("cloud_storage_description"))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+
+                Button {
+                    sync()
+                } label: {
+                    HStack {
+                        if isSyncing || cloudKit.isSyncing {
+                            ProgressView()
+                                .controlSize(.small)
+                        }
+                        Text(LocalizedStringKey(isSyncing ? "cloud_syncing" : "cloud_sync_now"))
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .disabled(isSyncing || cloudKit.isSyncing)
+
+                if let error = cloudKit.lastSyncError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
             }
 
             if !cloudGames.isEmpty {
@@ -2776,6 +2901,14 @@ struct CloudStorageView: View {
             }
         }
         .navigationTitle(LocalizedStringKey("settings_cloud_storage"))
+    }
+
+    private func sync() {
+        isSyncing = true
+        Task {
+            await store.syncCloudGames()
+            isSyncing = false
+        }
     }
 
     private static let dateFormatter: DateFormatter = {

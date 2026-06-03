@@ -849,6 +849,14 @@ struct HistoryView: View {
                                 SavedGameRow(game: game)
                             }
                             .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                                if store.isPro {
+                                    Button {
+                                        store.toggleCloudStorage(for: game.id)
+                                    } label: {
+                                        Label("iCloud", systemImage: store.cloudEnabledGameIDs.contains(game.id) ? "icloud.slash" : "icloud")
+                                    }
+                                    .tint(.blue)
+                                }
                                 Button {
                                     if let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) {
                                         store.savedGames[idx].isLocked.toggle()
@@ -1114,6 +1122,7 @@ private struct GameMonthGroup: Identifiable {
 }
 
 private struct SavedGameRow: View {
+    @EnvironmentObject private var store: AppStore
     var game: SavedGame
 
     var body: some View {
@@ -1135,6 +1144,11 @@ private struct SavedGameRow: View {
                 }
                 Text(Self.dateFormatter.string(from: game.savedAt))
                 Spacer()
+                if store.cloudEnabledGameIDs.contains(game.id) {
+                    Image(systemName: "icloud.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.blue)
+                }
             }
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -1288,6 +1302,13 @@ struct SavedGameDetailView: View {
         .toolbar {
             if displayMode == .history {
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    if store.isPro {
+                        Button {
+                            store.toggleCloudStorage(for: game.id)
+                        } label: {
+                            Label(LocalizedStringKey("label_cloud"), systemImage: store.cloudEnabledGameIDs.contains(game.id) ? "icloud.fill" : "icloud")
+                        }
+                    }
                     GameGroupPicker(store: store, selectedGroupID: $selectedGroupID, iconName: "folder.badge.plus", checkedGroupIDs: Set(store.groups(for: game.id).map(\.id)))
                     Button {
                         isShowingExport = true
@@ -1296,6 +1317,9 @@ struct SavedGameDetailView: View {
                     }
                 }
             }
+        }
+        .onChange(of: store.cloudEnabledGameIDs) { _, _ in
+            // UI refreshes automatically via @Published
         }
         .sheet(isPresented: $isShowingExport) {
             ExportGameView(game: game)

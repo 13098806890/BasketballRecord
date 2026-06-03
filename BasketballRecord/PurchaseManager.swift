@@ -19,6 +19,8 @@ final class PurchaseManager: ObservableObject {
     }
 
     init() {
+        // Read cached status immediately to avoid false-negative flash
+        isPro = UserDefaults.standard.bool(forKey: "is_pro")
         updates = observeTransactionUpdates()
         Task { await loadProducts(); await checkSubscriptionStatus() }
     }

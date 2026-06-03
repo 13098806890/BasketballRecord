@@ -805,3 +805,31 @@
 "purchase_error_cancelled" = "購買已取消。";
 "label_lock" = "鎖定";
 "label_unlock" = "解鎖";
+
+"pro_feature_groups_1" = "創建和管理比賽分組，快速篩選查看";
+"pro_feature_bluetooth_1" = "通過藍牙在設備間同步比賽數據";
+"pro_feature_bluetooth_2" = "多設備即時協同記分";
+"pro_feature_cloud_1" = "將比賽數據存儲在 iCloud，多設備同步";
+"pro_feature_cloud_2" = "可逐場選擇需要上傳的比賽";
+"pro_feature_ai_1" = "AI 自動生成比賽總結";
+"pro_feature_ai_2" = "支援 DeepSeek、OpenAI、Anthropic";
+"settings_doc_help_groups_title" = "比賽分組";
+"settings_doc_help_groups_item1_title" = "創建分組管理比賽";
+"settings_doc_help_groups_item1_desc" = "可以創建無限的自訂分組，如「季後賽」、「春季聯賽」等。";
+"settings_doc_help_groups_item2_title" = "多分組支援";
+"settings_doc_help_groups_item2_desc" = "同一場比賽可以同時屬於多個分組。";
+"settings_doc_help_gamelog_item4_title" = "自動結束節次";
+"settings_doc_help_gamelog_item4_desc" = "設定時間或比分上限，節次到達條件後自動結束並提示。";
+"settings_doc_help_cloud_title" = "iCloud 儲存";
+"settings_doc_help_cloud_item1_title" = "上傳比賽到 iCloud";
+"settings_doc_help_cloud_item1_desc" = "逐場選擇要儲存在雲端的比賽，在所有裝置上存取。";
+"settings_doc_help_cloud_item2_title" = "自動同步";
+"settings_doc_help_cloud_item2_desc" = "在一台裝置上傳的比賽會自動同步到其他裝置。";
+"settings_doc_help_pro_title" = "籃球生涯 Pro";
+"settings_doc_help_pro_item1_title" = "解鎖進階功能";
+"settings_doc_help_pro_item1_desc" = "球隊分組、藍牙協同、iCloud 儲存和 AI 總結需要 Pro 訂閱。";
+"settings_doc_help_pro_item2_title" = "月度或年度";
+"settings_doc_help_pro_item2_desc" = "選擇適合你的訂閱方案，隨時可以取消。";
+"cloud_syncing" = "同步中...";
+"cloud_sync_now" = "立即同步";
+
