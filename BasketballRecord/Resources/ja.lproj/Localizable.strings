@@ -788,6 +788,7 @@
 "section_pro" = "Basketball Record Pro";
 "pro_active" = "Pro features unlocked";
 "pro_description" = "Unlock game groups, Bluetooth sync, and iCloud storage with a subscription.";
+"pro_best_value" = "Best Value";
 "button_subscribe" = "Subscribe";
 "button_restore" = "Restore Purchases";
 "label_cloud" = "Cloud Storage";

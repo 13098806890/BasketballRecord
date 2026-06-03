@@ -844,6 +844,7 @@
 "section_pro" = "篮球生涯 Pro";
 "pro_active" = "Pro 功能已解锁";
 "pro_description" = "订阅以解锁球队分组、蓝牙传输协同和 iCloud 存储等专业功能。";
+"pro_best_value" = "最超值";
 "button_subscribe" = "订阅";
 "button_restore" = "恢复购买";
 "label_cloud" = "云存储";

@@ -72,15 +72,20 @@ struct RosterView: View {
                         }
                     }
 
-                    NavigationLink {
-                        CareerStatDisplaySettingsView()
+                }
+
+                Section {
+                    Button {
+                        isShowingPurchase = true
                     } label: {
                         settingsRow(
-                            title: LocalizedStringKey("settings_career_display"),
-                            systemImage: "slider.horizontal.3",
-                            countText: nil
+                            title: LocalizedStringKey("section_pro"),
+                            systemImage: "crown.fill",
+                            countText: nil,
+                            showsDisclosure: true
                         )
                     }
+                    .buttonStyle(.plain)
                 }
 
                 Section(LocalizedStringKey("settings_section_data_management")) {
@@ -181,11 +186,7 @@ struct RosterView: View {
 
                 Section(LocalizedStringKey("settings_section_ai")) {
                     Button {
-                        if store.isPro {
-                            showingDeepSeekConfig = true
-                        } else {
-                            isShowingPurchase = true
-                        }
+                        showingDeepSeekConfig = true
                     } label: {
                         settingsRow(
                             title: LocalizedStringKey("settings_ai"),
@@ -195,6 +196,14 @@ struct RosterView: View {
                         )
                     }
                     .buttonStyle(.plain)
+                    .disabled(!store.isPro)
+                    .overlay {
+                        if !store.isPro {
+                            Color.clear
+                                .contentShape(Rectangle())
+                                .onTapGesture { isShowingPurchase = true }
+                        }
+                    }
                 }
 
                 Section(LocalizedStringKey("settings_section_help_about")) {
@@ -296,6 +305,8 @@ struct RosterView: View {
 }
 
 private struct ProSubscribeView: View {
+    @Environment(\.dismiss) private var dismiss
+
     private let features: [SettingsFeatureSection] = [
         SettingsFeatureSection(icon: "folder.fill", title: localized("game_group_nav_title"), items: [
             SettingsFeatureItem(localized("pro_feature_groups_1"), ""),
@@ -341,6 +352,24 @@ private struct ProSubscribeView: View {
                     .padding(.horizontal, 16)
 
                     VStack(spacing: 10) {
+                        if let product = PurchaseManager.shared.yearlyProduct {
+                            Button {
+                                Task { try? await PurchaseManager.shared.purchase(product) }
+                            } label: {
+                                HStack {
+                                    Text(LocalizedStringKey("button_subscribe_yearly"))
+                                        .fontWeight(.semibold)
+                                    Spacer()
+                                    Text(product.displayPrice)
+                                        .font(.subheadline.weight(.semibold))
+                                }
+                                .padding(.horizontal, 4)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.blue)
+                            .controlSize(.large)
+                        }
+
                         if let product = PurchaseManager.shared.monthlyProduct {
                             Button {
                                 Task { try? await PurchaseManager.shared.purchase(product) }
@@ -352,37 +381,29 @@ private struct ProSubscribeView: View {
                                 }
                                 .padding(.horizontal, 4)
                             }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.bordered)
+                            .tint(.blue)
                             .controlSize(.large)
-                        }
-
-                        if let product = PurchaseManager.shared.yearlyProduct {
-                            Button {
-                                Task { try? await PurchaseManager.shared.purchase(product) }
-                            } label: {
-                                HStack {
-                                    Text(LocalizedStringKey("button_subscribe_yearly"))
-                                    Spacer()
-                                    Text(product.displayPrice)
-                                }
-                                .padding(.horizontal, 4)
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .controlSize(.large)
-                            .tint(.orange)
                         }
 
                         Button(LocalizedStringKey("button_restore")) {
                             Task { await PurchaseManager.shared.restore() }
                         }
                         .font(.caption)
+                        .frame(maxWidth: .infinity)
                     }
                     .padding(.horizontal, 16)
+                    .padding(.top, 38)
                     .padding(.bottom, 16)
                 }
             }
             .navigationTitle(LocalizedStringKey("section_pro"))
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(LocalizedStringKey("button_close")) { dismiss() }
+                }
+            }
         }
         .presentationDetents([.large])
     }
@@ -418,7 +439,7 @@ private struct ProSubscribeView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(uiColor: .secondarySystemBackground))
+                .fill(.ultraThinMaterial)
         )
     }
 }
@@ -990,47 +1011,6 @@ private struct SettingsFeatureItem: Identifiable {
         self.id = "\(title)-\(description)"
         self.title = title
         self.description = description
-    }
-}
-
-private struct CareerStatDisplaySettingsView: View {
-    @EnvironmentObject private var store: AppStore
-
-    var body: some View {
-        List {
-            Section {
-                Button(LocalizedStringKey("button_show_all")) {
-                    store.setAllCareerStatVisibility(visible: true)
-                }
-
-                Button(LocalizedStringKey("button_hide_all")) {
-                    store.setAllCareerStatVisibility(visible: false)
-                }
-            }
-
-            ForEach(CareerStatSection.allCases) { section in
-                Section(section.title) {
-                    ForEach(sectionItems(for: section)) { item in
-                        Toggle(isOn: binding(for: item)) {
-                            Text(item.title)
-                        }
-                    }
-                }
-            }
-        }
-        .navigationTitle(LocalizedStringKey("settings_career_display"))
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private func sectionItems(for section: CareerStatSection) -> [CareerStatItem] {
-        CareerStatItem.allCases.filter { $0.section == section }
-    }
-
-    private func binding(for item: CareerStatItem) -> Binding<Bool> {
-        Binding(
-            get: { store.isCareerStatVisible(item) },
-            set: { store.setCareerStatVisible(item, visible: $0) }
-        )
     }
 }
 

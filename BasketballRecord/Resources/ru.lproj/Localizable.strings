@@ -21,10 +21,10 @@
 "action_three_made" = "3 очка";
 "action_bonus_made" = "Ан-1";
 "action_free_made" = "Штрафной";
-"action_two_missed" = "Промах 2 очка";
-"action_three_missed" = "Промах 3 очка";
-"action_bonus_missed" = "Промах Ан-1";
-"action_free_missed" = "Промах штрафного";
+"action_two_missed" = "Мимо 2";
+"action_three_missed" = "Мимо 3";
+"action_bonus_missed" = "Мимо Ан-1";
+"action_free_missed" = "Мимо штраф.";
 "action_assist" = "Ассист";
 "action_rebound" = "Ребаунд";
 "action_foul" = "Фол";
@@ -536,6 +536,7 @@
 "section_pro" = "Basketball Record Pro";
 "pro_active" = "Pro features unlocked";
 "pro_description" = "Unlock game groups, Bluetooth sync, and iCloud storage with a subscription.";
+"pro_best_value" = "Best Value";
 "button_subscribe" = "Subscribe";
 "button_restore" = "Restore Purchases";
 "label_cloud" = "Cloud Storage";

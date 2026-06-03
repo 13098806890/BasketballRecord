@@ -166,10 +166,10 @@
 "action_three_made" = "3PT Made";
 "action_bonus_made" = "And-1 Made";
 "action_free_made" = "FT Made";
-"action_two_missed" = "2PT Missed";
-"action_three_missed" = "3PT Missed";
-"action_bonus_missed" = "And-1 Missed";
-"action_free_missed" = "FT Missed";
+"action_two_missed" = "2PT Miss";
+"action_three_missed" = "3PT Miss";
+"action_bonus_missed" = "And-1 Miss";
+"action_free_missed" = "FT Miss";
 "action_assist" = "Assist";
 "action_rebound" = "Rebound";
 "action_foul" = "Foul";
@@ -843,6 +843,7 @@
 "section_pro" = "Basketball Record Pro";
 "pro_active" = "Pro features unlocked";
 "pro_description" = "Unlock game groups, Bluetooth sync, and iCloud storage with a subscription.";
+"pro_best_value" = "Best Value";
 "button_subscribe" = "Subscribe";
 "button_restore" = "Restore Purchases";
 "label_cloud" = "Cloud Storage";

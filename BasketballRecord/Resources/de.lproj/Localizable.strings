@@ -107,10 +107,10 @@
 "alert_cannot_record_title" = "Statistik kann nicht erfasst werden";
 "alert_cannot_simulate_title" = "Spiel kann nicht simuliert werden";
 "alert_bluetooth_collab_title" = "Bluetooth-Zusammenarbeit";
-"action_two_made" = "2P Treffer";
-"action_three_made" = "3P Treffer";
-"action_bonus_made" = "And-1 Treffer";
-"action_free_made" = "FT Treffer";
+"action_two_made" = "2P Tref.";
+"action_three_made" = "3P Tref.";
+"action_bonus_made" = "And-1 Tref.";
+"action_free_made" = "FT Tref.";
 "action_two_missed" = "2P Fehl";
 "action_three_missed" = "3P Fehl";
 "action_bonus_missed" = "And-1 Fehl";
@@ -534,6 +534,7 @@
 "section_pro" = "Basketball Record Pro";
 "pro_active" = "Pro features unlocked";
 "pro_description" = "Unlock game groups, Bluetooth sync, and iCloud storage with a subscription.";
+"pro_best_value" = "Best Value";
 "button_subscribe" = "Subscribe";
 "button_restore" = "Restore Purchases";
 "label_cloud" = "Cloud Storage";

@@ -107,10 +107,10 @@
 "alert_cannot_record_title" = "No se puede registrar estadística";
 "alert_cannot_simulate_title" = "No se puede simular el partido";
 "alert_bluetooth_collab_title" = "Colaboración Bluetooth";
-"action_two_made" = "2PT Encesta";
-"action_three_made" = "3PT Encesta";
-"action_bonus_made" = "And-1 Encesta";
-"action_free_made" = "TL Encesta";
+"action_two_made" = "2PT Anot.";
+"action_three_made" = "3PT Anot.";
+"action_bonus_made" = "And-1 Anot.";
+"action_free_made" = "TL Anot.";
 "action_two_missed" = "2PT Fallo";
 "action_three_missed" = "3PT Fallo";
 "action_bonus_missed" = "And-1 Fallo";
@@ -534,6 +534,7 @@
 "section_pro" = "Basketball Record Pro";
 "pro_active" = "Pro features unlocked";
 "pro_description" = "Unlock game groups, Bluetooth sync, and iCloud storage with a subscription.";
+"pro_best_value" = "Best Value";
 "button_subscribe" = "Subscribe";
 "button_restore" = "Restore Purchases";
 "label_cloud" = "Cloud Storage";

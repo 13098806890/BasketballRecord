@@ -73,6 +73,22 @@ struct GameView: View {
                 .navigationTitle(LocalizedStringKey("nav_game"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
+                    ToolbarItemGroup(placement: .topBarLeading) {
+                        Button {
+                            isShowingResetConfirmation = true
+                        } label: {
+                            Image(systemName: "arrow.counterclockwise")
+                                .font(.callout)
+                        }
+
+                        Button {
+                            isShowingFinishGameConfirmation = true
+                        } label: {
+                            Image(systemName: "flag.checkered.circle.fill")
+                        }
+                        .disabled(snapshot.isComplete || snapshot.logs.isEmpty)
+                    }
+
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         Button {
                             if hasUnfinishedGameToConfirm {
@@ -157,6 +173,14 @@ struct GameView: View {
                 Button(LocalizedStringKey("button_confirm_reset")) { resetGame() }
             } message: {
                 Text(LocalizedStringKey("alert_reset_game_message"))
+            }
+            .alert(LocalizedStringKey("alert_finish_game_title"), isPresented: $isShowingFinishGameConfirmation) {
+                Button(LocalizedStringKey("button_cancel"), role: .cancel) { }
+                Button(LocalizedStringKey("button_confirm_finish")) {
+                    finishGame()
+                }
+            } message: {
+                Text(LocalizedStringKey("alert_finish_game_message"))
             }
             .alert(LocalizedStringKey("alert_unfinished_game_title"), isPresented: $isShowingUnfinishedGameAlert) {
                 Button(LocalizedStringKey("button_cancel"), role: .cancel) { }
@@ -253,22 +277,26 @@ struct GameView: View {
     }
 
     private var gameLayout: some View {
-        VStack(spacing: 8) {
-            teamPickers
-                .padding(.horizontal)
-                .padding(.top, 8)
+        ScrollView {
+            VStack(spacing: 8) {
+                teamPickers
+                    .padding(.horizontal)
+                    .padding(.top, 8)
 
-            teamRows
+                teamRows
 
-            liveGameDataEntry
-                .padding(.horizontal)
+                actionButtons
+                    .padding(.horizontal)
 
-            actionButtons
-                .padding(.horizontal)
+                liveGameDataEntry
+                    .padding(.horizontal)
 
-            logView
-                .padding(.horizontal)
+                logView
+                    .padding(.horizontal)
+                    .padding(.bottom, 8)
+            }
         }
+        .scrollBounceBehavior(.basedOnSize)
     }
 
     private var liveGameDataEntry: some View {
@@ -451,8 +479,8 @@ struct GameView: View {
                 if snapshot.showsReboundButton {
                     actionButton(LocalizedStringKey("action_rebound"), systemImage: "arrow.up.circle.fill", style: .rebound) { record(.rebound) }
                 }
-                if snapshot.showsFoulButton {
-                    actionButton(LocalizedStringKey("action_foul"), systemImage: "exclamationmark.triangle", style: .warning) { record(.foul) }
+                if snapshot.showsBlockButton {
+                    actionButton(LocalizedStringKey("action_block"), systemImage: "shield.lefthalf.filled", style: .rebound) { record(.block) }
                 }
                 if snapshot.showsStealButton {
                     actionButton(LocalizedStringKey("action_steal"), systemImage: "hand.raised.fill", style: .assist) { record(.steal) }
@@ -460,8 +488,8 @@ struct GameView: View {
             }
 
             HStack(spacing: 8) {
-                if snapshot.showsBlockButton {
-                    actionButton(LocalizedStringKey("action_block"), systemImage: "shield.lefthalf.filled", style: .rebound) { record(.block) }
+                if snapshot.showsFoulButton {
+                    actionButton(LocalizedStringKey("action_foul"), systemImage: "exclamationmark.triangle", style: .warning) { record(.foul) }
                 }
                 if snapshot.showsTurnoverButton {
                     actionButton(LocalizedStringKey("action_turnover"), systemImage: "arrow.triangle.2.circlepath", style: .warning) { record(.turnover) }
@@ -469,11 +497,14 @@ struct GameView: View {
                 Button {
                     togglePause()
                 } label: {
-                    Label(pauseButtonTitle, systemImage: snapshot.isPaused ? "play.fill" : "pause.fill")
-                        .font(.caption.weight(.semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                        .frame(maxWidth: .infinity, minHeight: 34)
+                    HStack(spacing: 3) {
+                        Image(systemName: snapshot.isPaused ? "play.fill" : "pause.fill")
+                        Text(pauseButtonTitle)
+                    }
+                    .font(.caption.weight(.semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .frame(maxWidth: .infinity, minHeight: 34)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .pause))
                 .disabled(!snapshot.periodIsRunning || snapshot.isComplete)
@@ -485,11 +516,14 @@ struct GameView: View {
                     triggerTapFeedback()
                     pulseActionButton("period-toggle")
                 } label: {
-                    Label(LocalizedStringKey(periodButtonTitle), systemImage: snapshot.periodIsRunning ? "stop.circle" : "play.circle")
-                        .font(.caption.weight(.semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                        .frame(maxWidth: .infinity, minHeight: 34)
+                    HStack(spacing: 3) {
+                        Image(systemName: snapshot.periodIsRunning ? "stop.circle" : "play.circle")
+                        Text(LocalizedStringKey(periodButtonTitle))
+                    }
+                    .font(.caption.weight(.semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .frame(maxWidth: .infinity, minHeight: 34)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: snapshot.periodIsRunning ? .periodEnd : .period))
                 .scaleEffect(actionButtonPulseKey == "period-toggle" ? 1.09 : 1)
@@ -499,82 +533,59 @@ struct GameView: View {
                 Button {
                     openSubstitution(selectedSide)
                 } label: {
-                    Label(LocalizedStringKey("button_substitute"), systemImage: "arrow.left.arrow.right.circle")
-                        .font(.caption.weight(.semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                        .frame(maxWidth: .infinity, minHeight: 34)
+                    HStack(spacing: 3) {
+                        Image(systemName: "arrow.left.arrow.right.circle")
+                        Text(LocalizedStringKey("button_substitute"))
+                    }
+                    .font(.caption.weight(.semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .frame(maxWidth: .infinity, minHeight: 34)
                 }
-                .buttonStyle(PastelActionButtonStyle(style: .substitution))
+                .buttonStyle(PastelActionButtonStyle(style: .assist))
                 .disabled(needsNewGameSetup)
 
                 Button {
                     openLateArrival(selectedSide)
                 } label: {
-                    Label(LocalizedStringKey("button_add_late_arrival"), systemImage: "person.crop.circle.badge.plus")
-                        .font(.caption.weight(.semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                        .frame(maxWidth: .infinity, minHeight: 34)
+                    HStack(spacing: 3) {
+                        Image(systemName: "person.crop.circle.badge.plus")
+                        Text(LocalizedStringKey("button_add_late_arrival"))
+                    }
+                    .font(.caption.weight(.semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .frame(maxWidth: .infinity, minHeight: 34)
                 }
-                .buttonStyle(PastelActionButtonStyle(style: .substitution))
+                .buttonStyle(PastelActionButtonStyle(style: .rebound))
                 .disabled(needsNewGameSetup)
             }
 
             HStack(spacing: 8) {
                 Button {
-                    isShowingResetConfirmation = true
-                } label: {
-                    Label(LocalizedStringKey("button_reset_game"), systemImage: "arrow.counterclockwise")
-                        .font(.caption.weight(.semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                        .frame(maxWidth: .infinity, minHeight: 34)
-                }
-                .buttonStyle(.bordered)
-
-                Button {
-                    isShowingFinishGameConfirmation = true
-                } label: {
-                    Label(LocalizedStringKey("button_finish_game"), systemImage: "flag.checkered.circle.fill")
-                        .font(.caption.weight(.semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                        .frame(maxWidth: .infinity, minHeight: 34)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(GamePalette.finish)
-                .disabled(snapshot.isComplete || snapshot.logs.isEmpty)
-                .alert(LocalizedStringKey("alert_finish_game_title"), isPresented: $isShowingFinishGameConfirmation) {
-                    Button(LocalizedStringKey("button_cancel"), role: .cancel) { }
-                    Button(LocalizedStringKey("button_confirm_finish")) {
-                        finishGame()
-                    }
-                } message: { Text(LocalizedStringKey("alert_finish_game_message"))
-                }
-
-                Button {
                     undo()
                 } label: {
-                    Label(LocalizedStringKey("button_undo"), systemImage: "arrow.uturn.backward")
-                        .font(.caption.weight(.semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                        .frame(maxWidth: .infinity, minHeight: 34)
+                    HStack(spacing: 3) {
+                        Image(systemName: "arrow.uturn.backward")
+                        Text(LocalizedStringKey("button_undo"))
+                    }
+                    .font(.caption.weight(.semibold))
+                    .frame(maxWidth: .infinity, minHeight: 34)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(PastelActionButtonStyle(style: .neutral))
                 .disabled(undoStack.isEmpty)
 
                 Button {
                     redo()
                 } label: {
-                    Label(LocalizedStringKey("button_redo"), systemImage: "arrow.uturn.forward")
-                        .font(.caption.weight(.semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                        .frame(maxWidth: .infinity, minHeight: 34)
+                    HStack(spacing: 3) {
+                        Image(systemName: "arrow.uturn.forward")
+                        Text(LocalizedStringKey("button_redo"))
+                    }
+                    .font(.caption.weight(.semibold))
+                    .frame(maxWidth: .infinity, minHeight: 34)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(PastelActionButtonStyle(style: .neutral))
                 .disabled(redoStack.isEmpty)
             }
         }
@@ -595,17 +606,21 @@ struct GameView: View {
                 ContentUnavailableView(LocalizedStringKey("text_no_events"), systemImage: "list.bullet.clipboard")
                     .frame(maxWidth: .infinity, minHeight: 120)
             } else {
-                List(snapshot.logs.reversed()) { entry in
-                    Text(logText(for: entry))
-                        .font(highlightedLogID == entry.id ? .footnote.monospacedDigit().weight(.bold) : .footnote.monospacedDigit())
-                        .lineLimit(2)
-                        .foregroundStyle(GameLogFormatter.isScoring(entry) ? Color.blue : Color.primary)
-                        .scaleEffect(highlightedLogID == entry.id ? 1.05 : 1)
-                        .animation(.spring(response: 0.24, dampingFraction: 0.72), value: highlightedLogID == entry.id)
-                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                    .listRowBackground(Color.clear)
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(snapshot.logs.reversed()) { entry in
+                            Text(logText(for: entry))
+                                .font(highlightedLogID == entry.id ? .footnote.monospacedDigit().weight(.bold) : .footnote.monospacedDigit())
+                                .lineLimit(2)
+                                .foregroundStyle(GameLogFormatter.isScoring(entry) ? Color.blue : Color.primary)
+                                .scaleEffect(highlightedLogID == entry.id ? 1.05 : 1)
+                                .animation(.spring(response: 0.24, dampingFraction: 0.72), value: highlightedLogID == entry.id)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.vertical, 4)
+                        }
+                    }
                 }
-                .listStyle(.plain)
+                .frame(maxHeight: 250)
             }
         }
     }
@@ -626,7 +641,7 @@ struct GameView: View {
             }
             .padding(.horizontal, 18)
             .padding(.vertical, 14)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .background(GamePalette.surface, in: RoundedRectangle(cornerRadius: 12))
         }
     }
 
@@ -773,9 +788,12 @@ struct GameView: View {
             action()
             pulseActionButton(titleKey)
         } label: {
-            Label(title, systemImage: systemImage)
-                .font(.caption.weight(.semibold))
-                .frame(maxWidth: .infinity, minHeight: 34)
+            HStack(spacing: 3) {
+                Image(systemName: systemImage)
+                Text(title)
+            }
+            .font(.caption.weight(.semibold))
+            .frame(maxWidth: .infinity, minHeight: 34)
         }
         .buttonStyle(PastelActionButtonStyle(style: style))
         .scaleEffect(actionButtonPulseKey == titleKey ? 1.09 : 1)
@@ -2729,7 +2747,7 @@ private enum GamePalette {
 }
 
 private enum ActionButtonStyle {
-    case made, missed, assist, rebound, warning, substitution, pause, period, periodEnd
+    case made, missed, assist, rebound, warning, substitution, pause, period, periodEnd, neutral
 
     var background: Color {
         switch self {
@@ -2742,6 +2760,7 @@ private enum ActionButtonStyle {
         case .pause: return GamePalette.pause
         case .period: return GamePalette.period
         case .periodEnd: return GamePalette.periodEnd
+        case .neutral: return Color(red: 0.88, green: 0.90, blue: 0.92)
         }
     }
 
@@ -3006,13 +3025,16 @@ private struct CompactTeamRow: View {
                     VStack(alignment: .leading, spacing: 1) {
                         Text(foulLabel)
                             .font(.caption2)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(2)
                         Text("\(fouls)")
                             .font(.caption.monospacedDigit().weight(.semibold))
                     }
+                    .frame(maxWidth: 48, alignment: .leading)
                     .foregroundStyle(.secondary)
                 }
             }
-            .frame(minWidth: 114, alignment: .leading)
+            .fixedSize(horizontal: true, vertical: false)
 
             if players.isEmpty {
                 Text(LocalizedStringKey("text_no_players"))

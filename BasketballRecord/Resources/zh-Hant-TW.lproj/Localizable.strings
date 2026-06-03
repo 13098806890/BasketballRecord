@@ -797,6 +797,7 @@
 "section_pro" = "籃球生涯 Pro";
 "pro_active" = "Pro 功能已解鎖";
 "pro_description" = "訂閱以解鎖球隊分組、藍牙傳輸協同和 iCloud 儲存等專業功能。";
+"pro_best_value" = "Best Value";
 "button_subscribe" = "訂閱";
 "button_restore" = "恢復購買";
 "label_cloud" = "雲端儲存";
