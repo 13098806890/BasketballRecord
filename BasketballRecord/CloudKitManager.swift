@@ -41,6 +41,9 @@ final class CloudKitManager: ObservableObject {
             case .couldNotDetermine:
                 print("[CloudKit] Could not determine account status")
                 return NSLocalizedString("icloud_error_could_not_determine", comment: "Could not determine")
+            case .temporarilyUnavailable:
+                print("[CloudKit] Temporarily unavailable")
+                return NSLocalizedString("icloud_error_temporarily_unavailable", comment: "Temporarily unavailable")
             @unknown default:
                 print("[CloudKit] Unknown account status: \(status.rawValue)")
                 return NSLocalizedString("icloud_error_unknown", comment: "Unknown iCloud status")

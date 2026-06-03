@@ -2248,8 +2248,6 @@ struct PlayerProfileView: View {
                         .padding(.horizontal)
                     }
 
-                    statSection(localized("section_advanced_stats"), values: advancedValues)
-                    statSection(localized("label_average_stats"), values: averageValues)
                 }
 
                 if let fixedGame, fixedGame.snapshot.periodCount > 1 {
@@ -2265,6 +2263,13 @@ struct PlayerProfileView: View {
                         .pickerStyle(.segmented)
                     }
                     .padding(.horizontal)
+                }
+
+                if fixedGame != nil {
+                    statSection(localized("label_this_game_stats"), values: totalValues)
+                } else {
+                    statSection(localized("label_career_stats"), values: careerSummaryValues + advancedValues)
+                    statSection(localized("label_average_stats"), values: averageCardValues)
                 }
 
                 if fixedGame != nil {
@@ -2329,16 +2334,17 @@ struct PlayerProfileView: View {
                     .padding(12)
                     .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 8))
             } else {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2), spacing: 8) {
                     ForEach(values, id: \.0) { label, value in
                         VStack(alignment: .leading, spacing: 5) {
                             Text(label)
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                             Text(value)
-                                .font(.headline.monospacedDigit().weight(.bold))
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.75)
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.6)
                         }
                         .frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
                         .padding(.horizontal, 10)
@@ -2397,7 +2403,8 @@ struct PlayerProfileView: View {
 
     private var filteredGames: [SavedGame] {
         if let fixedGame {
-            return containsPlayer(in: fixedGame) ? [fixedGame] : []
+            let participates = containsPlayer(in: fixedGame)
+            return participates ? [fixedGame] : []
         }
 
         return allPlayerGames.filter { game in
@@ -2416,26 +2423,36 @@ struct PlayerProfileView: View {
 
     private var totalStats: PlayerStats {
         if let selectedPeriod, fixedGame != nil {
-            return fixedGameAnalysis.statsByPlayerID(for: selectedPeriod)[playerID, default: PlayerStats()]
+            let stats = fixedGameAnalysis.statsByPlayerID(for: selectedPeriod)[playerID, default: PlayerStats()]
+            return stats
         }
 
-        return filteredGames.reduce(PlayerStats()) { partial, game in
-            let stats = game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+        let games = filteredGames
+        print("[PlayerProfile] filteredGames=\(games.count), fixedGame=\(fixedGame != nil), playerID=\(playerID)")
+        if let g = games.first {
+            let hasStats = g.snapshot.statsByPlayerID[playerID] != nil
+            let points = g.snapshot.statsByPlayerID[playerID]?.points ?? -1
+            print("[PlayerProfile] game stats exists=\(hasStats), points=\(points)")
+        }
+
+        return games.reduce(PlayerStats()) { partial, game in
+            let raw = game.snapshot.statsByPlayerID[playerID] ?? PlayerStats()
+            print("[PlayerProfile] game=\(game.id) raw.points=\(raw.points)")
             var total = partial
-            total.twoMade += stats.twoMade
-            total.twoAttempts += stats.twoAttempts
-            total.threeMade += stats.threeMade
-            total.threeAttempts += stats.threeAttempts
-            total.bonusFreeThrowMade += stats.bonusFreeThrowMade
-            total.bonusFreeThrowAttempts += stats.bonusFreeThrowAttempts
-            total.freeThrowMade += stats.freeThrowMade
-            total.freeThrowAttempts += stats.freeThrowAttempts
-            total.rebounds += stats.rebounds
-            total.assists += stats.assists
-            total.fouls += stats.fouls
-            total.blocks += stats.blocks
-            total.steals += stats.steals
-            total.turnovers += stats.turnovers
+            total.twoMade += raw.twoMade
+            total.twoAttempts += raw.twoAttempts
+            total.threeMade += raw.threeMade
+            total.threeAttempts += raw.threeAttempts
+            total.bonusFreeThrowMade += raw.bonusFreeThrowMade
+            total.bonusFreeThrowAttempts += raw.bonusFreeThrowAttempts
+            total.freeThrowMade += raw.freeThrowMade
+            total.freeThrowAttempts += raw.freeThrowAttempts
+            total.rebounds += raw.rebounds
+            total.assists += raw.assists
+            total.fouls += raw.fouls
+            total.blocks += raw.blocks
+            total.steals += raw.steals
+            total.turnovers += raw.turnovers
             return total
         }
     }
@@ -2468,25 +2485,38 @@ struct PlayerProfileView: View {
 
     private var totalValues: [(String, String)] {
         let stats = totalStats
-        let items: [(CareerStatItem, String)] = [
-            (.totalPoints, "\(stats.points)  \(percent(stats.fieldGoalRate))"),
-            (.totalRebounds, "\(stats.rebounds)"),
-            (.totalAssists, "\(stats.assists)"),
-            (.totalFouls, "\(stats.fouls)"),
-            (.totalBlocks, "\(stats.blocks)"),
-            (.totalSteals, "\(stats.steals)"),
-            (.totalTurnovers, "\(stats.turnovers)"),
-            (.totalStarterGames, "\(starterGameCount)"),
-            (.totalBenchGames, "\(benchGameCount)"),
-            (.totalMinutes, isFixedPeriodMode ? "--" : String(format: "%.1f", totalMinutes)),
-            (.totalPlusMinus, isFixedPeriodMode ? "--" : (totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)")),
-            (.totalTwoPoint, madeAttemptRate(made: stats.twoMade, attempts: stats.twoAttempts, rate: stats.twoPointRate)),
-            (.totalThreePoint, madeAttemptRate(made: stats.threeMade, attempts: stats.threeAttempts, rate: stats.threePointRate)),
-            (.totalFreeThrow, madeAttemptRate(made: stats.allFreeThrowMade, attempts: stats.allFreeThrowAttempts, rate: stats.freeThrowRate))
+        let misc = "\(stats.rebounds) / \(stats.assists) / \(stats.steals) / \(stats.blocks)"
+        let fouls = "\(stats.fouls) / \(stats.turnovers)"
+        let mins = isFixedPeriodMode ? "--" : String(format: "%.1f", totalMinutes)
+        let items: [(String, String)] = [
+            (localized("stats_pts_min"), "\(stats.points) / \(mins)"),
+            (localized("stats_rebound_assist_steal_block"), misc),
+            (localized("stats_foul_turnover"), fouls),
+            (localized("stats_starter_bench"), "\(starterGameCount) / \(benchGameCount)"),
+            (localized("stats_plus_minus"), isFixedPeriodMode ? "--" : (totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)")),
+            (localized("stats_shooting"), "\(stats.made)/\(stats.attempts)  \(percent(stats.fieldGoalRate))"),
+            (localized("stat_label_2pt"), "\(stats.twoMade)/\(stats.twoAttempts)  \(percent(stats.twoPointRate))"),
+            (localized("stat_label_3pt"), "\(stats.threeMade)/\(stats.threeAttempts)  \(percent(stats.threePointRate))"),
+            (localized("stat_label_free_throw"), "\(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)  \(percent(stats.freeThrowRate))"),
         ]
-        return items.compactMap { item, value in
-            store.isCareerStatVisible(item) ? (item.title, value) : nil
-        }
+        return items
+    }
+
+    private var careerSummaryValues: [(String, String)] {
+        let stats = totalStats
+        let games = filteredGames.count
+        let mins = isFixedPeriodMode ? "--" : String(format: "%.1f", totalMinutes)
+        let pmText = totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)"
+        return [
+            ("\(localized("label_games_count"))", "\(games) (\(localized("stat_label_starter")) \(starterGameCount)/\(localized("stat_label_bench")) \(benchGameCount))"),
+            ("\(localized("stats_pts_min"))", "\(stats.points) / \(mins)"),
+            ("\(localized("stats_total_points"))", "\(stats.points)"),
+            ("\(localized("stats_field_goal"))", "\(stats.made)/\(stats.attempts)  \(percent(stats.fieldGoalRate))"),
+            ("\(localized("stat_label_2pt"))", "\(stats.twoMade)/\(stats.twoAttempts)  \(percent(stats.twoPointRate))"),
+            ("\(localized("stat_label_3pt"))", "\(stats.threeMade)/\(stats.threeAttempts)  \(percent(stats.threePointRate))"),
+            ("\(localized("stat_label_free_throw"))", "\(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)  \(percent(stats.freeThrowRate))"),
+            ("\(localized("stats_plus_minus"))", pmText),
+        ]
     }
 
     private var averageValues: [(String, String)] {
@@ -2511,6 +2541,24 @@ struct PlayerProfileView: View {
         return items.compactMap { item, value in
             store.isCareerStatVisible(item) ? (item.title, value) : nil
         }
+    }
+
+    private var averageCardValues: [(String, String)] {
+        let stats = totalStats
+        let games = max(1, filteredGames.count)
+        let avg = { (val: Int) -> String in String(format: "%.1f", Double(val) / Double(games)) }
+        let misc = "\(avg(stats.rebounds)) / \(avg(stats.assists)) / \(avg(stats.steals)) / \(avg(stats.blocks))"
+        let fouls = "\(avg(stats.fouls)) / \(avg(stats.turnovers))"
+        let avgMin = String(format: "%.1f", totalMinutes / Double(games))
+        return [
+            (localized("stats_pts_min"), "\(avg(stats.points)) / \(avgMin)"),
+            (localized("stats_rebound_assist_steal_block"), misc),
+            (localized("stats_foul_turnover"), fouls),
+            (localized("stats_shooting"), "\(avg(stats.made))/\(avg(stats.attempts))  \(percent(stats.fieldGoalRate))"),
+            (localized("stat_label_2pt"), "\(avg(stats.twoMade))/\(avg(stats.twoAttempts))  \(percent(stats.twoPointRate))"),
+            (localized("stat_label_3pt"), "\(avg(stats.threeMade))/\(avg(stats.threeAttempts))  \(percent(stats.threePointRate))"),
+            (localized("stat_label_free_throw"), "\(avg(stats.allFreeThrowMade))/\(avg(stats.allFreeThrowAttempts))  \(percent(stats.freeThrowRate))"),
+        ]
     }
 
     private var advancedValues: [(String, String)] {

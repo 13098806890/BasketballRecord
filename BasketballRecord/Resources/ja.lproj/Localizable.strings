@@ -831,3 +831,22 @@
 "section_cloud_only" = "Cloud Only";
 "label_game_name" = "Game Name";
 
+
+"label_career_summary" = "Career Summary";
+"label_games_count" = "Games";
+"stats_total_points" = "Total Points";
+
+
+"settings_show_bluetooth_button" = "Show Bluetooth Collaboration";
+"settings_cloud_storage" = "iCloud Storage";
+
+
+"stats_points_format_short" = "PTS";
+"stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
+"stats_foul_turnover" = "FOUL / TO";
+"stats_minutes" = "MIN";
+"stats_shooting" = "FG";
+
+"stats_starter_bench" = "S / B";
+"label_career_stats" = "Career Stats";
+"stats_pts_min" = "PTS / MIN";

@@ -1,5 +1,50 @@
 # Release Notes
 
+## 1.10 (2026-06-03)
+
+### 亮点
+
+- 比赛新增 displayName（自定义名称），所有列表统一显示。
+- 球员卡片全面重构：比赛详情 → 本场数据；生涯页面 → 生涯汇总 + 场均（复用相同卡片格式）。
+- iCloud 存储修复：改用 ID 逐条拉取代替全局查询，解决 "not marked queryable" 错误。
+- Undo 重构：去掉快照持久化，改为 action-based revert，彻底解决 20MB 存储问题。
+- 照片存储分离：从 UserDefaults 迁移到独立文件，避免 4MB 上限。
+
+### 新增与改进
+
+- 比赛自定义名称
+	- `SavedGame.displayName` 字段，比赛详情页可编辑。
+	- 所有列表（历史、iCloud、分组编辑）统一使用 `displayTitle`。
+- 球员卡片重构
+	- 从比赛详情点球员：只显示本场数据（得分/时间、篮板/助攻/抢断/盖帽、犯规/失误、投篮等）。
+	- 从生涯点球员：显示生涯数据（出场、总得分/时间、投篮等）+ 场均（复用相同卡片格式）。
+	- 数据范围选择器移到了统计卡片上方。
+- iCloud 存储
+	- `fetchGames(ids:)` 替代 `fetchAllGames()`，避免 CKQuery 索引问题。
+	- 支持查看"仅云端"比赛并下载到本地。
+	- 本地删除不影响云端。
+- Undo 重写
+	- 移除 `undoSnapshots`/`previousSnapshot` 持久化。
+	- `revertLastAction()` 直接反转最后一条操作，支持统计、换人、节次、晚到撤销。
+	- 快照仅用于内存 fallback，最多 30 个。
+- 存储优化
+	- 每场比赛存为独立 UserDefaults key（`game_{uuid}`），避免 4MB 上限。
+	- 球员照片存为独立文件（`Documents/player_photos/{uuid}.jpg`）。
+	- 旧数据自动迁移到新格式。
+- Pro 订阅
+	- `PurchaseManager` 支持 `com.doxie.basketball.pro.monthly` 和 `com.doxie.basketball.pro.yearly`。
+	- 点击 Pro 功能弹出购买页，订阅成功后自动关闭。
+- 其他
+	- 修复比赛详情页球员数据不显示的 bug（`if fixedGame == nil` 大括号范围错误）。
+	- 修复 `CKAccountStatus.temporarilyUnavailable` 未处理。
+	- 修复 `label_starter`/`label_bench` 等缺失的 i18n key。
+	- 补充 10 种语言的完整 i18n。
+
+### 兼容性
+
+- iOS 17.6+
+- Xcode 17+
+
 ## 1.09 (2026-06-03)
 
 ### 亮点

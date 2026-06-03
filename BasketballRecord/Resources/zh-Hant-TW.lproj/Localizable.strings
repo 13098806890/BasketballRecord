@@ -839,3 +839,16 @@
 "section_cloud_only" = "僅雲端";
 "label_game_name" = "比賽名稱";
 
+"label_career_summary" = "生涯彙總";
+"label_games_count" = "出場";
+"stats_total_points" = "總得分";
+"settings_show_bluetooth_button" = "顯示藍牙協同邀請";
+"settings_cloud_storage" = "iCloud 儲存";
+"stats_points_format_short" = "得分";
+"stats_rebound_assist_steal_block" = "籃板 / 助攻 / 抄截 / 火鍋";
+"stats_foul_turnover" = "犯規 / 失誤";
+"stats_minutes" = "時間";
+"stats_shooting" = "投籃";
+"stats_starter_bench" = "先發 / 替補";
+"label_career_stats" = "生涯數據";
+"stats_pts_min" = "得分 / 時間";
