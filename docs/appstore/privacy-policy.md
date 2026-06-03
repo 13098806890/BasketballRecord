@@ -1,7 +1,7 @@
 # 隐私政策（Privacy Policy）
 
 > 适用于：`篮球生涯` iOS 应用  
-> 生效日期：`TODO: 2026-05-27`
+> 生效日期：2026-06-03
 
 ## 1. 我们收集哪些信息
 
@@ -19,6 +19,7 @@
 当前版本可能使用以下系统权限：
 
 - **相册权限（Photo Library）**：用于为球员选择头像照片。
+- **本地网络权限（Local Network）**：用于蓝牙同步功能发现附近设备。
 
 如果你拒绝授权，相关功能可能不可用，但不影响其余功能使用。
 
@@ -26,7 +27,7 @@
 
 - 应用不用于广告跟踪，不进行个性化广告投放。
 - 应用不会将你的本地比赛数据出售给第三方。
-- 当你使用“导入/导出/分享”功能时，数据由你主动选择发送对象与渠道。
+- 当你使用"导入/导出/分享"或蓝牙同步功能时，数据由你主动选择发送对象与渠道。
 
 ## 5. 儿童与未成年人
 
@@ -46,6 +47,6 @@
 
 ## 8. 联系我们
 
-- 联系邮箱：`TODO: support@yourdomain.com`
-- 支持页面：`TODO: https://yourdomain.com/basketball-record/support`
+- 联系邮箱：doxie@strategy.com
+- 支持页面：https://github.com/13098806890/BasketballRecord/blob/main/docs/appstore/support.md
 

@@ -1,29 +1,37 @@
-# App Review 审核备注模板
+# App Review Notes
 
-> 用途：提交审核时填写在 App Store Connect 的 “App Review Information / Notes” 中。
+## 审核备注（提交时填写到 App Store Connect → App Review Information → Notes）
 
-## 建议内容（可直接复制后按需调整）
+Hello App Review Team,
 
-你好，审核团队：
+This app "Basketball Career" (篮球生涯) is an offline basketball scorekeeping and stat tracking tool.
 
-本应用 `篮球生涯` 是一款本地篮球比赛记录工具，核心功能为：
+### Core Features
 
-1. 创建球员、球队；
-2. 进行比赛记分与技术统计（2分/3分/罚球/篮板/助攻/犯规）；
-3. 查看历史比赛详情与球员生涯统计；
-4. 通过导入/导出进行数据备份与迁移。
+1. Create players and teams
+2. Record game stats (2PT/3PT/FT, rebounds, assists, fouls, etc.)
+3. View game history and player career statistics
+4. Import/export data for backup and migration
 
-### 账号与登录
+### Account & Login
 
-- 本应用**无需注册或登录**即可使用全部核心功能。
+- No registration or login required.
 
-### 权限说明
+### Local Network Permission
 
-- 应用可能申请相册权限，仅用于为球员选择头像。
+The app requests local network access via `NSLocalNetworkUsageDescription` and `NSBonjourServices` because it uses **Multipeer Connectivity (Bonjour over Bluetooth/WiFi)** for the Bluetooth sync feature:
 
-### 网络与外部服务
+- **Service Type**: `_bskrecord-sync._tcp`
+- **How to find it**: Go to Settings → scroll down → "Sync via Bluetooth" (this is a Pro feature)
+- **What it does**: Allows two nearby devices to discover each other and sync player/team/game data wirelessly
 
-- 应用主要为本地数据处理，不依赖远程账户系统。
+Without this permission, the Bluetooth sync feature cannot discover nearby devices. The app handles the case gracefully even if permission is denied.
 
-如需更多信息，请联系：`TODO: support@yourdomain.com`。
+### Photo Permission
 
+- The app may request photo library access ONLY when the user chooses to set an avatar for a player.
+- This is optional; the app works fully without it.
+
+### Contact
+
+If you have any questions, please contact: doxie@strategy.com
