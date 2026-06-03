@@ -185,6 +185,7 @@
 "button_undo" = "Undo";
 "button_redo" = "Redo";
 "label_game_data" = "Game Data";
+"label_vs" = "VS";
 "label_view" = "View";
 "text_no_events" = "No events yet";
 "text_simulating" = "Simulating...";

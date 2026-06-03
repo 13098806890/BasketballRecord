@@ -443,14 +443,14 @@ struct GameView: View {
             let disconnected = knownParticipants.filter { !connectedPeerNames.contains($0) }
 
             if disconnected.isEmpty {
-                return (String(format: NSLocalizedString("collab_status_host_with_connected", comment: "host with connected"), roleLabel, connected.joined(separator: "、")), false)
+                return (String(format: NSLocalizedString("collab_status_host_with_connected", comment: "host with connected"), roleLabel, ListFormatter.localizedString(byJoining: connected)), false)
             }
             if connected.isEmpty {
-                return (String(format: NSLocalizedString("collab_status_host_disconnected_some", comment: "host disconnected some"), roleLabel, disconnected.joined(separator: "、")), true)
+                return (String(format: NSLocalizedString("collab_status_host_disconnected_some", comment: "host disconnected some"), roleLabel, ListFormatter.localizedString(byJoining: disconnected)), true)
             }
 
             return (
-                String(format: NSLocalizedString("collab_status_host_mixed", comment: "host mixed connected and disconnected"), roleLabel, connected.joined(separator: "、"), disconnected.joined(separator: "、")),
+                String(format: NSLocalizedString("collab_status_host_mixed", comment: "host mixed connected and disconnected"), roleLabel, ListFormatter.localizedString(byJoining: connected), ListFormatter.localizedString(byJoining: disconnected)),
                 true
             )
         }
@@ -1670,6 +1670,7 @@ struct GameView: View {
                     name(for: outgoingPlayerID)
                 ),
                 playerID: incomingPlayerID,
+                relatedPlayerID: outgoingPlayerID,
                 eventCode: "event.substitution"
             )
             selectedPlayerID = incomingPlayerID
@@ -1949,13 +1950,14 @@ struct GameView: View {
             "(\(sideScore(.home)):\(sideScore(.away)))"
         }
 
-        func appendEvent(_ message: String, playerID: UUID? = nil, eventCode: String? = nil) {
+        func appendEvent(_ message: String, playerID: UUID? = nil, relatedPlayerID: UUID? = nil, eventCode: String? = nil) {
             simulated.logs.append(
                 GameLogEntry(
                     timestamp: eventTime,
                     message: "\(message) \(scoreSuffix())",
                     eventCode: eventCode,
                     playerID: playerID,
+                    relatedPlayerID: relatedPlayerID,
                     period: simulatedCurrentPeriod,
                     periodElapsedSeconds: simulatedPeriodElapsedSeconds
                 )
@@ -2011,6 +2013,8 @@ struct GameView: View {
                     name(for: incomingID),
                     name(for: outgoingID)
                 ),
+                playerID: incomingID,
+                relatedPlayerID: outgoingID,
                 eventCode: "event.substitution"
             )
         }
@@ -2300,7 +2304,7 @@ struct GameView: View {
         autoSaveCurrentGame()
     }
 
-    private func addEvent(_ message: String, playerID: UUID? = nil, eventCode: String? = nil, at: Date? = nil) {
+    private func addEvent(_ message: String, playerID: UUID? = nil, relatedPlayerID: UUID? = nil, eventCode: String? = nil, at: Date? = nil) {
         let context = eventPeriodContext(for: message, eventCode: eventCode)
         let fullMessage = "\(message) \(scoreSuffix)"
         let logEntry = GameLogEntry(
@@ -2308,6 +2312,7 @@ struct GameView: View {
             message: fullMessage,
             eventCode: eventCode,
             playerID: playerID,
+            relatedPlayerID: relatedPlayerID,
             period: context.period,
             periodElapsedSeconds: context.periodElapsedSeconds
         )
@@ -2490,11 +2495,23 @@ struct GameView: View {
         case "event.substitution":
             guard let incomingID = lastLog.playerID else { return false }
             guard let side = sideOfPlayer(incomingID, in: snapshot) else { return false }
-            // Parse outgoing player name from message
-            let message = lastLog.message
-            guard let range = message.range(of: " 替换 ") ?? message.range(of: " vs ") else { return false }
-            let outgoingName = String(message[range.upperBound...]).trimmingCharacters(in: .whitespaces)
-            guard let outgoingID = playerID(for: outgoingName, action: .rebound, in: snapshot) else { return false }
+            let outgoingID: UUID
+            if let storedOutgoingID = lastLog.relatedPlayerID {
+                outgoingID = storedOutgoingID
+            } else {
+                let message = lastLog.message
+                let incomingName = name(for: incomingID)
+                let allPlayers = players(in: snapshot.homeTeamID) + players(in: snapshot.awayTeamID)
+                let playerNames = allPlayers.map(\.name).filter { $0 != incomingName && message.contains($0) }
+                if let outgoingName = playerNames.max(by: { $0.count < $1.count }) {
+                    outgoingID = allPlayers.first(where: { $0.name == outgoingName })!.id
+                } else {
+                    guard let range = message.range(of: " 替换 ") ?? message.range(of: " vs ") else { return false }
+                    let outgoingName = String(message[range.upperBound...]).trimmingCharacters(in: .whitespaces)
+                    guard let resolvedID = playerID(for: outgoingName, action: .turnover, in: snapshot) else { return false }
+                    outgoingID = resolvedID
+                }
+            }
             // Swap back: remove incoming, add outgoing
             if side == .home {
                 snapshot.homeOnCourtPlayerIDs.removeAll { $0 == incomingID }
@@ -2535,13 +2552,13 @@ struct GameView: View {
             return true
 
         default:
-            // Handle stat actions: revert stats
-            guard let (playerName, action) = StatAction.parseLog(normalizedMessage, eventCode: lastLog.eventCode) else {
+            let parsed = StatAction.parseLog(normalizedMessage)
+            guard let action = StatAction.allCases.first(where: { $0.eventCode == lastEventCode }) ?? parsed?.action else {
                 return false
             }
 
-            let resolvedPlayerID = lastLog.playerID ?? playerID(for: playerName, action: action, in: snapshot)
-            guard let playerID = resolvedPlayerID,
+            guard let playerID = lastLog.playerID
+                    ?? parsed.flatMap({ playerID(for: $0.playerName, action: action, in: snapshot) }),
                   let side = sideOfPlayer(playerID, in: snapshot) else {
                 return false
             }
@@ -2583,12 +2600,13 @@ struct GameView: View {
             return previous
         }
 
-        guard let (playerName, action) = StatAction.parseLog(normalizedMessage, eventCode: lastLog.eventCode) else {
+        let parsed = StatAction.parseLog(normalizedMessage)
+        guard let action = StatAction.allCases.first(where: { $0.eventCode == lastEventCode }) ?? parsed?.action else {
             return nil
         }
 
-        let resolvedPlayerID = lastLog.playerID ?? playerID(for: playerName, action: action, in: current)
-        guard let playerID = resolvedPlayerID,
+        guard let playerID = lastLog.playerID
+                ?? parsed.flatMap({ playerID(for: $0.playerName, action: action, in: current) }),
               let side = sideOfPlayer(playerID, in: current) else {
             return nil
         }
@@ -2646,8 +2664,9 @@ struct GameView: View {
     }
 
     private func names(for playerIDs: [UUID]) -> String {
-        let text = playerIDs.map { name(for: $0) }.joined(separator: "、")
-        return text.isEmpty ? NSLocalizedString("text_not_set", comment: "Not set fallback") : text
+        let names = playerIDs.map { name(for: $0) }
+        guard !names.isEmpty else { return NSLocalizedString("text_not_set", comment: "Not set fallback") }
+        return ListFormatter.localizedString(byJoining: names)
     }
 
     private func unique(_ ids: [UUID]) -> [UUID] {
@@ -2676,12 +2695,12 @@ struct GameView: View {
         let periodText = Self.periodContextText(period: entry.period, elapsedSeconds: entry.periodElapsedSeconds)
         return [Self.timeFormatter.string(from: entry.timestamp), periodText, entry.message]
             .filter { !$0.isEmpty }
-            .joined(separator: "  ")
+            .joined(separator: " · ")
     }
 
     static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss"
+        formatter.timeStyle = .medium
         return formatter
     }()
 }
@@ -2783,7 +2802,7 @@ private struct PastelActionButtonStyle: ButtonStyle {
     }
 }
 
-private enum StatAction {
+enum StatAction {
     case twoMade, twoMissed, threeMade, threeMissed
     case bonusMade, bonusMissed, freeThrowMade, freeThrowMissed
     case foul, assist, rebound, block, steal, turnover
@@ -2807,23 +2826,27 @@ private enum StatAction {
         }
     }
 
-    var message: String {
+    var messageKey: String {
         switch self {
-        case .twoMade: return NSLocalizedString("action_two_made", comment: "Two-point made")
-        case .twoMissed: return NSLocalizedString("action_two_missed", comment: "Two-point missed")
-        case .threeMade: return NSLocalizedString("action_three_made", comment: "Three-point made")
-        case .threeMissed: return NSLocalizedString("action_three_missed", comment: "Three-point missed")
-        case .bonusMade: return NSLocalizedString("action_bonus_made", comment: "Bonus free throw made")
-        case .bonusMissed: return NSLocalizedString("action_bonus_missed", comment: "Bonus free throw missed")
-        case .freeThrowMade: return NSLocalizedString("action_free_made", comment: "Free throw made")
-        case .freeThrowMissed: return NSLocalizedString("action_free_missed", comment: "Free throw missed")
-        case .foul: return NSLocalizedString("action_foul", comment: "Foul")
-        case .assist: return NSLocalizedString("action_assist", comment: "Assist")
-        case .rebound: return NSLocalizedString("action_rebound", comment: "Rebound")
-        case .block: return NSLocalizedString("action_block", comment: "Block")
-        case .steal: return NSLocalizedString("action_steal", comment: "Steal")
-        case .turnover: return NSLocalizedString("action_turnover", comment: "Turnover")
+        case .twoMade: return "action_two_made"
+        case .twoMissed: return "action_two_missed"
+        case .threeMade: return "action_three_made"
+        case .threeMissed: return "action_three_missed"
+        case .bonusMade: return "action_bonus_made"
+        case .bonusMissed: return "action_bonus_missed"
+        case .freeThrowMade: return "action_free_made"
+        case .freeThrowMissed: return "action_free_missed"
+        case .foul: return "action_foul"
+        case .assist: return "action_assist"
+        case .rebound: return "action_rebound"
+        case .block: return "action_block"
+        case .steal: return "action_steal"
+        case .turnover: return "action_turnover"
         }
+    }
+
+    var message: String {
+        NSLocalizedString(messageKey, comment: "")
     }
 
     var points: Int {

@@ -1030,7 +1030,7 @@ private struct TeamManagementView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(team.name)
                             .font(.headline)
-                        Text(team.playerIDs.compactMap { store.player(for: $0)?.name }.joined(separator: "、"))
+                        Text(ListFormatter.localizedString(byJoining: team.playerIDs.compactMap { store.player(for: $0)?.name }))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .lineLimit(2)

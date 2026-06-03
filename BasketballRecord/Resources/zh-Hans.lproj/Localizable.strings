@@ -203,6 +203,7 @@
 "button_undo" = "撤回";
 "button_redo" = "重做";
 "label_game_data" = "比赛数据";
+"label_vs" = "VS";
 "label_view" = "查看";
 "text_no_events" = "还没有事件";
 "text_simulating" = "模拟比赛中...";

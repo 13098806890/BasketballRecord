@@ -31,11 +31,27 @@
   - 新增 `pro_best_value` key 至全部 10 种语言。
 - 其他
   - 恢复订阅成功后自动关闭购买页。
+- 国际化修复
+  - 修复西班牙语 `stats_record_shooting_format` 和 `stats_record_misc_format` 格式字符串为 `"%d"`（仅一个占位符）导致的崩溃。
+  - 修复日语 `period_context_with_time_format` 缺少 `%@` 时间参数导致显示异常。
+  - 修复意大利语 `stats_record_misc_format` 缺少 `TO %d`（失误统计缺失）。
+  - 修复德语/法语/意大利语/俄语 `progress_sending_to_format` format specifier 数量与调用不匹配。
+  - 修复 7 种语言 45 处 `\\n` 误用为 `\n`（硬编码换行符），解决换行显示问题。
+  - `ContentView.swift` 硬编码中文字符串 `"未知球员"` 改为 `NSLocalizedString("unknown_player", ...)`。
+  - `ContentView.swift` 硬编码 `"VS"` 改为 `LocalizedStringKey("label_vs")`，新增至全部 10 种语言。
+- 数据与稳定性
+  - 修复 `GameSnapshot.wasBluetoothCollaborated` 未解码导致蓝牙协同游戏过滤恒为空的 bug。
+  - 修复替换撤销（revertLastAction）依赖中文分隔符 `" 替换 "` 的硬编码，改为语言无关的球员名匹配。
+  - 修复 `project.pbxproj` Debug 配置缺少 `INFOPLIST_FILE` 和 `SWIFT_VERSION` 导致 CLI 构建失败。
+  - 移除遗留的 `DeepSeekKeychain.swift` 和 `DeepSeekService.swift`（已迁移至 `AIKeychain`）。
+- 新增撤销操作多语言测试 `GameUndoMultilingualTests.swift`（16 个测试用例）。
 
 ### 兼容性
 
 - iOS 17.6+
 - Xcode 17+
+
+## 1.10 (2026-06-03)
 
 ### 亮点
 
@@ -189,7 +205,6 @@
 
 - iOS 17.6+
 - Xcode 17+
-# Release Notes
 
 ## 1.03 (2026-05-27)
 

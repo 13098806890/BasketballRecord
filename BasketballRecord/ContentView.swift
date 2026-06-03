@@ -452,7 +452,7 @@ struct ContentView: View {
         }
 
         let suffix = total > shown.count ? String(format: NSLocalizedString("preview_line_suffix_format", comment: "Preview line suffix"), total) : ""
-        return "\(title)：\(shown.joined(separator: "、"))\(suffix)"
+        return "\(title): \(ListFormatter.localizedString(byJoining: shown))\(suffix)"
     }
 }
 
@@ -1235,7 +1235,7 @@ struct SavedGameDetailView: View {
                 HStack {
                     teamSummary(.home)
                     Spacer()
-                    Text("VS")
+                    Text(LocalizedStringKey("label_vs"))
                         .font(.caption.weight(.bold))
                         .foregroundStyle(.secondary)
                     Spacer()
@@ -2030,8 +2030,8 @@ struct SavedGameDetailView: View {
     }
 
     private func playerName(_ playerID: UUID?) -> String {
-        guard let playerID else { return "未知球员" }
-        return game.playerNamesByID[playerID] ?? store.player(for: playerID)?.name ?? "未知球员"
+        guard let playerID else { return NSLocalizedString("unknown_player", comment: "") }
+        return game.playerNamesByID[playerID] ?? store.player(for: playerID)?.name ?? NSLocalizedString("unknown_player", comment: "")
     }
 
     private func numericFactsText() -> String {

@@ -216,6 +216,7 @@
 "button_undo" = "撤回";
 "button_redo" = "重做";
 "label_game_data" = "比賽數據";
+"label_vs" = "VS";
 "label_view" = "查看";
 "text_no_events" = "還沒有事件";
 "text_simulating" = "模擬比賽中...";
@@ -371,11 +372,11 @@
 "import_clipboard_player_autofilled_success" = "已從剪貼板識別到球員數據，並自動粘貼解析成功。";
 "import_clipboard_team_autofilled_success" = "已從剪貼板識別到球隊數據，並自動粘貼解析成功。";
 "import_parse_detected_chunk_need_all_parts" = "已識別爲分段編碼，請補全所有段後再解析。";
-"import_parse_failed_chunked_detail_format" = "解析失敗\\n類型: %@分段\\n%@";
-"import_parse_failed_player_not_complete" = "解析失敗\\n類型: 球員\\n請確認粘貼的是完整分享編碼。";
-"import_parse_failed_team_not_complete" = "解析失敗\\n類型: 球隊\\n請確認粘貼的是完整分享編碼。";
-"import_parse_success_player_detail_format" = "解析成功\\n類型: 球員\\n球員: %@\\n球員UUID: %@";
-"import_parse_success_team_detail_format" = "解析成功\\n類型: 球隊\\n球隊: %@\\n球隊UUID: %@\\n球員數量: %d";
+"import_parse_failed_chunked_detail_format" = "解析失敗\n類型: %@分段\n%@";
+"import_parse_failed_player_not_complete" = "解析失敗\n類型: 球員\n請確認粘貼的是完整分享編碼。";
+"import_parse_failed_team_not_complete" = "解析失敗\n類型: 球隊\n請確認粘貼的是完整分享編碼。";
+"import_parse_success_player_detail_format" = "解析成功\n類型: 球員\n球員: %@\n球員UUID: %@";
+"import_parse_success_team_detail_format" = "解析成功\n類型: 球隊\n球隊: %@\n球隊UUID: %@\n球員數量: %d";
 "import_player_preview_hint" = "導入後會保留原 UUID。若 UUID 已存在，會用導入數據覆蓋本機該球員。";
 "import_team_preview_hint" = "導入後會保留原 UUID，不做同名自動合併。";
 "label_average_stats" = "場均";
@@ -431,7 +432,7 @@
 "settings_doc_help_ai_item3_desc" = "AI 結果會按說明頁風格展示，便於閱讀和回看。";
 "settings_doc_help_ai_item3_title" = "渲染展示";
 "settings_doc_help_ai_title" = "AI 比賽總結（可選）";
-"settings_doc_help_content" = "歡迎使用「籃球生涯」。\\n\\n1. 先建球員與球隊，再進入“記分”頁新建比賽。\\n2. 第一節開始時在場球員記爲首發，後續加入上場記爲替補。\\n3. 比賽支持完整技術統計、分節查看、歷史回看與生涯彙總。\\n4. 可通過藍牙協同、導入導出、合併功能進行跨設備與數據整理。\\n5. 配置 DeepSeek API Key 後，可生成並保存 AI 比賽總結。";
+"settings_doc_help_content" = "歡迎使用「籃球生涯」。\n\n1. 先建球員與球隊，再進入“記分”頁新建比賽。\n2. 第一節開始時在場球員記爲首發，後續加入上場記爲替補。\n3. 比賽支持完整技術統計、分節查看、歷史回看與生涯彙總。\n4. 可通過藍牙協同、導入導出、合併功能進行跨設備與數據整理。\n5. 配置 DeepSeek API Key 後，可生成並保存 AI 比賽總結。";
 "settings_doc_help_gamelog_item1_desc" = "支持2分、3分、罰球、籃板、助攻、犯規、封蓋、搶斷、失誤。";
 "settings_doc_help_gamelog_item1_title" = "支持多項統計";
 "settings_doc_help_gamelog_item2_desc" = "比賽中可隨時換人；晚到球員可先“新增上場”再參與統計。";
@@ -453,7 +454,7 @@
 "settings_doc_help_sync_item3_desc" = "可合併重複球員/球隊，減少歷史記錄裏的重複數據。";
 "settings_doc_help_sync_item3_title" = "數據合併";
 "settings_doc_help_sync_title" = "同步與分享";
-"settings_doc_privacy_content" = "本應用默認將比賽、球隊、球員等數據保存在本機，不會自動上傳到開發者服務器。\\n僅在你主動執行導入、導出、分享、藍牙協同或 AI 總結時，相關數據纔會參與傳輸。\\n你可以隨時在設置中管理或刪除 DeepSeek API Key。";
+"settings_doc_privacy_content" = "本應用默認將比賽、球隊、球員等數據保存在本機，不會自動上傳到開發者服務器。\n僅在你主動執行導入、導出、分享、藍牙協同或 AI 總結時，相關數據纔會參與傳輸。\n你可以隨時在設置中管理或刪除 DeepSeek API Key。";
 "settings_doc_privacy_network_item1_desc" = "藍牙協同僅在你連接並確認後進行，數據僅在參與設備之間傳輸。";
 "settings_doc_privacy_network_item1_title" = "藍牙協同";
 "settings_doc_privacy_network_item2_desc" = "僅當你配置 DeepSeek API Key 並主動生成總結時，當前比賽所需數據纔會發送到 DeepSeek。";
@@ -853,3 +854,13 @@
 "stats_starter_bench" = "先發 / 替補";
 "label_career_stats" = "生涯數據";
 "stats_pts_min" = "得分 / 時間";
+
+"button_collab_games" = "藍牙協同比賽";
+"cloud_storage_description" = "點選比賽以開啟或關閉雲端儲存。儲存在雲端的比賽會在你的所有裝置上同步。";
+"section_cloud_enabled" = "已在 iCloud";
+"section_local_only" = "僅本機";
+"icloud_error_no_account" = "請在系統設定中登入 iCloud。";
+"icloud_error_restricted" = "此裝置的 iCloud 存取受限。";
+"icloud_error_could_not_determine" = "無法確定 iCloud 帳號狀態。";
+"icloud_error_temporarily_unavailable" = "iCloud 暫時不可用，請稍後再試。";
+"icloud_error_unknown" = "未知的 iCloud 錯誤。";

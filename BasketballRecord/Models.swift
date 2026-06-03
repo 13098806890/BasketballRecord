@@ -726,6 +726,7 @@ struct GameLogEntry: Identifiable, Codable, Hashable {
     var message: String
     var eventCode: String?
     var playerID: UUID?
+    var relatedPlayerID: UUID?
     var period: Int?
     var periodElapsedSeconds: TimeInterval?
 
@@ -735,6 +736,7 @@ struct GameLogEntry: Identifiable, Codable, Hashable {
         message: String,
         eventCode: String? = nil,
         playerID: UUID? = nil,
+        relatedPlayerID: UUID? = nil,
         period: Int? = nil,
         periodElapsedSeconds: TimeInterval? = nil
     ) {
@@ -743,6 +745,7 @@ struct GameLogEntry: Identifiable, Codable, Hashable {
         self.message = message
         self.eventCode = eventCode
         self.playerID = playerID
+        self.relatedPlayerID = relatedPlayerID
         self.period = period
         self.periodElapsedSeconds = periodElapsedSeconds
     }
@@ -754,6 +757,7 @@ struct GameLogEntry: Identifiable, Codable, Hashable {
         message = try container.decode(String.self, forKey: .message)
         eventCode = try container.decodeIfPresent(String.self, forKey: .eventCode)
         playerID = try container.decodeIfPresent(UUID.self, forKey: .playerID)
+        relatedPlayerID = try container.decodeIfPresent(UUID.self, forKey: .relatedPlayerID)
         period = try container.decodeIfPresent(Int.self, forKey: .period)
         periodElapsedSeconds = try container.decodeIfPresent(TimeInterval.self, forKey: .periodElapsedSeconds)
 
@@ -1074,6 +1078,7 @@ struct GameSnapshot: Codable, Hashable {
         periodEndCondition = try container.decodeIfPresent(PeriodEndCondition.self, forKey: .periodEndCondition) ?? .byTime
         periodTimeLimit = try container.decodeIfPresent(Int.self, forKey: .periodTimeLimit) ?? 12
         periodScoreLimit = try container.decodeIfPresent(Int.self, forKey: .periodScoreLimit) ?? 30
+        wasBluetoothCollaborated = try container.decodeIfPresent(Bool.self, forKey: .wasBluetoothCollaborated) ?? false
     }
 }
 
