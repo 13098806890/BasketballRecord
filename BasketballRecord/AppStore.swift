@@ -148,6 +148,8 @@ final class AppStore: ObservableObject {
     private var saveTask: Task<Void, Never>?
     private let saveDebounceNanoseconds: UInt64 = 500_000_000
     private var cancellables = Set<AnyCancellable>()
+    let coreDataStore = CoreDataStore()
+    private var hasMigratedToCoreData = false
 
     // MARK: - Storage keys
     private let metaKey = "store_meta"
@@ -570,6 +572,7 @@ final class AppStore: ObservableObject {
     }
 
     func toggleGameGroup(_ gameID: UUID, groupID: UUID) {
+        guard isPro else { return }
         guard let gameIndex = savedGames.firstIndex(where: { $0.id == gameID }) else { return }
         guard let groupIndex = gameGroups.firstIndex(where: { $0.id == groupID }) else { return }
 
@@ -769,11 +772,19 @@ final class AppStore: ObservableObject {
         )
         safeWrite(meta, forKey: metaKey)
 
-        // Save each game individually
+        // Save each game individually (legacy UserDefaults)
         let gameIDs = savedGames.map(\.id)
         safeWrite(gameIDs, forKey: gamesIndexKey)
         for game in savedGames {
             safeWrite(game, forKey: gameKey(for: game.id))
+        }
+
+        // Core Data persistence
+        coreDataStore.savePlayers(players)
+        coreDataStore.saveTeams(teams)
+        coreDataStore.saveGameGroups(gameGroups)
+        for game in savedGames {
+            coreDataStore.upsertSavedGame(game)
         }
     }
 
@@ -792,6 +803,23 @@ final class AppStore: ObservableObject {
     }
 
     private func load() {
+        // Try loading from Core Data first
+        if coreDataStore.hasData() {
+            players = coreDataStore.fetchAllPlayers()
+            teams = coreDataStore.fetchAllTeams()
+            gameGroups = coreDataStore.fetchAllGameGroups()
+            savedGames = coreDataStore.fetchAllSavedGames()
+            // Restore photo data from files
+            for i in players.indices {
+                let fileURL = photoFile(for: players[i].id)
+                if let photoData = try? Data(contentsOf: fileURL), !photoData.isEmpty {
+                    players[i].photoData = photoData
+                }
+            }
+            hasMigratedToCoreData = true
+            return
+        }
+
         // If new format keys exist, clean up old legacy storage silently
         if UserDefaults.standard.data(forKey: metaKey) != nil {
             UserDefaults.standard.removeObject(forKey: storageKey)
@@ -801,7 +829,10 @@ final class AppStore: ObservableObject {
         }
 
         // Try loading from the old monolithic format first (migration)
-        if migrateFromLegacyStorage() { return }
+        if migrateFromLegacyStorage() {
+            migrateToCoreData()
+            return
+        }
 
         // Load meta (players, teams, settings)
         if let meta: StoreMeta = safeRead(StoreMeta.self, forKey: metaKey) {
@@ -838,6 +869,15 @@ final class AppStore: ObservableObject {
             }
             savedGames = loaded
         }
+
+        // Migrate loaded data to Core Data
+        migrateToCoreData()
+    }
+
+    private func migrateToCoreData() {
+        guard !hasMigratedToCoreData else { return }
+        hasMigratedToCoreData = true
+        save()
     }
 
     /// Migrate from old monolithic UserDefaults or file storage to split keys

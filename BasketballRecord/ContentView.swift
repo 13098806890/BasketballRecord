@@ -1320,7 +1320,9 @@ struct SavedGameDetailView: View {
                             Label(LocalizedStringKey("label_cloud"), systemImage: store.cloudEnabledGameIDs.contains(game.id) ? "icloud.fill" : "icloud")
                         }
                     }
-                    GameGroupPicker(store: store, selectedGroupID: $selectedGroupID, iconName: "folder.badge.plus", checkedGroupIDs: Set(store.groups(for: game.id).map(\.id)))
+                    if store.isPro {
+                        GameGroupPicker(store: store, selectedGroupID: $selectedGroupID, iconName: "folder.badge.plus", checkedGroupIDs: Set(store.groups(for: game.id).map(\.id)))
+                    }
                     Button {
                         isShowingExport = true
                     } label: {
@@ -1434,7 +1436,7 @@ struct SavedGameDetailView: View {
     @ViewBuilder
     private var groupAssignmentSection: some View {
         let assignedGroups = store.groups(for: game.id)
-        if !assignedGroups.isEmpty {
+        if !assignedGroups.isEmpty, store.isPro {
             Section {
                 ForEach(assignedGroups) { group in
                     HStack {

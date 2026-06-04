@@ -1557,15 +1557,8 @@ struct GameView: View {
                 autoSaveCurrentGame()
                 return true
             }
-            // Fallback: snapshot-based undo
-            guard let previous = undoStack.popLast() else {
-                redoStack.removeLast()
-                return false
-            }
-            snapshot = previous
-            ensureSelectedPlayer()
-            autoSaveCurrentGame()
-            return true
+            redoStack.removeLast()
+            return false
 
         case .redo:
             guard let next = redoStack.popLast() else { return false }
@@ -2617,53 +2610,6 @@ struct GameView: View {
 
             return true
         }
-    }
-
-    private func legacyPreviousSnapshot(from current: GameSnapshot) -> GameSnapshot? {
-        guard let lastLog = current.logs.last else { return nil }
-        let normalizedMessage = normalizedLogMessage(lastLog.message)
-
-        var previous = current
-        previous.logs.removeLast()
-
-        let lastEventCode = lastLog.eventCode ?? GameLogFormatter.extractEventCode(from: lastLog.message)
-
-        if lastEventCode == "event.game_saved"
-            || normalizedMessage == NSLocalizedString("event_game_saved", comment: "Game saved event") {
-            return previous
-        }
-
-        if lastEventCode == "event.game_end"
-            || normalizedMessage == NSLocalizedString("event_game_end", comment: "Game end event") {
-            previous.isComplete = false
-            return previous
-        }
-
-        let parsed = StatAction.parseLog(normalizedMessage)
-        guard let action = StatAction.allCases.first(where: { $0.eventCode == lastEventCode }) ?? parsed?.action else {
-            return nil
-        }
-
-        guard let playerID = lastLog.playerID
-                ?? parsed.flatMap({ playerID(for: $0.playerName, action: action, in: current) }),
-              let side = sideOfPlayer(playerID, in: current) else {
-            return nil
-        }
-
-        var stats = previous.statsByPlayerID[playerID, default: PlayerStats()]
-        guard action.revert(on: &stats) else { return nil }
-        previous.statsByPlayerID[playerID] = stats
-
-        if action == .foul {
-            let currentFouls = previous.currentPeriodFoulsBySide[side.rawValue, default: 0]
-            previous.currentPeriodFoulsBySide[side.rawValue] = max(0, currentFouls - 1)
-        }
-
-        if action.points > 0 {
-            applyPlusMinus(points: -action.points, scoringSide: side, in: &previous)
-        }
-
-        return previous
     }
 
     private func normalizedLogMessage(_ message: String) -> String {

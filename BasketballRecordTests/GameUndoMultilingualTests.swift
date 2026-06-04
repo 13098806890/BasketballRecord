@@ -1,6 +1,7 @@
 import XCTest
 @testable import BasketballRecord
 
+@MainActor
 final class GameUndoMultilingualTests: XCTestCase {
     let homePlayerID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
     let awayPlayerID = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!

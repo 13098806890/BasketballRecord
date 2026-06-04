@@ -78,8 +78,12 @@ final class AppStoreOperationsTests: XCTestCase {
         ]
 
         var snapshot = GameSnapshot(homeTeamID: sourceHomeTeamID, awayTeamID: sourceAwayTeamID)
-        snapshot.statsByPlayerID[sourceHomePlayerID] = PlayerStats(twoMade: 2)
-        snapshot.statsByPlayerID[sourceAwayPlayerID] = PlayerStats(threeMade: 1)
+        snapshot.statsByPlayerID[sourceHomePlayerID] = {
+            var s = PlayerStats(); s.twoMade = 2; return s
+        }()
+        snapshot.statsByPlayerID[sourceAwayPlayerID] = {
+            var s = PlayerStats(); s.threeMade = 1; return s
+        }()
         source.saveGame(snapshot)
 
         let game = try XCTUnwrap(source.savedGames.first)
@@ -137,8 +141,12 @@ final class AppStoreOperationsTests: XCTestCase {
         let sourcePlayer = Player(id: sourceID, name: "外部球员", height: "188", weight: "84", number: "33", photoData: Data([5, 5, 5]))
 
         var snapshot = GameSnapshot(homeTeamID: homeTeamID, awayTeamID: awayTeamID)
-        snapshot.statsByPlayerID[targetID] = PlayerStats(twoMade: 1, rebounds: 1)
-        snapshot.statsByPlayerID[sourceID] = PlayerStats(threeMade: 2, assists: 3)
+        snapshot.statsByPlayerID[targetID] = {
+            var s = PlayerStats(); s.twoMade = 1; s.rebounds = 1; return s
+        }()
+        snapshot.statsByPlayerID[sourceID] = {
+            var s = PlayerStats(); s.threeMade = 2; s.assists = 3; return s
+        }()
         snapshot.playingSecondsByPlayerID[targetID] = 120
         snapshot.playingSecondsByPlayerID[sourceID] = 45
         snapshot.plusMinusByPlayerID[targetID] = 4
@@ -299,13 +307,19 @@ final class AppStoreOperationsTests: XCTestCase {
         ]
 
         var currentSnapshot = GameSnapshot(homeTeamID: homeTeamID, awayTeamID: awayTeamID)
-        currentSnapshot.statsByPlayerID[sourceID] = PlayerStats(twoMade: 1)
+        currentSnapshot.statsByPlayerID[sourceID] = {
+            var s = PlayerStats(); s.twoMade = 1; return s
+        }()
 
         var previousSnapshot = currentSnapshot
-        previousSnapshot.statsByPlayerID[sourceID] = PlayerStats(threeMade: 1)
+        previousSnapshot.statsByPlayerID[sourceID] = {
+            var s = PlayerStats(); s.threeMade = 1; return s
+        }()
 
         var undoSnapshot = currentSnapshot
-        undoSnapshot.statsByPlayerID[sourceID] = PlayerStats(freeThrowMade: 2)
+        undoSnapshot.statsByPlayerID[sourceID] = {
+            var s = PlayerStats(); s.freeThrowMade = 2; return s
+        }()
 
         let saved = SavedGame(
             savedAt: Date(),
@@ -353,7 +367,9 @@ final class AppStoreOperationsTests: XCTestCase {
         ]
 
         var snapshot = GameSnapshot(homeTeamID: homeTeamID, awayTeamID: awayTeamID)
-        snapshot.statsByPlayerID[homePlayerID] = PlayerStats(twoMade: 1)
+        snapshot.statsByPlayerID[homePlayerID] = {
+            var s = PlayerStats(); s.twoMade = 1; return s
+        }()
         let saved = SavedGame(
             id: gameID,
             savedAt: Date(),

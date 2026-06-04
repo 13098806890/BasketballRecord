@@ -2210,7 +2210,7 @@ struct PlayerProfileView: View {
                     .buttonStyle(.plain)
                         .padding(.horizontal)
 
-                    if let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
+                    if store.isPro, let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(NSLocalizedString("game_group_selected_filter", comment: "Filtering by"))
@@ -2389,76 +2389,73 @@ struct PlayerProfileView: View {
         .padding(.horizontal)
     }
 
-    private func buildGameStatRows() -> [StatRow] {
-        let s = totalStats
-        let pct = { percent($0) }
-        let mins = isFixedPeriodMode ? "--" : String(format: "%.1f", totalMinutes)
-        let pm = isFixedPeriodMode ? "--" : (totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)")
-        let pts = StatCell(label: localized("stats_points_format_short"), value: "\(s.points)")
-        let min = StatCell(label: localized("stats_minutes"), value: mins)
-        let reb = StatCell(label: localized("stats_rebound_assist_steal_block"), value: "\(s.rebounds) / \(s.assists) / \(s.steals) / \(s.blocks)")
-        let foul = StatCell(label: localized("stats_foul_turnover") + " / " + localized("stats_plus_minus"), value: "\(s.fouls) / \(s.turnovers) / \(pm)")
-        let fg = StatCell(label: localized("stats_shooting"), value: "\(s.made)/\(s.attempts)\n\(pct(s.fieldGoalRate))")
-        let ft = StatCell(label: localized("stat_label_free_throw"), value: "\(s.allFreeThrowMade)/\(s.allFreeThrowAttempts)\n\(pct(s.freeThrowRate))")
-        let two = StatCell(label: localized("stat_label_2pt"), value: "\(s.twoMade)/\(s.twoAttempts)\n\(pct(s.twoPointRate))")
-        let three = StatCell(label: localized("stat_label_3pt"), value: "\(s.threeMade)/\(s.threeAttempts)\n\(pct(s.threePointRate))")
-        let efg = StatCell(label: "eFG / TS", value: "\(pct(s.effectiveFieldGoalRate)) / \(pct(s.trueShootingRate))")
-        let pps = StatCell(label: NSLocalizedString("stats_points_per_shot", comment: "PTS/FGA"), value: String(format: "%.2f", s.pointsPerShot))
-        return [
-            StatRow(id: "row1", left: pts, leftSplit: min, right: reb),
-            StatRow(id: "row2", left: fg, leftSplit: ft, right: three, rightSplit: two),
-            StatRow(id: "row3", left: foul, right: pps, rightSplit: efg),
-        ]
+    private enum StatCardStyle {
+        case game, career, average
     }
 
-    private func buildCareerStatRows() -> [StatRow] {
-        let s = totalStats
-        let pct = { percent($0) }
-        let mins = isFixedPeriodMode ? "--" : String(format: "%.1f", totalMinutes)
-        let pm = totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)"
-        let gLabel = "\(localized("stats_games")) / \(localized("stat_label_starter")) / \(localized("stat_label_bench"))"
-        let pts = StatCell(label: localized("stats_points_format_short"), value: "\(s.points)")
-        let min = StatCell(label: localized("stats_minutes"), value: mins)
-        let sb = StatCell(label: gLabel, value: "\(filteredGames.count) / \(starterGameCount) / \(benchGameCount)")
-        let reb = StatCell(label: localized("stats_rebound_assist_steal_block"), value: "\(s.rebounds) / \(s.assists) / \(s.steals) / \(s.blocks)")
-        let foul = StatCell(label: localized("stats_foul_turnover") + " / " + localized("stats_plus_minus"), value: "\(s.fouls) / \(s.turnovers) / \(pm)")
-        let fg = StatCell(label: localized("stats_shooting"), value: "\(s.made)/\(s.attempts)\n\(pct(s.fieldGoalRate))")
-        let ft = StatCell(label: localized("stat_label_free_throw"), value: "\(s.allFreeThrowMade)/\(s.allFreeThrowAttempts)\n\(pct(s.freeThrowRate))")
-        let two = StatCell(label: localized("stat_label_2pt"), value: "\(s.twoMade)/\(s.twoAttempts)\n\(pct(s.twoPointRate))")
-        let three = StatCell(label: localized("stat_label_3pt"), value: "\(s.threeMade)/\(s.threeAttempts)\n\(pct(s.threePointRate))")
-        let efg = StatCell(label: "eFG / TS", value: "\(pct(s.effectiveFieldGoalRate)) / \(pct(s.trueShootingRate))")
-        let pps = StatCell(label: NSLocalizedString("stats_points_per_shot", comment: "PTS/FGA"), value: String(format: "%.2f", s.pointsPerShot))
-        return [
-            StatRow(id: "row1", left: pts, leftSplit: min, rightSplit: sb),
-            StatRow(id: "row2", left: fg, leftSplit: ft, right: three, rightSplit: two),
-            StatRow(id: "row3", left: reb, right: foul),
-            StatRow(id: "row4", left: efg, leftSplit: pps),
-        ]
-    }
-
-    private func buildAverageStatRows() -> [StatRow] {
+    private func buildStatRows(style: StatCardStyle) -> [StatRow] {
         let s = totalStats
         let games = max(1, filteredGames.count)
-        let avg = { (v: Int) -> String in String(format: "%.1f", Double(v) / Double(games)) }
-        let avgMin = String(format: "%.1f", totalMinutes / Double(games))
-        let avgPM = String(format: "%.1f", Double(totalPlusMinus) / Double(games))
         let pct = { percent($0) }
-        let gLabel = "\(localized("stats_games")) / \(localized("stat_label_starter")) / \(localized("stat_label_bench"))"
-        let pts = StatCell(label: localized("stats_points_format_short"), value: avg(s.points))
-        let min = StatCell(label: localized("stats_minutes"), value: avgMin)
-        let sb = StatCell(label: gLabel, value: "\(filteredGames.count) / \(starterGameCount) / \(benchGameCount)")
-        let reb = StatCell(label: localized("stats_rebound_assist_steal_block"), value: "\(avg(s.rebounds)) / \(avg(s.assists)) / \(avg(s.steals)) / \(avg(s.blocks))")
-        let foul = StatCell(label: localized("stats_foul_turnover") + " / " + localized("stats_plus_minus"), value: "\(avg(s.fouls)) / \(avg(s.turnovers)) / \(avgPM)")
-        let fg = StatCell(label: localized("stats_shooting"), value: "\(avg(s.made))/\(avg(s.attempts))\n\(pct(s.fieldGoalRate))")
-        let ft = StatCell(label: localized("stat_label_free_throw"), value: "\(avg(s.allFreeThrowMade))/\(avg(s.allFreeThrowAttempts))\n\(pct(s.freeThrowRate))")
-        let two = StatCell(label: localized("stat_label_2pt"), value: "\(avg(s.twoMade))/\(avg(s.twoAttempts))\n\(pct(s.twoPointRate))")
-        let three = StatCell(label: localized("stat_label_3pt"), value: "\(avg(s.threeMade))/\(avg(s.threeAttempts))\n\(pct(s.threePointRate))")
-        return [
-            StatRow(id: "row1", left: pts, leftSplit: min, rightSplit: sb),
-            StatRow(id: "row2", left: fg, leftSplit: ft, right: three, rightSplit: two),
-            StatRow(id: "row3", left: reb, right: foul),
-        ]
+
+        let mins: String
+        let pm: String
+        let avg: ((Int) -> String)?
+
+        switch style {
+        case .game:
+            mins = isFixedPeriodMode ? "--" : String(format: "%.1f", totalMinutes)
+            pm = isFixedPeriodMode ? "--" : (totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)")
+            avg = nil
+        case .career:
+            mins = isFixedPeriodMode ? "--" : String(format: "%.1f", totalMinutes)
+            pm = totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)"
+            avg = nil
+        case .average:
+            mins = String(format: "%.1f", totalMinutes / Double(games))
+            pm = String(format: "%.1f", Double(totalPlusMinus) / Double(games))
+            avg = { v in String(format: "%.1f", Double(v) / Double(games)) }
+        }
+
+        let pts = StatCell(label: localized("stats_points_format_short"), value: avg?(s.points) ?? "\(s.points)")
+        let min = StatCell(label: localized("stats_minutes"), value: mins)
+        let reb = StatCell(label: localized("stats_rebound_assist_steal_block"), value: "\(avg?(s.rebounds) ?? "\(s.rebounds)") / \(avg?(s.assists) ?? "\(s.assists)") / \(avg?(s.steals) ?? "\(s.steals)") / \(avg?(s.blocks) ?? "\(s.blocks)")")
+        let foul = StatCell(label: localized("stats_foul_turnover") + " / " + localized("stats_plus_minus"), value: "\(avg?(s.fouls) ?? "\(s.fouls)") / \(avg?(s.turnovers) ?? "\(s.turnovers)") / \(pm)")
+        let fg = StatCell(label: localized("stats_shooting"), value: "\(avg?(s.made) ?? "\(s.made)")/\(avg?(s.attempts) ?? "\(s.attempts)")\n\(pct(s.fieldGoalRate))")
+        let ft = StatCell(label: localized("stat_label_free_throw"), value: "\(avg?(s.allFreeThrowMade) ?? "\(s.allFreeThrowMade)")/\(avg?(s.allFreeThrowAttempts) ?? "\(s.allFreeThrowAttempts)")\n\(pct(s.freeThrowRate))")
+        let two = StatCell(label: localized("stat_label_2pt"), value: "\(avg?(s.twoMade) ?? "\(s.twoMade)")/\(avg?(s.twoAttempts) ?? "\(s.twoAttempts)")\n\(pct(s.twoPointRate))")
+        let three = StatCell(label: localized("stat_label_3pt"), value: "\(avg?(s.threeMade) ?? "\(s.threeMade)")/\(avg?(s.threeAttempts) ?? "\(s.threeAttempts)")\n\(pct(s.threePointRate))")
+        let efg = StatCell(label: "eFG / TS", value: "\(pct(s.effectiveFieldGoalRate)) / \(pct(s.trueShootingRate))")
+        let pps = StatCell(label: NSLocalizedString("stats_points_per_shot", comment: "PTS/FGA"), value: String(format: "%.2f", s.pointsPerShot))
+
+        switch style {
+        case .game:
+            return [
+                StatRow(id: "row1", left: pts, leftSplit: min, right: reb),
+                StatRow(id: "row2", left: fg, leftSplit: ft, right: three, rightSplit: two),
+                StatRow(id: "row3", left: foul, right: pps, rightSplit: efg),
+            ]
+        case .career:
+            let sb = StatCell(label: "\(localized("stats_games")) / \(localized("stat_label_starter")) / \(localized("stat_label_bench"))", value: "\(filteredGames.count) / \(starterGameCount) / \(benchGameCount)")
+            return [
+                StatRow(id: "row1", left: pts, leftSplit: min, rightSplit: sb),
+                StatRow(id: "row2", left: fg, leftSplit: ft, right: three, rightSplit: two),
+                StatRow(id: "row3", left: reb, right: foul),
+                StatRow(id: "row4", left: efg, leftSplit: pps),
+            ]
+        case .average:
+            let sb = StatCell(label: "\(localized("stats_games")) / \(localized("stat_label_starter")) / \(localized("stat_label_bench"))", value: "\(filteredGames.count) / \(starterGameCount) / \(benchGameCount)")
+            return [
+                StatRow(id: "row1", left: pts, leftSplit: min, rightSplit: sb),
+                StatRow(id: "row2", left: fg, leftSplit: ft, right: three, rightSplit: two),
+                StatRow(id: "row3", left: reb, right: foul),
+            ]
+        }
     }
+
+    private func buildGameStatRows() -> [StatRow] { buildStatRows(style: .game) }
+    private func buildCareerStatRows() -> [StatRow] { buildStatRows(style: .career) }
+    private func buildAverageStatRows() -> [StatRow] { buildStatRows(style: .average) }
 
     private var eventSection: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -2495,7 +2492,7 @@ struct PlayerProfileView: View {
             .filter { containsPlayer(in: $0) }
             .sorted { $0.savedAt > $1.savedAt }
 
-        if let selectedGroupID = selectedGroupID {
+        if store.isPro, let selectedGroupID = selectedGroupID {
             return games.filter { $0.groupIDs.contains(selectedGroupID) }
         }
         return games
@@ -2525,24 +2522,32 @@ struct PlayerProfileView: View {
         return fixedGameAnalysis.playerLogs(for: playerID, period: selectedPeriod).reversed()
     }
 
-    private var totalStats: PlayerStats {
+    private struct PlayerStatsGroup {
+        let totalStats: PlayerStats
+        let totalMinutes: Double
+        let totalPlusMinus: Int
+        let starterGameCount: Int
+        let benchGameCount: Int
+    }
+
+    private var statsGroup: PlayerStatsGroup {
+        computeStatsGroup(for: filteredGames)
+    }
+
+    private func computeStatsGroup(for games: [SavedGame]) -> PlayerStatsGroup {
         if let selectedPeriod, fixedGame != nil {
             let stats = fixedGameAnalysis.statsByPlayerID(for: selectedPeriod)[playerID, default: PlayerStats()]
-            return stats
+            return PlayerStatsGroup(totalStats: stats, totalMinutes: 0, totalPlusMinus: 0, starterGameCount: 0, benchGameCount: 0)
         }
 
-        let games = filteredGames
-        print("[PlayerProfile] filteredGames=\(games.count), fixedGame=\(fixedGame != nil), playerID=\(playerID)")
-        if let g = games.first {
-            let hasStats = g.snapshot.statsByPlayerID[playerID] != nil
-            let points = g.snapshot.statsByPlayerID[playerID]?.points ?? -1
-            print("[PlayerProfile] game stats exists=\(hasStats), points=\(points)")
-        }
+        var total = PlayerStats()
+        var minutes: Double = 0
+        var plusMinus: Int = 0
+        var starter = 0
+        var bench = 0
 
-        return games.reduce(PlayerStats()) { partial, game in
+        for game in games {
             let raw = game.snapshot.statsByPlayerID[playerID] ?? PlayerStats()
-            print("[PlayerProfile] game=\(game.id) raw.points=\(raw.points)")
-            var total = partial
             total.twoMade += raw.twoMade
             total.twoAttempts += raw.twoAttempts
             total.threeMade += raw.threeMade
@@ -2557,35 +2562,21 @@ struct PlayerProfileView: View {
             total.blocks += raw.blocks
             total.steals += raw.steals
             total.turnovers += raw.turnovers
-            return total
+            minutes += game.snapshot.playingSecondsByPlayerID[playerID, default: 0] / 60
+            plusMinus += game.snapshot.plusMinusByPlayerID[playerID, default: 0]
+            let role = game.role(of: playerID)
+            if role == .starter { starter += 1 }
+            else if role == .bench { bench += 1 }
         }
+
+        return PlayerStatsGroup(totalStats: total, totalMinutes: minutes, totalPlusMinus: plusMinus, starterGameCount: starter, benchGameCount: bench)
     }
 
-    private var totalMinutes: Double {
-        if isFixedPeriodMode {
-            return 0
-        }
-        return filteredGames.reduce(0) { $0 + ($1.snapshot.playingSecondsByPlayerID[playerID, default: 0] / 60) }
-    }
-
-    private var totalPlusMinus: Int {
-        if isFixedPeriodMode {
-            return 0
-        }
-        return filteredGames.reduce(0) { $0 + $1.snapshot.plusMinusByPlayerID[playerID, default: 0] }
-    }
-
-    private var starterGameCount: Int {
-        filteredGames.reduce(0) { count, game in
-            count + (game.role(of: playerID) == .starter ? 1 : 0)
-        }
-    }
-
-    private var benchGameCount: Int {
-        filteredGames.reduce(0) { count, game in
-            count + (game.role(of: playerID) == .bench ? 1 : 0)
-        }
-    }
+    private var totalStats: PlayerStats { statsGroup.totalStats }
+    private var totalMinutes: Double { isFixedPeriodMode ? 0 : statsGroup.totalMinutes }
+    private var totalPlusMinus: Int { isFixedPeriodMode ? 0 : statsGroup.totalPlusMinus }
+    private var starterGameCount: Int { statsGroup.starterGameCount }
+    private var benchGameCount: Int { statsGroup.benchGameCount }
 
     private var totalValues: [(String, String)] {
         let stats = totalStats
@@ -2745,7 +2736,7 @@ private struct PlayerGameSelectionView: View {
                 ContentUnavailableView(LocalizedStringKey("text_no_selectable_games"), systemImage: "clock.badge.questionmark")
             }
 
-            if let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
+            if store.isPro, let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
                 Section {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
@@ -2821,8 +2812,10 @@ private struct PlayerGameSelectionView: View {
         .navigationTitle(LocalizedStringKey("button_choose_games"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
+            if store.isPro {
+                ToolbarItem(placement: .topBarLeading) {
+                    GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
+                }
             }
 
             ToolbarItem(placement: .cancellationAction) {
@@ -2848,10 +2841,10 @@ private struct PlayerGameSelectionView: View {
     private var monthGroups: [PlayerGameMonthGroup] {
         let calendar = Calendar.current
         
-        // Filter games by selected group if any
-        let filteredGames = selectedGroupID.map { groupID in
+        // Filter games by selected group if any (Pro only)
+        let filteredGames = (store.isPro ? selectedGroupID.map { groupID in
             games.filter { $0.groupIDs.contains(groupID) }
-        } ?? games
+        } : nil) ?? games
         
         let grouped = Dictionary(grouping: filteredGames) { game in
             let components = calendar.dateComponents([.year, .month], from: game.savedAt)

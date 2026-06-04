@@ -26,6 +26,17 @@
 - 清理
   - 移除 `TeamStatsDisclosureView` 中不再使用的 `containerBackground`、`containerBorder`、`tileBackground`、`containerCornerRadius`、`tileCornerRadius` 计算属性。
   - 移除 `statTile` 卡片背景和边框。
+- 存储迁移
+  - 从 UserDefaults/文件存储迁移到 Core Data，`CoreDataStack` + `CoreDataStore` 支持 Player/Team/SavedGame/GameGroup 持久化。
+  - 首次启动自动从 UserDefaults 迁移到 Core Data，双写保障降级安全。
+  - `toggleGameGroup` 添加 Pro 门禁，非 Pro 用户隐藏所有分组 UI。
+- 单元测试
+  - 新增 `DataCompatibilityTests`（15 个用例）：JSON round-trip、Core Data 增删改查、旧格式兼容。
+  - 新增 `BluetoothProtocolTests`（17 个用例）：StatAction apply/revert、PlayerStats 命中率计算、事件代码验证。
+  - 修复既有测试的 `@MainActor` 和 `PlayerStats` 构造问题。
+- 代码精简
+  - stat card 构建器三个函数合并为 `buildStatRows(style:)`。
+  - 移除 undo snapshot fallback 和 `legacyPreviousSnapshot()` 死代码。
 - i18n
   - 补充 10 种语言的本地化键值。
 
@@ -33,6 +44,8 @@
 
 - iOS 17.6+
 - Xcode 17+
+
+## 1.11 (2026-06-03)
 
 ### 亮点
 
