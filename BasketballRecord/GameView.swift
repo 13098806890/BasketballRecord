@@ -327,35 +327,72 @@ struct GameView: View {
         .opacity(needsNewGameSetup ? 0.5 : 1)
     }
 
-    private var teamRows: some View {
-        VStack(spacing: 6) {
-            CompactTeamRow(
-                side: .home,
-                team: store.team(for: snapshot.homeTeamID),
-                players: onCourtPlayers(for: .home),
-                score: score(for: snapshot.homeTeamID),
-                isScorePulsing: scorePulseSide == .home,
-                fouls: displayedTeamFouls(for: .home),
-                foulLabel: snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
-                onCourtPlayerIDs: snapshot.homeOnCourtPlayerIDs,
-                selectedPlayerID: selectedPlayerID,
-                selectedSide: selectedSide,
-                onSelect: selectPlayer
-            )
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
 
-            CompactTeamRow(
-                side: .away,
-                team: store.team(for: snapshot.awayTeamID),
-                players: onCourtPlayers(for: .away),
-                score: score(for: snapshot.awayTeamID),
-                isScorePulsing: scorePulseSide == .away,
-                fouls: displayedTeamFouls(for: .away),
-                foulLabel: snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
-                onCourtPlayerIDs: snapshot.awayOnCourtPlayerIDs,
-                selectedPlayerID: selectedPlayerID,
-                selectedSide: selectedSide,
-                onSelect: selectPlayer
-            )
+    private var teamRows: some View {
+        let isLandscape = verticalSizeClass == .compact
+        return Group {
+            if isLandscape {
+                HStack(spacing: 8) {
+                    CompactTeamRow(
+                        side: .home,
+                        team: store.team(for: snapshot.homeTeamID),
+                        players: onCourtPlayers(for: .home),
+                        score: score(for: snapshot.homeTeamID),
+                        isScorePulsing: scorePulseSide == .home,
+                        fouls: displayedTeamFouls(for: .home),
+                        foulLabel: snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
+                        onCourtPlayerIDs: snapshot.homeOnCourtPlayerIDs,
+                        selectedPlayerID: selectedPlayerID,
+                        selectedSide: selectedSide,
+                        onSelect: selectPlayer
+                    )
+
+                    CompactTeamRow(
+                        side: .away,
+                        team: store.team(for: snapshot.awayTeamID),
+                        players: onCourtPlayers(for: .away),
+                        score: score(for: snapshot.awayTeamID),
+                        isScorePulsing: scorePulseSide == .away,
+                        fouls: displayedTeamFouls(for: .away),
+                        foulLabel: snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
+                        onCourtPlayerIDs: snapshot.awayOnCourtPlayerIDs,
+                        selectedPlayerID: selectedPlayerID,
+                        selectedSide: selectedSide,
+                        onSelect: selectPlayer
+                    )
+                }
+            } else {
+                VStack(spacing: 6) {
+                    CompactTeamRow(
+                        side: .home,
+                        team: store.team(for: snapshot.homeTeamID),
+                        players: onCourtPlayers(for: .home),
+                        score: score(for: snapshot.homeTeamID),
+                        isScorePulsing: scorePulseSide == .home,
+                        fouls: displayedTeamFouls(for: .home),
+                        foulLabel: snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
+                        onCourtPlayerIDs: snapshot.homeOnCourtPlayerIDs,
+                        selectedPlayerID: selectedPlayerID,
+                        selectedSide: selectedSide,
+                        onSelect: selectPlayer
+                    )
+
+                    CompactTeamRow(
+                        side: .away,
+                        team: store.team(for: snapshot.awayTeamID),
+                        players: onCourtPlayers(for: .away),
+                        score: score(for: snapshot.awayTeamID),
+                        isScorePulsing: scorePulseSide == .away,
+                        fouls: displayedTeamFouls(for: .away),
+                        foulLabel: snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
+                        onCourtPlayerIDs: snapshot.awayOnCourtPlayerIDs,
+                        selectedPlayerID: selectedPlayerID,
+                        selectedSide: selectedSide,
+                        onSelect: selectPlayer
+                    )
+                }
+            }
         }
     }
 
