@@ -2245,11 +2245,12 @@ struct PlayerProfileView: View {
                     .padding(.horizontal)
                 }
 
+
                 if fixedGame != nil {
-                    statSection(localized("label_this_game_stats"), values: totalValues)
+                    statSection(localized("label_this_game_stats"), rows: buildGameStatRows())
                 } else {
-                    statSection(localized("label_career_stats"), values: careerSummaryValues + advancedValues)
-                    statSection(localized("label_average_stats"), values: averageCardValues)
+                    statSection(localized("label_career_stats"), rows: buildCareerStatRows())
+                    statSection(localized("label_average_stats"), rows: buildAverageStatRows())
                 }
 
                 if fixedGame != nil {
@@ -2281,11 +2282,19 @@ struct PlayerProfileView: View {
                     Text(profileSubtitle(player))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                    Text(localizedFormat("count_games_format", filteredGames.count))
-                        .font(.caption.monospacedDigit().weight(.semibold))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(Color.white.opacity(0.7), in: Capsule())
+                    if let fg = fixedGame, let role = fg.role(of: playerID) {
+                        Text(role.title)
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(Color.white.opacity(0.7), in: Capsule())
+                    } else {
+                        Text(localizedFormat("count_games_format", filteredGames.count))
+                            .font(.caption.monospacedDigit().weight(.semibold))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(Color.white.opacity(0.7), in: Capsule())
+                    }
                 }
                 Spacer()
             }
@@ -2302,11 +2311,41 @@ struct PlayerProfileView: View {
         .padding(.horizontal)
     }
 
-    private func statSection(_ title: String, values: [(String, String)]) -> some View {
+    private struct StatCell: Identifiable {
+        var id: String { label }
+        var label: String
+        var value: String
+    }
+
+    private struct StatRow: Identifiable {
+        var id: String
+        var left: StatCell
+        var leftSplit: StatCell? = nil
+        var right: StatCell? = nil
+        var rightSplit: StatCell? = nil
+    }
+
+    private func makeStatCard(_ cell: StatCell) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(cell.label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Text(cell.value)
+                .font(.caption.monospacedDigit().weight(.bold))
+                .foregroundStyle(.black)
+                .lineLimit(2)
+                .minimumScaleFactor(0.6)
+        }
+        .frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
+        .padding(.horizontal, 10)
+        .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func statSection(_ title: String, rows: [StatRow]) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title)
                 .font(.headline)
-            if values.isEmpty {
+            if rows.isEmpty {
                 Text(LocalizedStringKey("text_no_stats_in_group"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -2314,26 +2353,111 @@ struct PlayerProfileView: View {
                     .padding(12)
                     .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 8))
             } else {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2), spacing: 8) {
-                    ForEach(values, id: \.0) { label, value in
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(label)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                            Text(value)
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.6)
+                VStack(spacing: 8) {
+                    ForEach(rows) { row in
+                        HStack(spacing: 8) {
+                            if let split = row.leftSplit {
+                                HStack(spacing: 8) {
+                                    makeStatCard(row.left)
+                                    makeStatCard(split)
+                                }
+                                .frame(maxWidth: .infinity)
+                            } else {
+                                makeStatCard(row.left)
+                                    .frame(maxWidth: .infinity)
+                            }
+                            if let split = row.rightSplit {
+                                HStack(spacing: 8) {
+                                    makeStatCard(split)
+                                    if let right = row.right {
+                                        makeStatCard(right)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity)
+                            } else if let right = row.right {
+                                makeStatCard(right)
+                                    .frame(maxWidth: .infinity)
+                            } else {
+                                Spacer()
+                                    .frame(maxWidth: .infinity)
+                            }
                         }
-                        .frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
-                        .padding(.horizontal, 10)
-                        .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 8))
                     }
                 }
             }
         }
         .padding(.horizontal)
+    }
+
+    private func buildGameStatRows() -> [StatRow] {
+        let s = totalStats
+        let pct = { percent($0) }
+        let mins = isFixedPeriodMode ? "--" : String(format: "%.1f", totalMinutes)
+        let pm = isFixedPeriodMode ? "--" : (totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)")
+        let pts = StatCell(label: localized("stats_points_format_short"), value: "\(s.points)")
+        let min = StatCell(label: localized("stats_minutes"), value: mins)
+        let reb = StatCell(label: localized("stats_rebound_assist_steal_block"), value: "\(s.rebounds) / \(s.assists) / \(s.steals) / \(s.blocks)")
+        let foul = StatCell(label: localized("stats_foul_turnover") + " / " + localized("stats_plus_minus"), value: "\(s.fouls) / \(s.turnovers) / \(pm)")
+        let fg = StatCell(label: localized("stats_shooting"), value: "\(s.made)/\(s.attempts)\n\(pct(s.fieldGoalRate))")
+        let ft = StatCell(label: localized("stat_label_free_throw"), value: "\(s.allFreeThrowMade)/\(s.allFreeThrowAttempts)\n\(pct(s.freeThrowRate))")
+        let two = StatCell(label: localized("stat_label_2pt"), value: "\(s.twoMade)/\(s.twoAttempts)\n\(pct(s.twoPointRate))")
+        let three = StatCell(label: localized("stat_label_3pt"), value: "\(s.threeMade)/\(s.threeAttempts)\n\(pct(s.threePointRate))")
+        let efg = StatCell(label: "eFG / TS", value: "\(pct(s.effectiveFieldGoalRate)) / \(pct(s.trueShootingRate))")
+        let pps = StatCell(label: NSLocalizedString("stats_points_per_shot", comment: "PTS/FGA"), value: String(format: "%.2f", s.pointsPerShot))
+        return [
+            StatRow(id: "row1", left: pts, leftSplit: min, right: reb),
+            StatRow(id: "row2", left: fg, leftSplit: ft, right: three, rightSplit: two),
+            StatRow(id: "row3", left: foul, right: pps, rightSplit: efg),
+        ]
+    }
+
+    private func buildCareerStatRows() -> [StatRow] {
+        let s = totalStats
+        let pct = { percent($0) }
+        let mins = isFixedPeriodMode ? "--" : String(format: "%.1f", totalMinutes)
+        let pm = totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)"
+        let gLabel = "\(localized("stats_games")) / \(localized("stat_label_starter")) / \(localized("stat_label_bench"))"
+        let pts = StatCell(label: localized("stats_points_format_short"), value: "\(s.points)")
+        let min = StatCell(label: localized("stats_minutes"), value: mins)
+        let sb = StatCell(label: gLabel, value: "\(filteredGames.count) / \(starterGameCount) / \(benchGameCount)")
+        let reb = StatCell(label: localized("stats_rebound_assist_steal_block"), value: "\(s.rebounds) / \(s.assists) / \(s.steals) / \(s.blocks)")
+        let foul = StatCell(label: localized("stats_foul_turnover") + " / " + localized("stats_plus_minus"), value: "\(s.fouls) / \(s.turnovers) / \(pm)")
+        let fg = StatCell(label: localized("stats_shooting"), value: "\(s.made)/\(s.attempts)\n\(pct(s.fieldGoalRate))")
+        let ft = StatCell(label: localized("stat_label_free_throw"), value: "\(s.allFreeThrowMade)/\(s.allFreeThrowAttempts)\n\(pct(s.freeThrowRate))")
+        let two = StatCell(label: localized("stat_label_2pt"), value: "\(s.twoMade)/\(s.twoAttempts)\n\(pct(s.twoPointRate))")
+        let three = StatCell(label: localized("stat_label_3pt"), value: "\(s.threeMade)/\(s.threeAttempts)\n\(pct(s.threePointRate))")
+        let efg = StatCell(label: "eFG / TS", value: "\(pct(s.effectiveFieldGoalRate)) / \(pct(s.trueShootingRate))")
+        let pps = StatCell(label: NSLocalizedString("stats_points_per_shot", comment: "PTS/FGA"), value: String(format: "%.2f", s.pointsPerShot))
+        return [
+            StatRow(id: "row1", left: pts, leftSplit: min, rightSplit: sb),
+            StatRow(id: "row2", left: fg, leftSplit: ft, right: three, rightSplit: two),
+            StatRow(id: "row3", left: reb, right: foul),
+            StatRow(id: "row4", left: efg, leftSplit: pps),
+        ]
+    }
+
+    private func buildAverageStatRows() -> [StatRow] {
+        let s = totalStats
+        let games = max(1, filteredGames.count)
+        let avg = { (v: Int) -> String in String(format: "%.1f", Double(v) / Double(games)) }
+        let avgMin = String(format: "%.1f", totalMinutes / Double(games))
+        let avgPM = String(format: "%.1f", Double(totalPlusMinus) / Double(games))
+        let pct = { percent($0) }
+        let gLabel = "\(localized("stats_games")) / \(localized("stat_label_starter")) / \(localized("stat_label_bench"))"
+        let pts = StatCell(label: localized("stats_points_format_short"), value: avg(s.points))
+        let min = StatCell(label: localized("stats_minutes"), value: avgMin)
+        let sb = StatCell(label: gLabel, value: "\(filteredGames.count) / \(starterGameCount) / \(benchGameCount)")
+        let reb = StatCell(label: localized("stats_rebound_assist_steal_block"), value: "\(avg(s.rebounds)) / \(avg(s.assists)) / \(avg(s.steals)) / \(avg(s.blocks))")
+        let foul = StatCell(label: localized("stats_foul_turnover") + " / " + localized("stats_plus_minus"), value: "\(avg(s.fouls)) / \(avg(s.turnovers)) / \(avgPM)")
+        let fg = StatCell(label: localized("stats_shooting"), value: "\(avg(s.made))/\(avg(s.attempts))\n\(pct(s.fieldGoalRate))")
+        let ft = StatCell(label: localized("stat_label_free_throw"), value: "\(avg(s.allFreeThrowMade))/\(avg(s.allFreeThrowAttempts))\n\(pct(s.freeThrowRate))")
+        let two = StatCell(label: localized("stat_label_2pt"), value: "\(avg(s.twoMade))/\(avg(s.twoAttempts))\n\(pct(s.twoPointRate))")
+        let three = StatCell(label: localized("stat_label_3pt"), value: "\(avg(s.threeMade))/\(avg(s.threeAttempts))\n\(pct(s.threePointRate))")
+        return [
+            StatRow(id: "row1", left: pts, leftSplit: min, rightSplit: sb),
+            StatRow(id: "row2", left: fg, leftSplit: ft, right: three, rightSplit: two),
+            StatRow(id: "row3", left: reb, right: foul),
+        ]
     }
 
     private var eventSection: some View {

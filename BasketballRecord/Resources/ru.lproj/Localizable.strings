@@ -838,3 +838,4 @@
 "game_group_empty_name" = "Название группы не может быть пустым";
 "game_group_assigned_to" = "Группа: %@";
 "section_nearby_devices" = "Устройства рядом";
+"stats_games" = "G";

@@ -578,15 +578,14 @@ private struct TeamCareerBoardView: View {
                         }
 
                         HStack(spacing: 8) {
-                            teamTile(LocalizedStringKey("career_tile_games"), "\(summary.games)")
-                            teamTile(LocalizedStringKey("career_tile_win_rate"), summary.winRateText)
-                            teamTile(LocalizedStringKey("career_tile_net"), summary.diffText)
+                            teamCard(title: LocalizedStringKey("career_tile_games"), value: "\(summary.games)")
+                            teamCard(title: LocalizedStringKey("career_tile_win_rate"), value: summary.winRateText)
+                            teamCard(title: LocalizedStringKey("career_tile_net"), value: summary.diffText)
                         }
-
                         HStack(spacing: 8) {
-                            teamTile(LocalizedStringKey("career_tile_avg_points"), summary.avgForText)
-                            teamTile(LocalizedStringKey("career_tile_avg_points_against"), summary.avgAgainstText)
-                            teamTile(LocalizedStringKey("career_tile_total_score"), "\(summary.pointsFor)-\(summary.pointsAgainst)")
+                            teamCard(title: LocalizedStringKey("career_tile_avg_points"), value: summary.avgForText)
+                            teamCard(title: LocalizedStringKey("career_tile_avg_points_against"), value: summary.avgAgainstText)
+                            teamCard(title: LocalizedStringKey("career_tile_total_score"), value: "\(summary.pointsFor)-\(summary.pointsAgainst)")
                         }
                     }
                     .padding(12)
@@ -653,18 +652,23 @@ private struct TeamCareerBoardView: View {
         }
     }
 
-    private func teamTile(_ title: LocalizedStringKey, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
+    private func teamCard(title: LocalizedStringKey, value: String) -> some View {
+        VStack(spacing: 4) {
             Text(title)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
             Text(value)
                 .font(.subheadline.monospacedDigit().weight(.semibold))
+                .foregroundStyle(.black)
+                .minimumScaleFactor(0.6)
         }
-        .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
-        .padding(.horizontal, 8)
+        .frame(maxWidth: .infinity, minHeight: 52)
+        .padding(.horizontal, 4)
         .padding(.vertical, 6)
-        .background(Color(red: 0.95, green: 0.97, blue: 1.00), in: RoundedRectangle(cornerRadius: 8))
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.black.opacity(0.06), lineWidth: 1))
     }
 }
 
@@ -1035,7 +1039,7 @@ private struct DeleteSavedGamesView: View {
                                         .lineLimit(1)
                                     Spacer()
                                     Text(scoreLine(for: game))
-                                        .font(.subheadline.monospacedDigit().weight(.semibold))
+.font(.subheadline.monospacedDigit().weight(.bold))
                                 }
 
                                 Text(Self.dateFormatter.string(from: game.savedAt))

@@ -41,6 +41,7 @@
 "stats_foul_turnover" = "FOUL / TO";
 "stats_minutes" = "MIN";
 "stats_starter_bench" = "S / B";
+"stats_games" = "G";
 "stats_shooting" = "FG";
 "stats_plus_minus" = "+/-";
 "cloud_unavailable_hint" = "Enable iCloud in System Settings and sign in to your account.";
@@ -245,7 +246,6 @@
 "stats_record_shooting_format" = "FG %d/%d  2PT %d/%d  3PT %d/%d";
 "stats_record_misc_format" = "FT %d/%d  REB %d  AST %d  FOUL %d  BLK %d  STL %d  TO %d";
 "stats_full_misc_format" = "REB / AST / FOUL / BLK / STL / TO";
-"stats_plus_minus" = "Plus/Minus";
 "stats_plus_minus_footnote" = "Net points while on court";
 "stats_playing_time" = "Playing Time";
 "select_player" = "Select Player";
@@ -860,6 +860,7 @@
 "text_ai_pro_required" = "Pro subscription required for AI summary.";
 "settings_ai" = "AI Settings";
 "label_period_end_condition" = "Period Ends By";
+"period_end_manual" = "Manual";
 "period_end_by_time" = "Time";
 "period_end_by_score" = "Score";
 "label_period_time_limit" = "Time per Period";

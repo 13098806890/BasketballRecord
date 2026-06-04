@@ -1057,6 +1057,8 @@ struct GameView: View {
         guard snapshot.periodIsRunning, !snapshot.isPaused, !snapshot.isComplete else { return }
 
         switch snapshot.periodEndCondition {
+        case .manual:
+            return
         case .byTime:
             let limit = TimeInterval(snapshot.periodTimeLimit * 60)
             guard currentPeriodElapsedSeconds >= limit else { return }
@@ -3252,14 +3254,17 @@ struct TeamStatsDisclosureView: View {
     }
 
     private func statTile(_ title: String, _ value: String, _ detail: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 3) {
             Text(title)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
+                .minimumScaleFactor(0.6)
             Text(value)
-                .font(.caption.monospacedDigit().weight(.semibold))
+                .font(.caption.monospacedDigit().weight(.bold))
+                .foregroundStyle(.black)
                 .lineLimit(1)
+                .minimumScaleFactor(0.6)
             if !detail.isEmpty {
                 Text(detail)
                     .font(.caption2.monospacedDigit())
@@ -3267,7 +3272,11 @@ struct TeamStatsDisclosureView: View {
                     .lineLimit(1)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 52)
+        .padding(.horizontal, 4)
+        .padding(.vertical, 6)
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.black.opacity(0.06), lineWidth: 1))
     }
 
     private func percent(_ value: Double) -> String {
@@ -3365,8 +3374,11 @@ private struct CollapsibleStatsView: View {
             Text(title)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+                .minimumScaleFactor(0.6)
             Text(value)
-                .font(.subheadline.monospacedDigit().weight(.semibold))
+                .font(.subheadline.monospacedDigit().weight(.bold))
+                .foregroundStyle(.black)
+                .minimumScaleFactor(0.6)
             if !detail.isEmpty {
                 Text(detail)
                     .font(.caption2.monospacedDigit())
@@ -3379,10 +3391,11 @@ private struct CollapsibleStatsView: View {
                     .lineLimit(1)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
-        .padding(.horizontal, 8)
+        .frame(maxWidth: .infinity, minHeight: 52)
+        .padding(.horizontal, 4)
         .padding(.vertical, 6)
-        .background(.white.opacity(0.58), in: RoundedRectangle(cornerRadius: 8))
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.black.opacity(0.06), lineWidth: 1))
     }
 
     private func percent(_ value: Double) -> String {
@@ -3462,6 +3475,20 @@ private struct NewGameSetupView: View {
                     }
                 }
 
+                starterSection(title: NSLocalizedString("starter_home_title", comment: "Home starters"), players: homePlayers, selectedIDs: $homeStarterIDs, requiredCount: requiredHomeCount)
+                benchSection(
+                    title: NSLocalizedString("starter_home_bench_title", comment: "Home bench title"),
+                    players: homeBenchCandidates,
+                    selectedIDs: $homeBenchIDs
+                )
+
+                starterSection(title: NSLocalizedString("starter_away_title", comment: "Away starters"), players: awayPlayers, selectedIDs: $awayStarterIDs, requiredCount: requiredAwayCount)
+                benchSection(
+                    title: NSLocalizedString("starter_away_bench_title", comment: "Away bench title"),
+                    players: awayBenchCandidates,
+                    selectedIDs: $awayBenchIDs
+                )
+
                 Section(LocalizedStringKey("section_game_settings")) {
                     Stepper(value: $periodCount, in: 1...8) {
                         HStack {
@@ -3484,6 +3511,7 @@ private struct NewGameSetupView: View {
                     Toggle(LocalizedStringKey("toggle_reset_team_fouls_each_period"), isOn: $resetsTeamFoulsEachPeriod)
 
                     Picker(LocalizedStringKey("label_period_end_condition"), selection: $periodEndCondition) {
+                        Text(LocalizedStringKey("period_end_manual")).tag(PeriodEndCondition.manual)
                         Text(LocalizedStringKey("period_end_by_time")).tag(PeriodEndCondition.byTime)
                         Text(LocalizedStringKey("period_end_by_score")).tag(PeriodEndCondition.byScore)
                     }
@@ -3499,7 +3527,7 @@ private struct NewGameSetupView: View {
                             Text(LocalizedStringKey("label_minutes_unit"))
                                 .foregroundStyle(.secondary)
                         }
-                    } else {
+                    } else if periodEndCondition == .byScore {
                         HStack {
                             Text(LocalizedStringKey("label_period_score_limit"))
                             Spacer()
@@ -3521,20 +3549,6 @@ private struct NewGameSetupView: View {
                     Toggle(LocalizedStringKey("action_steal"), isOn: $showsStealButton)
                     Toggle(LocalizedStringKey("action_turnover"), isOn: $showsTurnoverButton)
                 }
-
-                starterSection(title: NSLocalizedString("starter_home_title", comment: "Home starters"), players: homePlayers, selectedIDs: $homeStarterIDs, requiredCount: requiredHomeCount)
-                benchSection(
-                    title: NSLocalizedString("starter_home_bench_title", comment: "Home bench title"),
-                    players: homeBenchCandidates,
-                    selectedIDs: $homeBenchIDs
-                )
-
-                starterSection(title: NSLocalizedString("starter_away_title", comment: "Away starters"), players: awayPlayers, selectedIDs: $awayStarterIDs, requiredCount: requiredAwayCount)
-                benchSection(
-                    title: NSLocalizedString("starter_away_bench_title", comment: "Away bench title"),
-                    players: awayBenchCandidates,
-                    selectedIDs: $awayBenchIDs
-                )
             }
                 .navigationTitle(LocalizedStringKey("nav_new_game"))
             .navigationBarTitleDisplayMode(.inline)

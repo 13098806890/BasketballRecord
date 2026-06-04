@@ -928,6 +928,7 @@ enum CareerStatItem: String, CaseIterable, Codable, Identifiable {
 }
 
 enum PeriodEndCondition: String, Codable, CaseIterable, Identifiable {
+    case manual
     case byTime
     case byScore
     var id: String { rawValue }

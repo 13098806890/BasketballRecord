@@ -861,3 +861,4 @@
 "icloud_error_temporarily_unavailable" = "iCloudが一時的に利用できません。後でもう一度お試しください。";
 "icloud_error_unknown" = "不明なiCloudエラーです。";
 "section_nearby_devices" = "近くのデバイス";
+"stats_games" = "G";

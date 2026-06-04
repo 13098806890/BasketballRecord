@@ -874,3 +874,4 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "icloud_error_could_not_determine" = "iCloud 계정 상태를 확인할 수 없습니다.";
 "icloud_error_temporarily_unavailable" = "iCloud를 일시적으로 사용할 수 없습니다. 나중에 다시 시도해 주세요.";
 "icloud_error_unknown" = "알 수 없는 iCloud 오류입니다.";
+"stats_games" = "G";

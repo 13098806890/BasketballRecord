@@ -61,6 +61,7 @@
 "stats_foul_turnover" = "犯规 / 失误";
 "stats_minutes" = "时间";
 "stats_starter_bench" = "首发 / 替补";
+"stats_games" = "出场";
 "stats_shooting" = "投篮";
 "stats_plus_minus" = "正负值";
 "cloud_unavailable_hint" = "请前往系统设置开启 iCloud 并登录账号。";
@@ -266,7 +267,6 @@
 "stats_record_shooting_format" = "投篮 %d/%d  2分 %d/%d  3分 %d/%d";
 "stats_record_misc_format" = "罚球 %d/%d  板 %d  助 %d  犯 %d  盖 %d  断 %d  失 %d";
 "stats_full_misc_format" = "板 / 助 / 犯 / 盖 / 断 / 失";
-"stats_plus_minus" = "正负值";
 "stats_plus_minus_footnote" = "在场净胜分";
 "stats_playing_time" = "上场时间";
 "select_player" = "选择球员";
@@ -861,6 +861,7 @@
 "text_ai_pro_required" = "需要 Pro 订阅才能使用 AI 总结。";
 "settings_ai" = "AI 设置";
 "label_period_end_condition" = "每节结束条件";
+"period_end_manual" = "手动";
 "period_end_by_time" = "时间";
 "period_end_by_score" = "比分";
 "label_period_time_limit" = "每节时间";

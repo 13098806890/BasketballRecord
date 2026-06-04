@@ -864,3 +864,4 @@
 "icloud_error_could_not_determine" = "無法確定 iCloud 帳號狀態。";
 "icloud_error_temporarily_unavailable" = "iCloud 暫時不可用，請稍後再試。";
 "icloud_error_unknown" = "未知的 iCloud 錯誤。";
+"stats_games" = "出場";

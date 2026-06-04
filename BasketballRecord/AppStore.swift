@@ -540,6 +540,10 @@ final class AppStore: ObservableObject {
 
     func deleteSavedGames(ids: Set<UUID>) {
         guard !ids.isEmpty else { return }
+        for id in ids {
+            cloudEnabledGameIDs.remove(id)
+        }
+        saveCloudEnabledGameIDs()
         savedGames.removeAll { ids.contains($0.id) }
     }
 
