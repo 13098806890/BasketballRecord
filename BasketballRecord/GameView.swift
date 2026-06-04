@@ -3175,11 +3175,54 @@ struct TeamStatsDisclosureView: View {
 
     var body: some View {
         DisclosureGroup(isExpanded: $isExpanded) {
-            VStack(spacing: 8) {
-                teamRow(homeName, stats: homeStats, fouls: homeFouls)
-                teamRow(awayName, stats: awayStats, fouls: awayFouls)
+            VStack(spacing: 6) {
+                HStack {
+                    Text(homeName)
+                        .font(.caption.weight(.semibold))
+                    Spacer()
+                    Text(String(format: NSLocalizedString("stats_points_format", comment: "Points format"), homeStats.points))
+                        .font(.title.monospacedDigit().weight(.bold))
+                    Text("vs")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    Text(String(format: NSLocalizedString("stats_points_format", comment: "Points format"), awayStats.points))
+                        .font(.title.monospacedDigit().weight(.bold))
+                    Spacer()
+                    Text(awayName)
+                        .font(.caption.weight(.semibold))
+                }
+                .padding(.bottom, 4)
+
+                compareRow(label: localized("stats_field_goal"),
+                           home: "\(homeStats.made)/\(homeStats.attempts)", homePct: percent(homeStats.fieldGoalRate),
+                           away: "\(awayStats.made)/\(awayStats.attempts)", awayPct: percent(awayStats.fieldGoalRate))
+                compareRow(label: localized("stat_label_2pt"),
+                           home: "\(homeStats.twoMade)/\(homeStats.twoAttempts)", homePct: percent(homeStats.twoPointRate),
+                           away: "\(awayStats.twoMade)/\(awayStats.twoAttempts)", awayPct: percent(awayStats.twoPointRate))
+                compareRow(label: localized("stat_label_3pt"),
+                           home: "\(homeStats.threeMade)/\(homeStats.threeAttempts)", homePct: percent(homeStats.threePointRate),
+                           away: "\(awayStats.threeMade)/\(awayStats.threeAttempts)", awayPct: percent(awayStats.threePointRate))
+                compareRow(label: localized("stat_label_free_throw"),
+                           home: "\(homeStats.allFreeThrowMade)/\(homeStats.allFreeThrowAttempts)", homePct: percent(homeStats.freeThrowRate),
+                           away: "\(awayStats.allFreeThrowMade)/\(awayStats.allFreeThrowAttempts)", awayPct: percent(awayStats.freeThrowRate))
+                compareRow(label: "\(localized("stats_rebound_assist_steal_block")) / \(localized("stats_foul_turnover"))",
+                           home: "\(homeStats.rebounds)/\(homeStats.assists)/\(homeStats.steals)/\(homeStats.blocks) · \(homeFouls)/\(homeStats.turnovers)",
+                           homePct: nil,
+                           away: "\(awayStats.rebounds)/\(awayStats.assists)/\(awayStats.steals)/\(awayStats.blocks) · \(awayFouls)/\(awayStats.turnovers)",
+                           awayPct: nil)
+                compareRow(label: "eFG / TS",
+                           home: "\(percent(homeStats.effectiveFieldGoalRate)) / \(percent(homeStats.trueShootingRate))",
+                           homePct: nil,
+                           away: "\(percent(awayStats.effectiveFieldGoalRate)) / \(percent(awayStats.trueShootingRate))",
+                           awayPct: nil)
+                compareRow(label: localized("stats_points_per_shot"),
+                           home: String(format: "%.2f", homeStats.pointsPerShot),
+                           homePct: nil,
+                           away: String(format: "%.2f", awayStats.pointsPerShot),
+                           awayPct: nil)
             }
-            .padding(.top, 8)
+            .padding(10)
+            .background(Color.white, in: RoundedRectangle(cornerRadius: 10))
         } label: {
             HStack {
                 Text(LocalizedStringKey("label_team_stats"))
@@ -3190,169 +3233,50 @@ struct TeamStatsDisclosureView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .padding(10)
-        .background(containerBackground, in: RoundedRectangle(cornerRadius: containerCornerRadius))
-        .overlay(RoundedRectangle(cornerRadius: containerCornerRadius).stroke(containerBorder, lineWidth: 1))
     }
 
-    @ViewBuilder
-    private func teamRow(_ name: String, stats: PlayerStats, fouls: Int) -> some View {
-        if style == .record {
-            recordTeamRow(name, stats: stats, fouls: fouls)
-        } else {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text(name)
-                        .font(.caption.weight(.semibold))
-                    Spacer()
-                    Text(String(format: NSLocalizedString("stats_points_format", comment: "Points format"), stats.points))
-                        .font(.caption.monospacedDigit().weight(.semibold))
-                }
-                HStack(spacing: 8) {
-                    statTile(NSLocalizedString("stats_field_goal", comment: "Field goal"), "\(stats.made)/\(stats.attempts)", percent(stats.fieldGoalRate))
-                    statTile(NSLocalizedString("stats_two_point", comment: "Two-point"), "\(stats.twoMade)/\(stats.twoAttempts)", percent(stats.twoPointRate))
-                    statTile(NSLocalizedString("stats_three_point", comment: "Three-point"), "\(stats.threeMade)/\(stats.threeAttempts)", percent(stats.threePointRate))
-                }
-                HStack(spacing: 8) {
-                    statTile(NSLocalizedString("stats_free_throw", comment: "Free throw"), "\(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)", percent(stats.freeThrowRate))
-                    statTile(NSLocalizedString("stats_raf_format", comment: "Rebounds assists fouls"), "\(stats.rebounds) / \(stats.assists) / \(fouls)", "")
-                    statTile(NSLocalizedString("stats_bst_format", comment: "Blocks steals turnovers"), "\(stats.blocks) / \(stats.steals) / \(stats.turnovers)", "")
-                }
-                HStack(spacing: 8) {
-                    statTile(NSLocalizedString("stats_advanced", comment: "Advanced stats"), "eFG \(percent(stats.effectiveFieldGoalRate))", "TS \(percent(stats.trueShootingRate))")
-                    statTile(NSLocalizedString("stats_points_per_shot", comment: "Points per shot"), String(format: "%.2f", stats.pointsPerShot), "PTS/FGA")
+    private func compareRow(label: String, home: String, homePct: String?, away: String, awayPct: String?) -> some View {
+        HStack(spacing: 0) {
+            VStack(alignment: .trailing, spacing: 1) {
+                Text(home)
+                    .font(.caption.monospacedDigit().weight(.bold))
+                    .foregroundStyle(.black)
+                if let homePct {
+                    Text(homePct)
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.secondary)
                 }
             }
-            .padding(8)
-            .background(tileBackground, in: RoundedRectangle(cornerRadius: tileCornerRadius))
-        }
-    }
+            .frame(maxWidth: .infinity)
 
-    private func recordTeamRow(_ name: String, stats: PlayerStats, fouls: Int) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(name)
-                    .font(.subheadline.weight(.semibold))
-                    .lineLimit(1)
-
-                Spacer(minLength: 8)
-
-                Text(String(format: NSLocalizedString("stats_points_format", comment: "Points format"), stats.points))
-                    .font(.subheadline.monospacedDigit().weight(.semibold))
-            }
-
-            Text(
-                String(
-                    format: NSLocalizedString("stats_record_shooting_format", comment: "Record row shooting stats"),
-                    stats.made,
-                    stats.attempts,
-                    stats.twoMade,
-                    stats.twoAttempts,
-                    stats.threeMade,
-                    stats.threeAttempts
-                )
-            )
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-
-            Text(
-                String(
-                    format: NSLocalizedString("stats_record_misc_format", comment: "Record row misc stats"),
-                    stats.allFreeThrowMade,
-                    stats.allFreeThrowAttempts,
-                    stats.rebounds,
-                    stats.assists,
-                    fouls,
-                    stats.blocks,
-                    stats.steals,
-                    stats.turnovers
-                )
-            )
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-
-            Text("eFG \(percent(stats.effectiveFieldGoalRate))  TS \(percent(stats.trueShootingRate))  PTS/FGA \(String(format: "%.2f", stats.pointsPerShot))")
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(uiColor: .secondarySystemBackground))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(Color.secondary.opacity(0.14), lineWidth: 1)
-        )
-    }
-
-    private func statTile(_ title: String, _ value: String, _ detail: String) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(title)
+            Text(label)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
-                .lineLimit(1)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
                 .minimumScaleFactor(0.6)
-            Text(value)
-                .font(.caption.monospacedDigit().weight(.bold))
-                .foregroundStyle(.black)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-            if !detail.isEmpty {
-                Text(detail)
-                    .font(.caption2.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                .frame(width: 64)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(away)
+                    .font(.caption.monospacedDigit().weight(.bold))
+                    .foregroundStyle(.black)
+                if let awayPct {
+                    Text(awayPct)
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
             }
+            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity, minHeight: 52)
-        .padding(.horizontal, 4)
-        .padding(.vertical, 6)
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.black.opacity(0.06), lineWidth: 1))
     }
 
     private func percent(_ value: Double) -> String {
         "\(Int((value * 100).rounded()))%"
     }
 
-    private var containerBackground: Color {
-        switch style {
-        case .scoreboard:
-            return GamePalette.surface
-        case .record:
-            return .clear
-        }
-    }
-
-    private var containerBorder: Color {
-        switch style {
-        case .scoreboard:
-            return .white.opacity(0.85)
-        case .record:
-            return .clear
-        }
-    }
-
-    private var tileBackground: Color {
-        switch style {
-        case .scoreboard:
-            return .white.opacity(0.52)
-        case .record:
-            return .clear
-        }
-    }
-
-    private var containerCornerRadius: CGFloat {
-        style == .record ? 12 : 8
-    }
-
-    private var tileCornerRadius: CGFloat {
-        style == .record ? 10 : 8
+    private func localized(_ key: String) -> String {
+        NSLocalizedString(key, comment: "")
     }
 }
 
@@ -3428,11 +3352,7 @@ private struct CollapsibleStatsView: View {
                     .lineLimit(1)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 52)
-        .padding(.horizontal, 4)
-        .padding(.vertical, 6)
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.black.opacity(0.06), lineWidth: 1))
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func percent(_ value: Double) -> String {

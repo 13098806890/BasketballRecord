@@ -6,7 +6,8 @@
 
 - 统计卡片全面升级：投篮/罚球/2分/3分命中率独立换行，数据文字黑色加粗。
 - 球队生涯页面改为卡片式布局，与球员卡片视觉统一。
-- 比赛详情球队统计区改用卡片样式。
+- 比赛详情球队统计区改为左右对比卡片布局。
+- 记分页横屏时两支球队左右并排显示。
 
 ### 新增与改进
 
@@ -16,8 +17,15 @@
 - 球队生涯页面
   - 从 `teamTile` 改为 `teamCard`，使用白底、圆角、边框的卡片样式。
   - 数据文字黑色加粗，与球员卡片风格一致。
+- 记分页横屏适配
+  - 竖屏保持两行上下排列，横屏时两支球队以 HStack 左右并排。
 - 比赛详情球队统计
-  - `TeamStatsDisclosureView` 和 `CollapsibleStatsView` 中的 `statTile` 改为卡片样式（白底、圆角、边框、黑色加粗数据）。
+  - 展开后主客队数据按同一指标同行左右对比，描述居中，移除 `|` 分隔符。
+  - 整体改为白底圆角卡片，去掉多余背景色和嵌套。
+  - 移除 `statTile`、`teamRow`、`recordTeamRow`、`containerBackground` 等旧代码。
+- 清理
+  - 移除 `TeamStatsDisclosureView` 中不再使用的 `containerBackground`、`containerBorder`、`tileBackground`、`containerCornerRadius`、`tileCornerRadius` 计算属性。
+  - 移除 `statTile` 卡片背景和边框。
 - i18n
   - 补充 10 种语言的本地化键值。
 
