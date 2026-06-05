@@ -74,13 +74,13 @@
 "settings_import" = "Import";
 "settings_merge" = "Merge";
 "settings_section_ai" = "AI";
-"settings_deepseek_api_key" = "DeepSeek API Key";
+"settings_deepseek_api_key" = "AI API Key";
 "settings_section_help_about" = "Help & About";
 "settings_help" = "Help";
 "settings_privacy" = "Privacy";
 "settings_version" = "Version";
 
-"deepseek_enter_api_key" = "Enter DeepSeek API Key";
+"deepseek_enter_api_key" = "Enter AI API Key";
 "deepseek_testing" = "Testing...";
 "deepseek_test" = "Test connection";
 "deepseek_save_key" = "Save to Keychain";
@@ -416,7 +416,7 @@
 "deepseek_error_remove_failed" = "Failed to remove API Key.";
 "deepseek_error_save_failed" = "Failed to save API Key.";
 "deepseek_error_test_failed" = "Connection test failed.";
-"deepseek_settings_title" = "DeepSeek API";
+"deepseek_settings_title" = "AI API";
 "deepseek_status_has_saved_key" = "Saved API Key detected.";
 "deepseek_status_loaded_saved_key" = "Loaded saved API Key.";
 "deepseek_status_no_saved_key" = "No saved API Key.";
@@ -486,14 +486,14 @@
 "section_team_share_code" = "Team Share Code";
 "segment_count_value_format" = "%d segments";
 "segment_progress_format" = "Segment %d/%d";
-"settings_doc_help_ai_item1_desc" = "Set DeepSeek API Key in Settings and save it after a successful connection test.";
+"settings_doc_help_ai_item1_desc" = "Set an AI API Key in Settings and save it after a successful connection test.";
 "settings_doc_help_ai_item1_title" = "Enable on demand";
 "settings_doc_help_ai_item2_desc" = "Generates game summary, MVP and highlights, and saves results to game records.";
 "settings_doc_help_ai_item2_title" = "Summary content";
 "settings_doc_help_ai_item3_desc" = "AI output follows the in-app reading style for easier review.";
 "settings_doc_help_ai_item3_title" = "Display style";
 "settings_doc_help_ai_title" = "AI Summary (Optional)";
-"settings_doc_help_content" = "Welcome to Basketball Journey.\n\n1. Create players and teams, then start a new game from the Score page.\n2. Players on court at the start of Period 1 are starters; later arrivals are bench players.\n3. The app supports full stats, period breakdowns, history review, and career totals.\n4. You can use Bluetooth collaboration, import/export, and merge tools for cross-device data management.\n5. After setting DeepSeek API Key, you can generate and save AI game summaries.";
+"settings_doc_help_content" = "Welcome to Basketball Journey.\n\n1. Create players and teams, then start a new game from the Score page.\n2. Players on court at the start of Period 1 are starters; later arrivals are bench players.\n3. The app supports full stats, period breakdowns, history review, and career totals.\n4. You can use Bluetooth collaboration, import/export, and merge tools for cross-device data management.\n5. After setting an AI API Key, you can generate and save AI game summaries.";
 "settings_doc_help_gamelog_item1_desc" = "Tracks 2PT, 3PT, FT, rebounds, assists, fouls, blocks, steals, and turnovers.";
 "settings_doc_help_gamelog_item1_title" = "Comprehensive stats";
 "settings_doc_help_gamelog_item2_desc" = "Substitute anytime; late players can be added on court before recording stats.";
@@ -515,12 +515,12 @@
 "settings_doc_help_sync_item3_desc" = "Merge duplicate players or teams to keep history clean.";
 "settings_doc_help_sync_item3_title" = "Data merge";
 "settings_doc_help_sync_title" = "Sync & Sharing";
-"settings_doc_privacy_content" = "By default, this app stores game, team, player, and setting data locally on your device and does not auto-upload to developer servers.\nOnly when you actively import, export, share, use Bluetooth sync, or generate AI summary will related data be transmitted.\nYou can manage or remove DeepSeek API Key anytime in Settings.";
+"settings_doc_privacy_content" = "By default, this app stores game, team, player, and setting data locally on your device and does not auto-upload to developer servers.\nOnly when you actively import, export, share, use Bluetooth sync, or generate AI summary will related data be transmitted.\nYou can manage or remove API keys in Settings anytime.";
 "settings_doc_privacy_network_item1_desc" = "Bluetooth collaboration transfers data only after you connect and confirm, and only between participating devices.";
 "settings_doc_privacy_network_item1_title" = "Bluetooth collaboration";
-"settings_doc_privacy_network_item2_desc" = "Only when you configure DeepSeek API Key and actively request summary will required game data be sent to DeepSeek.";
+"settings_doc_privacy_network_item2_desc" = "Only when you configure an API Key and actively request a summary will required game data be sent to the AI provider.";
 "settings_doc_privacy_network_item2_title" = "AI Summary (Optional)";
-"settings_doc_privacy_network_item3_desc" = "DeepSeek API Key is stored in iOS Keychain and can be removed in Settings anytime.";
+"settings_doc_privacy_network_item3_desc" = "API Keys are stored in iOS Keychain and can be removed in Settings anytime.";
 "settings_doc_privacy_network_item3_title" = "API Key security";
 "settings_doc_privacy_network_title" = "Network & Third-party Services";
 "settings_doc_privacy_notice_item1_desc" = "Delete, overwrite, and merge operations may affect existing data. Please confirm before proceeding.";
@@ -554,7 +554,7 @@
 "alert_confirmation_failed_retry" = "Confirmation failed. Please check the connection and try again.";
 "alert_confirm_delete_game_title" = "Delete this game?";
 "alert_confirm_delete_games_title" = "Delete selected games?";
-"alert_ai_no_api_key" = "Please configure and save DeepSeek API Key in Settings first.";
+"alert_ai_no_api_key" = "Please configure and save AI API Key in Settings first.";
 "alert_ai_generate_failed" = "Generation failed. Please try again later.";
 "alert_missing_roster_title" = "New teams or players detected";
 "alert_missing_roster_message" = "The import contains teams or players not on this device. Unmatched items will be created with their original UUIDs. Photos will not be imported.";
@@ -644,7 +644,7 @@
 "parse_result_incomplete_chunks" = "Detected chunked code. Fill all segments before parsing.";
 "parse_result_success_format" = "Parse succeeded\nType: Game\nTeams: %d\nPlayers: %d\nUnmatched items will be created with original UUIDs. Photos will not be imported.";
 
-"text_ai_waiting_key" = "Waiting for DeepSeek API Key.";
+"text_ai_waiting_key" = "Waiting for AI API Key.";
 "text_ai_will_generate" = "Will generate: game summary, MVP pick and highlight moments.";
 "text_clipboard_recognized_game" = "Detected game data from clipboard and auto-pasted successfully.";
 
@@ -751,7 +751,7 @@
 "deepseek_keychain_failed_status_format" = "Keychain operation failed (%@).";
 /* DeepSeekService */
 "deepseek_error_unavailable" = "The service is temporarily unavailable.";
-"deepseek_error_missing_api_key" = "Please set your DeepSeek API Key first.";
+"deepseek_error_missing_api_key" = "Please set your AI API Key first.";
 "deepseek_error_bad_response" = "Connected, but the response was not in the expected format.";
 "deepseek_error_empty_response" = "The model returned an empty response. Please try again later.";
 "deepseek_error_request_failed_format" = "Request failed (%d): %@";

@@ -26,7 +26,7 @@
 "settings_privacy" = "Privacy";
 "settings_version" = "Versione";
 
-"deepseek_enter_api_key" = "Inserisci DeepSeek API Key";
+"deepseek_enter_api_key" = "Inserisci AI API Key";
 "deepseek_testing" = "Test in corso...";
 "deepseek_test" = "Testa connessione";
 "deepseek_save_key" = "Salva nel Portachiavi";
@@ -351,7 +351,7 @@
 "deepseek_error_remove_failed" = "Non è riuscito a rimuovere API Key.";
 "deepseek_error_save_failed" = "Non è riuscito a salvare API Key.";
 "deepseek_error_test_failed" = "Il test di connessione è fallito.";
-"deepseek_settings_title" = "API DeepSeek";
+"deepseek_settings_title" = "API IA";
 "deepseek_status_has_saved_key" = "Rilevata chiave API salvata.";
 "deepseek_status_loaded_saved_key" = "Caricato API Key salvato.";
 "deepseek_status_no_saved_key" = "Nessuna chiave API salvata.";
@@ -421,14 +421,14 @@
 "section_team_share_code" = "Codice Condividi Team";
 "segment_count_value_format" = "%d segmenti";
 "segment_progress_format" = "Segment %d %d";
-"settings_doc_help_ai_item1_desc" = "Impostare DeepSeek API Key in Impostazioni e salvarlo dopo un test di connessione di successo.";
+"settings_doc_help_ai_item1_desc" = "Impostare AI API Key in Impostazioni e salvarlo dopo un test di connessione di successo.";
 "settings_doc_help_ai_item1_title" = "Abilitare la domanda";
 "settings_doc_help_ai_item2_desc" = "Genera sommario di gioco, MVP e evidenzia, e salva i risultati ai record di gioco.";
 "settings_doc_help_ai_item2_title" = "Contenuto sommario";
 "settings_doc_help_ai_item3_desc" = "L'uscita AI segue lo stile di lettura in-app per una recensione più semplice.";
 "settings_doc_help_ai_item3_title" = "Stile di visualizzazione";
 "settings_doc_help_ai_title" = "Riepilogo AI (opzionale)";
-"settings_doc_help_content" = "Benvenuti a Basketball Journey.\n\n1. Creare giocatori e squadre, quindi iniziare un nuovo gioco dalla pagina Score.\n2. I giocatori in tribunale all'inizio del periodo 1 sono principianti; gli arrivi successivi sono giocatori di panca.\n3. L'applicazione supporta statistiche complete, guasti di periodo, recensione di storia e totali di carriera.\n4. È possibile utilizzare la collaborazione Bluetooth, l'importazione/esportazione e unire strumenti per la gestione dei dati cross-device.\n5. Dopo aver impostato DeepSeek API Key, è possibile generare e salvare i riassunti di gioco AI.";
+"settings_doc_help_content" = "Benvenuti a Basketball Journey.\n\n1. Creare giocatori e squadre, quindi iniziare un nuovo gioco dalla pagina Score.\n2. I giocatori in tribunale all'inizio del periodo 1 sono principianti; gli arrivi successivi sono giocatori di panca.\n3. L'applicazione supporta statistiche complete, guasti di periodo, recensione di storia e totali di carriera.\n4. È possibile utilizzare la collaborazione Bluetooth, l'importazione/esportazione e unire strumenti per la gestione dei dati cross-device.\n5. Dopo aver impostato AI API Key, è possibile generare e salvare i riassunti di gioco AI.";
 "settings_doc_help_gamelog_item1_desc" = "Tracce 2PT, 3PT, FT, rimbalzi, assist, falli, blocchi, rubriche e fatturato.";
 "settings_doc_help_gamelog_item1_title" = "statistiche complete";
 "settings_doc_help_gamelog_item2_desc" = "Sostituisci in qualsiasi momento; i giocatori tardivi possono essere aggiunti in tribunale prima di registrare statistiche.";
@@ -450,12 +450,12 @@
 "settings_doc_help_sync_item3_desc" = "Unire i giocatori duplicati o le squadre per mantenere la storia pulita.";
 "settings_doc_help_sync_item3_title" = "Merge dati";
 "settings_doc_help_sync_title" = "Sincronizzazione e condivisione";
-"settings_doc_privacy_content" = "Per impostazione predefinita, questa applicazione memorizza il gioco, il team, il giocatore e l'impostazione dei dati localmente sul dispositivo e non carica automaticamente per i server dello sviluppatore. * Solo quando importate, esportate, condividete, usate la sincronizzazione Bluetooth, o generate il sommario AI saranno trasmessi i dati relativi. * È possibile gestire o rimuovere DeepSeek API Key in qualsiasi momento in Impostazioni.";
+"settings_doc_privacy_content" = "Per impostazione predefinita, questa applicazione memorizza il gioco, il team, il giocatore e l'impostazione dei dati localmente sul dispositivo e non carica automaticamente per i server dello sviluppatore. * Solo quando importate, esportate, condividete, usate la sincronizzazione Bluetooth, o generate il sommario AI saranno trasmessi i dati relativi. * È possibile gestire o rimuovere AI API Key in qualsiasi momento in Impostazioni.";
 "settings_doc_privacy_network_item1_desc" = "La collaborazione Bluetooth trasferisce i dati solo dopo la connessione e la conferma, e solo tra i dispositivi partecipanti.";
 "settings_doc_privacy_network_item1_title" = "Collaborazione Bluetooth";
-"settings_doc_privacy_network_item2_desc" = "Solo quando si configura DeepSeek API Key e richiedi attivamente i dati del gioco saranno inviati a DeepSeek.";
+"settings_doc_privacy_network_item2_desc" = "Solo quando si configura AI API Key e richiedi attivamente i dati del gioco saranno inviati al fornitore di IA.";
 "settings_doc_privacy_network_item2_title" = "Riepilogo AI (opzionale)";
-"settings_doc_privacy_network_item3_desc" = "DeepSeek API Key è memorizzato in iOS Keychain e può essere rimosso in Impostazioni in qualsiasi momento.";
+"settings_doc_privacy_network_item3_desc" = "AI API Key è memorizzato in iOS Keychain e può essere rimosso in Impostazioni in qualsiasi momento.";
 "settings_doc_privacy_network_item3_title" = "API Sicurezza chiave";
 "settings_doc_privacy_network_title" = "Servizi di rete e terze parti";
 "settings_doc_privacy_notice_item1_desc" = "Eliminare, sovrascrivere e unire le operazioni possono influenzare i dati esistenti. Si prega di confermare prima di procedere.";
@@ -621,7 +621,7 @@
 "alert_confirmation_failed_retry" = "Conferma fallita. Controlla la connessione e riprova.";
 "alert_confirm_delete_game_title" = "Eliminare questa partita?";
 "alert_confirm_delete_games_title" = "Eliminare le partite selezionate?";
-"alert_ai_no_api_key" = "Configura e salva prima la chiave API DeepSeek in Impostazioni.";
+"alert_ai_no_api_key" = "Configura e salva prima la chiave API IA in Impostazioni.";
 "alert_ai_generate_failed" = "Generazione fallita. Riprova più tardi.";
 "alert_missing_roster_title" = "Nuove squadre o giocatori rilevati";
 "alert_missing_roster_message" = "L'importazione contiene squadre o giocatori non presenti su questo dispositivo. Gli elementi non corrispondenti verranno creati con i loro UUID originali. Le foto non verranno importate.";
@@ -696,7 +696,7 @@
 "parse_result_failed_chunk_format" = "Analisi fallita\nTipo: Partita frammentata\n%@";
 "parse_result_incomplete_chunks" = "Codice frammentato rilevato. Completa tutti i segmenti prima dell'analisi.";
 "parse_result_success_format" = "Analisi riuscita\nTipo: Partita\nSquadre: %d\nGiocatori: %d\nGli elementi non corrispondenti verranno creati con UUID originali. Le foto non verranno importate.";
-"text_ai_waiting_key" = "In attesa della chiave API DeepSeek.";
+"text_ai_waiting_key" = "In attesa della chiave API IA.";
 "text_ai_will_generate" = "Genererà: riepilogo partita, scelta MVP e momenti salienti.";
 "text_clipboard_recognized_game" = "Dati partita rilevati dagli appunti e incollati automaticamente con successo.";
 "unmarked_role" = "Non contrassegnato";
@@ -787,7 +787,7 @@
 "deepseek_keychain_failed_format" = "Operazione portachiavi fallita: %@";
 "deepseek_keychain_failed_status_format" = "Operazione portachiavi fallita (%@).";
 "deepseek_error_unavailable" = "Il servizio non è temporaneamente disponibile.";
-"deepseek_error_missing_api_key" = "Imposta prima la tua chiave API DeepSeek.";
+"deepseek_error_missing_api_key" = "Imposta prima la tua chiave API IA.";
 "deepseek_error_bad_response" = "Connesso, ma la risposta non era nel formato previsto.";
 "deepseek_error_empty_response" = "Il modello ha restituito una risposta vuota. Riprova più tardi.";
 "deepseek_error_request_failed_format" = "Richiesta fallita (%d): %@";

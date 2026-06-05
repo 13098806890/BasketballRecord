@@ -20,13 +20,13 @@
 "settings_import" = "インポート";
 "settings_merge" = "マージ";
 "settings_section_ai" = "AI";
-"settings_deepseek_api_key" = "DeepSeek API キー";
+"settings_deepseek_api_key" = "AI API キー";
 "settings_section_help_about" = "ヘルプと情報";
 "settings_help" = "ヘルプ";
 "settings_privacy" = "プライバシー";
 "settings_version" = "バージョン";
 
-"deepseek_enter_api_key" = "DeepSeek API キーを入力";
+"deepseek_enter_api_key" = "AI API キーを入力";
 "deepseek_testing" = "テスト中...";
 "deepseek_test" = "接続をテスト";
 "deepseek_save_key" = "キーチェーンに保存";
@@ -351,7 +351,7 @@
 "deepseek_error_remove_failed" = "APIキーを削除できません。";
 "deepseek_error_save_failed" = "APIキーを保存できません。";
 "deepseek_error_test_failed" = "接続テストが失敗しました。";
-"deepseek_settings_title" = "DeepSeek APIの使い方";
+"deepseek_settings_title" = "AI APIの設定";
 "deepseek_status_has_saved_key" = "保存された API キーが検出されました。";
 "deepseek_status_loaded_saved_key" = "保存された API キーをロードしました。";
 "deepseek_status_no_saved_key" = "保存された API キー無し。";
@@ -421,14 +421,14 @@
 "section_team_share_code" = "チーム共有コード";
 "segment_count_value_format" = "%d セグメント";
 "segment_progress_format" = "セグメント %d / %d";
-"settings_doc_help_ai_item1_desc" = "DeepSeek API キーを [設定] に設定し、接続テストを成功させた後に保存します。";
+"settings_doc_help_ai_item1_desc" = "AI API キーを [設定] に設定し、接続テストを成功させた後に保存します。";
 "settings_doc_help_ai_item1_title" = "オンデマンドを有効にする";
 "settings_doc_help_ai_item2_desc" = "ゲーム概要、MVP、ハイライトを生成し、結果をゲームレコードに保存します。";
 "settings_doc_help_ai_item2_title" = "概要コンテンツ";
 "settings_doc_help_ai_item3_desc" = "AI出力は、アプリ内読書スタイルに従って、簡単なレビューを行います。";
 "settings_doc_help_ai_item3_title" = "ディスプレイスタイル";
 "settings_doc_help_ai_title" = "AIサマリー(オプション)";
-"settings_doc_help_content" = "バスケットボール・ジャーニーへようこそ。\n\n1。プレイヤーとチームを作成し、スコアページから新しいゲームを開始します。\n2。 期間1の開始時に裁判所のプレーヤーは始動機です。その後の到着はベンチプレイヤーです。\n3。 アプリは、完全な統計、期間の内訳、履歴レビュー、およびキャリア合計をサポートしています。\n4. Bluetoothのコラボレーション、インポート/エクスポート、およびクロスデバイスデータ管理のためのツールをマージすることができます。\n5. DeepSeek APIキーの設定後、AIゲームの要約を生成し保存することができます。";
+"settings_doc_help_content" = "バスケットボール・ジャーニーへようこそ。\n\n1。プレイヤーとチームを作成し、スコアページから新しいゲームを開始します。\n2。 期間1の開始時に裁判所のプレーヤーは始動機です。その後の到着はベンチプレイヤーです。\n3。 アプリは、完全な統計、期間の内訳、履歴レビュー、およびキャリア合計をサポートしています。\n4. Bluetoothのコラボレーション、インポート/エクスポート、およびクロスデバイスデータ管理のためのツールをマージすることができます。\n5. AI APIキーの設定後、AIゲームの要約を生成し保存することができます。";
 "settings_doc_help_gamelog_item1_desc" = "2PT、3PT、FT、リバウンド、アシスト、フォーク、ブロック、ステルス、およびターンオーバーを追跡します。";
 "settings_doc_help_gamelog_item1_title" = "包括的な統計";
 "settings_doc_help_gamelog_item2_desc" = "いつでも置換します。レイトプレーヤーは、スタットを録音する前に、裁判所で追加することができます。";
@@ -450,12 +450,12 @@
 "settings_doc_help_sync_item3_desc" = "重複するプレーヤーやチームをマージし、歴史を清潔に保ちます。";
 "settings_doc_help_sync_item3_title" = "データマージ";
 "settings_doc_help_sync_title" = "同期&共有";
-"settings_doc_privacy_content" = "デフォルトでは、このアプリは、ゲーム、チーム、プレーヤー、およびデバイスにローカルにデータを設定し、開発者サーバーに自動アップロードしません。 ツイート Bluetoothの同期を積極的にインポート、エクスポート、共有、使用したり、AIの要約を生成したりすると、関連するデータが送信されます。 ツイート 設定時にDeepSeek API Keyをいつでも管理または削除できます。";
+"settings_doc_privacy_content" = "デフォルトでは、このアプリは、ゲーム、チーム、プレーヤー、およびデバイスにローカルにデータを設定し、開発者サーバーに自動アップロードしません。 ツイート Bluetoothの同期を積極的にインポート、エクスポート、共有、使用したり、AIの要約を生成したりすると、関連するデータが送信されます。 ツイート 設定時にAPI Keyをいつでも管理または削除できます。";
 "settings_doc_privacy_network_item1_desc" = "Bluetoothコラボレーションは、接続して確認した後にのみデータを転送し、参加デバイス間でのみデータを転送します。";
 "settings_doc_privacy_network_item1_title" = "Bluetooth連携";
-"settings_doc_privacy_network_item2_desc" = "DeepSeek APIキーと積極的にリクエスト要約を設定すると、DeepSeekにゲームデータを送信する必要があります。";
+"settings_doc_privacy_network_item2_desc" = "AI APIキーを設定し、積極的に要約をリクエストすると、必要なゲームデータがAIプロバイダーに送信されます。";
 "settings_doc_privacy_network_item2_title" = "AIサマリー(オプション)";
-"settings_doc_privacy_network_item3_desc" = "DeepSeek APIキーはiOS Keychainに保存され、いつでも設定で削除できます。";
+"settings_doc_privacy_network_item3_desc" = "APIキーはiOS Keychainに保存され、いつでも設定で削除できます。";
 "settings_doc_privacy_network_item3_title" = "APIキーセキュリティ";
 "settings_doc_privacy_network_title" = "ネットワークおよびサードパーティサービス";
 "settings_doc_privacy_notice_item1_desc" = "削除、上書き、およびマージ操作は、既存のデータに影響を及ぼす可能性があります。 事前にご確認ください。";
@@ -489,7 +489,7 @@
 "alert_confirmation_failed_retry" = "確認に失敗しました。接続を確認して再試行してください。";
 "alert_confirm_delete_game_title" = "この試合を削除しますか？";
 "alert_confirm_delete_games_title" = "選択した試合を削除しますか？";
-"alert_ai_no_api_key" = "設定でDeepSeek API Keyを構成して保存してください。";
+"alert_ai_no_api_key" = "設定でAI API Keyを構成して保存してください。";
 "alert_ai_generate_failed" = "生成に失敗しました。後でもう一度お試しください。";
 "alert_missing_roster_title" = "新しいチームまたは選手を検出";
 "alert_missing_roster_message" = "インポートにはこのデバイスにないチームまたは選手が含まれています。一致しない項目は元のUUIDで作成されます。写真はインポートされません。";
@@ -568,7 +568,7 @@
 "parse_result_failed_chunk_format" = "解析失敗\nタイプ: 試合（チャンク化）\n%@";
 "parse_result_incomplete_chunks" = "チャンク化コードを検出しました。解析前にすべてのセグメントを入力してください。";
 "parse_result_success_format" = "解析成功\nタイプ: 試合\nチーム: %d\n選手: %d\n一致しない項目は元のUUIDで作成されます。写真はインポートされません。";
-"text_ai_waiting_key" = "DeepSeek API Keyを待機中。";
+"text_ai_waiting_key" = "AI API Keyを待機中。";
 "text_ai_will_generate" = "試合サマリー、MVP、ハイライトを生成します。";
 "text_clipboard_recognized_game" = "クリップボードから試合データを検出し、自動貼り付けに成功しました。";
 "unmarked_role" = "未マーク";
@@ -723,7 +723,7 @@
 "deepseek_keychain_failed_status_format" = "キーチェーン操作に失敗しました（%@）。";
 /* DeepSeekService */
 "deepseek_error_unavailable" = "サービスが一時的に利用できません。";
-"deepseek_error_missing_api_key" = "先にDeepSeek API Keyを設定してください。";
+"deepseek_error_missing_api_key" = "先にAI API Keyを設定してください。";
 "deepseek_error_bad_response" = "接続できましたが、応答が期待された形式ではありませんでした。";
 "deepseek_error_empty_response" = "モデルが空の応答を返しました。後でもう一度お試しください。";
 "deepseek_error_request_failed_format" = "リクエストに失敗しました（%d）: %@";

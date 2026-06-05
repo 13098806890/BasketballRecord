@@ -3185,12 +3185,12 @@ struct TeamStatsDisclosureView: View {
         HStack(spacing: 0) {
             VStack(alignment: .trailing, spacing: 1) {
                 Text(home)
-                    .font(.caption.monospacedDigit().weight(.bold))
-                    .foregroundStyle(.black)
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
                 if let homePct {
                     Text(homePct)
-                        .font(.caption2.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .font(.caption2.monospacedDigit().weight(.bold))
+                        .foregroundStyle(.black)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -3205,12 +3205,12 @@ struct TeamStatsDisclosureView: View {
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(away)
-                    .font(.caption.monospacedDigit().weight(.bold))
-                    .foregroundStyle(.black)
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
                 if let awayPct {
                     Text(awayPct)
-                        .font(.caption2.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .font(.caption2.monospacedDigit().weight(.bold))
+                        .foregroundStyle(.black)
                 }
             }
             .frame(maxWidth: .infinity)

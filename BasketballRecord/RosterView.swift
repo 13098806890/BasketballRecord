@@ -1,5 +1,7 @@
 import SwiftUI
 import UIKit
+import StoreKit
+import WebKit
 
 private func localized(_ key: String) -> String {
     NSLocalizedString(key, comment: "")
@@ -252,7 +254,7 @@ struct RosterView: View {
                 AISettingsView()
             }
             .sheet(isPresented: $isShowingPurchase) {
-                ProSubscribeView()
+                ProSubscriptionStoreView()
             }
             .onChange(of: PurchaseManager.shared.isPro) { _, isPro in
                 if isPro { isShowingPurchase = false }
@@ -304,30 +306,34 @@ struct RosterView: View {
     }
 }
 
-private struct ProSubscribeView: View {
+private struct ProSubscriptionStoreView: View {
     @Environment(\.dismiss) private var dismiss
 
     private let features: [SettingsFeatureSection] = [
-        SettingsFeatureSection(icon: "folder.fill", title: localized("game_group_nav_title"), items: [
-            SettingsFeatureItem(localized("pro_feature_groups_1"), ""),
+        SettingsFeatureSection(icon: "folder.fill", title: LocalizedStringKey("game_group_nav_title"), items: [
+            SettingsFeatureItem(LocalizedStringKey("pro_feature_groups_1"), LocalizedStringKey("")),
         ]),
-        SettingsFeatureSection(icon: "dot.radiowaves.left.and.right", title: localized("settings_bluetooth_sync"), items: [
-            SettingsFeatureItem(localized("pro_feature_bluetooth_1"), ""),
-            SettingsFeatureItem(localized("pro_feature_bluetooth_2"), ""),
+        SettingsFeatureSection(icon: "dot.radiowaves.left.and.right", title: LocalizedStringKey("settings_bluetooth_sync"), items: [
+            SettingsFeatureItem(LocalizedStringKey("pro_feature_bluetooth_1"), LocalizedStringKey("")),
+            SettingsFeatureItem(LocalizedStringKey("pro_feature_bluetooth_2"), LocalizedStringKey("")),
         ]),
-        SettingsFeatureSection(icon: "icloud.fill", title: localized("settings_cloud_storage"), items: [
-            SettingsFeatureItem(localized("pro_feature_cloud_1"), ""),
-            SettingsFeatureItem(localized("pro_feature_cloud_2"), ""),
+        SettingsFeatureSection(icon: "icloud.fill", title: LocalizedStringKey("settings_cloud_storage"), items: [
+            SettingsFeatureItem(LocalizedStringKey("pro_feature_cloud_1"), LocalizedStringKey("")),
+            SettingsFeatureItem(LocalizedStringKey("pro_feature_cloud_2"), LocalizedStringKey("")),
         ]),
-        SettingsFeatureSection(icon: "sparkles", title: localized("settings_ai"), items: [
-            SettingsFeatureItem(localized("pro_feature_ai_1"), ""),
-            SettingsFeatureItem(localized("pro_feature_ai_2"), ""),
+        SettingsFeatureSection(icon: "sparkles", title: LocalizedStringKey("settings_ai"), items: [
+            SettingsFeatureItem(LocalizedStringKey("pro_feature_ai_1"), LocalizedStringKey("")),
+            SettingsFeatureItem(LocalizedStringKey("pro_feature_ai_2"), LocalizedStringKey("")),
         ]),
     ]
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
+        let products = [PurchaseManager.shared.yearlyProduct, PurchaseManager.shared.monthlyProduct].compactMap { $0 }
+        if products.isEmpty {
+            ProgressView()
+                .task { await PurchaseManager.shared.loadProducts() }
+        } else {
+            SubscriptionStoreView(subscriptions: products) {
                 VStack(alignment: .leading, spacing: 14) {
                     HStack(spacing: 12) {
                         Image(systemName: "crown.fill")
@@ -341,91 +347,22 @@ private struct ProSubscribeView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.top, 8)
-
                     VStack(alignment: .leading, spacing: 16) {
                         ForEach(features) { section in
                             featureSectionView(section)
                         }
                     }
-                    .padding(.horizontal, 16)
-
-                    VStack(spacing: 10) {
-                        if let product = PurchaseManager.shared.yearlyProduct {
-                            Button {
-                                Task { try? await PurchaseManager.shared.purchase(product) }
-                            } label: {
-                                HStack {
-                                    Text(LocalizedStringKey("button_subscribe_yearly"))
-                                        .fontWeight(.semibold)
-                                    Spacer()
-                                    Text(product.displayPrice)
-                                        .font(.subheadline.weight(.semibold))
-                                }
-                                .padding(.horizontal, 4)
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(.blue)
-                            .controlSize(.large)
-                        }
-
-                        if let product = PurchaseManager.shared.monthlyProduct {
-                            Button {
-                                Task { try? await PurchaseManager.shared.purchase(product) }
-                            } label: {
-                                HStack {
-                                    Text(LocalizedStringKey("button_subscribe_monthly"))
-                                    Spacer()
-                                    Text(product.displayPrice)
-                                }
-                                .padding(.horizontal, 4)
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(.blue)
-                            .controlSize(.large)
-                        }
-
-                        Button(LocalizedStringKey("button_restore")) {
-                            Task { await PurchaseManager.shared.restore() }
-                        }
-                        .font(.caption)
-                        .frame(maxWidth: .infinity)
-
-                        Text(LocalizedStringKey("subscription_auto_renew_info"))
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: .infinity)
-
-                        HStack(spacing: 16) {
-                            Link(destination: URL(string: "https://github.com/13098806890/BasketballRecord/blob/main/docs/appstore/privacy-policy.html")!) {
-                                Text(LocalizedStringKey("link_privacy_policy"))
-                                    .font(.caption)
-                            }
-                            Text("·")
-                                .font(.caption)
-                                .foregroundStyle(.tertiary)
-                            Link(destination: URL(string: "https://github.com/13098806890/BasketballRecord/blob/main/docs/appstore/terms-of-use.html")!) {
-                                Text(LocalizedStringKey("link_terms_of_eula"))
-                                    .font(.caption)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.top, 24)
-                    .padding(.bottom, 16)
                 }
+                .padding(16)
             }
-            .navigationTitle(LocalizedStringKey("section_pro"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(LocalizedStringKey("button_close")) { dismiss() }
-                }
+            .storeButton(.visible, for: .restorePurchases)
+            .subscriptionStorePolicyDestination(for: .privacyPolicy) {
+                SafariWebView(url: URL(string: "https://github.com/13098806890/BasketballRecord/blob/main/docs/appstore/privacy-policy.html")!)
+            }
+            .subscriptionStorePolicyDestination(for: .termsOfService) {
+                SafariWebView(url: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
             }
         }
-        .presentationDetents([.large])
     }
 
     @ViewBuilder
@@ -712,27 +649,27 @@ private enum SettingsDocument: String, Identifiable {
             return [
                 SettingsFeatureSection(
                     icon: "lock.shield",
-                    title: localized("settings_doc_privacy_storage_title"),
+                    title: LocalizedStringKey("settings_doc_privacy_storage_title"),
                     items: [
-                        SettingsFeatureItem(localized("settings_doc_privacy_storage_item1_title"), localized("settings_doc_privacy_storage_item1_desc")),
-                        SettingsFeatureItem(localized("settings_doc_privacy_storage_item2_title"), localized("settings_doc_privacy_storage_item2_desc"))
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_privacy_storage_item1_title"), LocalizedStringKey("settings_doc_privacy_storage_item1_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_privacy_storage_item2_title"), LocalizedStringKey("settings_doc_privacy_storage_item2_desc"))
                     ]
                 ),
                 SettingsFeatureSection(
                     icon: "network",
-                    title: localized("settings_doc_privacy_network_title"),
+                    title: LocalizedStringKey("settings_doc_privacy_network_title"),
                     items: [
-                        SettingsFeatureItem(localized("settings_doc_privacy_network_item1_title"), localized("settings_doc_privacy_network_item1_desc")),
-                        SettingsFeatureItem(localized("settings_doc_privacy_network_item2_title"), localized("settings_doc_privacy_network_item2_desc")),
-                        SettingsFeatureItem(localized("settings_doc_privacy_network_item3_title"), localized("settings_doc_privacy_network_item3_desc"))
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_privacy_network_item1_title"), LocalizedStringKey("settings_doc_privacy_network_item1_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_privacy_network_item2_title"), LocalizedStringKey("settings_doc_privacy_network_item2_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_privacy_network_item3_title"), LocalizedStringKey("settings_doc_privacy_network_item3_desc"))
                     ]
                 ),
                 SettingsFeatureSection(
                     icon: "exclamationmark.triangle",
-                    title: localized("settings_doc_privacy_notice_title"),
+                    title: LocalizedStringKey("settings_doc_privacy_notice_title"),
                     items: [
-                        SettingsFeatureItem(localized("settings_doc_privacy_notice_item1_title"), localized("settings_doc_privacy_notice_item1_desc")),
-                        SettingsFeatureItem(localized("settings_doc_privacy_notice_item2_title"), localized("settings_doc_privacy_notice_item2_desc"))
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_privacy_notice_item1_title"), LocalizedStringKey("settings_doc_privacy_notice_item1_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_privacy_notice_item2_title"), LocalizedStringKey("settings_doc_privacy_notice_item2_desc"))
                     ]
                 )
             ]
@@ -740,63 +677,63 @@ private enum SettingsDocument: String, Identifiable {
             return [
                 SettingsFeatureSection(
                     icon: "play.rectangle",
-                    title: localized("settings_doc_help_quickstart_title"),
+                    title: LocalizedStringKey("settings_doc_help_quickstart_title"),
                     items: [
-                        SettingsFeatureItem(localized("settings_doc_help_quickstart_item1_title"), localized("settings_doc_help_quickstart_item1_desc")),
-                        SettingsFeatureItem(localized("settings_doc_help_quickstart_item2_title"), localized("settings_doc_help_quickstart_item2_desc")),
-                        SettingsFeatureItem(localized("settings_doc_help_quickstart_item3_title"), localized("settings_doc_help_quickstart_item3_desc"))
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_quickstart_item1_title"), LocalizedStringKey("settings_doc_help_quickstart_item1_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_quickstart_item2_title"), LocalizedStringKey("settings_doc_help_quickstart_item2_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_quickstart_item3_title"), LocalizedStringKey("settings_doc_help_quickstart_item3_desc"))
                     ]
                 ),
                 SettingsFeatureSection(
                     icon: "folder.fill",
-                    title: localized("settings_doc_help_groups_title"),
+                    title: LocalizedStringKey("settings_doc_help_groups_title"),
                     items: [
-                        SettingsFeatureItem(localized("settings_doc_help_groups_item1_title"), localized("settings_doc_help_groups_item1_desc")),
-                        SettingsFeatureItem(localized("settings_doc_help_groups_item2_title"), localized("settings_doc_help_groups_item2_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_groups_item1_title"), LocalizedStringKey("settings_doc_help_groups_item1_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_groups_item2_title"), LocalizedStringKey("settings_doc_help_groups_item2_desc")),
                     ]
                 ),
                 SettingsFeatureSection(
                     icon: "basketball",
-                    title: localized("settings_doc_help_gamelog_title"),
+                    title: LocalizedStringKey("settings_doc_help_gamelog_title"),
                     items: [
-                        SettingsFeatureItem(localized("settings_doc_help_gamelog_item1_title"), localized("settings_doc_help_gamelog_item1_desc")),
-                        SettingsFeatureItem(localized("settings_doc_help_gamelog_item2_title"), localized("settings_doc_help_gamelog_item2_desc")),
-                        SettingsFeatureItem(localized("settings_doc_help_gamelog_item3_title"), localized("settings_doc_help_gamelog_item3_desc")),
-                        SettingsFeatureItem(localized("settings_doc_help_gamelog_item4_title"), localized("settings_doc_help_gamelog_item4_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_gamelog_item1_title"), LocalizedStringKey("settings_doc_help_gamelog_item1_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_gamelog_item2_title"), LocalizedStringKey("settings_doc_help_gamelog_item2_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_gamelog_item3_title"), LocalizedStringKey("settings_doc_help_gamelog_item3_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_gamelog_item4_title"), LocalizedStringKey("settings_doc_help_gamelog_item4_desc")),
                     ]
                 ),
                 SettingsFeatureSection(
                     icon: "dot.radiowaves.left.and.right",
-                    title: localized("settings_doc_help_sync_title"),
+                    title: LocalizedStringKey("settings_doc_help_sync_title"),
                     items: [
-                        SettingsFeatureItem(localized("settings_doc_help_sync_item1_title"), localized("settings_doc_help_sync_item1_desc")),
-                        SettingsFeatureItem(localized("settings_doc_help_sync_item2_title"), localized("settings_doc_help_sync_item2_desc")),
-                        SettingsFeatureItem(localized("settings_doc_help_sync_item3_title"), localized("settings_doc_help_sync_item3_desc"))
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_sync_item1_title"), LocalizedStringKey("settings_doc_help_sync_item1_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_sync_item2_title"), LocalizedStringKey("settings_doc_help_sync_item2_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_sync_item3_title"), LocalizedStringKey("settings_doc_help_sync_item3_desc"))
                     ]
                 ),
                 SettingsFeatureSection(
                     icon: "icloud.fill",
-                    title: localized("settings_doc_help_cloud_title"),
+                    title: LocalizedStringKey("settings_doc_help_cloud_title"),
                     items: [
-                        SettingsFeatureItem(localized("settings_doc_help_cloud_item1_title"), localized("settings_doc_help_cloud_item1_desc")),
-                        SettingsFeatureItem(localized("settings_doc_help_cloud_item2_title"), localized("settings_doc_help_cloud_item2_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_cloud_item1_title"), LocalizedStringKey("settings_doc_help_cloud_item1_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_cloud_item2_title"), LocalizedStringKey("settings_doc_help_cloud_item2_desc")),
                     ]
                 ),
                 SettingsFeatureSection(
                     icon: "sparkles",
-                    title: localized("settings_doc_help_ai_title"),
+                    title: LocalizedStringKey("settings_doc_help_ai_title"),
                     items: [
-                        SettingsFeatureItem(localized("settings_doc_help_ai_item1_title"), localized("settings_doc_help_ai_item1_desc")),
-                        SettingsFeatureItem(localized("settings_doc_help_ai_item2_title"), localized("settings_doc_help_ai_item2_desc")),
-                        SettingsFeatureItem(localized("settings_doc_help_ai_item3_title"), localized("settings_doc_help_ai_item3_desc"))
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_ai_item1_title"), LocalizedStringKey("settings_doc_help_ai_item1_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_ai_item2_title"), LocalizedStringKey("settings_doc_help_ai_item2_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_ai_item3_title"), LocalizedStringKey("settings_doc_help_ai_item3_desc"))
                     ]
                 ),
                 SettingsFeatureSection(
                     icon: "crown.fill",
-                    title: localized("settings_doc_help_pro_title"),
+                    title: LocalizedStringKey("settings_doc_help_pro_title"),
                     items: [
-                        SettingsFeatureItem(localized("settings_doc_help_pro_item1_title"), localized("settings_doc_help_pro_item1_desc")),
-                        SettingsFeatureItem(localized("settings_doc_help_pro_item2_title"), localized("settings_doc_help_pro_item2_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_pro_item1_title"), LocalizedStringKey("settings_doc_help_pro_item1_desc")),
+                        SettingsFeatureItem(LocalizedStringKey("settings_doc_help_pro_item2_title"), LocalizedStringKey("settings_doc_help_pro_item2_desc")),
                     ]
                 ),
             ]
@@ -1011,11 +948,11 @@ private struct SettingsDocumentSection {
 private struct SettingsFeatureSection: Identifiable {
     let id: String
     let icon: String
-    let title: String
+    let title: LocalizedStringKey
     let items: [SettingsFeatureItem]
 
-    init(icon: String, title: String, items: [SettingsFeatureItem]) {
-        self.id = title
+    init(icon: String, title: LocalizedStringKey, items: [SettingsFeatureItem]) {
+        self.id = UUID().uuidString
         self.icon = icon
         self.title = title
         self.items = items
@@ -1024,11 +961,11 @@ private struct SettingsFeatureSection: Identifiable {
 
 private struct SettingsFeatureItem: Identifiable {
     let id: String
-    let title: String
-    let description: String
+    let title: LocalizedStringKey
+    let description: LocalizedStringKey
 
-    init(_ title: String, _ description: String) {
-        self.id = "\(title)-\(description)"
+    init(_ title: LocalizedStringKey, _ description: LocalizedStringKey) {
+        self.id = UUID().uuidString
         self.title = title
         self.description = description
     }
@@ -3165,4 +3102,17 @@ struct CloudStorageView: View {
         f.dateFormat = "yyyy-MM-dd HH:mm"
         return f
     }()
+}
+
+private struct SafariWebView: UIViewRepresentable {
+    let url: URL
+
+    func makeUIView(context: Context) -> WKWebView {
+        let wk = WKWebView()
+        wk.load(URLRequest(url: url))
+        return wk
+    }
+
+    func updateUIView(_ uiView: WKWebView, context: Context) {
+    }
 }

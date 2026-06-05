@@ -77,13 +77,13 @@
 "settings_import" = "Импорт";
 "settings_merge" = "Объединить";
 "settings_section_ai" = "ИИ";
-"settings_deepseek_api_key" = "Ключ DeepSeek API";
+"settings_deepseek_api_key" = "Ключ AI API";
 "settings_section_help_about" = "Помощь и о приложении";
 "settings_help" = "Помощь";
 "settings_privacy" = "Конфиденциальность";
 "settings_version" = "Версия";
 
-"deepseek_enter_api_key" = "Введите ключ DeepSeek API";
+"deepseek_enter_api_key" = "Введите ключ AI API";
 "deepseek_testing" = "Тестирование...";
 "deepseek_test" = "Проверить подключение";
 "deepseek_save_key" = "Сохранить в связке ключей";
@@ -350,7 +350,7 @@
 "deepseek_error_remove_failed" = "Не удалось удалить API-ключ.";
 "deepseek_error_save_failed" = "Не удалось сохранить API-ключ.";
 "deepseek_error_test_failed" = "Тест на подключение провалился.";
-"deepseek_settings_title" = "DeepSeek API";
+"deepseek_settings_title" = "AI API";
 "deepseek_status_has_saved_key" = "Обнаружен сохраненный ключ API.";
 "deepseek_status_loaded_saved_key" = "Загруженный сохраненный API-ключ.";
 "deepseek_status_no_saved_key" = "Нет сохраненного API-ключа.";
@@ -420,14 +420,14 @@
 "section_team_share_code" = "Общий код команды";
 "segment_count_value_format" = "%d сегменты";
 "segment_progress_format" = "Сегмент %d / %d";
-"settings_doc_help_ai_item1_desc" = "Установите API-ключ DeepSeek в настройках и сохраните его после успешного тестирования соединения.";
+"settings_doc_help_ai_item1_desc" = "Установите API-ключ AI в настройках и сохраните его после успешного тестирования соединения.";
 "settings_doc_help_ai_item1_title" = "Включить по требованию";
 "settings_doc_help_ai_item2_desc" = "Генерирует сводку игр, MVP и основные моменты и сохраняет результаты в игровых записях.";
 "settings_doc_help_ai_item2_title" = "Краткое содержание";
 "settings_doc_help_ai_item3_desc" = "Вывод AI следует стилю чтения в приложении для облегчения обзора.";
 "settings_doc_help_ai_item3_title" = "Стиль отображения";
 "settings_doc_help_ai_title" = "Резюме (факультативно)";
-"settings_doc_help_content" = "Добро пожаловать в Basketball Journey.\n\n1. Создайте игроков и команды, а затем начните новую игру со страницы Score.\n2. Игроки на корте в начале периода 1 являются стартерами; более поздние прибытия являются скамейками игроков.\n3. Приложение поддерживает полную статистику, разбивку по периодам, обзор истории и общие показатели карьеры.\n4. Вы можете использовать Bluetooth для совместной работы, импорта/экспорта и объединения инструментов для управления данными между устройствами.\n5. После установки DeepSeek API Key вы можете создавать и сохранять резюме игр с ИИ.";
+"settings_doc_help_content" = "Добро пожаловать в Basketball Journey.\n\n1. Создайте игроков и команды, а затем начните новую игру со страницы Score.\n2. Игроки на корте в начале периода 1 являются стартерами; более поздние прибытия являются скамейками игроков.\n3. Приложение поддерживает полную статистику, разбивку по периодам, обзор истории и общие показатели карьеры.\n4. Вы можете использовать Bluetooth для совместной работы, импорта/экспорта и объединения инструментов для управления данными между устройствами.\n5. После установки AI API Key вы можете создавать и сохранять резюме игр с ИИ.";
 "settings_doc_help_gamelog_item1_desc" = "Треки 2PT, 3PT, FT, подборы, ассисты, фолы, блоки, кражи и обороты.";
 "settings_doc_help_gamelog_item1_title" = "Комплексная статистика";
 "settings_doc_help_gamelog_item2_desc" = "Заменяйте в любое время; поздние игроки могут быть добавлены на корте до записи статистики.";
@@ -449,12 +449,12 @@
 "settings_doc_help_sync_item3_desc" = "Объедините дубликатов игроков или команды, чтобы сохранить историю в чистоте.";
 "settings_doc_help_sync_item3_title" = "Слияние данных";
 "settings_doc_help_sync_title" = "Синхронизация и разделение";
-"settings_doc_privacy_content" = "По умолчанию это приложение хранит игру, команду, игрока и настройку данных локально на вашем устройстве и не загружает автоматически на серверы разработчиков. n Только когда вы активно импортируете, экспортируете, делитесь, используете синхронизацию Bluetooth или генерируете сводку AI, будут передаваться соответствующие данные. n Вы можете управлять или удалять API-ключ DeepSeek в любое время в настройках.";
+"settings_doc_privacy_content" = "По умолчанию это приложение хранит игру, команду, игрока и настройку данных локально на вашем устройстве и не загружает автоматически на серверы разработчиков. n Только когда вы активно импортируете, экспортируете, делитесь, используете синхронизацию Bluetooth или генерируете сводку AI, будут передаваться соответствующие данные. n Вы можете управлять или удалять API-ключ AI в любое время в настройках.";
 "settings_doc_privacy_network_item1_desc" = "Сотрудничество Bluetooth передает данные только после подключения и подтверждения, и только между участвующими устройствами.";
 "settings_doc_privacy_network_item1_title" = "Bluetooth сотрудничество";
-"settings_doc_privacy_network_item2_desc" = "Только при настройке API-ключа DeepSeek и активном запросе резюме игровые данные будут отправлены в DeepSeek.";
+"settings_doc_privacy_network_item2_desc" = "Только при настройке API-ключа AI и активном запросе резюме игровые данные будут отправлены в AI.";
 "settings_doc_privacy_network_item2_title" = "Резюме (факультативно)";
-"settings_doc_privacy_network_item3_desc" = "API-ключ DeepSeek хранится в iOS Keychain и может быть удален в настройках в любое время.";
+"settings_doc_privacy_network_item3_desc" = "API-ключ AI хранится в iOS Keychain и может быть удален в настройках в любое время.";
 "settings_doc_privacy_network_item3_title" = "API Ключевая безопасность";
 "settings_doc_privacy_network_title" = "Сеть и сторонние услуги";
 "settings_doc_privacy_notice_item1_desc" = "Удаление, перезапись и слияние операций могут повлиять на существующие данные. Пожалуйста, подтвердите, прежде чем продолжить.";
@@ -554,7 +554,7 @@
 "pro_feature_cloud_1" = "Храните данные матчей в iCloud на всех устройствах";
 "pro_feature_cloud_2" = "Выбирайте отдельные игры для загрузки в облако";
 "pro_feature_ai_1" = "Создавайте обзоры матчей с помощью ИИ";
-"pro_feature_ai_2" = "Поддержка DeepSeek, OpenAI и Anthropic";
+"pro_feature_ai_2" = "Поддержка AI, OpenAI и Anthropic";
 "settings_doc_help_groups_title" = "Группы игр";
 "settings_doc_help_groups_item1_title" = "Создавайте группы для организации игр";
 "settings_doc_help_groups_item1_desc" = "Добавляйте неограниченное количество групп, например Плей-офф или Весенняя лига.";
@@ -619,7 +619,7 @@
 "alert_confirmation_failed_retry" = "Ошибка подтверждения. Проверьте соединение и попробуйте снова.";
 "alert_confirm_delete_game_title" = "Удалить эту игру?";
 "alert_confirm_delete_games_title" = "Удалить выбранные игры?";
-"alert_ai_no_api_key" = "Сначала настройте и сохраните API-ключ DeepSeek в настройках.";
+"alert_ai_no_api_key" = "Сначала настройте и сохраните API-ключ AI в настройках.";
 "alert_ai_generate_failed" = "Ошибка генерации. Попробуйте позже.";
 "alert_missing_roster_title" = "Обнаружены новые команды или игроки";
 "alert_missing_roster_message" = "Импорт содержит команды или игроков, отсутствующих на этом устройстве. Несовпадающие элементы будут созданы с исходными UUID. Фото не будут импортированы.";
@@ -694,7 +694,7 @@
 "parse_result_failed_chunk_format" = "Ошибка разбора\nТип: Игра (чанки)\n%@";
 "parse_result_incomplete_chunks" = "Обнаружен чанковый код. Заполните все сегменты перед разбором.";
 "parse_result_success_format" = "Разбор выполнен\nТип: Игра\nКоманд: %d\nИгроков: %d\nНесовпадающие элементы будут созданы с исходными UUID. Фото не будут импортированы.";
-"text_ai_waiting_key" = "Ожидание API-ключа DeepSeek.";
+"text_ai_waiting_key" = "Ожидание API-ключа AI.";
 "text_ai_will_generate" = "Будет создано: обзор игры, выбор MVP и ключевые моменты.";
 "text_clipboard_recognized_game" = "Обнаружены данные игры из буфера обмена и автоматически вставлены.";
 "unmarked_role" = "Не отмечен";
@@ -785,7 +785,7 @@
 "deepseek_keychain_failed_format" = "Ошибка Keychain: %@";
 "deepseek_keychain_failed_status_format" = "Ошибка Keychain (%@).";
 "deepseek_error_unavailable" = "Сервис временно недоступен.";
-"deepseek_error_missing_api_key" = "Сначала укажите API-ключ DeepSeek.";
+"deepseek_error_missing_api_key" = "Сначала укажите API-ключ AI.";
 "deepseek_error_bad_response" = "Подключение установлено, но ответ получен в неожиданном формате.";
 "deepseek_error_empty_response" = "Модель вернула пустой ответ. Попробуйте позже.";
 "deepseek_error_request_failed_format" = "Запрос не удался (%d): %@";

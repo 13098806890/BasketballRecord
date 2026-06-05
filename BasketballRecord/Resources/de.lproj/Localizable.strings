@@ -20,13 +20,13 @@
 "settings_import" = "Importieren";
 "settings_merge" = "Zusammenführen";
 "settings_section_ai" = "KI";
-"settings_deepseek_api_key" = "DeepSeek API-Schlüssel";
+"settings_deepseek_api_key" = "KI API-Schlüssel";
 "settings_section_help_about" = "Hilfe & Info";
 "settings_help" = "Hilfe";
 "settings_privacy" = "Datenschutz";
 "settings_version" = "Version";
 
-"deepseek_enter_api_key" = "DeepSeek API-Schlüssel eingeben";
+"deepseek_enter_api_key" = "KI API-Schlüssel eingeben";
 "deepseek_testing" = "Test läuft...";
 "deepseek_test" = "Verbindung testen";
 "deepseek_save_key" = "In Keychain speichern";
@@ -351,7 +351,7 @@
 "deepseek_error_remove_failed" = "Nicht zu entfernen API Key.";
 "deepseek_error_save_failed" = "Nicht verwendet, um API Key zu speichern.";
 "deepseek_error_test_failed" = "Der Verbindungstest ist fehlgeschlagen.";
-"deepseek_settings_title" = "DeepSeek API";
+"deepseek_settings_title" = "KI API";
 "deepseek_status_has_saved_key" = "Gespeicherte API Key erkannt.";
 "deepseek_status_loaded_saved_key" = "Gespeicherte API Key geladen.";
 "deepseek_status_no_saved_key" = "Kein gespeicherter API Key.";
@@ -421,14 +421,14 @@
 "section_team_share_code" = "Team teilen Code";
 "segment_count_value_format" = "%d Segmente";
 "segment_progress_format" = "Segment %d %d";
-"settings_doc_help_ai_item1_desc" = "Setzen Sie DeepSeek API Key in Einstellungen und speichern Sie es nach einem erfolgreichen Verbindungstest.";
+"settings_doc_help_ai_item1_desc" = "Setzen Sie AI API Key in Einstellungen und speichern Sie es nach einem erfolgreichen Verbindungstest.";
 "settings_doc_help_ai_item1_title" = "Ermöglichen Sie die Nachfrage";
 "settings_doc_help_ai_item2_desc" = "Generates Spiel Zusammenfassung, MVP und Highlights, und speichert Ergebnisse zu Spielaufzeichnungen.";
 "settings_doc_help_ai_item2_title" = "Inhalt";
 "settings_doc_help_ai_item3_desc" = "KI-Ausgang folgt dem In-App-Lesestil für eine einfachere Überprüfung.";
 "settings_doc_help_ai_item3_title" = "Anzeige Stil";
 "settings_doc_help_ai_title" = "KI Zusammenfassung (Optional)";
-"settings_doc_help_content" = "Willkommen bei Basketball Journey.\n\n1. Erstellen Sie Spieler und Teams, dann starten Sie ein neues Spiel aus der Score-Seite.\n2. Spieler am Hof zu Beginn der Periode 1 sind Starter; spätere Ankunft sind Bankspieler.\n3. Die App unterstützt vollständige Statistiken, Periodenaufschlüsselungen, Geschichte Überprüfung und Karriere insgesamt.\n4. Sie können Bluetooth-Kollaboration, Import/Export und Merge-Tools für Cross-Device-Datenmanagement verwenden.\n5. Nach der Einstellung DeepSeek API Key können Sie KI-Spielsummen generieren und speichern.";
+"settings_doc_help_content" = "Willkommen bei Basketball Journey.\n\n1. Erstellen Sie Spieler und Teams, dann starten Sie ein neues Spiel aus der Score-Seite.\n2. Spieler am Hof zu Beginn der Periode 1 sind Starter; spätere Ankunft sind Bankspieler.\n3. Die App unterstützt vollständige Statistiken, Periodenaufschlüsselungen, Geschichte Überprüfung und Karriere insgesamt.\n4. Sie können Bluetooth-Kollaboration, Import/Export und Merge-Tools für Cross-Device-Datenmanagement verwenden.\n5. Nach der Einstellung AI API Key können Sie KI-Spielsummen generieren und speichern.";
 "settings_doc_help_gamelog_item1_desc" = "Tracks 2PT, 3PT, FT, rebounds, assists, fouls, blocks, stehlen, und Umsatz.";
 "settings_doc_help_gamelog_item1_title" = "Umfassende Statistiken";
 "settings_doc_help_gamelog_item2_desc" = "Jedenfalls ersetzen; späte Spieler können vor der Aufnahme von Statistiken vor Gericht hinzugefügt werden.";
@@ -450,12 +450,12 @@
 "settings_doc_help_sync_item3_desc" = "Versammeln Sie doppelte Spieler oder Teams, um die Geschichte sauber zu halten.";
 "settings_doc_help_sync_item3_title" = "Datenzusammenführung";
 "settings_doc_help_sync_title" = "Sync & Sharing";
-"settings_doc_privacy_content" = "Standardmäßig speichert diese App Spiel, Team, Player und die Einstellung von Daten lokal auf Ihrem Gerät und lädt nicht automatisch auf Entwicklerserver. Waren Nur wenn Sie aktiv importieren, exportieren, teilen, Bluetooth-Sync verwenden oder AI-Zusammenfassung generieren, werden verwandte Daten übertragen. Waren Sie können DeepSeek API Key jederzeit in Einstellungen verwalten oder entfernen.";
+"settings_doc_privacy_content" = "Standardmäßig speichert diese App Spiel, Team, Player und die Einstellung von Daten lokal auf Ihrem Gerät und lädt nicht automatisch auf Entwicklerserver. Waren Nur wenn Sie aktiv importieren, exportieren, teilen, Bluetooth-Sync verwenden oder AI-Zusammenfassung generieren, werden verwandte Daten übertragen. Waren Sie können AI API Key jederzeit in Einstellungen verwalten oder entfernen.";
 "settings_doc_privacy_network_item1_desc" = "Die Bluetooth-Kollaboration überträgt Daten nur nach der Verbindung und Bestätigung und nur zwischen teilnehmenden Geräten.";
 "settings_doc_privacy_network_item1_title" = "Bluetooth-Zusammenarbeit";
-"settings_doc_privacy_network_item2_desc" = "Erst wenn Sie DeepSeek API Key konfigurieren und die Zusammenfassung aktiv anfragen, müssen Spieldaten an DeepSeek gesendet werden.";
+"settings_doc_privacy_network_item2_desc" = "Erst wenn Sie AI API Key konfigurieren und die Zusammenfassung aktiv anfragen, müssen Spieldaten an den KI-Anbieter gesendet werden.";
 "settings_doc_privacy_network_item2_title" = "KI Zusammenfassung (Optional)";
-"settings_doc_privacy_network_item3_desc" = "DeepSeek API Key wird in iOS Keychain gespeichert und kann jederzeit in Einstellungen entfernt werden.";
+"settings_doc_privacy_network_item3_desc" = "AI API Key wird in iOS Keychain gespeichert und kann jederzeit in Einstellungen entfernt werden.";
 "settings_doc_privacy_network_item3_title" = "API Schlüsselsicherheit";
 "settings_doc_privacy_network_title" = "Netzwerk- und Drittanbieterdienste";
 "settings_doc_privacy_notice_item1_desc" = "Löschen, Überschreiben und Zusammenführen können bestehende Daten beeinflussen. Bitte bestätigen Sie, bevor Sie fortfahren.";
@@ -621,7 +621,7 @@
 "alert_confirmation_failed_retry" = "Bestätigung fehlgeschlagen. Bitte überprüfen Sie die Verbindung und versuchen Sie es erneut.";
 "alert_confirm_delete_game_title" = "Dieses Spiel löschen?";
 "alert_confirm_delete_games_title" = "Ausgewählte Spiele löschen?";
-"alert_ai_no_api_key" = "Bitte konfigurieren und speichern Sie zuerst den DeepSeek API-Schlüssel in den Einstellungen.";
+"alert_ai_no_api_key" = "Bitte konfigurieren und speichern Sie zuerst den KI API-Schlüssel in den Einstellungen.";
 "alert_ai_generate_failed" = "Generierung fehlgeschlagen. Bitte versuchen Sie es später erneut.";
 "alert_missing_roster_title" = "Neue Teams oder Spieler erkannt";
 "alert_missing_roster_message" = "Der Import enthält Teams oder Spieler, die nicht auf diesem Gerät sind. Nicht übereinstimmende Elemente werden mit ihren ursprünglichen UUIDs erstellt. Fotos werden nicht importiert.";
@@ -696,7 +696,7 @@
 "parse_result_failed_chunk_format" = "Parsen fehlgeschlagen\nTyp: Spiel chunked\n%@";
 "parse_result_incomplete_chunks" = "Chunked-Code erkannt. Füllen Sie alle Segmente vor dem Parsen aus.";
 "parse_result_success_format" = "Parsen erfolgreich\nTyp: Spiel\nTeams: %d\nSpieler: %d\nNicht übereinstimmende Elemente werden mit ursprünglichen UUIDs erstellt. Fotos werden nicht importiert.";
-"text_ai_waiting_key" = "Warte auf DeepSeek API-Schlüssel.";
+"text_ai_waiting_key" = "Warte auf KI API-Schlüssel.";
 "text_ai_will_generate" = "Wird generieren: Spielzusammenfassung, MVP und Highlights.";
 "text_clipboard_recognized_game" = "Spieldaten aus Zwischenablage erkannt und automatisch eingefügt.";
 "unmarked_role" = "Unmarkiert";
@@ -787,7 +787,7 @@
 "deepseek_keychain_failed_format" = "Keychain-Vorgang fehlgeschlagen: %@";
 "deepseek_keychain_failed_status_format" = "Keychain-Vorgang fehlgeschlagen (%@).";
 "deepseek_error_unavailable" = "Der Dienst ist vorübergehend nicht verfügbar.";
-"deepseek_error_missing_api_key" = "Bitte setzen Sie zuerst Ihren DeepSeek API-Schlüssel.";
+"deepseek_error_missing_api_key" = "Bitte setzen Sie zuerst Ihren KI API-Schlüssel.";
 "deepseek_error_bad_response" = "Verbunden, aber die Antwort hatte nicht das erwartete Format.";
 "deepseek_error_empty_response" = "Das Modell hat eine leere Antwort zurückgegeben. Bitte versuchen Sie es später erneut.";
 "deepseek_error_request_failed_format" = "Anfrage fehlgeschlagen (%d): %@";

@@ -355,7 +355,7 @@
 "deepseek_error_remove_failed" = "刪除 API Key 失敗。";
 "deepseek_error_save_failed" = "保存 API Key 失敗。";
 "deepseek_error_test_failed" = "連接測試失敗。";
-"deepseek_settings_title" = "DeepSeek API 設置";
+"deepseek_settings_title" = "AI API 設置";
 "deepseek_status_has_saved_key" = "已檢測到保存的 API Key。";
 "deepseek_status_loaded_saved_key" = "已加載已保存的 API Key。";
 "deepseek_status_no_saved_key" = "尚未保存 API Key。";
@@ -425,14 +425,14 @@
 "section_team_share_code" = "球隊分享編碼";
 "segment_count_value_format" = "%d段";
 "segment_progress_format" = "第%d/%d段";
-"settings_doc_help_ai_item1_desc" = "需要先在設置中配置 DeepSeek API Key，並通過測試連接後保存。";
+"settings_doc_help_ai_item1_desc" = "需要先在設置中配置 AI API Key，並通過測試連接後保存。";
 "settings_doc_help_ai_item1_title" = "按需啓用";
 "settings_doc_help_ai_item2_desc" = "可生成比賽總結、MVP 與高光時刻，結果會保存到比賽記錄中。";
 "settings_doc_help_ai_item2_title" = "總結內容";
 "settings_doc_help_ai_item3_desc" = "AI 結果會按說明頁風格展示，便於閱讀和回看。";
 "settings_doc_help_ai_item3_title" = "渲染展示";
 "settings_doc_help_ai_title" = "AI 比賽總結（可選）";
-"settings_doc_help_content" = "歡迎使用「籃球生涯」。\n\n1. 先建球員與球隊，再進入“記分”頁新建比賽。\n2. 第一節開始時在場球員記爲首發，後續加入上場記爲替補。\n3. 比賽支持完整技術統計、分節查看、歷史回看與生涯彙總。\n4. 可通過藍牙協同、導入導出、合併功能進行跨設備與數據整理。\n5. 配置 DeepSeek API Key 後，可生成並保存 AI 比賽總結。";
+"settings_doc_help_content" = "歡迎使用「籃球生涯」。\n\n1. 先建球員與球隊，再進入“記分”頁新建比賽。\n2. 第一節開始時在場球員記爲首發，後續加入上場記爲替補。\n3. 比賽支持完整技術統計、分節查看、歷史回看與生涯彙總。\n4. 可通過藍牙協同、導入導出、合併功能進行跨設備與數據整理。\n5. 配置 AI API Key 後，可生成並保存 AI 比賽總結。";
 "settings_doc_help_gamelog_item1_desc" = "支持2分、3分、罰球、籃板、助攻、犯規、封蓋、搶斷、失誤。";
 "settings_doc_help_gamelog_item1_title" = "支持多項統計";
 "settings_doc_help_gamelog_item2_desc" = "比賽中可隨時換人；晚到球員可先“新增上場”再參與統計。";
@@ -454,12 +454,12 @@
 "settings_doc_help_sync_item3_desc" = "可合併重複球員/球隊，減少歷史記錄裏的重複數據。";
 "settings_doc_help_sync_item3_title" = "數據合併";
 "settings_doc_help_sync_title" = "同步與分享";
-"settings_doc_privacy_content" = "本應用默認將比賽、球隊、球員等數據保存在本機，不會自動上傳到開發者服務器。\n僅在你主動執行導入、導出、分享、藍牙協同或 AI 總結時，相關數據纔會參與傳輸。\n你可以隨時在設置中管理或刪除 DeepSeek API Key。";
+"settings_doc_privacy_content" = "本應用默認將比賽、球隊、球員等數據保存在本機，不會自動上傳到開發者服務器。\n僅在你主動執行導入、導出、分享、藍牙協同或 AI 總結時，相關數據纔會參與傳輸。\n你可以隨時在設置中管理或刪除 API Key。";
 "settings_doc_privacy_network_item1_desc" = "藍牙協同僅在你連接並確認後進行，數據僅在參與設備之間傳輸。";
 "settings_doc_privacy_network_item1_title" = "藍牙協同";
-"settings_doc_privacy_network_item2_desc" = "僅當你配置 DeepSeek API Key 並主動生成總結時，當前比賽所需數據纔會發送到 DeepSeek。";
+"settings_doc_privacy_network_item2_desc" = "僅當你配置 API Key 並主動生成總結時，當前比賽所需數據纔會發送到 AI 服務商。";
 "settings_doc_privacy_network_item2_title" = "AI 總結（可選）";
-"settings_doc_privacy_network_item3_desc" = "DeepSeek API Key 保存在 iOS Keychain 中，可隨時在設置裏刪除。";
+"settings_doc_privacy_network_item3_desc" = "API Key 保存在 iOS Keychain 中，可隨時在設置裏刪除。";
 "settings_doc_privacy_network_item3_title" = "API Key 安全保存";
 "settings_doc_privacy_network_title" = "網絡與第三方服務";
 "settings_doc_privacy_notice_item1_desc" = "刪除、覆蓋、合併等操作可能影響已有數據，建議先覈對內容。";
@@ -492,7 +492,7 @@
 "alert_confirmation_failed_retry" = "確認失敗，請檢查連線狀態後重試。";
 "alert_confirm_delete_game_title" = "確認刪除這場比賽？";
 "alert_confirm_delete_games_title" = "確認刪除選中比賽？";
-"alert_ai_no_api_key" = "請先在設定中配置並儲存 DeepSeek API Key。";
+"alert_ai_no_api_key" = "請先在設定中配置並儲存 AI API Key。";
 "alert_ai_generate_failed" = "生成失敗，請稍後重試。";
 "alert_missing_roster_title" = "發現新的球隊或球員";
 "alert_missing_roster_message" = "匯入包裡包含本機沒有的球隊或球員。未手動匹配的項目會按原 UUID 新建，照片不會匯入。";
@@ -582,7 +582,7 @@
 "parse_result_incomplete_chunks" = "已識別為分段編碼，請補齊所有段後再解析。";
 "parse_result_success_format" = "解析成功\n類型: 比賽\n球隊數量: %d\n球員數量: %d\n未匹配項會按原 UUID 新建，照片不會匯入。";
 
-"text_ai_waiting_key" = "等待 DeepSeek API Key 後啟用。";
+"text_ai_waiting_key" = "等待 AI API Key 後啟用。";
 "text_ai_will_generate" = "將生成：比賽總結、MVP 評選與高光時刻。";
 "text_clipboard_recognized_game" = "已從剪貼板識別到比賽資料，並自動貼上解析成功。";
 
@@ -689,7 +689,7 @@
 "deepseek_keychain_failed_status_format" = "Keychain 操作失敗（%@）。";
 /* DeepSeekService */
 "deepseek_error_unavailable" = "服務暫時不可用。";
-"deepseek_error_missing_api_key" = "請先填寫 DeepSeek API Key。";
+"deepseek_error_missing_api_key" = "請先填寫 AI API Key。";
 "deepseek_error_bad_response" = "連線成功，但回應格式異常。";
 "deepseek_error_empty_response" = "模型回傳為空，請稍後重試。";
 "deepseek_error_request_failed_format" = "請求失敗（%d）：%@";

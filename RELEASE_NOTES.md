@@ -1,50 +1,31 @@
 # Release Notes
 
-## 1.12 (2026-06-04)
+## 1.12 (2026-06-05)
 
 ### 亮点
 
-- 统计卡片全面升级：投篮/罚球/2分/3分命中率独立换行，数据文字黑色加粗。
-- 球队生涯页面改为卡片式布局，与球员卡片视觉统一。
-- 比赛详情球队统计区改为左右对比卡片布局。
-- 记分页横屏时两支球队左右并排显示。
+- 订阅页重构：弃用自定义 `ProSubscribeView`，改用 `SubscriptionStoreView`（StoreKit），内嵌隐私政策与 EULA 链接。
+- 设置页帮助/隐私文档中 DeepSeek 品牌引用全部泛化为 AI，覆盖 10 种语言。
+- Web 链接页导航优化：`SFSafariViewController` 替换为 `WKWebView`，去掉外层 `NavigationStack`，消除重复导航按钮与返回按钮跳动问题。
 
 ### 新增与改进
 
-- 统计卡片优化
-  - 投篮（FG）、罚球（FT）、2分、3分卡片的命中率百分比换到第二行。
-  - 所有卡片数据文字改为黑色（`.black`）并加粗（`.bold`）。
-- 球队生涯页面
-  - 从 `teamTile` 改为 `teamCard`，使用白底、圆角、边框的卡片样式。
-  - 数据文字黑色加粗，与球员卡片风格一致。
-- 记分页横屏适配
-  - 竖屏保持两行上下排列，横屏时两支球队以 HStack 左右并排。
-- 比赛详情球队统计
-  - 展开后主客队数据按同一指标同行左右对比，描述居中，移除 `|` 分隔符。
-  - 整体改为白底圆角卡片，去掉多余背景色和嵌套。
-  - 移除 `statTile`、`teamRow`、`recordTeamRow`、`containerBackground` 等旧代码。
-- 清理
-  - 移除 `TeamStatsDisclosureView` 中不再使用的 `containerBackground`、`containerBorder`、`tileBackground`、`containerCornerRadius`、`tileCornerRadius` 计算属性。
-  - 移除 `statTile` 卡片背景和边框。
-- 存储迁移
-  - 从 UserDefaults/文件存储迁移到 Core Data，`CoreDataStack` + `CoreDataStore` 支持 Player/Team/SavedGame/GameGroup 持久化。
-  - 首次启动自动从 UserDefaults 迁移到 Core Data，双写保障降级安全。
-  - `toggleGameGroup` 添加 Pro 门禁，非 Pro 用户隐藏所有分组 UI。
-- 单元测试
-  - 新增 `DataCompatibilityTests`（15 个用例）：JSON round-trip、Core Data 增删改查、旧格式兼容。
-  - 新增 `BluetoothProtocolTests`（17 个用例）：StatAction apply/revert、PlayerStats 命中率计算、事件代码验证。
-  - 修复既有测试的 `@MainActor` 和 `PlayerStats` 构造问题。
-- 代码精简
-  - stat card 构建器三个函数合并为 `buildStatRows(style:)`。
-  - 移除 undo snapshot fallback 和 `legacyPreviousSnapshot()` 死代码。
-- i18n
-  - 补充 10 种语言的本地化键值。
-- 审核合规与文档
-  - 订阅页底部补充自动续期说明文字、隐私政策和使用条款 (EULA) 可点击链接。
-  - 新增 `link_privacy_policy`、`link_terms_of_eula`、`subscription_auto_renew_info` 至全部 10 种语言。
-  - 支持页、隐私政策、使用条款转为 HTML 格式并托管至 GitHub。
-  - 更新审核备注模板，补充本地网络权限说明。
-  - 更新所有文档联系邮箱为 classicalxie@163.com。
+- 订阅页重构
+  - 使用 Apple `SubscriptionStoreView` 替代手工构建的 `ProSubscribeView`，支持月度/年度订阅系统默认样式。
+  - 移除重复的关闭按钮（StoreKit 自带 dismiss）。
+  - 配置 Privacy Policy 与 Terms of Service 可点击链接，EULA 指向 Apple 标准条款（`stdeula`）。
+- 本地化品牌泛化
+  - 设置页帮助、隐私文档中提及 DeepSeek 的全部文本改为通用 "AI" 指代，覆盖 10 种语言。
+  - UI 提示文案（API Key 配置、连接测试、错误提示等）同步泛化。
+- Web 链接页修复
+  - `SFSafariViewController` → `WKWebView`，避免内建 Done 按钮与导航栏返回按钮重复。
+  - 移除 `NavigationStack` 外层包裹，`.subscriptionStorePolicyDestination` 以 Sheet 呈现，返回按钮不再跳动。
+- 团队统计对比样式修正
+  - 主队数据改为 `.bold` + `.black`，客队数据改为常规字重 + `.secondary`，使对比更直观。
+- SettingsFeatureSection / SettingsFeatureItem ID 修复
+  - ID 从字符串（标题/描述）改为 `UUID().uuidString`，消除列表 `ForEach` 重复 ID 警告。
+- `localized()` → `LocalizedStringKey()` 迁移
+  - SettingsFeatureSection 和 SettingsFeatureItem 全部改为 `LocalizedStringKey`，支持 SwiftUI 动态本地化。
 
 ### 兼容性
 

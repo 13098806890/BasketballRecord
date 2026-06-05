@@ -418,7 +418,7 @@
 "deepseek_error_remove_failed" = "删除 API Key 失败。";
 "deepseek_error_save_failed" = "保存 API Key 失败。";
 "deepseek_error_test_failed" = "连接测试失败。";
-"deepseek_settings_title" = "DeepSeek API 设置";
+"deepseek_settings_title" = "AI API 设置";
 "deepseek_status_has_saved_key" = "已检测到保存的 API Key。";
 "deepseek_status_loaded_saved_key" = "已加载已保存的 API Key。";
 "deepseek_status_no_saved_key" = "尚未保存 API Key。";
@@ -488,14 +488,14 @@
 "section_team_share_code" = "球队分享编码";
 "segment_count_value_format" = "%d段";
 "segment_progress_format" = "第%d/%d段";
-"settings_doc_help_ai_item1_desc" = "需要先在设置中配置 DeepSeek API Key，并通过测试连接后保存。";
+"settings_doc_help_ai_item1_desc" = "需要先在设置中配置 AI API Key，并通过测试连接后保存。";
 "settings_doc_help_ai_item1_title" = "按需启用";
 "settings_doc_help_ai_item2_desc" = "可生成比赛总结、MVP 与高光时刻，结果会保存到比赛记录中。";
 "settings_doc_help_ai_item2_title" = "总结内容";
 "settings_doc_help_ai_item3_desc" = "AI 结果会按说明页风格展示，便于阅读和回看。";
 "settings_doc_help_ai_item3_title" = "渲染展示";
 "settings_doc_help_ai_title" = "AI 比赛总结（可选）";
-"settings_doc_help_content" = "欢迎使用「篮球生涯」。\n\n1. 先建球员与球队，再进入“记分”页新建比赛。\n2. 第一节开始时在场球员记为首发，后续加入上场记为替补。\n3. 比赛支持完整技术统计、分节查看、历史回看与生涯汇总。\n4. 可通过蓝牙协同、导入导出、合并功能进行跨设备与数据整理。\n5. 配置 DeepSeek API Key 后，可生成并保存 AI 比赛总结。";
+"settings_doc_help_content" = "欢迎使用「篮球生涯」。\n\n1. 先建球员与球队，再进入“记分”页新建比赛。\n2. 第一节开始时在场球员记为首发，后续加入上场记为替补。\n3. 比赛支持完整技术统计、分节查看、历史回看与生涯汇总。\n4. 可通过蓝牙协同、导入导出、合并功能进行跨设备与数据整理。\n5. 配置 AI API Key 后，可生成并保存 AI 比赛总结。";
 "settings_doc_help_gamelog_item1_desc" = "支持2分、3分、罚球、篮板、助攻、犯规、封盖、抢断、失误。";
 "settings_doc_help_gamelog_item1_title" = "支持多项统计";
 "settings_doc_help_gamelog_item2_desc" = "比赛中可随时换人；晚到球员可先“新增上场”再参与统计。";
@@ -517,12 +517,12 @@
 "settings_doc_help_sync_item3_desc" = "可合并重复球员/球队，减少历史记录里的重复数据。";
 "settings_doc_help_sync_item3_title" = "数据合并";
 "settings_doc_help_sync_title" = "同步与分享";
-"settings_doc_privacy_content" = "本应用默认将比赛、球队、球员等数据保存在本机，不会自动上传到开发者服务器。\n仅在你主动执行导入、导出、分享、蓝牙协同或 AI 总结时，相关数据才会参与传输。\n你可以随时在设置中管理或删除 DeepSeek API Key。";
+"settings_doc_privacy_content" = "本应用默认将比赛、球队、球员等数据保存在本机，不会自动上传到开发者服务器。\n仅在你主动执行导入、导出、分享、蓝牙协同或 AI 总结时，相关数据才会参与传输。\n你可以随时在设置中管理或删除 API Key。";
 "settings_doc_privacy_network_item1_desc" = "蓝牙协同仅在你连接并确认后进行，数据仅在参与设备之间传输。";
 "settings_doc_privacy_network_item1_title" = "蓝牙协同";
-"settings_doc_privacy_network_item2_desc" = "仅当你配置 DeepSeek API Key 并主动生成总结时，当前比赛所需数据才会发送到 DeepSeek。";
+"settings_doc_privacy_network_item2_desc" = "仅当你配置 API Key 并主动生成总结时，当前比赛所需数据才会发送到 AI 服务商。";
 "settings_doc_privacy_network_item2_title" = "AI 总结（可选）";
-"settings_doc_privacy_network_item3_desc" = "DeepSeek API Key 保存在 iOS Keychain 中，可随时在设置里删除。";
+"settings_doc_privacy_network_item3_desc" = "API Key 保存在 iOS Keychain 中，可随时在设置里删除。";
 "settings_doc_privacy_network_item3_title" = "API Key 安全保存";
 "settings_doc_privacy_network_title" = "网络与第三方服务";
 "settings_doc_privacy_notice_item1_desc" = "删除、覆盖、合并等操作可能影响已有数据，建议先核对内容。";
@@ -555,7 +555,7 @@
 "alert_confirmation_failed_retry" = "确认失败，请检查连接状态后重试。";
 "alert_confirm_delete_game_title" = "确认删除这场比赛？";
 "alert_confirm_delete_games_title" = "确认删除选中比赛？";
-"alert_ai_no_api_key" = "请先在设置里配置并保存 DeepSeek API Key。";
+"alert_ai_no_api_key" = "请先在设置里配置并保存 AI API Key。";
 "alert_ai_generate_failed" = "生成失败，请稍后重试。";
 "alert_missing_roster_title" = "发现新的球队或球员";
 "alert_missing_roster_message" = "导入包里包含本机没有的球队或球员。未手动匹配的项目会按原 UUID 新建，照片不会导入。";
@@ -645,7 +645,7 @@
 "parse_result_incomplete_chunks" = "已识别为分段编码，请补全所有段后再解析。";
 "parse_result_success_format" = "解析成功\n类型: 比赛\n球队数量: %d\n球员数量: %d\n未匹配项会按原 UUID 新建，照片不会导入。";
 
-"text_ai_waiting_key" = "等待 DeepSeek API Key 后启用。";
+"text_ai_waiting_key" = "等待 AI API Key 后启用。";
 "text_ai_will_generate" = "将生成：比赛总结、MVP 评选与高亮时刻。";
 "text_clipboard_recognized_game" = "已从剪贴板识别到比赛数据，并自动粘贴解析成功。";
 
@@ -752,7 +752,7 @@
 "deepseek_keychain_failed_status_format" = "Keychain 操作失败（%@）。";
 /* DeepSeekService */
 "deepseek_error_unavailable" = "服务暂时不可用。";
-"deepseek_error_missing_api_key" = "请先填写 DeepSeek API Key。";
+"deepseek_error_missing_api_key" = "请先填写 AI API Key。";
 "deepseek_error_bad_response" = "连接成功，但响应格式异常。";
 "deepseek_error_empty_response" = "模型返回为空，请稍后重试。";
 "deepseek_error_request_failed_format" = "请求失败（%d）：%@";
