@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,6 +7,8 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1a1a2e; line-height: 1.6; }
+  .lang-bar { text-align: right; padding: 12px 20px 0; max-width: 840px; margin: 0 auto; }
+  .lang-bar select { padding: 4px 10px; font-size: .9em; border-radius: 6px; border: 1px solid #ccc; background: #fff; }
   .hero { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: #fff; text-align: center; padding: 80px 20px; }
   .hero h1 { font-size: 2.8em; margin-bottom: 10px; }
   .hero p { font-size: 1.2em; opacity: .85; max-width: 600px; margin: 0 auto; }
@@ -21,85 +23,359 @@
   .footer { text-align: center; padding: 40px 20px; font-size: .85em; color: #888; border-top: 1px solid #eee; }
   .footer a { color: #2563eb; text-decoration: none; margin: 0 10px; }
   .stores { text-align: center; padding: 40px 20px; }
-  .stores a { display: inline-block; }
-  .stores img { height: 48px; }
+  .lang-content { display: none; }
+  .lang-content.active { display: block; }
   @media (prefers-color-scheme: dark) {
     body { background: #111; color: #e0e0e0; }
+    .lang-bar select { background: #222; color: #ddd; border-color: #444; }
     .feature { background: #1a1a2e; }
     .feature p { color: #aaa; }
-    .hero { background: linear-gradient(135deg, #0a0a1a 0%, #16213e 50%, #0f3460 100%); }
     .footer { border-color: #222; }
   }
 </style>
 </head>
 <body>
 
+<div class="lang-bar">
+  <select id="langSelect" onchange="switchLang(this.value)">
+    <option value="en">English</option>
+    <option value="zh-Hans">简体中文</option>
+    <option value="zh-Hant-TW">繁體中文</option>
+    <option value="de">Deutsch</option>
+    <option value="es">Español</option>
+    <option value="fr">Français</option>
+    <option value="it">Italiano</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="ru">Русский</option>
+  </select>
+</div>
+
+<!-- ==================== EN ==================== -->
+<div class="lang-content active" id="lang-en">
+<div class="hero">
+  <h1>🏀 Basketball Career</h1>
+  <p>Record every basketball game with automatic player and team stats. AI game summaries, Bluetooth sync, iCloud — your basketball journey, documented.</p>
+  <a class="badge" href="https://apps.apple.com">Download on the App Store</a>
+</div>
+<section>
+  <h2>Core Features</h2>
+  <div class="features">
+    <div class="feature"><div class="icon">📊</div><h3>Quick Scoring</h3><p>2PT/3PT, free throws, rebounds, assists, steals, blocks, turnovers, fouls, and full stats tracking.</p></div>
+    <div class="feature"><div class="icon">🔄</div><h3>Game Flow</h3><p>Periods, substitutions, late arrivals, auto-end period, undo/redo — complete game management.</p></div>
+    <div class="feature"><div class="icon">👥</div><h3>Teams &amp; Players</h3><p>Create and manage teams and players with avatars, jersey numbers, height, and weight.</p></div>
+    <div class="feature"><div class="icon">📈</div><h3>Career Analysis</h3><p>Per-game details, per-player cumulative and average stats, starter/bench counts.</p></div>
+    <div class="feature"><div class="icon">🤖</div><h3>AI Summaries</h3><p>Connect DeepSeek, OpenAI, or Anthropic to generate game summaries, MVP, and highlights.</p></div>
+    <div class="feature"><div class="icon">📂</div><h3>Game Groups</h3><p>Organize games into groups for filtered history and career views.</p></div>
+    <div class="feature"><div class="icon">📡</div><h3>Bluetooth Sync</h3><p>Real-time collaborative scoring across multiple devices via Bluetooth.</p></div>
+    <div class="feature"><div class="icon">☁️</div><h3>iCloud Storage</h3><p>Sync game data to iCloud for cross-device access and restore.</p></div>
+  </div>
+</section>
+<div class="stores"><p style="margin-bottom:16px;color:#888;">Coming soon on the App Store</p></div>
+<div class="footer">
+  <a href="appstore/privacy-policy.html">Privacy Policy</a>
+  <a href="appstore/terms-of-use.html">Terms of Use (EULA)</a>
+  <a href="appstore/support.html">Support</a><br><br>
+  <a href="https://github.com/13098806890/BasketballRecord">GitHub</a> &middot;
+  Contact: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br><br>
+  &copy; 2026 Basketball Career
+</div>
+</div>
+
+<!-- ==================== zh-Hans ==================== -->
+<div class="lang-content" id="lang-zh-Hans">
 <div class="hero">
   <h1>🏀 篮球生涯</h1>
   <p>记录每一场篮球比赛，自动统计球员与球队数据，支持 AI 赛后总结与 MVP 评选。蓝牙协同、iCloud 同步，让你的篮球生涯有据可查。</p>
   <a class="badge" href="https://apps.apple.com">App Store 下载</a>
 </div>
-
 <section>
   <h2>核心功能</h2>
   <div class="features">
-    <div class="feature">
-      <div class="icon">📊</div>
-      <h3>快速记分</h3>
-      <p>支持 2分/3分、罚球、篮板、助攻、抢断、盖帽、失误、犯规等完整技术统计。</p>
-    </div>
-    <div class="feature">
-      <div class="icon">🔄</div>
-      <h3>比赛流程</h3>
-      <p>开节、暂停、换人、晚到球员加入、自动结束节次、撤销重做，覆盖完整比赛场景。</p>
-    </div>
-    <div class="feature">
-      <div class="icon">👥</div>
-      <h3>球队与球员</h3>
-      <p>创建和管理球队、球员，支持头像、号码、身高、体重等信息。</p>
-    </div>
-    <div class="feature">
-      <div class="icon">📈</div>
-      <h3>生涯分析</h3>
-      <p>按比赛查看详情，按球员查看累计与场均数据，支持首发/替补场次统计。</p>
-    </div>
-    <div class="feature">
-      <div class="icon">🤖</div>
-      <h3>AI 总结</h3>
-      <p>接入 DeepSeek、OpenAI、Anthropic，自动生成比赛总结、MVP 与高亮时刻。</p>
-    </div>
-    <div class="feature">
-      <div class="icon">📂</div>
-      <h3>比赛分组</h3>
-      <p>创建分组归类比赛，按组筛选历史与生涯数据。</p>
-    </div>
-    <div class="feature">
-      <div class="icon">📡</div>
-      <h3>蓝牙协同</h3>
-      <p>多台设备通过蓝牙实时同步记分，适合多人协作记录。</p>
-    </div>
-    <div class="feature">
-      <div class="icon">☁️</div>
-      <h3>iCloud 同步</h3>
-      <p>将比赛数据同步到 iCloud，跨设备查看与恢复。</p>
-    </div>
+    <div class="feature"><div class="icon">📊</div><h3>快速记分</h3><p>支持 2分/3分、罚球、篮板、助攻、抢断、盖帽、失误、犯规等完整技术统计。</p></div>
+    <div class="feature"><div class="icon">🔄</div><h3>比赛流程</h3><p>开节、暂停、换人、晚到球员加入、自动结束节次、撤销重做，覆盖完整比赛场景。</p></div>
+    <div class="feature"><div class="icon">👥</div><h3>球队与球员</h3><p>创建和管理球队、球员，支持头像、号码、身高、体重等信息。</p></div>
+    <div class="feature"><div class="icon">📈</div><h3>生涯分析</h3><p>按比赛查看详情，按球员查看累计与场均数据，支持首发/替补场次统计。</p></div>
+    <div class="feature"><div class="icon">🤖</div><h3>AI 总结</h3><p>接入 DeepSeek、OpenAI、Anthropic，自动生成比赛总结、MVP 与高亮时刻。</p></div>
+    <div class="feature"><div class="icon">📂</div><h3>比赛分组</h3><p>创建分组归类比赛，按组筛选历史与生涯数据。</p></div>
+    <div class="feature"><div class="icon">📡</div><h3>蓝牙协同</h3><p>多台设备通过蓝牙实时同步记分，适合多人协作记录。</p></div>
+    <div class="feature"><div class="icon">☁️</div><h3>iCloud 同步</h3><p>将比赛数据同步到 iCloud，跨设备查看与恢复。</p></div>
   </div>
 </section>
-
-<div class="stores">
-  <p style="margin-bottom:16px;color:#888;">即将上架 App Store</p>
-</div>
-
+<div class="stores"><p style="margin-bottom:16px;color:#888;">即将上架 App Store</p></div>
 <div class="footer">
   <a href="appstore/privacy-policy.html">隐私政策</a>
   <a href="appstore/terms-of-use.html">使用条款（EULA）</a>
-  <a href="appstore/support.html">支持</a>
-  <br><br>
+  <a href="appstore/support.html">支持</a><br><br>
   <a href="https://github.com/13098806890/BasketballRecord">GitHub</a> &middot;
-  联系：<a href="mailto:classicalxie@163.com">classicalxie@163.com</a>
-  <br><br>
+  联系：<a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br><br>
+  &copy; 2026 篮球生涯
+</div>
+</div>
+
+<!-- ==================== zh-Hant-TW ==================== -->
+<div class="lang-content" id="lang-zh-Hant-TW">
+<div class="hero">
+  <h1>🏀 籃球生涯</h1>
+  <p>記錄每一場籃球比賽，自動統計球員與球隊數據，支援 AI 賽後總結與 MVP 評選。藍牙協同、iCloud 同步，讓你的籃球生涯有據可查。</p>
+  <a class="badge" href="https://apps.apple.com">App Store 下載</a>
+</div>
+<section>
+  <h2>核心功能</h2>
+  <div class="features">
+    <div class="feature"><div class="icon">📊</div><h3>快速記分</h3><p>支援 2分/3分、罰球、籃板、助攻、抄截、阻攻、失誤、犯規等完整技術統計。</p></div>
+    <div class="feature"><div class="icon">🔄</div><h3>比賽流程</h3><p>開節、暫停、換人、晚到球員加入、自動結束節次、復原重做，覆蓋完整比賽場景。</p></div>
+    <div class="feature"><div class="icon">👥</div><h3>球隊與球員</h3><p>建立和管理球隊、球員，支援頭像、號碼、身高、體重等資訊。</p></div>
+    <div class="feature"><div class="icon">📈</div><h3>生涯分析</h3><p>按比賽檢視詳情，按球員檢視累計與場均資料，支援先發/替補場次統計。</p></div>
+    <div class="feature"><div class="icon">🤖</div><h3>AI 總結</h3><p>接入 DeepSeek、OpenAI、Anthropic，自動生成比賽總結、MVP 與高光時刻。</p></div>
+    <div class="feature"><div class="icon">📂</div><h3>比賽分組</h3><p>建立分組歸類比賽，按組篩選歷史與生涯資料。</p></div>
+    <div class="feature"><div class="icon">📡</div><h3>藍牙協同</h3><p>多臺裝置透過藍牙即時同步記分，適合多人協作記錄。</p></div>
+    <div class="feature"><div class="icon">☁️</div><h3>iCloud 同步</h3><p>將比賽資料同步到 iCloud，跨裝置檢視與恢復。</p></div>
+  </div>
+</section>
+<div class="stores"><p style="margin-bottom:16px;color:#888;">即將上架 App Store</p></div>
+<div class="footer">
+  <a href="appstore/privacy-policy.html">隱私政策</a>
+  <a href="appstore/terms-of-use.html">使用條款（EULA）</a>
+  <a href="appstore/support.html">支援</a><br><br>
+  <a href="https://github.com/13098806890/BasketballRecord">GitHub</a> &middot;
+  聯絡：<a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br><br>
+  &copy; 2026 籃球生涯
+</div>
+</div>
+
+<!-- ==================== DE ==================== -->
+<div class="lang-content" id="lang-de">
+<div class="hero">
+  <h1>🏀 Basketball Career</h1>
+  <p>Zeichne jedes Basketballspiel auf, mit automatischen Spieler- und Teamstatistiken. KI-Zusammenfassungen, Bluetooth-Sync, iCloud — deine Basketball-Reise, dokumentiert.</p>
+  <a class="badge" href="https://apps.apple.com">Lade im App Store</a>
+</div>
+<section>
+  <h2>Kernfunktionen</h2>
+  <div class="features">
+    <div class="feature"><div class="icon">📊</div><h3>Schnelle Erfassung</h3><p>2PT/3PT, Freiwürfe, Rebounds, Assists, Steals, Blocks, Turnover, Fouls und mehr.</p></div>
+    <div class="feature"><div class="icon">🔄</div><h3>Spielablauf</h3><p>Perioden, Auswechslungen, Nachzügler, automatischer Periodenende, Rückgängig/Wiederholen.</p></div>
+    <div class="feature"><div class="icon">👥</div><h3>Teams &amp; Spieler</h3><p>Teams und Spieler mit Avataren, Nummern, Größe und Gewicht verwalten.</p></div>
+    <div class="feature"><div class="icon">📈</div><h3>Karriereanalyse</h3><p>Details pro Spiel, kumulierte und durchschnittliche Statistiken, Starter/Bank.</p></div>
+    <div class="feature"><div class="icon">🤖</div><h3>KI-Zusammenfassungen</h3><p>DeepSeek, OpenAI oder Anthropic für Zusammenfassungen, MVP und Highlights.</p></div>
+    <div class="feature"><div class="icon">📂</div><h3>Spielgruppen</h3><p>Spiele gruppieren für gefilterte Ansichten.</p></div>
+    <div class="feature"><div class="icon">📡</div><h3>Bluetooth-Sync</h3><p>Echtzeit-Zusammenarbeit zwischen Geräten.</p></div>
+    <div class="feature"><div class="icon">☁️</div><h3>iCloud-Speicher</h3><p>Spieldaten in iCloud sichern, geräteübergreifend.</p></div>
+  </div>
+</section>
+<div class="stores"><p style="margin-bottom:16px;color:#888;">Demnächst im App Store</p></div>
+<div class="footer">
+  <a href="appstore/privacy-policy.html">Datenschutz</a>
+  <a href="appstore/terms-of-use.html">Nutzungsbedingungen (EULA)</a>
+  <a href="appstore/support.html">Support</a><br><br>
+  <a href="https://github.com/13098806890/BasketballRecord">GitHub</a> &middot;
+  Kontakt: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br><br>
   &copy; 2026 Basketball Career
 </div>
+</div>
+
+<!-- ==================== ES ==================== -->
+<div class="lang-content" id="lang-es">
+<div class="hero">
+  <h1>🏀 Basketball Career</h1>
+  <p>Registra cada partido de baloncesto con estadísticas automáticas. Resúmenes IA, sincronización Bluetooth, iCloud — tu trayectoria, documentada.</p>
+  <a class="badge" href="https://apps.apple.com">Descargar en App Store</a>
+</div>
+<section>
+  <h2>Funciones principales</h2>
+  <div class="features">
+    <div class="feature"><div class="icon">📊</div><h3>Puntuación rápida</h3><p>2PT/3PT, tiros libres, rebotes, asistencias, robos, tapones, pérdidas, faltas y más.</p></div>
+    <div class="feature"><div class="icon">🔄</div><h3>Flujo del partido</h3><p>Periodos, sustituciones, jugadores tardíos, final automático, deshacer/rehacer.</p></div>
+    <div class="feature"><div class="icon">👥</div><h3>Equipos y jugadores</h3><p>Gestiona equipos y jugadores con avatares, números, altura y peso.</p></div>
+    <div class="feature"><div class="icon">📈</div><h3>Análisis de carrera</h3><p>Detalles por partido, estadísticas acumuladas y promedio, titular/suplente.</p></div>
+    <div class="feature"><div class="icon">🤖</div><h3>Resúmenes IA</h3><p>Conecta DeepSeek, OpenAI o Anthropic para resúmenes, MVP y destacados.</p></div>
+    <div class="feature"><div class="icon">📂</div><h3>Grupos de partidos</h3><p>Organiza partidos en grupos para vistas filtradas.</p></div>
+    <div class="feature"><div class="icon">📡</div><h3>Sincronización Bluetooth</h3><p>Puntuación colaborativa en tiempo real entre dispositivos.</p></div>
+    <div class="feature"><div class="icon">☁️</div><h3>Almacenamiento iCloud</h3><p>Sincroniza datos en iCloud para acceso multidispositivo.</p></div>
+  </div>
+</section>
+<div class="stores"><p style="margin-bottom:16px;color:#888;">Próximamente en App Store</p></div>
+<div class="footer">
+  <a href="appstore/privacy-policy.html">Privacidad</a>
+  <a href="appstore/terms-of-use.html">Términos (EULA)</a>
+  <a href="appstore/support.html">Soporte</a><br><br>
+  <a href="https://github.com/13098806890/BasketballRecord">GitHub</a> &middot;
+  Contacto: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br><br>
+  &copy; 2026 Basketball Career
+</div>
+</div>
+
+<!-- ==================== FR ==================== -->
+<div class="lang-content" id="lang-fr">
+<div class="hero">
+  <h1>🏀 Basketball Career</h1>
+  <p>Enregistrez chaque match avec des statistiques automatiques. Résumés IA, synchronisation Bluetooth, iCloud — votre parcours basketball, documenté.</p>
+  <a class="badge" href="https://apps.apple.com">Télécharger sur l'App Store</a>
+</div>
+<section>
+  <h2>Fonctionnalités principales</h2>
+  <div class="features">
+    <div class="feature"><div class="icon">📊</div><h3>Score rapide</h3><p>2PT/3PT, lancers francs, rebonds, passes, interceptions, contres, pertes, fautes.</p></div>
+    <div class="feature"><div class="icon">🔄</div><h3>Déroulement du match</h3><p>Périodes, remplacements, arrivées tardives, fin automatique, annuler/rétablir.</p></div>
+    <div class="feature"><div class="icon">👥</div><h3>Équipes et joueurs</h3><p>Gérez équipes et joueurs avec avatars, numéros, taille et poids.</p></div>
+    <div class="feature"><div class="icon">📈</div><h3>Analyse de carrière</h3><p>Détails par match, stats cumulées et moyennes, titulaire/remplaçant.</p></div>
+    <div class="feature"><div class="icon">🤖</div><h3>Résumés IA</h3><p>Connectez DeepSeek, OpenAI ou Anthropic pour résumés, MVP et moments forts.</p></div>
+    <div class="feature"><div class="icon">📂</div><h3>Groupes de matchs</h3><p>Organisez les matchs en groupes pour des vues filtrées.</p></div>
+    <div class="feature"><div class="icon">📡</div><h3>Bluetooth</h3><p>Score collaboratif en temps réel entre appareils.</p></div>
+    <div class="feature"><div class="icon">☁️</div><h3>iCloud</h3><p>Synchronisez les données sur iCloud pour un accès multi-appareils.</p></div>
+  </div>
+</section>
+<div class="stores"><p style="margin-bottom:16px;color:#888;">Bientôt sur l'App Store</p></div>
+<div class="footer">
+  <a href="appstore/privacy-policy.html">Confidentialité</a>
+  <a href="appstore/terms-of-use.html">Conditions (EULA)</a>
+  <a href="appstore/support.html">Support</a><br><br>
+  <a href="https://github.com/13098806890/BasketballRecord">GitHub</a> &middot;
+  Contact : <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br><br>
+  &copy; 2026 Basketball Career
+</div>
+</div>
+
+<!-- ==================== IT ==================== -->
+<div class="lang-content" id="lang-it">
+<div class="hero">
+  <h1>🏀 Basketball Career</h1>
+  <p>Registra ogni partita con statistiche automatiche. Riassunti AI, sincronizzazione Bluetooth, iCloud — il tuo percorso nel basket, documentato.</p>
+  <a class="badge" href="https://apps.apple.com">Scarica su App Store</a>
+</div>
+<section>
+  <h2>Funzionalità principali</h2>
+  <div class="features">
+    <div class="feature"><div class="icon">📊</div><h3>Punteggio rapido</h3><p>2PT/3PT, tiri liberi, rimbalzi, assist, rubate, stoppate, palle perse, falli.</p></div>
+    <div class="feature"><div class="icon">🔄</div><h3>Flusso partita</h3><p>Periodi, sostituzioni, arrivi tardivi, termine automatico, annulla/ripeti.</p></div>
+    <div class="feature"><div class="icon">👥</div><h3>Squadre e giocatori</h3><p>Gestisci squadre e giocatori con avatar, numeri, altezza e peso.</p></div>
+    <div class="feature"><div class="icon">📈</div><h3>Analisi carriera</h3><p>Dettagli per partita, statistiche cumulate e medie, titolare/panchina.</p></div>
+    <div class="feature"><div class="icon">🤖</div><h3>Riassunti AI</h3><p>Collega DeepSeek, OpenAI o Anthropic per riassunti, MVP e highlights.</p></div>
+    <div class="feature"><div class="icon">📂</div><h3>Gruppi partite</h3><p>Organizza partite in gruppi per viste filtrate.</p></div>
+    <div class="feature"><div class="icon">📡</div><h3>Bluetooth</h3><p>Punteggio collaborativo in tempo reale tra dispositivi.</p></div>
+    <div class="feature"><div class="icon">☁️</div><h3>iCloud</h3><p>Sincronizza dati su iCloud per accesso multi-dispositivo.</p></div>
+  </div>
+</section>
+<div class="stores"><p style="margin-bottom:16px;color:#888;">Prossimamente su App Store</p></div>
+<div class="footer">
+  <a href="appstore/privacy-policy.html">Privacy</a>
+  <a href="appstore/terms-of-use.html">Termini (EULA)</a>
+  <a href="appstore/support.html">Supporto</a><br><br>
+  <a href="https://github.com/13098806890/BasketballRecord">GitHub</a> &middot;
+  Contatto: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br><br>
+  &copy; 2026 Basketball Career
+</div>
+</div>
+
+<!-- ==================== JA ==================== -->
+<div class="lang-content" id="lang-ja">
+<div class="hero">
+  <h1>🏀 Basketball Career</h1>
+  <p>すべての試合を記録し、選手・チームの統計を自動集計。AIサマリー、Bluetooth同期、iCloud対応。</p>
+  <a class="badge" href="https://apps.apple.com">App Storeでダウンロード</a>
+</div>
+<section>
+  <h2>主な機能</h2>
+  <div class="features">
+    <div class="feature"><div class="icon">📊</div><h3>クイック記録</h3><p>2PT/3PT、フリースロー、リバウンド、アシスト、スティール、ブロック、ターンオーバー、ファウルなど。</p></div>
+    <div class="feature"><div class="icon">🔄</div><h3>試合進行</h3><p>ピリオド管理、交代、遅刻追加、自動終了、元に戻す/やり直し。</p></div>
+    <div class="feature"><div class="icon">👥</div><h3>チームと選手</h3><p>アバター、背番号、身長、体重などでチームと選手を管理。</p></div>
+    <div class="feature"><div class="icon">📈</div><h3>キャリア分析</h3><p>試合ごとの詳細、選手ごとの累計と平均、先発/ベンチ。</p></div>
+    <div class="feature"><div class="icon">🤖</div><h3>AIサマリー</h3><p>DeepSeek、OpenAI、Anthropic対応。サマリー、MVP、ハイライトを生成。</p></div>
+    <div class="feature"><div class="icon">📂</div><h3>試合グループ</h3><p>試合をグループ化してフィルタリング。</p></div>
+    <div class="feature"><div class="icon">📡</div><h3>Bluetooth連携</h3><p>複数デバイスでリアルタイム協調記録。</p></div>
+    <div class="feature"><div class="icon">☁️</div><h3>iCloud保存</h3><p>試合データをiCloudに同期、デバイス間でアクセス。</p></div>
+  </div>
+</section>
+<div class="stores"><p style="margin-bottom:16px;color:#888;">近日App Storeに公開予定</p></div>
+<div class="footer">
+  <a href="appstore/privacy-policy.html">プライバシー</a>
+  <a href="appstore/terms-of-use.html">利用規約（EULA）</a>
+  <a href="appstore/support.html">サポート</a><br><br>
+  <a href="https://github.com/13098806890/BasketballRecord">GitHub</a> &middot;
+  連絡先：<a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br><br>
+  &copy; 2026 Basketball Career
+</div>
+</div>
+
+<!-- ==================== KO ==================== -->
+<div class="lang-content" id="lang-ko">
+<div class="hero">
+  <h1>🏀 Basketball Career</h1>
+  <p>모든 농구 경기를 기록하고 선수와 팀 통계를 자동 집계합니다. AI 요약, Bluetooth 동기화, iCloud 지원.</p>
+  <a class="badge" href="https://apps.apple.com">App Store에서 다운로드</a>
+</div>
+<section>
+  <h2>핵심 기능</h2>
+  <div class="features">
+    <div class="feature"><div class="icon">📊</div><h3>빠른 득점 기록</h3><p>2PT/3PT, 자유투, 리바운드, 어시스트, 스틸, 블록, 턴오버, 파울 등.</p></div>
+    <div class="feature"><div class="icon">🔄</div><h3>경기 진행</h3><p>피리어드 관리, 교체, 지각 선수 추가, 자동 종료, 실행 취소/다시 실행.</p></div>
+    <div class="feature"><div class="icon">👥</div><h3>팀과 선수</h3><p>아바타, 번호, 키, 몸무게로 팀과 선수 관리.</p></div>
+    <div class="feature"><div class="icon">📈</div><h3>경력 분석</h3><p>경기별 세부 정보, 선수별 누적/평균 통계, 선발/벤치.</p></div>
+    <div class="feature"><div class="icon">🤖</div><h3>AI 요약</h3><p>DeepSeek, OpenAI, Anthropic 연결. 요약, MVP, 하이라이트 생성.</p></div>
+    <div class="feature"><div class="icon">📂</div><h3>경기 그룹</h3><p>경기를 그룹으로 분류하여 필터링.</p></div>
+    <div class="feature"><div class="icon">📡</div><h3>Bluetooth 협업</h3><p>여러 기기 간 실시간 협업 기록.</p></div>
+    <div class="feature"><div class="icon">☁️</div><h3>iCloud 저장</h3><p>경기 데이터를 iCloud에 동기화하여 기기 간 액세스.</p></div>
+  </div>
+</section>
+<div class="stores"><p style="margin-bottom:16px;color:#888;">곧 App Store 출시 예정</p></div>
+<div class="footer">
+  <a href="appstore/privacy-policy.html">개인정보처리방침</a>
+  <a href="appstore/terms-of-use.html">이용약관 (EULA)</a>
+  <a href="appstore/support.html">지원</a><br><br>
+  <a href="https://github.com/13098806890/BasketballRecord">GitHub</a> &middot;
+  연락처: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br><br>
+  &copy; 2026 Basketball Career
+</div>
+</div>
+
+<!-- ==================== RU ==================== -->
+<div class="lang-content" id="lang-ru">
+<div class="hero">
+  <h1>🏀 Basketball Career</h1>
+  <p>Записывайте каждую игру с автоматической статистикой. ИИ-резюме, Bluetooth-синхронизация, iCloud — ваш баскетбольный путь задокументирован.</p>
+  <a class="badge" href="https://apps.apple.com">Загрузить в App Store</a>
+</div>
+<section>
+  <h2>Основные функции</h2>
+  <div class="features">
+    <div class="feature"><div class="icon">📊</div><h3>Быстрый счёт</h3><p>2PT/3PT, штрафные, подборы, передачи, перехваты, блок-шоты, потери, фолы.</p></div>
+    <div class="feature"><div class="icon">🔄</div><h3>Ход игры</h3><p>Периоды, замены, опоздавшие, авто-завершение, отмена/повтор.</p></div>
+    <div class="feature"><div class="icon">👥</div><h3>Команды и игроки</h3><p>Управляйте командами и игроками с аватарами, номерами, ростом и весом.</p></div>
+    <div class="feature"><div class="icon">📈</div><h3>Анализ карьеры</h3><p>Детали по каждой игре, накопленная и средняя статистика, старт/запас.</p></div>
+    <div class="feature"><div class="icon">🤖</div><h3>ИИ-резюме</h3><p>Подключите DeepSeek, OpenAI или Anthropic для резюме, MVP и моментов.</p></div>
+    <div class="feature"><div class="icon">📂</div><h3>Группы игр</h3><p>Организуйте игры в группы для фильтрации.</p></div>
+    <div class="feature"><div class="icon">📡</div><h3>Bluetooth</h3><p>Совместный счёт в реальном времени между устройствами.</p></div>
+    <div class="feature"><div class="icon">☁️</div><h3>iCloud</h3><p>Синхронизируйте данные в iCloud для доступа с разных устройств.</p></div>
+  </div>
+</section>
+<div class="stores"><p style="margin-bottom:16px;color:#888;">Скоро в App Store</p></div>
+<div class="footer">
+  <a href="appstore/privacy-policy.html">Конфиденциальность</a>
+  <a href="appstore/terms-of-use.html">Условия (EULA)</a>
+  <a href="appstore/support.html">Поддержка</a><br><br>
+  <a href="https://github.com/13098806890/BasketballRecord">GitHub</a> &middot;
+  Контакт: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br><br>
+  &copy; 2026 Basketball Career
+</div>
+</div>
+
+<script>
+const langs = ['en','zh-Hans','zh-Hant-TW','de','es','fr','it','ja','ko','ru'];
+function switchLang(code) {
+  document.querySelectorAll('.lang-content').forEach(el => el.classList.remove('active'));
+  const target = document.getElementById('lang-' + code);
+  if (target) target.classList.add('active');
+  document.getElementById('langSelect').value = code;
+  localStorage.setItem('preferredLang', code);
+}
+(function() {
+  const saved = localStorage.getItem('preferredLang') || navigator.language || 'en';
+  const code = langs.find(l => saved.startsWith(l)) || 'en';
+  switchLang(code);
+})();
+</script>
 
 </body>
 </html>
