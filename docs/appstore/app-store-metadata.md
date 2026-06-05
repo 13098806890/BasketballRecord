@@ -15,7 +15,7 @@
 
 ## 隐私政策与 EULA 链接
 
-- **隐私政策**：https://github.com/13098806890/BasketballRecord/blob/main/docs/appstore/privacy-policy.html
+- **隐私政策**：https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 - **使用条款（EULA）**：https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 
 > 隐私政策和 EULA 已在 App 内 `SubscriptionStoreView` 中配置。在 App Store Connect 的 "隐私政策 URL" 和 "EULA" 字段中填入上述链接即可。

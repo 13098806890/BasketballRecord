@@ -48,5 +48,5 @@
 ## 8. 联系我们
 
 - 联系邮箱：classicalxie@163.com
-- 支持页面：https://github.com/13098806890/BasketballRecord/blob/main/docs/appstore/support.html
+- 支持页面：https://13098806890.github.io/BasketballRecord/appstore/support.html
 

@@ -357,7 +357,7 @@ private struct ProSubscriptionStoreView: View {
             }
             .storeButton(.visible, for: .restorePurchases)
             .subscriptionStorePolicyDestination(for: .privacyPolicy) {
-                SafariWebView(url: URL(string: "https://github.com/13098806890/BasketballRecord/blob/main/docs/appstore/privacy-policy.html")!)
+                SafariWebView(url: URL(string: "https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html")!)
             }
             .subscriptionStorePolicyDestination(for: .termsOfService) {
                 SafariWebView(url: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
