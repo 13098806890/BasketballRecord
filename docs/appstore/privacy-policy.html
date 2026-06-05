@@ -1,17 +1,47 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Privacy Policy — Basketball Career</title>
 <style>
-  body { font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 720px; margin: 0 auto; padding: 20px; line-height: 1.7; color: #333; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 780px; margin: 0 auto; padding: 20px; line-height: 1.7; color: #333; }
   h1, h2 { color: #1a1a2e; border-bottom: 2px solid #eee; padding-bottom: 6px; }
+  h2 { margin-top: 28px; font-size: 1.3em; }
   a { color: #2563eb; }
+  .lang-bar { text-align: right; margin-bottom: 16px; }
+  .lang-bar select { padding: 4px 10px; font-size: .9em; border-radius: 6px; border: 1px solid #ccc; }
+  .lang-content { display: none; }
+  .lang-content.active { display: block; }
+  hr { border: none; border-top: 1px solid #eee; margin: 32px 0; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #111; color: #ddd; }
+    h1, h2 { color: #e0e0e0; border-color: #333; }
+    .lang-bar select { background: #222; color: #ddd; border-color: #444; }
+    hr { border-color: #333; }
+  }
 </style>
 </head>
 <body>
 
+<div class="lang-bar">
+  <select id="langSelect" onchange="switchLang(this.value)">
+    <option value="en">English</option>
+    <option value="zh-Hans">简体中文</option>
+    <option value="zh-Hant-TW">繁體中文</option>
+    <option value="de">Deutsch</option>
+    <option value="es">Español</option>
+    <option value="fr">Français</option>
+    <option value="it">Italiano</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="ru">Русский</option>
+  </select>
+</div>
+
+<!-- ==================== EN ==================== -->
+<div class="lang-content" id="lang-en">
 <h1>Privacy Policy</h1>
 <p><strong>App:</strong> Basketball Career (篮球生涯)<br>
 <strong>Effective Date:</strong> June 3, 2026</p>
@@ -24,6 +54,8 @@
 <ul>
   <li>Data is stored locally on your device (app sandbox).</li>
   <li>The app does not automatically upload your game data to any server.</li>
+  <li>If you configure an API Key for AI summaries, the key is stored in iOS Keychain.</li>
+  <li>If you enable iCloud sync (Pro feature), selected game data will be stored in your personal iCloud account.</li>
 </ul>
 
 <h2>3. Permissions</h2>
@@ -31,6 +63,7 @@
 <ul>
   <li><strong>Photo Library:</strong> Used only when you choose to set an avatar photo for a player.</li>
   <li><strong>Local Network:</strong> Used for Bluetooth sync to discover nearby devices (via Bonjour / Multipeer Connectivity).</li>
+  <li><strong>Bluetooth:</strong> Used for real-time collaborative scoring between devices.</li>
 </ul>
 <p>If you decline, the related features may be unavailable, but the rest of the app will function normally.</p>
 
@@ -38,6 +71,7 @@
 <ul>
   <li>The app does not serve advertisements or perform ad tracking.</li>
   <li>The app does not sell your local game data to any third party.</li>
+  <li>When you use AI summary, only the current game data is sent to the AI provider (DeepSeek, OpenAI, or Anthropic) you configured. No other data is shared.</li>
   <li>When you use import/export/share or Bluetooth sync, you actively choose the recipient and channel.</li>
 </ul>
 
@@ -49,15 +83,528 @@
 <ul>
   <li>Delete data within the app</li>
   <li>Export backups via the export feature</li>
+  <li>Manage or delete your API Key in Settings</li>
   <li>Uninstall the app to remove local data (system backups may retain data)</li>
 </ul>
 
 <h2>7. Policy Updates</h2>
 <p>We may update this policy as features change. The latest version and effective date will always be published on this page.</p>
 
-<h2>8. Contact Us</h2>
+<h2>8. Contact</h2>
 <p>Email: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
-Support: <a href="https://13098806890.github.io/BasketballRecord/appstore/support.html">https://13098806890.github.io/BasketballRecord/appstore/support.html</a></p>
+Support: <a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== zh-Hans ==================== -->
+<div class="lang-content" id="lang-zh-Hans">
+<h1>隐私政策</h1>
+<p><strong>应用：</strong>篮球生涯<br>
+<strong>生效日期：</strong>2026 年 6 月 3 日</p>
+
+<h2>1. 我们收集哪些信息</h2>
+<p>篮球生涯默认不收集可直接识别用户身份的个人信息（如姓名、手机号、身份证号）。</p>
+<p>用户主动录入的数据（如球队、球员、比赛记录）仅用于应用核心功能。</p>
+
+<h2>2. 数据如何存储</h2>
+<ul>
+  <li>数据默认存储在本地设备（应用沙盒）。</li>
+  <li>应用不会自动将你的比赛数据上传到开发者服务器。</li>
+  <li>若你配置了 AI 总结的 API Key，该密钥存储在 iOS Keychain 中。</li>
+  <li>若你启用 iCloud 同步（Pro 功能），选中的比赛数据将存储在你的个人 iCloud 账户中。</li>
+</ul>
+
+<h2>3. 权限说明</h2>
+<p>当前版本可能使用以下系统权限：</p>
+<ul>
+  <li><strong>相册权限：</strong>用于为球员选择头像照片。</li>
+  <li><strong>本地网络权限：</strong>用于蓝牙同步发现附近设备。</li>
+  <li><strong>蓝牙权限：</strong>用于设备间实时协同记分。</li>
+</ul>
+<p>若拒绝授权，相关功能可能不可用，但不影响其余功能使用。</p>
+
+<h2>4. 数据共享与第三方</h2>
+<ul>
+  <li>应用不用于广告跟踪，不进行个性化广告投放。</li>
+  <li>应用不会将你的本地比赛数据出售给第三方。</li>
+  <li>使用 AI 总结时，仅当前比赛数据会发送到你配置的 AI 服务商（DeepSeek、OpenAI 或 Anthropic）。</li>
+  <li>使用导入/导出/分享或蓝牙同步功能时，数据由你主动选择发送对象与渠道。</li>
+</ul>
+
+<h2>5. 儿童与未成年人</h2>
+<p>本应用不面向特定年龄段儿童进行个人信息收集。如监护人认为未成年人存在不当数据处理，请通过下方联系方式联系我们。</p>
+
+<h2>6. 你的权利</h2>
+<p>你可随时：</p>
+<ul>
+  <li>在应用内删除相关数据</li>
+  <li>通过导出功能备份数据</li>
+  <li>在设置中管理或删除 API Key</li>
+  <li>卸载应用以移除本地数据</li>
+</ul>
+
+<h2>7. 政策更新</h2>
+<p>我们可能根据功能调整更新本隐私政策。更新后会在本页面同步最新版本与生效日期。</p>
+
+<h2>8. 联系我们</h2>
+<p>邮箱：<a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+支持：<a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== zh-Hant-TW ==================== -->
+<div class="lang-content" id="lang-zh-Hant-TW">
+<h1>隱私政策</h1>
+<p><strong>應用：</strong>籃球生涯<br>
+<strong>生效日期：</strong>2026 年 6 月 3 日</p>
+
+<h2>1. 我們收集哪些資訊</h2>
+<p>籃球生涯預設不收集可直接識別使用者身分的個人資訊（如姓名、手機號、身分證號）。</p>
+<p>使用者主動錄入的資料（如球隊、球員、比賽記錄）僅用於應用核心功能。</p>
+
+<h2>2. 資料如何儲存</h2>
+<ul>
+  <li>資料預設儲存在本機裝置（應用沙盒）。</li>
+  <li>應用不會自動將你的比賽資料上傳到開發者伺服器。</li>
+  <li>若你配置了 AI 總結的 API Key，該金鑰儲存在 iOS Keychain 中。</li>
+  <li>若你啟用 iCloud 同步（Pro 功能），選中的比賽資料將儲存在你的個人 iCloud 帳戶中。</li>
+</ul>
+
+<h2>3. 許可權說明</h2>
+<p>目前版本可能使用以下系統許可權：</p>
+<ul>
+  <li><strong>相簿許可權：</strong>用於為球員選擇頭像照片。</li>
+  <li><strong>本地網路許可權：</strong>用於藍牙同步發現附近裝置。</li>
+  <li><strong>藍牙許可權：</strong>用於裝置間即時協同記分。</li>
+</ul>
+<p>若拒絕授權，相關功能可能不可用，但不影響其餘功能使用。</p>
+
+<h2>4. 資料共享與第三方</h2>
+<ul>
+  <li>應用不用於廣告跟蹤，不進行個人化廣告投放。</li>
+  <li>應用不會將你的本地比賽資料出售給第三方。</li>
+  <li>使用 AI 總結時，僅目前比賽資料會傳送到你配置的 AI 服務商（DeepSeek、OpenAI 或 Anthropic）。</li>
+  <li>使用匯入/匯出/分享或藍牙同步功能時，資料由你主動選擇發送物件與渠道。</li>
+</ul>
+
+<h2>5. 兒童與未成年人</h2>
+<p>本應用不面向特定年齡段兒童進行個人資訊收集。如監護人認為未成年人存在不當資料處理，請透過下方聯絡方式聯絡我們。</p>
+
+<h2>6. 你的權利</h2>
+<p>你可隨時：</p>
+<ul>
+  <li>在應用內刪除相關資料</li>
+  <li>透過匯出功能備份資料</li>
+  <li>在設定中管理或刪除 API Key</li>
+  <li>解除安裝應用以移除本機資料</li>
+</ul>
+
+<h2>7. 政策更新</h2>
+<p>我們可能根據功能調整更新本隱私政策。更新後會在本頁面同步最新版本與生效日期。</p>
+
+<h2>8. 聯絡我們</h2>
+<p>郵箱：<a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+支援：<a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== DE ==================== -->
+<div class="lang-content" id="lang-de">
+<h1>Datenschutzerklärung</h1>
+<p><strong>App:</strong> Basketball Career (篮球生涯)<br>
+<strong>Gültig ab:</strong> 3. Juni 2026</p>
+
+<h2>1. Welche Informationen wir sammeln</h2>
+<p>Basketball Career sammelt standardmäßig keine personenbezogenen Daten (wie Name, Telefonnummer, Ausweisnummer).</p>
+<p>Vom Benutzer eingegebene Daten (z. B. Teams, Spieler, Spielaufzeichnungen) werden lokal gespeichert und nur für die Kernfunktionen der App verwendet.</p>
+
+<h2>2. Wie Daten gespeichert werden</h2>
+<ul>
+  <li>Daten werden lokal auf Ihrem Gerät gespeichert (App-Sandbox).</li>
+  <li>Die App lädt Ihre Spieldaten nicht automatisch auf einen Server hoch.</li>
+  <li>Wenn Sie einen API-Schlüssel für KI-Zusammenfassungen konfigurieren, wird dieser im iOS Keychain gespeichert.</li>
+  <li>Wenn Sie iCloud-Synchronisierung aktivieren (Pro-Funktion), werden ausgewählte Spieldaten in Ihrem persönlichen iCloud-Konto gespeichert.</li>
+</ul>
+
+<h2>3. Berechtigungen</h2>
+<p>Die App kann folgende Systemberechtigungen anfordern:</p>
+<ul>
+  <li><strong>Fotomediathek:</strong> Nur verwendet, wenn Sie ein Avatarbild für einen Spieler festlegen.</li>
+  <li><strong>Lokales Netzwerk:</strong> Für Bluetooth-Synchronisierung zur Erkennung naher Geräte.</li>
+  <li><strong>Bluetooth:</strong> Für Echtzeit-Zusammenarbeit bei der Punkteerfassung zwischen Geräten.</li>
+</ul>
+<p>Wenn Sie ablehnen, sind die entsprechenden Funktionen möglicherweise nicht verfügbar, der Rest der App funktioniert normal.</p>
+
+<h2>4. Datenweitergabe &amp; Dritte</h2>
+<ul>
+  <li>Die App schaltet keine Werbung und führt kein Tracking durch.</li>
+  <li>Die App verkauft Ihre lokalen Spieldaten nicht an Dritte.</li>
+  <li>Bei KI-Zusammenfassungen werden nur die aktuellen Spieldaten an den von Ihnen konfigurierten KI-Anbieter (DeepSeek, OpenAI oder Anthropic) gesendet.</li>
+  <li>Bei Import/Export/Freigabe oder Bluetooth-Synchronisierung wählen Sie aktiv den Empfänger und Kanal.</li>
+</ul>
+
+<h2>5. Kinder &amp; Minderjährige</h2>
+<p>Diese App richtet sich nicht an Kinder zur Datenerfassung. Wenn ein Erziehungsberechtigter glaubt, dass Daten eines Minderjährigen unrechtmäßig verarbeitet wurden, kontaktieren Sie uns bitte.</p>
+
+<h2>6. Ihre Rechte</h2>
+<p>Sie können jederzeit:</p>
+<ul>
+  <li>Daten innerhalb der App löschen</li>
+  <li>Backups über die Exportfunktion erstellen</li>
+  <li>Ihren API-Schlüssel in den Einstellungen verwalten oder löschen</li>
+  <li>Die App deinstallieren, um lokale Daten zu entfernen</li>
+</ul>
+
+<h2>7. Richtlinienaktualisierungen</h2>
+<p>Wir können diese Richtlinie bei Funktionsänderungen aktualisieren. Die neueste Version und das生效ungsdatum werden auf dieser Seite veröffentlicht.</p>
+
+<h2>8. Kontakt</h2>
+<p>E-Mail: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+Support: <a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== ES ==================== -->
+<div class="lang-content" id="lang-es">
+<h1>Política de Privacidad</h1>
+<p><strong>App:</strong> Basketball Career (篮球生涯)<br>
+<strong>Fecha de vigencia:</strong> 3 de junio de 2026</p>
+
+<h2>1. Qué información recopilamos</h2>
+<p>Basketball Career no recopila información personal identificable (como nombre, número de teléfono, DNI) por defecto.</p>
+<p>Los datos ingresados por el usuario (equipos, jugadores, registros de partidos) se almacenan localmente y se utilizan solo para las funciones principales de la app.</p>
+
+<h2>2. Cómo se almacenan los datos</h2>
+<ul>
+  <li>Los datos se almacenan localmente en su dispositivo (sandbox de la app).</li>
+  <li>La app no sube automáticamente sus datos de partidos a ningún servidor.</li>
+  <li>Si configura una clave API para resúmenes de IA, la clave se almacena en el Llavero de iOS.</li>
+  <li>Si activa la sincronización de iCloud (función Pro), los datos de partidos seleccionados se almacenarán en su cuenta personal de iCloud.</li>
+</ul>
+
+<h2>3. Permisos</h2>
+<p>La app puede solicitar los siguientes permisos del sistema:</p>
+<ul>
+  <li><strong>Biblioteca de fotos:</strong> Solo se usa cuando elige establecer una foto de avatar para un jugador.</li>
+  <li><strong>Red local:</strong> Se usa para la sincronización Bluetooth y descubrir dispositivos cercanos.</li>
+  <li><strong>Bluetooth:</strong> Se usa para la puntuación colaborativa en tiempo real entre dispositivos.</li>
+</ul>
+<p>Si deniega, las funciones relacionadas pueden no estar disponibles, pero el resto de la app funcionará con normalidad.</p>
+
+<h2>4. Uso compartido de datos y terceros</h2>
+<ul>
+  <li>La app no muestra anuncios ni realiza seguimiento publicitario.</li>
+  <li>La app no vende sus datos locales de partidos a terceros.</li>
+  <li>Al usar el resumen de IA, solo los datos del partido actual se envían al proveedor de IA configurado (DeepSeek, OpenAI o Anthropic).</li>
+  <li>Al usar importar/exportar/compartir o sincronización Bluetooth, usted elige activamente el destinatario y el canal.</li>
+</ul>
+
+<h2>5. Niños y menores</h2>
+<p>Esta app no está dirigida a niños para la recopilación de datos. Si un tutor cree que los datos de un menor se han procesado indebidamente, contáctenos.</p>
+
+<h2>6. Sus derechos</h2>
+<p>Puede en cualquier momento:</p>
+<ul>
+  <li>Eliminar datos dentro de la app</li>
+  <li>Exportar copias de seguridad mediante la función de exportación</li>
+  <li>Gestionar o eliminar su clave API en Ajustes</li>
+  <li>Desinstalar la app para eliminar los datos locales</li>
+</ul>
+
+<h2>7. Actualizaciones de la política</h2>
+<p>Podemos actualizar esta política a medida que cambien las funciones. La versión más reciente y la fecha de vigencia se publicarán en esta página.</p>
+
+<h2>8. Contacto</h2>
+<p>Correo: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+Soporte: <a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== FR ==================== -->
+<div class="lang-content" id="lang-fr">
+<h1>Politique de Confidentialité</h1>
+<p><strong>App :</strong> Basketball Career (篮球生涯)<br>
+<strong>Date d'effet :</strong> 3 juin 2026</p>
+
+<h2>1. Quelles informations nous collectons</h2>
+<p>Basketball Career ne collecte pas par défaut d'informations personnelles identifiables (nom, numéro de téléphone, pièce d'identité).</p>
+<p>Les données saisies par l'utilisateur (équipes, joueurs, enregistrements de matchs) sont stockées localement et utilisées uniquement pour les fonctionnalités principales de l'application.</p>
+
+<h2>2. Comment les données sont stockées</h2>
+<ul>
+  <li>Les données sont stockées localement sur votre appareil (sandbox de l'application).</li>
+  <li>L'application ne télécharge pas automatiquement vos données de match sur un serveur.</li>
+  <li>Si vous configurez une clé API pour les résumés IA, la clé est stockée dans le Trousseau iOS.</li>
+  <li>Si vous activez la synchronisation iCloud (fonction Pro), les données de match sélectionnées seront stockées dans votre compte iCloud personnel.</li>
+</ul>
+
+<h2>3. Autorisations</h2>
+<p>L'application peut demander les autorisations système suivantes :</p>
+<ul>
+  <li><strong>Photothèque :</strong> Utilisée uniquement lorsque vous choisissez de définir une photo d'avatar pour un joueur.</li>
+  <li><strong>Réseau local :</strong> Utilisé pour la synchronisation Bluetooth afin de découvrir les appareils à proximité.</li>
+  <li><strong>Bluetooth :</strong> Utilisé pour le score collaboratif en temps réel entre appareils.</li>
+</ul>
+<p>Si vous refusez, les fonctionnalités concernées peuvent être indisponibles, mais le reste de l'application fonctionnera normalement.</p>
+
+<h2>4. Partage des données et tiers</h2>
+<ul>
+  <li>L'application ne diffuse pas de publicités et n'effectue pas de suivi publicitaire.</li>
+  <li>L'application ne vend pas vos données locales de match à des tiers.</li>
+  <li>Lorsque vous utilisez le résumé IA, seules les données du match en cours sont envoyées au fournisseur d'IA configuré (DeepSeek, OpenAI ou Anthropic).</li>
+  <li>Lorsque vous utilisez l'import/export/partage ou la synchronisation Bluetooth, vous choisissez activement le destinataire et le canal.</li>
+</ul>
+
+<h2>5. Enfants et mineurs</h2>
+<p>Cette application ne cible pas les enfants pour la collecte de données. Si un tuteur estime que les données d'un mineur ont été traitées de manière inappropriée, veuillez nous contacter.</p>
+
+<h2>6. Vos droits</h2>
+<p>Vous pouvez à tout moment :</p>
+<ul>
+  <li>Supprimer des données dans l'application</li>
+  <li>Exporter des sauvegardes via la fonction d'exportation</li>
+  <li>Gérer ou supprimer votre clé API dans les Réglages</li>
+  <li>Désinstaller l'application pour supprimer les données locales</li>
+</ul>
+
+<h2>7. Mises à jour de la politique</h2>
+<p>Nous pouvons mettre à jour cette politique en fonction des changements de fonctionnalités. La version la plus récente et la date d'effet seront toujours publiées sur cette page.</p>
+
+<h2>8. Contact</h2>
+<p>E-mail : <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+Support : <a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== IT ==================== -->
+<div class="lang-content" id="lang-it">
+<h1>Informativa sulla Privacy</h1>
+<p><strong>App:</strong> Basketball Career (篮球生涯)<br>
+<strong>Data di efficacia:</strong> 3 giugno 2026</p>
+
+<h2>1. Quali informazioni raccogliamo</h2>
+<p>Basketball Career non raccoglie informazioni personali identificabili (nome, numero di telefono, documento d'identità) per impostazione predefinita.</p>
+<p>I dati inseriti dall'utente (squadre, giocatori, registrazioni partite) vengono memorizzati localmente e utilizzati solo per le funzionalità principali dell'app.</p>
+
+<h2>2. Come vengono memorizzati i dati</h2>
+<ul>
+  <li>I dati sono memorizzati localmente sul dispositivo (sandbox dell'app).</li>
+  <li>L'app non carica automaticamente i dati delle partite su alcun server.</li>
+  <li>Se configuri una chiave API per i riassunti AI, la chiave viene memorizzata nel Portachiavi iOS.</li>
+  <li>Se attivi la sincronizzazione iCloud (funzione Pro), i dati delle partite selezionati verranno memorizzati nel tuo account iCloud personale.</li>
+</ul>
+
+<h2>3. Autorizzazioni</h2>
+<p>L'app può richiedere le seguenti autorizzazioni di sistema:</p>
+<ul>
+  <li><strong>Libreria foto:</strong> Utilizzata solo quando scegli di impostare una foto avatar per un giocatore.</li>
+  <li><strong>Rete locale:</strong> Utilizzata per la sincronizzazione Bluetooth per scoprire dispositivi vicini.</li>
+  <li><strong>Bluetooth:</strong> Utilizzato per il punteggio collaborativo in tempo reale tra dispositivi.</li>
+</ul>
+<p>Se rifiuti, le funzionalità correlate potrebbero non essere disponibili, ma il resto dell'app funzionerà normalmente.</p>
+
+<h2>4. Condivisione dei dati e terze parti</h2>
+<ul>
+  <li>L'app non mostra annunci pubblicitari né esegue monitoraggio pubblicitario.</li>
+  <li>L'app non vende i tuoi dati locali delle partite a terze parti.</li>
+  <li>Quando usi il riassunto AI, solo i dati della partita corrente vengono inviati al fornitore AI configurato (DeepSeek, OpenAI o Anthropic).</li>
+  <li>Quando usi import/export/condivisione o sincronizzazione Bluetooth, scegli attivamente il destinatario e il canale.</li>
+</ul>
+
+<h2>5. Bambini e minori</h2>
+<p>Questa app non è rivolta ai bambini per la raccolta di dati. Se un tutore ritiene che i dati di un minore siano stati trattati in modo improprio, ci contatti.</p>
+
+<h2>6. I tuoi diritti</h2>
+<p>Puoi in qualsiasi momento:</p>
+<ul>
+  <li>Eliminare i dati all'interno dell'app</li>
+  <li>Esportare backup tramite la funzione di esportazione</li>
+  <li>Gestire o eliminare la tua chiave API in Impostazioni</li>
+  <li>Disinstallare l'app per rimuovere i dati locali</li>
+</ul>
+
+<h2>7. Aggiornamenti dell'informativa</h2>
+<p>Possiamo aggiornare questa informativa in base ai cambiamenti delle funzionalità. La versione più recente e la data di efficacia saranno sempre pubblicate su questa pagina.</p>
+
+<h2>8. Contatto</h2>
+<p>Email: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+Supporto: <a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== JA ==================== -->
+<div class="lang-content" id="lang-ja">
+<h1>プライバシーポリシー</h1>
+<p><strong>アプリ：</strong> Basketball Career (篮球生涯)<br>
+<strong>発効日：</strong>2026年6月3日</p>
+
+<h2>1. 収集する情報</h2>
+<p>Basketball Career は、デフォルトでは個人を特定できる情報（氏名、電話番号、ID番号など）を収集しません。</p>
+<p>ユーザーが入力したデータ（チーム、選手、試合記録など）はローカルに保存され、アプリのコア機能にのみ使用されます。</p>
+
+<h2>2. データの保存方法</h2>
+<ul>
+  <li>データはデバイス上のローカル（アプリサンドボックス）に保存されます。</li>
+  <li>アプリは試合データを自動的にサーバーにアップロードしません。</li>
+  <li>AI要約用のAPIキーを設定した場合、キーはiOSキーチェーンに保存されます。</li>
+  <li>iCloud同期を有効にした場合（Pro機能）、選択した試合データがお客様のiCloudアカウントに保存されます。</li>
+</ul>
+
+<h2>3. 権限</h2>
+<p>アプリは以下のシステム権限を要求する場合があります：</p>
+<ul>
+  <li><strong>写真ライブラリ：</strong> 選手のアバター写真を設定する場合にのみ使用。</li>
+  <li><strong>ローカルネットワーク：</strong> Bluetooth同期で近くのデバイスを検出するために使用。</li>
+  <li><strong>Bluetooth：</strong> デバイス間のリアルタイム協調記録に使用。</li>
+</ul>
+<p>拒否した場合、関連機能は利用できなくなりますが、アプリのその他の機能は正常に動作します。</p>
+
+<h2>4. データ共有と第三者</h2>
+<ul>
+  <li>アプリは広告を配信せず、広告トラッキングも行いません。</li>
+  <li>アプリはお客様のローカル試合データを第三者に販売しません。</li>
+  <li>AI要約を使用する場合、現在の試合データのみが設定されたAIプロバイダー（DeepSeek、OpenAI、Anthropic）に送信されます。</li>
+  <li>インポート/エクスポート/共有またはBluetooth同期を使用する場合、お客様が能動的に受信者とチャネルを選択します。</li>
+</ul>
+
+<h2>5. 子どもと未成年者</h2>
+<p>本アプリは子どもを対象としたデータ収集を行いません。保護者が未成年者のデータが不適切に処理されたと判断された場合は、以下までご連絡ください。</p>
+
+<h2>6. お客様の権利</h2>
+<p>お客様はいつでも以下のことができます：</p>
+<ul>
+  <li>アプリ内でデータを削除</li>
+  <li>エクスポート機能でバックアップを作成</li>
+  <li>設定でAPIキーを管理または削除</li>
+  <li>アプリをアンインストールしてローカルデータを削除</li>
+</ul>
+
+<h2>7. ポリシーの更新</h2>
+<p>機能の変更に応じて本ポリシーを更新することがあります。最新版と発効日は常にこのページに掲載されます。</p>
+
+<h2>8. お問い合わせ</h2>
+<p>メール：<a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+サポート：<a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== KO ==================== -->
+<div class="lang-content" id="lang-ko">
+<h1>개인정보 처리방침</h1>
+<p><strong>앱:</strong> Basketball Career (篮球生涯)<br>
+<strong>시행일:</strong> 2026년 6월 3일</p>
+
+<h2>1. 수집하는 정보</h2>
+<p>Basketball Career는 기본적으로 개인을 식별할 수 있는 정보(이름, 전화번호, 신분증 번호 등)를 수집하지 않습니다.</p>
+<p>사용자가 입력한 데이터(팀, 선수, 경기 기록)는 로컬에 저장되며 앱의 핵심 기능에만 사용됩니다.</p>
+
+<h2>2. 데이터 저장 방법</h2>
+<ul>
+  <li>데이터는 기기의 로컬(앱 샌드박스)에 저장됩니다.</li>
+  <li>앱이 경기 데이터를 자동으로 서버에 업로드하지 않습니다.</li>
+  <li>AI 요약용 API 키를 설정한 경우, 키는 iOS 키체인에 저장됩니다.</li>
+  <li>iCloud 동기화를 활성화한 경우(Pro 기능), 선택한 경기 데이터가 개인 iCloud 계정에 저장됩니다.</li>
+</ul>
+
+<h2>3. 권한</h2>
+<p>앱은 다음과 같은 시스템 권한을 요청할 수 있습니다:</p>
+<ul>
+  <li><strong>사진 라이브러리:</strong> 선수의 아바타 사진을 설정할 때만 사용됩니다.</li>
+  <li><strong>로컬 네트워크:</strong> Bluetooth 동기화에서 주변 기기를 발견하는 데 사용됩니다.</li>
+  <li><strong>Bluetooth:</strong> 기기 간 실시간 협업 기록에 사용됩니다.</li>
+</ul>
+<p>거부할 경우 관련 기능을 사용할 수 없지만, 나머지 앱 기능은 정상적으로 작동합니다.</p>
+
+<h2>4. 데이터 공유 및 제3자</h2>
+<ul>
+  <li>앱은 광고를 게재하지 않으며 광고 추적을 수행하지 않습니다.</li>
+  <li>앱은 로컬 경기 데이터를 제3자에게 판매하지 않습니다.</li>
+  <li>AI 요약을 사용할 때만 현재 경기 데이터가 설정된 AI 제공업체(DeepSeek, OpenAI, Anthropic)로 전송됩니다.</li>
+  <li>가져오기/내보내기/공유 또는 Bluetooth 동기화를 사용할 때 사용자가 능동적으로 수신자와 채널을 선택합니다.</li>
+</ul>
+
+<h2>5. 아동 및 미성년자</h2>
+<p>본 앱은 아동을 대상으로 데이터를 수집하지 않습니다. 보호자가 미성년자의 데이터가 부적절하게 처리되었다고 판단하는 경우 아래 연락처로 문의해 주시기 바랍니다.</p>
+
+<h2>6. 사용자의 권리</h2>
+<p>언제든지 다음을 수행할 수 있습니다:</p>
+<ul>
+  <li>앱 내에서 데이터 삭제</li>
+  <li>내보내기 기능을 통해 백업 생성</li>
+  <li>설정에서 API 키 관리 또는 삭제</li>
+  <li>앱을 제거하여 로컬 데이터 삭제</li>
+</ul>
+
+<h2>7. 정책 업데이트</h2>
+<p>기능 변경에 따라 본 방침을 업데이트할 수 있습니다. 최신 버전과 시행일은 항상 이 페이지에 게시됩니다.</p>
+
+<h2>8. 연락처</h2>
+<p>이메일: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+지원: <a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== RU ==================== -->
+<div class="lang-content" id="lang-ru">
+<h1>Политика Конфиденциальности</h1>
+<p><strong>Приложение:</strong> Basketball Career (篮球生涯)<br>
+<strong>Дата вступления в силу:</strong> 3 июня 2026 г.</p>
+
+<h2>1. Какую информацию мы собираем</h2>
+<p>Basketball Career по умолчанию не собирает личную информацию, позволяющую идентифицировать пользователя (имя, номер телефона, удостоверение личности).</p>
+<p>Данные, введённые пользователем (команды, игроки, записи матчей), хранятся локально и используются только для основных функций приложения.</p>
+
+<h2>2. Как хранятся данные</h2>
+<ul>
+  <li>Данные хранятся локально на вашем устройстве (песочница приложения).</li>
+  <li>Приложение не загружает ваши игровые данные на сервер автоматически.</li>
+  <li>Если вы настраиваете ключ API для ИИ-резюме, ключ хранится в связке ключей iOS.</li>
+  <li>Если вы включаете синхронизацию iCloud (функция Pro), выбранные игровые данные будут храниться в вашей личной учётной записи iCloud.</li>
+</ul>
+
+<h2>3. Разрешения</h2>
+<p>Приложение может запрашивать следующие системные разрешения:</p>
+<ul>
+  <li><strong>Фототека:</strong> Используется только при выборе фото аватара для игрока.</li>
+  <li><strong>Локальная сеть:</strong> Используется для Bluetooth-синхронизации для обнаружения ближайших устройств.</li>
+  <li><strong>Bluetooth:</strong> Используется для совместного подсчёта очков в реальном времени между устройствами.</li>
+</ul>
+<p>Если вы откажете, соответствующие функции могут быть недоступны, но остальная часть приложения будет работать нормально.</p>
+
+<h2>4. Передача данных и третьи лица</h2>
+<ul>
+  <li>Приложение не показывают рекламу и не отслеживает действия пользователей.</li>
+  <li>Приложение не продаёт ваши локальные игровые данные третьим лицам.</li>
+  <li>При использовании ИИ-резюме только данные текущего матча отправляются настроенному поставщику ИИ (DeepSeek, OpenAI или Anthropic).</li>
+  <li>При использовании импорта/экспорта/обмена или Bluetooth-синхронизации вы активно выбираете получателя и канал.</li>
+</ul>
+
+<h2>5. Дети и несовершеннолетние</h2>
+<p>Это приложение не ориентировано на сбор данных у детей. Если опекун считает, что данные несовершеннолетнего были обработаны ненадлежащим образом, свяжитесь с нами.</p>
+
+<h2>6. Ваши права</h2>
+<p>Вы можете в любое время:</p>
+<ul>
+  <li>Удалить данные в приложении</li>
+  <li>Экспортировать резервные копии через функцию экспорта</li>
+  <li>Управлять или удалить свой ключ API в настройках</li>
+  <li>Удалить приложение для удаления локальных данных</li>
+</ul>
+
+<h2>7. Обновления политики</h2>
+<p>Мы можем обновлять эту политику по мере изменения функциональности. Последняя версия и дата вступления в силу всегда публикуются на этой странице.</p>
+
+<h2>8. Контакты</h2>
+<p>Эл. почта: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+Поддержка: <a href="support.html">support.html</a></p>
+</div>
+
+<script>
+const langs = ['en','zh-Hans','zh-Hant-TW','de','es','fr','it','ja','ko','ru'];
+function switchLang(code) {
+  document.querySelectorAll('.lang-content').forEach(el => el.classList.remove('active'));
+  const target = document.getElementById('lang-' + code);
+  if (target) target.classList.add('active');
+  document.getElementById('langSelect').value = code;
+  localStorage.setItem('preferredLang', code);
+}
+(function() {
+  const saved = localStorage.getItem('preferredLang') || navigator.language || 'en';
+  const code = langs.find(l => saved.startsWith(l)) || 'en';
+  switchLang(code);
+})();
+</script>
 
 </body>
 </html>

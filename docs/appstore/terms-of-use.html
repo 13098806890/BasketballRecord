@@ -1,17 +1,45 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Terms of Use — Basketball Career</title>
 <style>
-  body { font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 720px; margin: 0 auto; padding: 20px; line-height: 1.7; color: #333; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 780px; margin: 0 auto; padding: 20px; line-height: 1.7; color: #333; }
   h1, h2 { color: #1a1a2e; border-bottom: 2px solid #eee; padding-bottom: 6px; }
+  h2 { margin-top: 28px; font-size: 1.3em; }
   a { color: #2563eb; }
+  .lang-bar { text-align: right; margin-bottom: 16px; }
+  .lang-bar select { padding: 4px 10px; font-size: .9em; border-radius: 6px; border: 1px solid #ccc; }
+  .lang-content { display: none; }
+  .lang-content.active { display: block; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #111; color: #ddd; }
+    h1, h2 { color: #e0e0e0; border-color: #333; }
+    .lang-bar select { background: #222; color: #ddd; border-color: #444; }
+  }
 </style>
 </head>
 <body>
 
+<div class="lang-bar">
+  <select id="langSelect" onchange="switchLang(this.value)">
+    <option value="en">English</option>
+    <option value="zh-Hans">简体中文</option>
+    <option value="zh-Hant-TW">繁體中文</option>
+    <option value="de">Deutsch</option>
+    <option value="es">Español</option>
+    <option value="fr">Français</option>
+    <option value="it">Italiano</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="ru">Русский</option>
+  </select>
+</div>
+
+<!-- ==================== EN ==================== -->
+<div class="lang-content" id="lang-en">
 <h1>Terms of Use</h1>
 <p><strong>App:</strong> Basketball Career (篮球生涯)<br>
 <strong>Effective Date:</strong> June 3, 2026</p>
@@ -24,38 +52,587 @@
 <ul>
   <li>Player and team management</li>
   <li>In-game scorekeeping and stat tracking</li>
-  <li>Historical game review</li>
+  <li>Historical game review and career statistics</li>
+  <li>AI-powered game summaries (requires optional API Key configuration)</li>
+  <li>Bluetooth collaborative scoring, iCloud sync, and game groups (Pro features)</li>
   <li>Data import, export, and merge</li>
 </ul>
 
-<h2>3. User Responsibilities</h2>
+<h2>3. Subscriptions</h2>
 <ul>
-  <li>You are responsible for the accuracy and legality of the data you enter or import</li>
-  <li>You should keep exported files secure and avoid unauthorized disclosure</li>
-  <li>You should back up data before performing critical operations</li>
+  <li>Pro features require an auto-renewable subscription (monthly or yearly).</li>
+  <li>Payment is charged to your App Store account upon confirmation.</li>
+  <li>Subscriptions auto-renew unless canceled at least 24 hours before the current period ends.</li>
+  <li>Manage or cancel subscriptions anytime in App Store Settings.</li>
 </ul>
 
-<h2>4. Data &amp; Backup</h2>
+<h2>4. User Responsibilities</h2>
 <ul>
-  <li>App data is stored locally on your device by default</li>
-  <li>Deletion or overwrite operations are typically irreversible</li>
-  <li>We recommend using the backup mechanism to mitigate the risk of data loss due to device failure, system maintenance, or accidental operation</li>
+  <li>You are responsible for the accuracy and legality of the data you enter or import.</li>
+  <li>You should keep exported files secure and avoid unauthorized disclosure.</li>
+  <li>You should back up data before performing critical operations.</li>
 </ul>
 
-<h2>5. Disclaimer</h2>
+<h2>5. Data &amp; Backup</h2>
+<ul>
+  <li>App data is stored locally on your device by default.</li>
+  <li>Deletion or overwrite operations are typically irreversible.</li>
+  <li>We recommend using the backup mechanism to mitigate data loss risk.</li>
+</ul>
+
+<h2>6. Disclaimer</h2>
 <p>This app is provided "as is." We strive for stability but are not liable for:</p>
 <ul>
   <li>Functional anomalies caused by force majeure or system environment changes</li>
   <li>Data loss due to user error</li>
-  <li>Data unavailability caused by third-party systems (OS or sharing channels)</li>
+  <li>Data unavailability caused by third-party systems</li>
 </ul>
 
-<h2>6. Terms Updates</h2>
+<h2>7. Terms Updates</h2>
 <p>We may update these terms as the product evolves. Updated terms will be posted on this page with a new effective date.</p>
 
-<h2>7. Contact</h2>
+<h2>8. Contact</h2>
 <p>Email: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
-Support: <a href="https://13098806890.github.io/BasketballRecord/appstore/support.html">https://13098806890.github.io/BasketballRecord/appstore/support.html</a></p>
+Support: <a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== zh-Hans ==================== -->
+<div class="lang-content" id="lang-zh-Hans">
+<h1>使用条款</h1>
+<p><strong>应用：</strong>篮球生涯<br>
+<strong>生效日期：</strong>2026 年 6 月 3 日</p>
+
+<h2>1. 接受条款</h2>
+<p>下载、安装或使用本应用，即表示你已阅读并同意本使用条款。</p>
+
+<h2>2. 功能说明</h2>
+<p>本应用用于篮球比赛记录与统计，主要功能包括：</p>
+<ul>
+  <li>球员与球队管理</li>
+  <li>比赛记分与技术统计</li>
+  <li>历史比赛查看与生涯统计</li>
+  <li>AI 比赛总结（需可选配置 API Key）</li>
+  <li>蓝牙协同记分、iCloud 同步、比赛分组（Pro 功能）</li>
+  <li>数据导入、导出与合并</li>
+</ul>
+
+<h2>3. 订阅</h2>
+<ul>
+  <li>Pro 功能需自动续期订阅（月度或年度）。</li>
+  <li>付款在确认后从你的 App Store 账户扣除。</li>
+  <li>订阅自动续期，除非在当前周期结束前至少 24 小时取消。</li>
+  <li>随时在 App Store 设置中管理或取消订阅。</li>
+</ul>
+
+<h2>4. 用户责任</h2>
+<ul>
+  <li>你应保证自行录入或导入数据的合法性与准确性。</li>
+  <li>你应妥善保管导出文件，避免泄露。</li>
+  <li>你应在关键操作前自行备份数据。</li>
+</ul>
+
+<h2>5. 数据与备份</h2>
+<ul>
+  <li>应用数据默认保存在本地设备。</li>
+  <li>删除或覆盖操作通常不可逆。</li>
+  <li>建议通过备份机制规避数据丢失风险。</li>
+</ul>
+
+<h2>6. 免责声明</h2>
+<p>本应用按"现状"提供。我们会尽力保证稳定性，但不对以下情况承担责任：</p>
+<ul>
+  <li>因不可抗力、系统环境变化导致的功能异常</li>
+  <li>因用户误操作导致的数据丢失</li>
+  <li>因第三方系统问题导致的数据不可用</li>
+</ul>
+
+<h2>7. 条款更新</h2>
+<p>我们可能根据产品更新调整本条款。更新后将在本页面更新生效日期。</p>
+
+<h2>8. 联系方式</h2>
+<p>邮箱：<a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+支持：<a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== zh-Hant-TW ==================== -->
+<div class="lang-content" id="lang-zh-Hant-TW">
+<h1>使用條款</h1>
+<p><strong>應用：</strong>籃球生涯<br>
+<strong>生效日期：</strong>2026 年 6 月 3 日</p>
+
+<h2>1. 接受條款</h2>
+<p>下載、安裝或使用本應用，即表示你已閱讀並同意本使用條款。</p>
+
+<h2>2. 功能說明</h2>
+<p>本應用用於籃球比賽記錄與統計，主要功能包括：</p>
+<ul>
+  <li>球員與球隊管理</li>
+  <li>比賽記分與技術統計</li>
+  <li>歷史比賽檢視與生涯統計</li>
+  <li>AI 比賽總結（需選配 API Key）</li>
+  <li>藍牙協同記分、iCloud 同步、比賽分組（Pro 功能）</li>
+  <li>資料匯入、匯出與合併</li>
+</ul>
+
+<h2>3. 訂閱</h2>
+<ul>
+  <li>Pro 功能需自動續期訂閱（月度或年度）。</li>
+  <li>付款在確認後從你的 App Store 帳戶扣除。</li>
+  <li>訂閱自動續期，除非在目前週期結束前至少 24 小時取消。</li>
+  <li>隨時在 App Store 設定中管理或取消訂閱。</li>
+</ul>
+
+<h2>4. 使用者責任</h2>
+<ul>
+  <li>你應保證自行錄入或匯入資料的合法性與準確性。</li>
+  <li>你應妥善保管匯出檔案，避免洩露。</li>
+  <li>你應在關鍵操作前自行備份資料。</li>
+</ul>
+
+<h2>5. 資料與備份</h2>
+<ul>
+  <li>應用資料預設儲存在本機裝置。</li>
+  <li>刪除或覆寫操作通常不可逆。</li>
+  <li>建議透過備份機制規避資料遺失風險。</li>
+</ul>
+
+<h2>6. 免責宣告</h2>
+<p>本應用按「現狀」提供。我們會盡力保證穩定性，但不對以下情況承擔責任：</p>
+<ul>
+  <li>因不可抗力、系統環境變化導致的功能異常</li>
+  <li>因使用者誤操作導致的資料丟失</li>
+  <li>因第三方系統問題導致的資料不可用</li>
+</ul>
+
+<h2>7. 條款更新</h2>
+<p>我們可能根據產品更新調整本條款。更新後將在本頁面更新生效日期。</p>
+
+<h2>8. 聯絡方式</h2>
+<p>郵箱：<a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+支援：<a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== DE ==================== -->
+<div class="lang-content" id="lang-de">
+<h1>Nutzungsbedingungen</h1>
+<p><strong>App:</strong> Basketball Career (篮球生涯)<br>
+<strong>Gültig ab:</strong> 3. Juni 2026</p>
+
+<h2>1. Annahme der Bedingungen</h2>
+<p>Durch Herunterladen, Installieren oder Verwenden der App stimmen Sie diesen Nutzungsbedingungen zu.</p>
+
+<h2>2. Funktionsbeschreibung</h2>
+<p>Diese App dient der Aufzeichnung und Statistik von Basketballspielen. Hauptfunktionen:</p>
+<ul>
+  <li>Spieler- und Teamverwaltung</li>
+  <li>Spielstandserfassung und Statistiken</li>
+  <li>Spielverlauf und Karrierestatistiken</li>
+  <li>KI-Spielzusammenfassungen (optionale API-Schlüssel-Konfiguration)</li>
+  <li>Bluetooth-Kollaboration, iCloud-Sync, Spielgruppen (Pro-Funktionen)</li>
+  <li>Datenimport, -export und -zusammenführung</li>
+</ul>
+
+<h2>3. Abonnements</h2>
+<ul>
+  <li>Pro-Funktionen erfordern ein automatisch verlängerbares Abonnement (monatlich oder jährlich).</li>
+  <li>Die Zahlung wird nach Bestätigung von Ihrem App Store-Konto abgebucht.</li>
+  <li>Abonnements verlängern sich automatisch, es sei denn, sie werden mindestens 24 Stunden vor Ende des aktuellen Zeitraums gekündigt.</li>
+  <li>Abonnements jederzeit in den App Store-Einstellungen verwalten oder kündigen.</li>
+</ul>
+
+<h2>4. Benutzerverantwortung</h2>
+<ul>
+  <li>Sie sind für die Richtigkeit und Rechtmäßigkeit der von Ihnen eingegebenen oder importierten Daten verantwortlich.</li>
+  <li>Sie sollten exportierte Dateien sicher aufbewahren und unbefugte Weitergabe vermeiden.</li>
+  <li>Sie sollten vor kritischen Operationen Backups erstellen.</li>
+</ul>
+
+<h2>5. Daten &amp; Backup</h2>
+<ul>
+  <li>App-Daten werden standardmäßig lokal auf Ihrem Gerät gespeichert.</li>
+  <li>Lösch- oder Überschreibvorgänge sind in der Regel nicht umkehrbar.</li>
+  <li>Wir empfehlen die Nutzung der Backup-Funktion zur Risikominimierung.</li>
+</ul>
+
+<h2>6. Haftungsausschluss</h2>
+<p>Diese App wird "wie besehen" bereitgestellt. Wir bemühen uns um Stabilität, haften jedoch nicht für:</p>
+<ul>
+  <li>Funktionsstörungen durch höhere Gewalt oder Systemänderungen</li>
+  <li>Datenverlust durch Benutzerfehler</li>
+  <li>Datenverfügbarkeit aufgrund von Drittsystemen</li>
+</ul>
+
+<h2>7. Aktualisierungen</h2>
+<p>Wir können diese Bedingungen bei Produktänderungen aktualisieren. Die aktualisierte Version wird auf dieser Seite veröffentlicht.</p>
+
+<h2>8. Kontakt</h2>
+<p>E-Mail: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+Support: <a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== ES ==================== -->
+<div class="lang-content" id="lang-es">
+<h1>Términos de Uso</h1>
+<p><strong>App:</strong> Basketball Career (篮球生涯)<br>
+<strong>Fecha de vigencia:</strong> 3 de junio de 2026</p>
+
+<h2>1. Aceptación de los Términos</h2>
+<p>Al descargar, instalar o usar la app, aceptas estos términos de uso.</p>
+
+<h2>2. Descripción de funciones</h2>
+<p>Esta app está diseñada para el registro y estadísticas de partidos de baloncesto. Funciones principales:</p>
+<ul>
+  <li>Gestión de jugadores y equipos</li>
+  <li>Registro de puntuaciones y estadísticas durante el partido</li>
+  <li>Revisión histórica y estadísticas de carrera</li>
+  <li>Resúmenes de partidos con IA (requiere configuración opcional de clave API)</li>
+  <li>Colaboración Bluetooth, sincronización iCloud, grupos de partidos (funciones Pro)</li>
+  <li>Importación, exportación y fusión de datos</li>
+</ul>
+
+<h2>3. Suscripciones</h2>
+<ul>
+  <li>Las funciones Pro requieren una suscripción renovable automática (mensual o anual).</li>
+  <li>El pago se carga en tu cuenta de App Store tras la confirmación.</li>
+  <li>Las suscripciones se renuevan automáticamente a menos que se cancelen al menos 24 horas antes del final del período actual.</li>
+  <li>Gestiona o cancela suscripciones en cualquier momento en Ajustes de App Store.</li>
+</ul>
+
+<h2>4. Responsabilidades del usuario</h2>
+<ul>
+  <li>Eres responsable de la precisión y legalidad de los datos que ingreses o importes.</li>
+  <li>Debes mantener seguros los archivos exportados y evitar su divulgación no autorizada.</li>
+  <li>Debes realizar copias de seguridad antes de operaciones críticas.</li>
+</ul>
+
+<h2>5. Datos y copias de seguridad</h2>
+<ul>
+  <li>Los datos de la app se almacenan localmente en tu dispositivo por defecto.</li>
+  <li>Las operaciones de eliminación o sobrescritura suelen ser irreversibles.</li>
+  <li>Recomendamos usar el mecanismo de copia de seguridad para mitigar riesgos.</li>
+</ul>
+
+<h2>6. Exención de responsabilidad</h2>
+<p>Esta app se proporciona "tal cual". Nos esforzamos por la estabilidad, pero no somos responsables de:</p>
+<ul>
+  <li>Anomalías funcionales causadas por fuerza mayor o cambios en el entorno del sistema</li>
+  <li>Pérdida de datos por error del usuario</li>
+  <li>Indisponibilidad de datos causada por sistemas de terceros</li>
+</ul>
+
+<h2>7. Actualizaciones de los términos</h2>
+<p>Podemos actualizar estos términos a medida que el producto evolucione. Los términos actualizados se publicarán en esta página.</p>
+
+<h2>8. Contacto</h2>
+<p>Correo: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+Soporte: <a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== FR ==================== -->
+<div class="lang-content" id="lang-fr">
+<h1>Conditions d'Utilisation</h1>
+<p><strong>App :</strong> Basketball Career (篮球生涯)<br>
+<strong>Date d'effet :</strong> 3 juin 2026</p>
+
+<h2>1. Acceptation des conditions</h2>
+<p>En téléchargeant, installant ou utilisant l'application, vous acceptez ces conditions d'utilisation.</p>
+
+<h2>2. Description des fonctionnalités</h2>
+<p>Cette application est conçue pour l'enregistrement et les statistiques de matchs de basketball. Principales fonctionnalités :</p>
+<ul>
+  <li>Gestion des joueurs et des équipes</li>
+  <li>Enregistrement des scores et statistiques pendant le match</li>
+  <li>Historique des matchs et statistiques de carrière</li>
+  <li>Résumés de match avec IA (configuration facultative de clé API)</li>
+  <li>Collaboration Bluetooth, synchronisation iCloud, groupes de matchs (fonctions Pro)</li>
+  <li>Importation, exportation et fusion de données</li>
+</ul>
+
+<h2>3. Abonnements</h2>
+<ul>
+  <li>Les fonctions Pro nécessitent un abonnement à renouvellement automatique (mensuel ou annuel).</li>
+  <li>Le paiement est débité de votre compte App Store après confirmation.</li>
+  <li>Les abonnements se renouvellent automatiquement sauf annulation au moins 24 heures avant la fin de la période en cours.</li>
+  <li>Gérez ou annulez les abonnements à tout moment dans les Réglages App Store.</li>
+</ul>
+
+<h2>4. Responsabilités de l'utilisateur</h2>
+<ul>
+  <li>Vous êtes responsable de l'exactitude et de la légalité des données que vous saisissez ou importez.</li>
+  <li>Vous devez conserver les fichiers exportés en lieu sûr et éviter toute divulgation non autorisée.</li>
+  <li>Vous devez sauvegarder les données avant d'effectuer des opérations critiques.</li>
+</ul>
+
+<h2>5. Données et sauvegarde</h2>
+<ul>
+  <li>Les données de l'application sont stockées localement sur votre appareil par défaut.</li>
+  <li>Les opérations de suppression ou d'écrasement sont généralement irréversibles.</li>
+  <li>Nous recommandons d'utiliser le mécanisme de sauvegarde pour atténuer les risques.</li>
+</ul>
+
+<h2>6. Clause de non-responsabilité</h2>
+<p>Cette application est fournie « en l'état ». Nous nous efforçons d'assurer la stabilité, mais ne sommes pas responsables de :</p>
+<ul>
+  <li>Anomalies fonctionnelles causées par un cas de force majeure ou des changements d'environnement système</li>
+  <li>Perte de données due à une erreur de l'utilisateur</li>
+  <li>Indisponibilité des données causée par des systèmes tiers</li>
+</ul>
+
+<h2>7. Mises à jour des conditions</h2>
+<p>Nous pouvons mettre à jour ces conditions à mesure que le produit évolue. Les conditions mises à jour seront publiées sur cette page.</p>
+
+<h2>8. Contact</h2>
+<p>E-mail : <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+Support : <a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== IT ==================== -->
+<div class="lang-content" id="lang-it">
+<h1>Termini di Utilizzo</h1>
+<p><strong>App:</strong> Basketball Career (篮球生涯)<br>
+<strong>Data di efficacia:</strong> 3 giugno 2026</p>
+
+<h2>1. Accettazione dei Termini</h2>
+<p>Scaricando, installando o utilizzando l'app, accetti i presenti termini di utilizzo.</p>
+
+<h2>2. Descrizione delle funzionalità</h2>
+<p>Questa app è progettata per la registrazione e le statistiche di partite di basket. Funzionalità principali:</p>
+<ul>
+  <li>Gestione di giocatori e squadre</li>
+  <li>Registrazione punteggi e statistiche durante la partita</li>
+  <li>Revisione storica e statistiche di carriera</li>
+  <li>Riassunti partita con AI (configurazione opzionale della chiave API)</li>
+  <li>Collaborazione Bluetooth, sincronizzazione iCloud, gruppi partite (funzioni Pro)</li>
+  <li>Importazione, esportazione e fusione dati</li>
+</ul>
+
+<h2>3. Abbonamenti</h2>
+<ul>
+  <li>Le funzioni Pro richiedono un abbonamento con rinnovo automatico (mensile o annuale).</li>
+  <li>Il pagamento viene addebitato sul tuo account App Store dopo la conferma.</li>
+  <li>Gli abbonamenti si rinnovano automaticamente salvo cancellazione almeno 24 ore prima della fine del periodo corrente.</li>
+  <li>Gestisci o annulla gli abbonamenti in qualsiasi momento nelle Impostazioni App Store.</li>
+</ul>
+
+<h2>4. Responsabilità dell'utente</h2>
+<ul>
+  <li>Sei responsabile dell'accuratezza e della legalità dei dati inseriti o importati.</li>
+  <li>Devi mantenere sicuri i file esportati ed evitare divulgazioni non autorizzate.</li>
+  <li>Devi eseguire il backup dei dati prima di operazioni critiche.</li>
+</ul>
+
+<h2>5. Dati e backup</h2>
+<ul>
+  <li>I dati dell'app sono memorizzati localmente sul dispositivo per impostazione predefinita.</li>
+  <li>Le operazioni di eliminazione o sovrascrittura sono generalmente irreversibili.</li>
+  <li>Si consiglia di utilizzare il meccanismo di backup per mitigare i rischi.</li>
+</ul>
+
+<h2>6. Esclusione di responsabilità</h2>
+<p>Questa app è fornita "così com'è". Ci impegniamo per la stabilità, ma non siamo responsabili per:</p>
+<ul>
+  <li>Anomalie funzionali causate da forza maggiore o cambiamenti dell'ambiente di sistema</li>
+  <li>Perdita di dati dovuta a errore dell'utente</li>
+  <li>Indisponibilità dei dati causata da sistemi di terze parti</li>
+</ul>
+
+<h2>7. Aggiornamenti dei termini</h2>
+<p>Possiamo aggiornare questi termini con l'evoluzione del prodotto. I termini aggiornati saranno pubblicati su questa pagina.</p>
+
+<h2>8. Contatto</h2>
+<p>Email: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+Supporto: <a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== JA ==================== -->
+<div class="lang-content" id="lang-ja">
+<h1>利用規約</h1>
+<p><strong>アプリ：</strong> Basketball Career (篮球生涯)<br>
+<strong>発効日：</strong>2026年6月3日</p>
+
+<h2>1. 規約の承諾</h2>
+<p>アプリをダウンロード、インストール、または使用することにより、本利用規約に同意したものとみなされます。</p>
+
+<h2>2. 機能の説明</h2>
+<p>本アプリはバスケットボールの試合記録と統計のためのものです。主な機能：</p>
+<ul>
+  <li>選手とチームの管理</li>
+  <li>試合中の得点記録と統計追跡</li>
+  <li>試合履歴とキャリア統計</li>
+  <li>AI試合サマリー（オプションのAPIキー設定が必要）</li>
+  <li>Bluetooth協調記録、iCloud同期、試合グループ（Pro機能）</li>
+  <li>データのインポート、エクスポート、マージ</li>
+</ul>
+
+<h2>3. サブスクリプション</h2>
+<ul>
+  <li>Pro機能を使用するには、自動更新サブスクリプション（月額または年額）が必要です。</li>
+  <li>支払いは確認後、App Storeアカウントに請求されます。</li>
+  <li>サブスクリプションは、現在の期間終了の24時間以上前に解約されない限り、自動的に更新されます。</li>
+  <li>サブスクリプションはApp Storeの設定でいつでも管理または解約できます。</li>
+</ul>
+
+<h2>4. ユーザーの責任</h2>
+<ul>
+  <li>入力またはインポートするデータの正確性と合法性については、お客様が責任を負います。</li>
+  <li>エクスポートしたファイルは安全に保管し、不正な開示を避けてください。</li>
+  <li>重要な操作の前にはデータをバックアップしてください。</li>
+</ul>
+
+<h2>5. データとバックアップ</h2>
+<ul>
+  <li>アプリのデータはデフォルトでデバイスにローカル保存されます。</li>
+  <li>削除または上書き操作は通常元に戻せません。</li>
+  <li>バックアップ機能を利用してデータ損失のリスクを軽減することをお勧めします。</li>
+</ul>
+
+<h2>6. 免責事項</h2>
+<p>本アプリは「現状のまま」提供されます。安定性には努めますが、以下について責任を負いません：</p>
+<ul>
+  <li>不可抗力やシステム環境の変化による機能異常</li>
+  <li>ユーザーの誤操作によるデータ損失</li>
+  <li>サードパーティシステムによるデータ利用不可</li>
+</ul>
+
+<h2>7. 規約の更新</h2>
+<p>製品の進化に伴い、本規約を更新することがあります。更新された規約はこのページに掲載されます。</p>
+
+<h2>8. お問い合わせ</h2>
+<p>メール：<a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+サポート：<a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== KO ==================== -->
+<div class="lang-content" id="lang-ko">
+<h1>이용 약관</h1>
+<p><strong>앱:</strong> Basketball Career (篮球生涯)<br>
+<strong>시행일:</strong> 2026년 6월 3일</p>
+
+<h2>1. 약관 동의</h2>
+<p>앱을 다운로드, 설치 또는 사용함으로써 본 이용 약관에 동의하게 됩니다.</p>
+
+<h2>2. 기능 설명</h2>
+<p>본 앱은 농구 경기 기록 및 통계를 위해 설계되었습니다. 주요 기능:</p>
+<ul>
+  <li>선수 및 팀 관리</li>
+  <li>경기 중 득점 기록 및 통계 추적</li>
+  <li>경기 기록 및 경력 통계</li>
+  <li>AI 경기 요약 (선택적 API 키 구성 필요)</li>
+  <li>Bluetooth 협업 기록, iCloud 동기화, 경기 그룹 (Pro 기능)</li>
+  <li>데이터 가져오기, 내보내기 및 병합</li>
+</ul>
+
+<h2>3. 구독</h2>
+<ul>
+  <li>Pro 기능을 사용하려면 자동 갱신 구독(월간 또는 연간)이 필요합니다.</li>
+  <li>결제는 확인 후 App Store 계정에 청구됩니다.</li>
+  <li>현재 기간 종료 최소 24시간 전에 취소하지 않으면 구독이 자동으로 갱신됩니다.</li>
+  <li>언제든지 App Store 설정에서 구독을 관리하거나 취소할 수 있습니다.</li>
+</ul>
+
+<h2>4. 사용자 책임</h2>
+<ul>
+  <li>입력하거나 가져오는 데이터의 정확성과 적법성에 대한 책임은 사용자에게 있습니다.</li>
+  <li>내보낸 파일은 안전하게 보관하고 무단 공개를 피해야 합니다.</li>
+  <li>중요한 작업 전에 데이터를 백업해야 합니다.</li>
+</ul>
+
+<h2>5. 데이터 및 백업</h2>
+<ul>
+  <li>앱 데이터는 기본적으로 기기에 로컬로 저장됩니다.</li>
+  <li>삭제 또는 덮어쓰기 작업은 일반적으로 되돌릴 수 없습니다.</li>
+  <li>데이터 손실 위험을 줄이기 위해 백업 기능을 사용하는 것이 좋습니다.</li>
+</ul>
+
+<h2>6. 면책 조항</h2>
+<p>본 앱은 "있는 그대로" 제공됩니다. 안정성을 위해 노력하지만, 다음에 대해 책임을 지지 않습니다:</p>
+<ul>
+  <li>불가항력 또는 시스템 환경 변경으로 인한 기능 이상</li>
+  <li>사용자 오류로 인한 데이터 손실</li>
+  <li>타사 시스템으로 인한 데이터 사용 불가</li>
+</ul>
+
+<h2>7. 약관 업데이트</h2>
+<p>제품 변경에 따라 본 약관을 업데이트할 수 있습니다. 업데이트된 약관은 이 페이지에 게시됩니다.</p>
+
+<h2>8. 연락처</h2>
+<p>이메일: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+지원: <a href="support.html">support.html</a></p>
+</div>
+
+<!-- ==================== RU ==================== -->
+<div class="lang-content" id="lang-ru">
+<h1>Условия Использования</h1>
+<p><strong>Приложение:</strong> Basketball Career (篮球生涯)<br>
+<strong>Дата вступления в силу:</strong> 3 июня 2026 г.</p>
+
+<h2>1. Принятие условий</h2>
+<p>Загружая, устанавливая или используя приложение, вы соглашаетесь с настоящими условиями использования.</p>
+
+<h2>2. Описание функций</h2>
+<p>Это приложение предназначено для записи и статистики баскетбольных матчей. Основные функции:</p>
+<ul>
+  <li>Управление игроками и командами</li>
+  <li>Запись очков и статистика во время игры</li>
+  <li>История матчей и карьерная статистика</li>
+  <li>ИИ-резюме матчей (требуется опциональная настройка ключа API)</li>
+  <li>Bluetooth-синхронизация, синхронизация iCloud, группы игр (функции Pro)</li>
+  <li>Импорт, экспорт и объединение данных</li>
+</ul>
+
+<h2>3. Подписки</h2>
+<ul>
+  <li>Функции Pro требуют автоматически возобновляемой подписки (ежемесячной или ежегодной).</li>
+  <li>Оплата списывается с вашей учётной записи App Store после подтверждения.</li>
+  <li>Подписки автоматически продлеваются, если не отменены как минимум за 24 часа до окончания текущего периода.</li>
+  <li>Управляйте подписками или отменяйте их в любое время в настройках App Store.</li>
+</ul>
+
+<h2>4. Обязанности пользователя</h2>
+<ul>
+  <li>Вы несёте ответственность за точность и законность вводимых или импортируемых данных.</li>
+  <li>Вы должны обеспечивать безопасность экспортированных файлов и избегать несанкционированного раскрытия.</li>
+  <li>Вы должны создавать резервные копии данных перед выполнением критических операций.</li>
+</ul>
+
+<h2>5. Данные и резервное копирование</h2>
+<ul>
+  <li>Данные приложения по умолчанию хранятся локально на вашем устройстве.</li>
+  <li>Операции удаления или перезаписи обычно необратимы.</li>
+  <li>Рекомендуется использовать механизм резервного копирования для снижения рисков.</li>
+</ul>
+
+<h2>6. Отказ от ответственности</h2>
+<p>Это приложение предоставляется «как есть». Мы стремимся к стабильности, но не несём ответственности за:</p>
+<ul>
+  <li>Функциональные аномалии, вызванные форс-мажором или изменениями системной среды</li>
+  <li>Потерю данных из-за ошибки пользователя</li>
+  <li>Недоступность данных, вызванную сторонними системами</li>
+</ul>
+
+<h2>7. Обновления условий</h2>
+<p>Мы можем обновлять настоящие условия по мере развития продукта. Обновлённые условия будут опубликованы на этой странице.</p>
+
+<h2>8. Контакты</h2>
+<p>Эл. почта: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a><br>
+Поддержка: <a href="support.html">support.html</a></p>
+</div>
+
+<script>
+const langs = ['en','zh-Hans','zh-Hant-TW','de','es','fr','it','ja','ko','ru'];
+function switchLang(code) {
+  document.querySelectorAll('.lang-content').forEach(el => el.classList.remove('active'));
+  const target = document.getElementById('lang-' + code);
+  if (target) target.classList.add('active');
+  document.getElementById('langSelect').value = code;
+  localStorage.setItem('preferredLang', code);
+}
+(function() {
+  const saved = localStorage.getItem('preferredLang') || navigator.language || 'en';
+  const code = langs.find(l => saved.startsWith(l)) || 'en';
+  switchLang(code);
+})();
+</script>
 
 </body>
 </html>

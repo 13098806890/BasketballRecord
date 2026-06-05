@@ -1,21 +1,49 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Support — Basketball Career</title>
 <style>
-  body { font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 720px; margin: 0 auto; padding: 20px; line-height: 1.7; color: #333; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 780px; margin: 0 auto; padding: 20px; line-height: 1.7; color: #333; }
   h1, h2 { color: #1a1a2e; border-bottom: 2px solid #eee; padding-bottom: 6px; }
-  h2 { margin-top: 32px; }
+  h2 { margin-top: 28px; font-size: 1.3em; }
+  h3 { margin-top: 18px; font-size: 1.05em; }
   a { color: #2563eb; }
-  hr { border: none; border-top: 1px solid #ddd; margin: 40px 0; }
+  .lang-bar { text-align: right; margin-bottom: 16px; }
+  .lang-bar select { padding: 4px 10px; font-size: .9em; border-radius: 6px; border: 1px solid #ccc; }
+  .lang-content { display: none; }
+  .lang-content.active { display: block; }
+  hr { border: none; border-top: 1px solid #eee; margin: 32px 0; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #111; color: #ddd; }
+    h1, h2 { color: #e0e0e0; border-color: #333; }
+    .lang-bar select { background: #222; color: #ddd; border-color: #444; }
+    hr { border-color: #333; }
+  }
 </style>
 </head>
 <body>
 
-<h1>Support — Basketball Career</h1>
+<div class="lang-bar">
+  <select id="langSelect" onchange="switchLang(this.value)">
+    <option value="en">English</option>
+    <option value="zh-Hans">简体中文</option>
+    <option value="zh-Hant-TW">繁體中文</option>
+    <option value="de">Deutsch</option>
+    <option value="es">Español</option>
+    <option value="fr">Français</option>
+    <option value="it">Italiano</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="ru">Русский</option>
+  </select>
+</div>
 
+<!-- ==================== EN ==================== -->
+<div class="lang-content" id="lang-en">
+<h1>Support — Basketball Career</h1>
 <p>Welcome to Basketball Career (篮球生涯). If you encounter any issues, please use the following resources:</p>
 
 <h2>FAQ</h2>
@@ -33,7 +61,7 @@
 <p>The app auto-saves during gameplay. We also recommend manually saving to history and exporting backups regularly.</p>
 
 <h3>3) How to transfer data between devices?</h3>
-<p>Export your player/team/game data on the old device, then import on the new device using the share code or Bluetooth sync.</p>
+<p>Export your player/team/game data on the old device, then import on the new device using the share code or Bluetooth sync (Pro).</p>
 
 <h3>4) Can I recover deleted data?</h3>
 <p>Deleted data cannot be recovered. Please export backups before deletion.</p>
@@ -43,6 +71,13 @@
   <li>Make sure Bluetooth is enabled on both devices</li>
   <li>Both devices should be within Bluetooth range</li>
   <li>This is a Pro feature — subscribe to unlock</li>
+</ul>
+
+<h3>6) How to use AI summary?</h3>
+<ul>
+  <li>Subscribe to Pro to unlock AI features</li>
+  <li>Go to Settings → AI, configure an API Key and test the connection</li>
+  <li>During game review, tap "AI Summary" to generate a summary</li>
 </ul>
 
 <h2>Contact</h2>
@@ -56,10 +91,11 @@
   <li>Platform: iOS 17.6+</li>
   <li>Website: <a href="https://github.com/13098806890/BasketballRecord">https://github.com/13098806890/BasketballRecord</a></li>
 </ul>
+</div>
 
-<hr>
-
-<h1>支持</h1>
+<!-- ==================== zh-Hans ==================== -->
+<div class="lang-content" id="lang-zh-Hans">
+<h1>支持 — 篮球生涯</h1>
 <p>欢迎使用篮球生涯。如果你在使用过程中遇到问题，可通过以下方式获取帮助。</p>
 
 <h2>常见问题</h2>
@@ -77,7 +113,7 @@
 <p>应用支持比赛过程自动保存。建议在关键节点手动"存到历史"，并定期导出备份。</p>
 
 <h3>3) 更换手机后如何迁移数据？</h3>
-<p>在旧设备中导出球员/球队/比赛数据，再在新设备中导入（二维码/编码/蓝牙同步）。</p>
+<p>在旧设备中导出球员/球队/比赛数据，再在新设备中导入（编码分享或蓝牙同步（Pro））。</p>
 
 <h3>4) 删除后能恢复吗？</h3>
 <p>通常不可恢复。请在删除前先导出备份。</p>
@@ -87,6 +123,13 @@
   <li>确保两台设备蓝牙已开启</li>
   <li>两台设备需在蓝牙范围内</li>
   <li>此为 Pro 功能，请订阅后使用</li>
+</ul>
+
+<h3>6) 如何使用 AI 总结？</h3>
+<ul>
+  <li>订阅 Pro 解锁 AI 功能</li>
+  <li>在设置 → AI 中配置 API Key 并测试连接</li>
+  <li>在比赛回顾中点击"AI 总结"生成总结</li>
 </ul>
 
 <h2>反馈与联系</h2>
@@ -100,6 +143,439 @@
   <li>平台：iOS 17.6+</li>
   <li>网站：<a href="https://github.com/13098806890/BasketballRecord">https://github.com/13098806890/BasketballRecord</a></li>
 </ul>
+</div>
+
+<!-- ==================== zh-Hant-TW ==================== -->
+<div class="lang-content" id="lang-zh-Hant-TW">
+<h1>支援 — 籃球生涯</h1>
+<p>歡迎使用籃球生涯。如果你在使用過程中遇到問題，可透過以下方式取得幫助。</p>
+
+<h2>常見問題</h2>
+
+<h3>1) 為什麼有些按鈕不可點選？</h3>
+<p>請先確認：</p>
+<ul>
+  <li>已完成新比賽配置</li>
+  <li>目前節次已開始</li>
+  <li>比賽未暫停且未結束</li>
+  <li>已選中需要記錄資料的球員</li>
+</ul>
+
+<h3>2) 比賽資料會遺失嗎？</h3>
+<p>應用支援比賽過程自動儲存。建議在關鍵節點手動「存到歷史」，並定期匯出備份。</p>
+
+<h3>3) 更換手機後如何遷移資料？</h3>
+<p>在舊設備中匯出球員/球隊/比賽資料，再在新設備中匯入（編碼分享或藍牙同步（Pro））。</p>
+
+<h3>4) 刪除後能恢復嗎？</h3>
+<p>通常不可恢復。請在刪除前先匯出備份。</p>
+
+<h3>5) 藍牙同步無法使用？</h3>
+<ul>
+  <li>確保兩臺裝置藍牙已開啟</li>
+  <li>兩臺裝置需在藍牙範圍內</li>
+  <li>此為 Pro 功能，請訂閱後使用</li>
+</ul>
+
+<h3>6) 如何使用 AI 總結？</h3>
+<ul>
+  <li>訂閱 Pro 解鎖 AI 功能</li>
+  <li>在設定 → AI 中配置 API Key 並測試連線</li>
+  <li>在比賽回顧中點選「AI 總結」產生總結</li>
+</ul>
+
+<h2>反饋與聯絡</h2>
+<p>如需更多幫助，請在 GitHub 提交 Issue：<br>
+<a href="https://github.com/13098806890/BasketballRecord/issues">https://github.com/13098806890/BasketballRecord/issues</a></p>
+<p>或傳送郵件至：<a href="mailto:classicalxie@163.com">classicalxie@163.com</a></p>
+
+<h2>版本資訊</h2>
+<ul>
+  <li>應用名稱：籃球生涯</li>
+  <li>平臺：iOS 17.6+</li>
+  <li>網站：<a href="https://github.com/13098806890/BasketballRecord">https://github.com/13098806890/BasketballRecord</a></li>
+</ul>
+</div>
+
+<!-- ==================== DE ==================== -->
+<div class="lang-content" id="lang-de">
+<h1>Support — Basketball Career</h1>
+<p>Willkommen bei Basketball Career (篮球生涯). Bei Problemen nutzen Sie bitte die folgenden Ressourcen:</p>
+
+<h2>FAQ</h2>
+
+<h3>1) Warum sind einige Schaltflächen deaktiviert?</h3>
+<p>Stellen Sie sicher, dass:</p>
+<ul>
+  <li>Sie ein neues Spiel mit den richtigen Einstellungen gestartet haben</li>
+  <li>Der aktuelle Abschnitt begonnen hat</li>
+  <li>Das Spiel nicht pausiert oder beendet ist</li>
+  <li>Sie einen Spieler zur Aufzeichnung ausgewählt haben</li>
+</ul>
+
+<h3>2) Gehen meine Spieldaten verloren?</h3>
+<p>Die App speichert während des Spiels automatisch. Wir empfehlen, regelmäßig manuell zu speichern und Backups zu exportieren.</p>
+
+<h3>3) Wie übertrage ich Daten zwischen Geräten?</h3>
+<p>Exportieren Sie Ihre Spieler-/Team-/Spieldaten auf dem alten Gerät und importieren Sie sie auf dem neuen Gerät per Code oder Bluetooth-Sync (Pro).</p>
+
+<h3>4) Kann ich gelöschte Daten wiederherstellen?</h3>
+<p>Gelöschte Daten können nicht wiederhergestellt werden. Bitte exportieren Sie vor dem Löschen ein Backup.</p>
+
+<h3>5) Bluetooth-Synchronisierung funktioniert nicht?</h3>
+<ul>
+  <li>Stellen Sie sicher, dass Bluetooth auf beiden Geräten aktiviert ist</li>
+  <li>Beide Geräte sollten in Bluetooth-Reichweite sein</li>
+  <li>Dies ist eine Pro-Funktion — abonnieren Sie, um sie freizuschalten</li>
+</ul>
+
+<h3>6) Wie verwende ich die KI-Zusammenfassung?</h3>
+<ul>
+  <li>Abonnieren Sie Pro, um KI-Funktionen freizuschalten</li>
+  <li>Gehen Sie zu Einstellungen → KI, konfigurieren Sie einen API-Schlüssel und testen Sie die Verbindung</li>
+  <li>Tippen Sie in der Spielübersicht auf "KI-Zusammenfassung"</li>
+</ul>
+
+<h2>Kontakt</h2>
+<p>Bei weiteren Fragen erstellen Sie bitte ein Issue auf GitHub:<br>
+<a href="https://github.com/13098806890/BasketballRecord/issues">https://github.com/13098806890/BasketballRecord/issues</a></p>
+<p>Oder kontaktieren Sie uns per E-Mail: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a></p>
+
+<h2>Versionsinfo</h2>
+<ul>
+  <li>App-Name: Basketball Career (篮球生涯)</li>
+  <li>Plattform: iOS 17.6+</li>
+  <li>Webseite: <a href="https://github.com/13098806890/BasketballRecord">https://github.com/13098806890/BasketballRecord</a></li>
+</ul>
+</div>
+
+<!-- ==================== ES ==================== -->
+<div class="lang-content" id="lang-es">
+<h1>Soporte — Basketball Career</h1>
+<p>Bienvenido a Basketball Career (篮球生涯). Si tienes algún problema, utiliza los siguientes recursos:</p>
+
+<h2>Preguntas frecuentes</h2>
+
+<h3>1) ¿Por qué algunos botones están desactivados?</h3>
+<p>Asegúrate de:</p>
+<ul>
+  <li>Haber iniciado un nuevo partido con la configuración correcta</li>
+  <li>Que el periodo actual haya comenzado</li>
+  <li>Que el partido no esté pausado ni finalizado</li>
+  <li>Haber seleccionado un jugador para registrar estadísticas</li>
+</ul>
+
+<h3>2) ¿Se perderán mis datos del partido?</h3>
+<p>La app guarda automáticamente durante el juego. Recomendamos guardar manualmente y exportar copias de seguridad regularmente.</p>
+
+<h3>3) ¿Cómo transferir datos entre dispositivos?</h3>
+<p>Exporta tus datos de jugadores/equipos/partidos en el dispositivo antiguo e impórtalos en el nuevo mediante código o sincronización Bluetooth (Pro).</p>
+
+<h3>4) ¿Se pueden recuperar datos eliminados?</h3>
+<p>Los datos eliminados no se pueden recuperar. Exporta una copia de seguridad antes de eliminar.</p>
+
+<h3>5) ¿La sincronización Bluetooth no funciona?</h3>
+<ul>
+  <li>Asegúrate de que Bluetooth esté activado en ambos dispositivos</li>
+  <li>Ambos dispositivos deben estar dentro del alcance de Bluetooth</li>
+  <li>Esta es una función Pro — suscríbete para desbloquearla</li>
+</ul>
+
+<h3>6) ¿Cómo usar el resumen de IA?</h3>
+<ul>
+  <li>Suscríbete a Pro para desbloquear las funciones de IA</li>
+  <li>Ve a Ajustes → IA, configura una clave API y prueba la conexión</li>
+  <li>En la revisión del partido, pulsa "Resumen IA" para generarlo</li>
+</ul>
+
+<h2>Contacto</h2>
+<p>Si necesitas más ayuda, abre un issue en GitHub:<br>
+<a href="https://github.com/13098806890/BasketballRecord/issues">https://github.com/13098806890/BasketballRecord/issues</a></p>
+<p>O contáctanos por correo: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a></p>
+
+<h2>Información de versión</h2>
+<ul>
+  <li>Nombre de la app: Basketball Career (篮球生涯)</li>
+  <li>Plataforma: iOS 17.6+</li>
+  <li>Sitio web: <a href="https://github.com/13098806890/BasketballRecord">https://github.com/13098806890/BasketballRecord</a></li>
+</ul>
+</div>
+
+<!-- ==================== FR ==================== -->
+<div class="lang-content" id="lang-fr">
+<h1>Support — Basketball Career</h1>
+<p>Bienvenue sur Basketball Career (篮球生涯). Si vous rencontrez un problème, veuillez utiliser les ressources suivantes :</p>
+
+<h2>FAQ</h2>
+
+<h3>1) Pourquoi certains boutons sont-ils désactivés ?</h3>
+<p>Vérifiez que :</p>
+<ul>
+  <li>Vous avez commencé un nouveau match avec les bons réglages</li>
+  <li>La période actuelle a commencé</li>
+  <li>Le match n'est ni en pause ni terminé</li>
+  <li>Vous avez sélectionné un joueur pour enregistrer les stats</li>
+</ul>
+
+<h3>2) Mes données de match seront-elles perdues ?</h3>
+<p>L'application sauvegarde automatiquement pendant le jeu. Nous recommandons de sauvegarder manuellement et d'exporter des sauvegardes régulièrement.</p>
+
+<h3>3) Comment transférer des données entre appareils ?</h3>
+<p>Exportez vos données de joueurs/équipes/matchs sur l'ancien appareil, puis importez-les sur le nouveau via code ou synchronisation Bluetooth (Pro).</p>
+
+<h3>4) Puis-je récupérer des données supprimées ?</h3>
+<p>Les données supprimées ne peuvent pas être récupérées. Veuillez exporter une sauvegarde avant la suppression.</p>
+
+<h3>5) La synchronisation Bluetooth ne fonctionne pas ?</h3>
+<ul>
+  <li>Assurez-vous que le Bluetooth est activé sur les deux appareils</li>
+  <li>Les deux appareils doivent être à portée Bluetooth</li>
+  <li>Ceci est une fonction Pro — abonnez-vous pour la débloquer</li>
+</ul>
+
+<h3>6) Comment utiliser le résumé IA ?</h3>
+<ul>
+  <li>Abonnez-vous à Pro pour débloquer les fonctions IA</li>
+  <li>Allez dans Réglages → IA, configurez une clé API et testez la connexion</li>
+  <li>Dans la révision du match, appuyez sur "Résumé IA"</li>
+</ul>
+
+<h2>Contact</h2>
+<p>Si vous avez besoin d'aide, ouvrez un issue sur GitHub :<br>
+<a href="https://github.com/13098806890/BasketballRecord/issues">https://github.com/13098806890/BasketballRecord/issues</a></p>
+<p>Ou contactez-nous par e-mail : <a href="mailto:classicalxie@163.com">classicalxie@163.com</a></p>
+
+<h2>Info version</h2>
+<ul>
+  <li>Nom de l'app : Basketball Career (篮球生涯)</li>
+  <li>Plateforme : iOS 17.6+</li>
+  <li>Site web : <a href="https://github.com/13098806890/BasketballRecord">https://github.com/13098806890/BasketballRecord</a></li>
+</ul>
+</div>
+
+<!-- ==================== IT ==================== -->
+<div class="lang-content" id="lang-it">
+<h1>Supporto — Basketball Career</h1>
+<p>Benvenuto su Basketball Career (篮球生涯). Se incontri problemi, utilizza le seguenti risorse:</p>
+
+<h2>FAQ</h2>
+
+<h3>1) Perché alcuni pulsanti sono disabilitati?</h3>
+<p>Assicurati di:</p>
+<ul>
+  <li>Aver avviato una nuova partita con le impostazioni corrette</li>
+  <li>Che il periodo corrente sia iniziato</li>
+  <li>Che la partita non sia in pausa o terminata</li>
+  <li>Di aver selezionato un giocatore per registrare le statistiche</li>
+</ul>
+
+<h3>2) I dati della partita andranno persi?</h3>
+<p>L'app salva automaticamente durante il gioco. Si consiglia di salvare manualmente ed esportare backup regolarmente.</p>
+
+<h3>3) Come trasferire i dati tra dispositivi?</h3>
+<p>Esporta i dati di giocatori/squadre/partite sul vecchio dispositivo e importali sul nuovo tramite codice o sincronizzazione Bluetooth (Pro).</p>
+
+<h3>4) Posso recuperare i dati eliminati?</h3>
+<p>I dati eliminati non possono essere recuperati. Esporta un backup prima dell'eliminazione.</p>
+
+<h3>5) La sincronizzazione Bluetooth non funziona?</h3>
+<ul>
+  <li>Assicurati che il Bluetooth sia attivato su entrambi i dispositivi</li>
+  <li>I due dispositivi devono essere nel raggio Bluetooth</li>
+  <li>Questa è una funzione Pro — abbònati per sbloccarla</li>
+</ul>
+
+<h3>6) Come usare il riassunto AI?</h3>
+<ul>
+  <li>Abbònati a Pro per sbloccare le funzioni AI</li>
+  <li>Vai su Impostazioni → AI, configura una chiave API e testa la connessione</li>
+  <li>Nella revisione della partita, tocca "Riassunto AI"</li>
+</ul>
+
+<h2>Contatto</h2>
+<p>Se hai bisogno di ulteriore assistenza, apri un issue su GitHub:<br>
+<a href="https://github.com/13098806890/BasketballRecord/issues">https://github.com/13098806890/BasketballRecord/issues</a></p>
+<p>O contattaci via email: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a></p>
+
+<h2>Info versione</h2>
+<ul>
+  <li>Nome app: Basketball Career (篮球生涯)</li>
+  <li>Piattaforma: iOS 17.6+</li>
+  <li>Sito web: <a href="https://github.com/13098806890/BasketballRecord">https://github.com/13098806890/BasketballRecord</a></li>
+</ul>
+</div>
+
+<!-- ==================== JA ==================== -->
+<div class="lang-content" id="lang-ja">
+<h1>サポート — Basketball Career</h1>
+<p>Basketball Career（篮球生涯）をご利用いただきありがとうございます。問題が発生した場合は、以下のリソースをご利用ください。</p>
+
+<h2>よくある質問</h2>
+
+<h3>1) 一部のボタンが無効になるのはなぜですか？</h3>
+<p>以下をご確認ください：</p>
+<ul>
+  <li>正しい設定で新しい試合を開始している</li>
+  <li>現在のピリオドが開始している</li>
+  <li>試合が一時停止または終了していない</li>
+  <li>統計を記録する選手を選択している</li>
+</ul>
+
+<h3>2) 試合データは失われますか？</h3>
+<p>アプリは試合中に自動保存されます。定期的に手動保存し、バックアップをエクスポートすることをお勧めします。</p>
+
+<h3>3) デバイス間でデータを移行するには？</h3>
+<p>古いデバイスで選手/チーム/試合データをエクスポートし、新しいデバイスでコードまたはBluetooth同期（Pro）を使用してインポートします。</p>
+
+<h3>4) 削除したデータは復元できますか？</h3>
+<p>削除されたデータは復元できません。削除前にバックアップをエクスポートしてください。</p>
+
+<h3>5) Bluetooth同期が機能しません</h3>
+<ul>
+  <li>両方のデバイスでBluetoothが有効になっていることを確認</li>
+  <li>両方のデバイスがBluetooth範囲内にあることを確認</li>
+  <li>これはPro機能です。購読すると使用可能になります</li>
+</ul>
+
+<h3>6) AI要約を使用するには？</h3>
+<ul>
+  <li>Proに購読してAI機能をアンロック</li>
+  <li>設定→AIでAPIキーを設定し、接続をテスト</li>
+  <li>試合レビューで「AI要約」をタップ</li>
+</ul>
+
+<h2>お問い合わせ</h2>
+<p>さらにサポートが必要な場合は、GitHubでIssueを開いてください：<br>
+<a href="https://github.com/13098806890/BasketballRecord/issues">https://github.com/13098806890/BasketballRecord/issues</a></p>
+<p>またはメールでお問い合わせ：<a href="mailto:classicalxie@163.com">classicalxie@163.com</a></p>
+
+<h2>バージョン情報</h2>
+<ul>
+  <li>アプリ名：Basketball Career (篮球生涯)</li>
+  <li>プラットフォーム：iOS 17.6+</li>
+  <li>ウェブサイト：<a href="https://github.com/13098806890/BasketballRecord">https://github.com/13098806890/BasketballRecord</a></li>
+</ul>
+</div>
+
+<!-- ==================== KO ==================== -->
+<div class="lang-content" id="lang-ko">
+<h1>지원 — Basketball Career</h1>
+<p>Basketball Career（篮球生涯）에 오신 것을 환영합니다. 문제가 발생하면 다음 리소스를 이용해 주세요.</p>
+
+<h2>자주 묻는 질문</h2>
+
+<h3>1) 일부 버튼이 비활성화되는 이유는 무엇인가요?</h3>
+<p>다음을 확인하세요:</p>
+<ul>
+  <li>올바른 설정으로 새 경기를 시작했는지</li>
+  <li>현재 피리어드가 시작되었는지</li>
+  <li>경기가 일시 중지되거나 종료되지 않았는지</li>
+  <li>통계를 기록할 선수를 선택했는지</li>
+</ul>
+
+<h3>2) 경기 데이터가 손실되나요?</h3>
+<p>앱은 게임 중 자동 저장됩니다. 정기적으로 수동 저장하고 백업을 내보내는 것이 좋습니다.</p>
+
+<h3>3) 기기 간 데이터를 전송하려면?</h3>
+<p>이전 기기에서 선수/팀/경기 데이터를 내보내고, 새 기기에서 코드 또는 Bluetooth 동기화(Pro)를 사용하여 가져옵니다.</p>
+
+<h3>4) 삭제된 데이터를 복구할 수 있나요?</h3>
+<p>삭제된 데이터는 복구할 수 없습니다. 삭제 전에 백업을 내보내 주세요.</p>
+
+<h3>5) Bluetooth 동기화가 작동하지 않습니다</h3>
+<ul>
+  <li>두 기기 모두 Bluetooth가 켜져 있는지 확인</li>
+  <li>두 기기가 Bluetooth 범위 내에 있는지 확인</li>
+  <li>Pro 기능입니다. 구독하면 사용할 수 있습니다</li>
+</ul>
+
+<h3>6) AI 요약을 사용하려면?</h3>
+<ul>
+  <li>Pro를 구독하여 AI 기능 잠금 해제</li>
+  <li>설정 → AI에서 API 키 구성 및 연결 테스트</li>
+  <li>경기 검토에서 "AI 요약" 탭</li>
+</ul>
+
+<h2>연락처</h2>
+<p>추가 지원이 필요하면 GitHub에서 Issue를 열어 주세요:<br>
+<a href="https://github.com/13098806890/BasketballRecord/issues">https://github.com/13098806890/BasketballRecord/issues</a></p>
+<p>또는 이메일로 문의: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a></p>
+
+<h2>버전 정보</h2>
+<ul>
+  <li>앱 이름: Basketball Career (篮球生涯)</li>
+  <li>플랫폼: iOS 17.6+</li>
+  <li>웹사이트: <a href="https://github.com/13098806890/BasketballRecord">https://github.com/13098806890/BasketballRecord</a></li>
+</ul>
+</div>
+
+<!-- ==================== RU ==================== -->
+<div class="lang-content" id="lang-ru">
+<h1>Поддержка — Basketball Career</h1>
+<p>Добро пожаловать в Basketball Career (篮球生涯). Если у вас возникли проблемы, воспользуйтесь следующими ресурсами:</p>
+
+<h2>Часто задаваемые вопросы</h2>
+
+<h3>1) Почему некоторые кнопки неактивны?</h3>
+<p>Убедитесь, что:</p>
+<ul>
+  <li>Вы начали новую игру с правильными настройками</li>
+  <li>Текущий период начался</li>
+  <li>Игра не приостановлена и не завершена</li>
+  <li>Вы выбрали игрока для записи статистики</li>
+</ul>
+
+<h3>2) Потеряются ли мои игровые данные?</h3>
+<p>Приложение автоматически сохраняется во время игры. Рекомендуется регулярно сохранять вручную и экспортировать резервные копии.</p>
+
+<h3>3) Как перенести данные между устройствами?</h3>
+<p>Экспортируйте данные игроков/команд/игр на старом устройстве и импортируйте на новом с помощью кода или Bluetooth-синхронизации (Pro).</p>
+
+<h3>4) Можно ли восстановить удалённые данные?</h3>
+<p>Удалённые данные невозможно восстановить. Пожалуйста, экспортируйте резервную копию перед удалением.</p>
+
+<h3>5) Bluetooth-синхронизация не работает?</h3>
+<ul>
+  <li>Убедитесь, что Bluetooth включён на обоих устройствах</li>
+  <li>Оба устройства должны быть в зоне действия Bluetooth</li>
+  <li>Это функция Pro — оформите подписку, чтобы разблокировать</li>
+</ul>
+
+<h3>6) Как использовать ИИ-резюме?</h3>
+<ul>
+  <li>Оформите подписку Pro, чтобы разблокировать функции ИИ</li>
+  <li>Перейдите в Настройки → ИИ, настройте ключ API и проверьте соединение</li>
+  <li>В просмотре игры нажмите «ИИ-резюме»</li>
+</ul>
+
+<h2>Контакты</h2>
+<p>Если вам нужна дополнительная помощь, откройте Issue на GitHub:<br>
+<a href="https://github.com/13098806890/BasketballRecord/issues">https://github.com/13098806890/BasketballRecord/issues</a></p>
+<p>Или свяжитесь с нами по электронной почте: <a href="mailto:classicalxie@163.com">classicalxie@163.com</a></p>
+
+<h2>Информация о версии</h2>
+<ul>
+  <li>Название приложения: Basketball Career (篮球生涯)</li>
+  <li>Платформа: iOS 17.6+</li>
+  <li>Веб-сайт: <a href="https://github.com/13098806890/BasketballRecord">https://github.com/13098806890/BasketballRecord</a></li>
+</ul>
+</div>
+
+<script>
+const langs = ['en','zh-Hans','zh-Hant-TW','de','es','fr','it','ja','ko','ru'];
+function switchLang(code) {
+  document.querySelectorAll('.lang-content').forEach(el => el.classList.remove('active'));
+  const target = document.getElementById('lang-' + code);
+  if (target) target.classList.add('active');
+  document.getElementById('langSelect').value = code;
+  localStorage.setItem('preferredLang', code);
+}
+(function() {
+  const saved = localStorage.getItem('preferredLang') || navigator.language || 'en';
+  const code = langs.find(l => saved.startsWith(l)) || 'en';
+  switchLang(code);
+})();
+</script>
 
 </body>
 </html>
