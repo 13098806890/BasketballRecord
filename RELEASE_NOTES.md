@@ -39,6 +39,12 @@
   - 移除 undo snapshot fallback 和 `legacyPreviousSnapshot()` 死代码。
 - i18n
   - 补充 10 种语言的本地化键值。
+- 审核合规与文档
+  - 订阅页底部补充自动续期说明文字、隐私政策和使用条款 (EULA) 可点击链接。
+  - 新增 `link_privacy_policy`、`link_terms_of_eula`、`subscription_auto_renew_info` 至全部 10 种语言。
+  - 支持页、隐私政策、使用条款转为 HTML 格式并托管至 GitHub。
+  - 更新审核备注模板，补充本地网络权限说明。
+  - 更新所有文档联系邮箱为 classicalxie@163.com。
 
 ### 兼容性
 
