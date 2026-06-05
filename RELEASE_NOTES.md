@@ -26,6 +26,14 @@
   - ID 从字符串（标题/描述）改为 `UUID().uuidString`，消除列表 `ForEach` 重复 ID 警告。
 - `localized()` → `LocalizedStringKey()` 迁移
   - SettingsFeatureSection 和 SettingsFeatureItem 全部改为 `LocalizedStringKey`，支持 SwiftUI 动态本地化。
+- GitHub Pages 上线
+  - 启用 GitHub Pages（`main` 分支 `/docs` 目录），托管隐私政策、使用条款、支持页、营销 landing page。
+  - 隐私政策 URL 迁移至 `13098806890.github.io/BasketballRecord/appstore/privacy-policy.html`。
+  - EULA 指向 Apple 标准条款 `stdeula`。
+  - 新增 `docs/index.html` 营销 landing page，包含功能展示与各文档链接。
+- 文档 URL 统一
+  - 所有 HTML 文档（privacy-policy、terms-of-use、support）中内链更新为 GitHub Pages 域名。
+  - 隐私政策中的支持链接、支持页中的反馈链接均已对齐。
 
 ### 兼容性
 
