@@ -391,9 +391,29 @@ private struct ProSubscribeView: View {
                         }
                         .font(.caption)
                         .frame(maxWidth: .infinity)
+
+                        Text(LocalizedStringKey("subscription_auto_renew_info"))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+
+                        HStack(spacing: 16) {
+                            Link(destination: URL(string: "https://github.com/13098806890/BasketballRecord/blob/main/docs/appstore/privacy-policy.html")!) {
+                                Text(LocalizedStringKey("link_privacy_policy"))
+                                    .font(.caption)
+                            }
+                            Text("·")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                            Link(destination: URL(string: "https://github.com/13098806890/BasketballRecord/blob/main/docs/appstore/terms-of-use.html")!) {
+                                Text(LocalizedStringKey("link_terms_of_eula"))
+                                    .font(.caption)
+                            }
+                        }
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 38)
+                    .padding(.top, 24)
                     .padding(.bottom, 16)
                 }
             }

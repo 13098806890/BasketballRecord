@@ -862,3 +862,7 @@
 "icloud_error_unknown" = "不明なiCloudエラーです。";
 "section_nearby_devices" = "近くのデバイス";
 "stats_games" = "G";
+
+"link_privacy_policy" = "プライバシーポリシー";
+"link_terms_of_eula" = "利用規約 (EULA)";
+"subscription_auto_renew_info" = "自動更新サブスクリプション。App Storeの設定からいつでもキャンセルできます。";

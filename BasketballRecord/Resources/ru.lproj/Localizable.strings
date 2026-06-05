@@ -839,3 +839,7 @@
 "game_group_assigned_to" = "Группа: %@";
 "section_nearby_devices" = "Устройства рядом";
 "stats_games" = "G";
+
+"link_privacy_policy" = "Конфиденциальность";
+"link_terms_of_eula" = "Условия использования (EULA)";
+"subscription_auto_renew_info" = "Автоматически продлеваемая подписка. Отменить можно в любое время в настройках App Store.";

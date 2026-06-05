@@ -875,3 +875,7 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "icloud_error_temporarily_unavailable" = "iCloud를 일시적으로 사용할 수 없습니다. 나중에 다시 시도해 주세요.";
 "icloud_error_unknown" = "알 수 없는 iCloud 오류입니다.";
 "stats_games" = "G";
+
+"link_privacy_policy" = "개인정보 처리방침";
+"link_terms_of_eula" = "이용 약관 (EULA)";
+"subscription_auto_renew_info" = "자동 갱신 구독입니다. App Store 설정에서 언제든지 취소할 수 있습니다.";

@@ -872,3 +872,7 @@
 "alert_period_auto_ended_title" = "Period Ended";
 "alert_period_auto_ended_time_format" = "Period %d ended (time limit reached)";
 "alert_period_auto_ended_score_format" = "Period %d ended (score limit reached)";
+
+"link_privacy_policy" = "Privacy Policy";
+"link_terms_of_eula" = "Terms of Use (EULA)";
+"subscription_auto_renew_info" = "Auto-renewable subscription. Cancel anytime via App Store settings.";

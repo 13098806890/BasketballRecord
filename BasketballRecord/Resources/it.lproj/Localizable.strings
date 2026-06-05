@@ -844,3 +844,7 @@
 "search_no_results" = "Nessun risultato";
 "section_nearby_devices" = "Dispositivi vicini";
 "stats_games" = "G";
+
+"link_privacy_policy" = "Informativa sulla privacy";
+"link_terms_of_eula" = "Termini di utilizzo (EULA)";
+"subscription_auto_renew_info" = "Abbonamento con rinnovo automatico. Annulla in qualsiasi momento nelle impostazioni di App Store.";

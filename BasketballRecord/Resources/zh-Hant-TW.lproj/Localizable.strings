@@ -865,3 +865,7 @@
 "icloud_error_temporarily_unavailable" = "iCloud 暫時不可用，請稍後再試。";
 "icloud_error_unknown" = "未知的 iCloud 錯誤。";
 "stats_games" = "出場";
+
+"link_privacy_policy" = "隱私政策";
+"link_terms_of_eula" = "使用條款 (EULA)";
+"subscription_auto_renew_info" = "自動續期訂閱。可隨時在 App Store 設定中取消。";
