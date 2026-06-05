@@ -5,7 +5,10 @@ import SwiftUI
 final class PurchaseManager: ObservableObject {
     static let shared = PurchaseManager()
 
-    @Published private(set) var isPro = false
+    // Personal build override — set false on main branch
+    private static let forcePro = true
+
+    @Published private(set) var isPro = PurchaseManager.forcePro || UserDefaults.standard.bool(forKey: "is_pro")
     @Published private(set) var monthlyProduct: Product?
     @Published private(set) var yearlyProduct: Product?
 
@@ -19,8 +22,6 @@ final class PurchaseManager: ObservableObject {
     }
 
     init() {
-        // Read cached status immediately to avoid false-negative flash
-        isPro = UserDefaults.standard.bool(forKey: "is_pro")
         updates = observeTransactionUpdates()
         Task { await loadProducts(); await checkSubscriptionStatus() }
     }
@@ -58,6 +59,12 @@ final class PurchaseManager: ObservableObject {
     }
 
     func checkSubscriptionStatus() async {
+        guard !Self.forcePro else {
+            isPro = true
+            UserDefaults.standard.set(true, forKey: "is_pro")
+            return
+        }
+
         var isPro = false
 
         for await result in Transaction.currentEntitlements {
