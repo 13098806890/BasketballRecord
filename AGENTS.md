@@ -18,3 +18,18 @@
 - 保持现有代码风格
 - 新建比赛设置用 @AppStorage 持久化
 - 字符串比较使用 eventCode 优先
+
+## 分支与提交流程
+项目有两个长期分支：
+
+- **`main`** — App Store 发行版，不含任何 Pro 绕过代码
+- **`main_free_pro`** — 个人自用，包含 `forcePro` 标志和 Pro 版 icon，不上架
+
+### 规则
+1. **未经用户明确要求，不得执行任何 `git commit`、`git merge`、`git push`、`git rebase` 操作。**
+2. 修改代码前先确认目标分支，在正确的分支上改。
+3. 如需跨分支同步改动，必须等待用户指定：
+   - 哪些改动要同步到哪些分支
+   - 同步方式（merge / cherry-pick / 重新改一遍）
+4. `main_free_pro` 不应合入 `main`，反之亦然。如果需要让双向分支都有某段改动，用户会明确说。
+5. 涉及 `PurchaseManager.swift` 和 `AppIcon.appiconset/AppIcon-1024.png` 的改动，默认只在当前分支生效，不会自动带到另一个分支。
