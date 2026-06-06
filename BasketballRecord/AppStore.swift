@@ -779,10 +779,11 @@ final class AppStore: ObservableObject {
             safeWrite(game, forKey: gameKey(for: game.id))
         }
 
-        // Core Data persistence
+        // Core Data persistence — delete stale records first to avoid zombie data
         coreDataStore.savePlayers(players)
         coreDataStore.saveTeams(teams)
         coreDataStore.saveGameGroups(gameGroups)
+        coreDataStore.deleteAllSavedGames()
         for game in savedGames {
             coreDataStore.upsertSavedGame(game)
         }

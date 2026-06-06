@@ -1,5 +1,18 @@
 # Release Notes
 
+## 1.13 (2026-06-06)
+
+### 修复
+
+- 修复本地比赛删除后重启恢复的 bug
+  - 根因：`CoreDataStore.save()` 只 upsert 当前内存中的比赛，从未清理 Core Data 中已删除的比赛实体。
+  - 修复：在 `save()` 中 upsert 前先 `deleteAllSavedGames()` 清空旧数据，确保 Core Data 与内存状态一致。
+
+### 兼容性
+
+- iOS 17.6+
+- Xcode 17+
+
 ## 1.12 (2026-06-05)
 
 ### 亮点
