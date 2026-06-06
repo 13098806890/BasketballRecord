@@ -1,3 +1,5 @@
+/* App Name */
+"CFBundleDisplayName" = "篮球生涯手账";
 /* 权限 */
 "NSLocalNetworkUsageDescription" = "用于发现并连接附近设备，同步比赛与球队数据。";
 "NSBonjourServiceTypesUsageDescription" = "用于在设备间同步比赛与球队数据。";

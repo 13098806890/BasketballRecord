@@ -72,6 +72,7 @@
 "settings_new" = "Новый";
 "settings_section_sync_import" = "Синхронизация и импорт";
 "settings_bluetooth_sync" = "Синхронизация по Bluetooth";
+"nav_bluetooth_sync" = "Синхронизация по Bluetooth";
 "settings_bluetooth_games" = "Bluetooth-совместные игры";
 "empty_no_bluetooth_games" = "Нет Bluetooth-совместных игр";
 "settings_import" = "Импорт";

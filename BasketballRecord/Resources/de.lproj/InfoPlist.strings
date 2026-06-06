@@ -1,3 +1,5 @@
+/* App Name */
+"CFBundleDisplayName" = "Basketball Tagebuch";
 /* Berechtigungen */
 "NSLocalNetworkUsageDescription" = "Um Geräte in der Nähe zu entdecken und zu verbinden und Spiele- und Teamdaten zu synchronisieren.";
 "NSBonjourServiceTypesUsageDescription" = "Um Spiele- und Teamdaten zwischen Geräten zu synchronisieren.";
