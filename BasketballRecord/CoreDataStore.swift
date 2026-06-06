@@ -179,6 +179,10 @@ struct CoreDataStore {
         return (try? context.count(for: request)) ?? 0 > 0
     }
 
+    func deleteAllSavedGames() {
+        deleteAll("CDSavedGame")
+    }
+
     func clearAll() {
         deleteAll("CDPlayer")
         deleteAll("CDTeam")
