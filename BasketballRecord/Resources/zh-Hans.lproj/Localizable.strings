@@ -35,6 +35,7 @@
 "settings_new" = "新建";
 "settings_section_sync_import" = "同步与导入";
 "settings_bluetooth_sync" = "蓝牙协同";
+"nav_bluetooth_sync" = "蓝牙协同";
 "settings_bluetooth_games" = "蓝牙协同比赛";
 "empty_no_bluetooth_games" = "暂无蓝牙协同比赛";
 "settings_show_bluetooth_button" = "显示蓝牙协同邀请";

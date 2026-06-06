@@ -15,6 +15,7 @@
 "settings_new" = "新建";
 "settings_section_sync_import" = "同步與匯入";
 "settings_bluetooth_sync" = "藍牙協同";
+"nav_bluetooth_sync" = "藍牙協同";
 "settings_bluetooth_games" = "藍牙協同比賽";
 "empty_no_bluetooth_games" = "暫無藍牙協同比賽";
 "settings_import" = "匯入";

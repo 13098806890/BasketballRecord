@@ -15,6 +15,7 @@
 "settings_new" = "Nouveau";
 "settings_section_sync_import" = "Synchronisation et import";
 "settings_bluetooth_sync" = "Synchronisation Bluetooth";
+"nav_bluetooth_sync" = "Synchronisation Bluetooth";
 "settings_bluetooth_games" = "Jeux de collaboration Bluetooth";
 "empty_no_bluetooth_games" = "Aucun jeu de collaboration Bluetooth";
 "settings_import" = "Importer";

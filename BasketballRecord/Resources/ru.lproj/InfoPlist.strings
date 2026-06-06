@@ -1,3 +1,5 @@
+/* App Name */
+"CFBundleDisplayName" = "Баскет Дневник";
 /* Разрешения */
 "NSLocalNetworkUsageDescription" = "Для обнаружения и подключения к близлежащим устройствам для синхронизации игр и данных команды.";
 "NSBonjourServiceTypesUsageDescription" = "Для синхронизации игр и данных команды между устройствами.";

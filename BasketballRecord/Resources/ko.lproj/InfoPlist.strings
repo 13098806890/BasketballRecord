@@ -1,3 +1,5 @@
+/* App Name */
+"CFBundleDisplayName" = "농구 다이어리";
 /* 권한 */
 "NSLocalNetworkUsageDescription" = "근처 기기를 발견하고 연결하여 게임 및 팀 데이터를 동기화합니다.";
 "NSBonjourServiceTypesUsageDescription" = "기기 간 게임 및 팀 데이터를 동기화합니다.";

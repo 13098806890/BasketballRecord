@@ -253,7 +253,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BasketballRecord/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "篮球生涯";
+				INFOPLIST_KEY_CFBundleDisplayName = "Basketball Journal";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "To discover and connect nearby devices for syncing games and team data.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "To select avatar photos for players.";
@@ -410,7 +410,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BasketballRecord/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "篮球生涯";
+				INFOPLIST_KEY_CFBundleDisplayName = "Basketball Journal";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "To discover and connect nearby devices for syncing games and team data.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "To select avatar photos for players.";

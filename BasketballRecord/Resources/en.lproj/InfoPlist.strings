@@ -1,3 +1,5 @@
+/* App Name */
+"CFBundleDisplayName" = "Basketball Journal";
 /* Permissions */
 "NSLocalNetworkUsageDescription" = "To discover and connect nearby devices for syncing games and team data.";
 "NSBonjourServiceTypesUsageDescription" = "To sync games and team data between devices.";

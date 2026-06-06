@@ -15,6 +15,7 @@
 "settings_new" = "新規作成";
 "settings_section_sync_import" = "同期とインポート";
 "settings_bluetooth_sync" = "Bluetooth 同期";
+"nav_bluetooth_sync" = "Bluetooth 同期";
 "settings_bluetooth_games" = "Bluetooth 協同ゲーム";
 "empty_no_bluetooth_games" = "Bluetooth 協同ゲームなし";
 "settings_import" = "インポート";

@@ -15,6 +15,7 @@
 "settings_new" = "새로 만들기";
 "settings_section_sync_import" = "동기화 및 가져오기";
 "settings_bluetooth_sync" = "블루투스 동기화";
+"nav_bluetooth_sync" = "블루투스 동기화";
 "settings_bluetooth_games" = "블루투스 협동 게임";
 "empty_no_bluetooth_games" = "블루투스 협동 게임 없음";
 "settings_import" = "가져오기";
