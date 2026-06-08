@@ -190,7 +190,12 @@ struct GameGroupEditView: View {
             if let group = group {
                 name = group.name
                 description = group.description ?? ""
-                selectedGameIDs = Set(group.gameIDs)
+                // Refresh from store to catch changes made via game detail
+                if let fresh = store.gameGroups.first(where: { $0.id == group.id }) {
+                    selectedGameIDs = Set(fresh.gameIDs)
+                } else {
+                    selectedGameIDs = Set(group.gameIDs)
+                }
             }
         }
     }
