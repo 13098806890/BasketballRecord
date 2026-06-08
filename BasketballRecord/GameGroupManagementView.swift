@@ -190,26 +190,43 @@ struct GameGroupEditView: View {
             if let group = group {
                 name = group.name
                 description = group.description ?? ""
-                // Refresh from store to catch changes made via game detail
-                if let fresh = store.gameGroups.first(where: { $0.id == group.id }) {
-                    selectedGameIDs = Set(fresh.gameIDs)
-                } else {
-                    selectedGameIDs = Set(group.gameIDs)
-                }
+                selectedGameIDs = Set(store.savedGames.filter { $0.groupIDs.contains(group.id) }.map(\.id))
             }
         }
     }
 
     private func saveGroup() {
         if let group = group {
+            let oldIDs = Set(store.savedGames.filter { $0.groupIDs.contains(group.id) }.map(\.id))
+            let newIDs = Set(selectedGameIDs)
+            var savedGamesCopy = store.savedGames
+            for id in oldIDs.subtracting(newIDs) {
+                if let idx = savedGamesCopy.firstIndex(where: { $0.id == id }) {
+                    savedGamesCopy[idx].groupIDs.removeAll { $0 == group.id }
+                }
+            }
+            for id in newIDs.subtracting(oldIDs) {
+                if let idx = savedGamesCopy.firstIndex(where: { $0.id == id }) {
+                    if !savedGamesCopy[idx].groupIDs.contains(group.id) {
+                        savedGamesCopy[idx].groupIDs.append(group.id)
+                    }
+                }
+            }
+            store.savedGames = savedGamesCopy
             var updatedGroup = group
             updatedGroup.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
             updatedGroup.description = description.isEmpty ? nil : description.trimmingCharacters(in: .whitespacesAndNewlines)
             updatedGroup.gameIDs = Array(selectedGameIDs)
-            store.syncGameGroupMembership(groupID: group.id, gameIDs: Array(selectedGameIDs))
             store.updateGameGroup(updatedGroup)
         } else {
             let newGroup = store.addGameGroup(name.trimmingCharacters(in: .whitespacesAndNewlines), description: description.isEmpty ? nil : description.trimmingCharacters(in: .whitespacesAndNewlines))
+            var savedGamesCopy = store.savedGames
+            for id in selectedGameIDs {
+                if let idx = savedGamesCopy.firstIndex(where: { $0.id == id }) {
+                    savedGamesCopy[idx].groupIDs.append(newGroup.id)
+                }
+            }
+            store.savedGames = savedGamesCopy
             store.syncGameGroupMembership(groupID: newGroup.id, gameIDs: Array(selectedGameIDs))
         }
         dismiss()
