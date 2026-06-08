@@ -576,15 +576,21 @@ final class AppStore: ObservableObject {
         guard let gameIndex = savedGames.firstIndex(where: { $0.id == gameID }) else { return }
         guard let groupIndex = gameGroups.firstIndex(where: { $0.id == groupID }) else { return }
 
-        if savedGames[gameIndex].groupIDs.contains(groupID) {
-            savedGames[gameIndex].groupIDs.removeAll { $0 == groupID }
-            gameGroups[groupIndex].gameIDs.removeAll { $0 == gameID }
+        var savedGamesCopy = savedGames
+        var gameGroupsCopy = gameGroups
+
+        if savedGamesCopy[gameIndex].groupIDs.contains(groupID) {
+            savedGamesCopy[gameIndex].groupIDs.removeAll { $0 == groupID }
+            gameGroupsCopy[groupIndex].gameIDs.removeAll { $0 == gameID }
         } else {
-            savedGames[gameIndex].groupIDs.append(groupID)
-            if !gameGroups[groupIndex].gameIDs.contains(gameID) {
-                gameGroups[groupIndex].gameIDs.append(gameID)
+            savedGamesCopy[gameIndex].groupIDs.append(groupID)
+            if !gameGroupsCopy[groupIndex].gameIDs.contains(gameID) {
+                gameGroupsCopy[groupIndex].gameIDs.append(gameID)
             }
         }
+
+        savedGames = savedGamesCopy
+        gameGroups = gameGroupsCopy
     }
 
     func gamesInGroup(_ groupID: UUID) -> [SavedGame] {
@@ -603,20 +609,26 @@ final class AppStore: ObservableObject {
         let added = newGameIDs.subtracting(oldGameIDs)
         let removed = oldGameIDs.subtracting(newGameIDs)
 
-        gameGroups[groupIndex].gameIDs = gameIDs
+        var gameGroupsCopy = gameGroups
+        var savedGamesCopy = savedGames
+
+        gameGroupsCopy[groupIndex].gameIDs = gameIDs
 
         for gameID in removed {
-            if let gameIndex = savedGames.firstIndex(where: { $0.id == gameID }) {
-                savedGames[gameIndex].groupIDs.removeAll { $0 == groupID }
+            if let gameIndex = savedGamesCopy.firstIndex(where: { $0.id == gameID }) {
+                savedGamesCopy[gameIndex].groupIDs.removeAll { $0 == groupID }
             }
         }
         for gameID in added {
-            if let gameIndex = savedGames.firstIndex(where: { $0.id == gameID }) {
-                if !savedGames[gameIndex].groupIDs.contains(groupID) {
-                    savedGames[gameIndex].groupIDs.append(groupID)
+            if let gameIndex = savedGamesCopy.firstIndex(where: { $0.id == gameID }) {
+                if !savedGamesCopy[gameIndex].groupIDs.contains(groupID) {
+                    savedGamesCopy[gameIndex].groupIDs.append(gameID)
                 }
             }
         }
+
+        gameGroups = gameGroupsCopy
+        savedGames = savedGamesCopy
         scheduleSave()
     }
 
