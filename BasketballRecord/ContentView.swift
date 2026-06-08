@@ -1227,6 +1227,11 @@ struct SavedGameDetailView: View {
                         .onSubmit {
                             if let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) {
                                 store.savedGames[idx].displayName = editDisplayName
+                                if store.cloudEnabledGameIDs.contains(game.id) {
+                                    Task {
+                                        await CloudKitManager.shared.uploadGame(store.savedGames[idx])
+                                    }
+                                }
                             }
                         }
                     Image(systemName: "pencil")
