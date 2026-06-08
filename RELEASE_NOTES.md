@@ -18,6 +18,7 @@
 
 - SubscriptionStoreView 策略按钮：新增 `.storeButton(.visible, for: .policies)`、`.subscriptionStoreControlStyle(.picker)`、`.subscriptionStoreButtonLabel(.multiline)`，满足 App Store 3.1.2 审核要求。
 - AGENTS.md：新增分支与提交流程规范（main / main_free_pro 双分支策略，禁止自动 git 操作）。
+- 比赛名称编辑后自动同步 iCloud：若该比赛已启用云存储，在 `onSubmit` 中自动调用 `CloudKitManager.shared.uploadGame()` 推送更新。
 
 ### 修复
 
