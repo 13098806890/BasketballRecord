@@ -317,7 +317,7 @@ struct ContentView: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(Color.black.opacity(0.06), lineWidth: 1)
+                .stroke(Color(.separator).opacity(0.15), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
@@ -589,14 +589,14 @@ private struct TeamCareerBoardView: View {
                         }
                     }
                     .padding(12)
-                    .background(Color.white, in: RoundedRectangle(cornerRadius: 10))
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black.opacity(0.06), lineWidth: 1))
+                    .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(.separator).opacity(0.15), lineWidth: 1))
                 }
             }
             .padding(.horizontal)
             .padding(.bottom)
         }
-        .background(Color(red: 0.96, green: 0.97, blue: 0.99))
+        .background(Color(.systemGroupedBackground))
     }
 
     private var summaries: [TeamCareerSummary] {
@@ -661,14 +661,14 @@ private struct TeamCareerBoardView: View {
                 .minimumScaleFactor(0.6)
             Text(value)
                 .font(.subheadline.monospacedDigit().weight(.semibold))
-                .foregroundStyle(.black)
+                .foregroundStyle(.primary)
                 .minimumScaleFactor(0.6)
         }
         .frame(maxWidth: .infinity, minHeight: 52)
         .padding(.horizontal, 4)
         .padding(.vertical, 6)
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.black.opacity(0.06), lineWidth: 1))
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(.separator).opacity(0.15), lineWidth: 1))
     }
 }
 
@@ -2481,7 +2481,7 @@ private struct ImportGameView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .padding(10)
-                        .background(.white.opacity(0.75), in: RoundedRectangle(cornerRadius: 8))
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
                     }
                 }
 

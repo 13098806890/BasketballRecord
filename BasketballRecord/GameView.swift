@@ -405,7 +405,7 @@ struct GameView: View {
                         .monospacedDigit()
                 }
                 .font(.callout.weight(.bold))
-                .foregroundStyle(.black)
+                .foregroundStyle(.primary)
 
                 if isRecordingActive {
                     recordingIndicator
@@ -424,7 +424,7 @@ struct GameView: View {
                             .monospacedDigit()
                     }
                     .font(.caption.monospacedDigit().weight(.semibold))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.primary)
                 }
             }
 
@@ -2734,20 +2734,48 @@ private extension TeamSide {
 }
 
 private enum GamePalette {
-    static let make = Color(red: 0.78, green: 0.93, blue: 0.78)
-    static let miss = Color(red: 0.86, green: 0.92, blue: 0.98)
-    static let assist = Color(red: 0.74, green: 0.86, blue: 0.98)
-    static let rebound = Color(red: 0.80, green: 0.90, blue: 0.99)
-    static let warning = Color(red: 0.96, green: 0.80, blue: 0.80)
-    static let period = Color(red: 0.36, green: 0.63, blue: 0.95)
-    static let periodEnd = Color(red: 0.96, green: 0.72, blue: 0.63)
-    static let substitution = Color(red: 0.42, green: 0.67, blue: 0.95)
-    static let pause = Color(red: 0.98, green: 0.82, blue: 0.45)
-    static let finish = Color(red: 0.95, green: 0.48, blue: 0.44)
-    static let surface = Color(red: 0.96, green: 0.98, blue: 1.00)
-    static let selectedBorder = Color(red: 0.25, green: 0.55, blue: 0.90)
-    static let onCourtBorder = Color(red: 0.45, green: 0.69, blue: 0.93)
-    static let text = Color(red: 0.18, green: 0.20, blue: 0.22)
+    static let make = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.20, green: 0.40, blue: 0.20, alpha: 1) : UIColor(red: 0.78, green: 0.93, blue: 0.78, alpha: 1)
+    })
+    static let miss = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.20, green: 0.30, blue: 0.45, alpha: 1) : UIColor(red: 0.86, green: 0.92, blue: 0.98, alpha: 1)
+    })
+    static let assist = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.18, green: 0.28, blue: 0.45, alpha: 1) : UIColor(red: 0.74, green: 0.86, blue: 0.98, alpha: 1)
+    })
+    static let rebound = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.20, green: 0.32, blue: 0.48, alpha: 1) : UIColor(red: 0.80, green: 0.90, blue: 0.99, alpha: 1)
+    })
+    static let warning = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.45, green: 0.18, blue: 0.18, alpha: 1) : UIColor(red: 0.96, green: 0.80, blue: 0.80, alpha: 1)
+    })
+    static let period = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.20, green: 0.40, blue: 0.70, alpha: 1) : UIColor(red: 0.36, green: 0.63, blue: 0.95, alpha: 1)
+    })
+    static let periodEnd = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.55, green: 0.30, blue: 0.18, alpha: 1) : UIColor(red: 0.96, green: 0.72, blue: 0.63, alpha: 1)
+    })
+    static let substitution = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.20, green: 0.38, blue: 0.68, alpha: 1) : UIColor(red: 0.42, green: 0.67, blue: 0.95, alpha: 1)
+    })
+    static let pause = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.50, green: 0.38, blue: 0.12, alpha: 1) : UIColor(red: 0.98, green: 0.82, blue: 0.45, alpha: 1)
+    })
+    static let finish = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.55, green: 0.18, blue: 0.12, alpha: 1) : UIColor(red: 0.95, green: 0.48, blue: 0.44, alpha: 1)
+    })
+    static let surface = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.10, green: 0.11, blue: 0.15, alpha: 1) : UIColor(red: 0.96, green: 0.98, blue: 1.00, alpha: 1)
+    })
+    static let selectedBorder = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.50, green: 0.70, blue: 0.95, alpha: 1) : UIColor(red: 0.25, green: 0.55, blue: 0.90, alpha: 1)
+    })
+    static let onCourtBorder = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.55, green: 0.75, blue: 0.95, alpha: 1) : UIColor(red: 0.45, green: 0.69, blue: 0.93, alpha: 1)
+    })
+    static let text = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.82, green: 0.82, blue: 0.85, alpha: 1) : UIColor(red: 0.18, green: 0.20, blue: 0.22, alpha: 1)
+    })
 }
 
 private enum ActionButtonStyle {
@@ -2764,7 +2792,9 @@ private enum ActionButtonStyle {
         case .pause: return GamePalette.pause
         case .period: return GamePalette.period
         case .periodEnd: return GamePalette.periodEnd
-        case .neutral: return Color(red: 0.88, green: 0.90, blue: 0.92)
+        case .neutral: return Color(uiColor: UIColor { tc in
+            tc.userInterfaceStyle == .dark ? UIColor(red: 0.25, green: 0.26, blue: 0.30, alpha: 1) : UIColor(red: 0.88, green: 0.90, blue: 0.92, alpha: 1)
+        })
         }
     }
 
@@ -3168,7 +3198,7 @@ struct TeamStatsDisclosureView: View {
                            awayPct: nil)
             }
             .padding(10)
-            .background(Color.white, in: RoundedRectangle(cornerRadius: 10))
+            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
         } label: {
             HStack {
                 Text(LocalizedStringKey("label_team_stats"))
@@ -3190,7 +3220,7 @@ struct TeamStatsDisclosureView: View {
                 if let homePct {
                     Text(homePct)
                         .font(.caption2.monospacedDigit().weight(.bold))
-                        .foregroundStyle(.black)
+                        .foregroundStyle(.primary)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -3210,7 +3240,7 @@ struct TeamStatsDisclosureView: View {
                 if let awayPct {
                     Text(awayPct)
                         .font(.caption2.monospacedDigit().weight(.bold))
-                        .foregroundStyle(.black)
+                        .foregroundStyle(.primary)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -3284,7 +3314,7 @@ private struct CollapsibleStatsView: View {
                 .minimumScaleFactor(0.6)
             Text(value)
                 .font(.subheadline.monospacedDigit().weight(.bold))
-                .foregroundStyle(.black)
+                .foregroundStyle(.primary)
                 .minimumScaleFactor(0.6)
             if !detail.isEmpty {
                 Text(detail)
