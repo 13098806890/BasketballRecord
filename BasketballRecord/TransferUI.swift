@@ -6,13 +6,14 @@ enum TransferSymbol {
 }
 
 struct AppSoftProminentButtonStyle: ButtonStyle {
-    private let background = Color(red: 0.80, green: 0.90, blue: 0.99)
-    private let foreground = Color(red: 0.18, green: 0.20, blue: 0.22)
+    private let background = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.18, green: 0.30, blue: 0.48, alpha: 1) : UIColor(red: 0.80, green: 0.90, blue: 0.99, alpha: 1)
+    })
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(foreground)
+            .foregroundStyle(.primary)
             .padding(.vertical, 10)
             .background(background.opacity(configuration.isPressed ? 0.7 : 1), in: RoundedRectangle(cornerRadius: 10))
             .overlay(
@@ -25,12 +26,11 @@ struct AppSoftProminentButtonStyle: ButtonStyle {
 
 struct AppNeutralProminentButtonStyle: ButtonStyle {
     private let background = Color(uiColor: .secondarySystemBackground)
-    private let foreground = Color(red: 0.18, green: 0.20, blue: 0.22)
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(foreground)
+            .foregroundStyle(.primary)
             .padding(.vertical, 10)
             .background(background.opacity(configuration.isPressed ? 0.72 : 1), in: RoundedRectangle(cornerRadius: 10))
             .overlay(

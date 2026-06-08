@@ -1,5 +1,33 @@
 # Release Notes
 
+## 1.15 (2026-06-08)
+
+### 新增
+
+- Dark Mode 全面适配
+  - `GamePalette` 全部 14 种颜色改用 `UIColor` 动态 trait provider，记分页按钮区在暗色模式下显示更深色域。
+  - 全局硬编码 `.foregroundStyle(.black)` 替换为 `.primary`，支持系统自动切换明暗色。
+  - 全局卡面 `Color.white` / `.white.opacity()` 背景替换为 `Color(.secondarySystemBackground)` / `.regularMaterial`，暗色模式下显示柔和深色卡片。
+  - `Color(red:green:blue:)` 硬编码背景色（Content 区背景、Player Detail 背景、Player Card 渐变、TransferUI 按钮）全部替换为 `UIColor` trait provider 或系统语义色（`.systemGroupedBackground` 等）。
+- 着陆页重新设计
+  - App Icon 替换篮球 emoji，渐变英雄区，语言选择器毛玻璃背景，卡片悬停微动效。
+- nav_bluetooth_sync 国际化 key：补充至全部 10 种语言。
+- CFBundleDisplayName 本地化：全部 10 种语言 InfoPlist.strings 添加原生 app 显示名称（简体/繁体中文、日文、韩文等）。
+
+### 改进
+
+- SubscriptionStoreView 策略按钮：新增 `.storeButton(.visible, for: .policies)`、`.subscriptionStoreControlStyle(.picker)`、`.subscriptionStoreButtonLabel(.multiline)`，满足 App Store 3.1.2 审核要求。
+- AGENTS.md：新增分支与提交流程规范（main / main_free_pro 双分支策略，禁止自动 git 操作）。
+
+### 修复
+
+- 本地游戏删除后重启恢复的 bug（此前于 1.13 标记为已修复的补充完善）。
+
+### 兼容性
+
+- iOS 17.6+
+- Xcode 17+
+
 ## 1.13 (2026-06-06)
 
 ### 修复

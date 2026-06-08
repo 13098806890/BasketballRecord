@@ -1482,7 +1482,7 @@ private struct ImportRosterPackageView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .padding(10)
-                        .background(.white.opacity(0.75), in: RoundedRectangle(cornerRadius: 8))
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
                     }
                 }
 
@@ -2165,7 +2165,7 @@ struct PlayerProfileView: View {
                                 .foregroundStyle(.secondary)
                         }
                         .padding(12)
-                        .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 8))
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
                     }
                     .buttonStyle(.plain)
                         .padding(.horizontal)
@@ -2219,7 +2219,9 @@ struct PlayerProfileView: View {
             }
             .padding(.vertical)
         }
-        .background(Color(red: 0.97, green: 0.96, blue: 0.93))
+        .background(Color(uiColor: UIColor { tc in
+            tc.userInterfaceStyle == .dark ? UIColor(red: 0.11, green: 0.12, blue: 0.14, alpha: 1) : UIColor(red: 0.97, green: 0.96, blue: 0.93, alpha: 1)
+        }))
         .navigationTitle(player?.name ?? localized("label_player"))
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
@@ -2247,13 +2249,13 @@ struct PlayerProfileView: View {
                             .font(.caption.weight(.semibold))
                             .padding(.horizontal, 10)
                             .padding(.vertical, 5)
-                            .background(Color.white.opacity(0.7), in: Capsule())
+                            .background(.ultraThinMaterial, in: Capsule())
                     } else {
                         Text(localizedFormat("count_games_format", filteredGames.count))
                             .font(.caption.monospacedDigit().weight(.semibold))
                             .padding(.horizontal, 10)
                             .padding(.vertical, 5)
-                            .background(Color.white.opacity(0.7), in: Capsule())
+                            .background(.ultraThinMaterial, in: Capsule())
                     }
                 }
                 Spacer()
@@ -2262,7 +2264,14 @@ struct PlayerProfileView: View {
         .padding(16)
         .background(
             LinearGradient(
-                colors: [Color(red: 0.82, green: 0.88, blue: 0.82), Color(red: 0.90, green: 0.84, blue: 0.78)],
+                colors: [
+                    Color(uiColor: UIColor { tc in
+                        tc.userInterfaceStyle == .dark ? UIColor(red: 0.20, green: 0.30, blue: 0.22, alpha: 1) : UIColor(red: 0.82, green: 0.88, blue: 0.82, alpha: 1)
+                    }),
+                    Color(uiColor: UIColor { tc in
+                        tc.userInterfaceStyle == .dark ? UIColor(red: 0.30, green: 0.24, blue: 0.18, alpha: 1) : UIColor(red: 0.90, green: 0.84, blue: 0.78, alpha: 1)
+                    })
+                ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             ),
@@ -2292,13 +2301,13 @@ struct PlayerProfileView: View {
                 .foregroundStyle(.secondary)
             Text(cell.value)
                 .font(.caption.monospacedDigit().weight(.bold))
-                .foregroundStyle(.black)
+                .foregroundStyle(.primary)
                 .lineLimit(2)
                 .minimumScaleFactor(0.6)
         }
         .frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
         .padding(.horizontal, 10)
-        .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 8))
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
     }
 
     private func statSection(_ title: String, rows: [StatRow]) -> some View {
@@ -2311,7 +2320,7 @@ struct PlayerProfileView: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(12)
-                    .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 8))
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
             } else {
                 VStack(spacing: 8) {
                     ForEach(rows) { row in
