@@ -255,7 +255,7 @@ struct GameView: View {
                         return
                     }
                     guard snapshot.periodIsRunning else {
-                        statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: ""), snapshot.currentPeriod + 1)
+                        statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: ""), snapshot.currentPeriod)
                         return
                     }
                     let now = Date()
