@@ -208,6 +208,12 @@
 "action_steal" = "搶斷";
 "action_block" = "封蓋";
 "action_turnover" = "失誤";
+"action_layup_made" = "Layup Made";
+"action_layup_missed" = "Layup Missed";
+"action_mid_range_made" = "Mid-Range Made";
+"action_mid_range_missed" = "Mid-Range Missed";
+"action_paint_made" = "Paint Made";
+"action_paint_missed" = "Paint Missed";
 "button_continue" = "繼續";
 "button_pause" = "暫停";
 "button_substitute" = "換人";
@@ -846,6 +852,7 @@
 "label_games_count" = "出場";
 "stats_total_points" = "總得分";
 "settings_show_bluetooth_button" = "顯示藍牙協同邀請";
+"settings_show_voice_button" = "顯示語音按鈕";
 "settings_cloud_storage" = "iCloud 儲存";
 "stats_points_format_short" = "得分";
 "stats_rebound_assist_steal_block" = "籃板 / 助攻 / 抄截 / 火鍋";

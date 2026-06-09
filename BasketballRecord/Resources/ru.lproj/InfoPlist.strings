@@ -4,3 +4,5 @@
 "NSLocalNetworkUsageDescription" = "Для обнаружения и подключения к близлежащим устройствам для синхронизации игр и данных команды.";
 "NSBonjourServiceTypesUsageDescription" = "Для синхронизации игр и данных команды между устройствами.";
 "NSPhotoLibraryUsageDescription" = "Для выбора фотографий аватара для игроков.";
+"NSSpeechRecognitionUsageDescription" = "Для голосовой записи игровой статистики.";
+"NSMicrophoneUsageDescription" = "Используется для распознавания речи и записи данных игры.";

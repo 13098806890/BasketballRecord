@@ -8,6 +8,7 @@
 "settings_section_game_prefs" = "試合の設定";
 "settings_keep_screen_awake" = "画面を常に点灯する";
 "settings_show_simulation_button" = "シミュレーションボタンを表示";
+"settings_show_voice_button" = "音声ボタンを表示";
 "settings_career_display" = "キャリア表示";
 "settings_section_data_management" = "データ管理";
 "settings_teams" = "チーム";
@@ -122,6 +123,12 @@
 "action_steal" = "スティール";
 "action_block" = "ブロック";
 "action_turnover" = "ターンオーバー";
+"action_layup_made" = "Layup Made";
+"action_layup_missed" = "Layup Missed";
+"action_mid_range_made" = "Mid-Range Made";
+"action_mid_range_missed" = "Mid-Range Missed";
+"action_paint_made" = "Paint Made";
+"action_paint_missed" = "Paint Missed";
 "button_continue" = "続行";
 "button_pause" = "一時停止";
 "button_substitute" = "交代";

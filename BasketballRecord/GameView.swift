@@ -56,6 +56,7 @@ struct GameView: View {
     @State private var highlightedLogDismissTask: Task<Void, Never>?
     @State private var showAutoEndAlert = false
     @State private var autoEndAlertMessage = ""
+    @StateObject private var voiceRecognizer = VoiceRecognizer()
 
     private let matchClockTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -242,6 +243,37 @@ struct GameView: View {
                     checkAndAutoEndPeriod()
                 }
             }
+            .onAppear {
+                voiceRecognizer.configure(store: store)
+                voiceRecognizer.onAction = { [self] action, playerID, side in
+                    guard !snapshot.isComplete else {
+                        statAlertMessage = NSLocalizedString("stat_game_already_finished", comment: "")
+                        return
+                    }
+                    guard snapshot.periodIsRunning else {
+                        statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: ""), snapshot.currentPeriod + 1)
+                        return
+                    }
+                    self.applyRecordOperation(action: action, playerID: playerID, side: side, at: clockNow)
+                }
+                voiceRecognizer.onCommand = { [self] command in
+                    switch command {
+                    case .togglePause: togglePause()
+                    case .startPeriod: togglePeriod()
+                    case .finishGame: isShowingFinishGameConfirmation = true
+                    case .substitution(_, _, _): break
+                    }
+                }
+                voiceRecognizer.onSubstitution = { [self] side, outgoingID, incomingID in
+                    let now = Date()
+                    _ = submitLiveOperation(.substitution(outgoingPlayerID: outgoingID, incomingPlayerID: incomingID, side: side.liveSide, at: now)) {
+                        applySubstitutionOperation(outgoingPlayerID: outgoingID, incomingPlayerID: incomingID, side: side, at: now)
+                    }
+                }
+            }
+            .onChange(of: snapshot) { _, newValue in
+                voiceRecognizer.currentSnapshot = newValue
+            }
             .onChange(of: bluetooth.latestLiveSnapshot?.id) { _, _ in
                 guard let incoming = bluetooth.latestLiveSnapshot else { return }
                 applyRemoteLiveSnapshot(incoming)
@@ -294,9 +326,49 @@ struct GameView: View {
                 logView
                     .padding(.horizontal)
                     .padding(.bottom, 8)
+
             }
         }
         .scrollBounceBehavior(.basedOnSize)
+        .overlay(alignment: .bottom) {
+            if store.showsVoiceButton, !needsNewGameSetup {
+                VStack(spacing: 6) {
+                    if let error = voiceRecognizer.errorMessage {
+                        Text(error)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.red)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(.regularMaterial, in: Capsule())
+                            .transition(.opacity)
+                    }
+                    if let match = voiceRecognizer.match {
+                        Text(match.action.message)
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(.regularMaterial, in: Capsule())
+                            .transition(.opacity)
+                    }
+                    micButton
+                }
+                .padding(.bottom, 24)
+            }
+        }
+        .overlay(alignment: .center) {
+            Group {
+                if voiceRecognizer.isRecording {
+                    voiceWave
+                        .allowsHitTesting(false)
+                } else if let color = voiceRecognizer.flashColor {
+                    Rectangle()
+                        .fill(color.opacity(0.15))
+                        .ignoresSafeArea()
+                        .allowsHitTesting(false)
+                        .transition(.opacity)
+                }
+            }
+        }
     }
 
     private var liveGameDataEntry: some View {
@@ -665,6 +737,68 @@ struct GameView: View {
     private var selectedPlayer: Player? {
         guard let selectedPlayerID else { return nil }
         return store.player(for: selectedPlayerID)
+    }
+
+    private var voiceWave: some View {
+        TimelineView(.animation(minimumInterval: 0.06)) { timeline in
+            WaveView(time: timeline.date)
+        }
+        .frame(width: UIScreen.main.bounds.width * 0.5, height: 100)
+        .background(.blue.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    private struct WaveView: View {
+        let time: Date
+        var body: some View {
+            GeometryReader { geo in
+                let w = geo.size.width
+                let h = geo.size.height
+                let midY = h / 2
+                let phase = time.timeIntervalSinceReferenceDate * 5
+                let barCount = max(Int(w / 8), 12)
+                let barSpacing: CGFloat = 6
+                let barW = (w - CGFloat(barCount - 1) * barSpacing) / CGFloat(barCount)
+
+                HStack(spacing: barSpacing) {
+                    ForEach(0..<barCount, id: \.self) { i in
+                        let angle = Double(i) / Double(barCount) * .pi * 3 + phase
+                        let barH = max(4, CGFloat((sin(angle) * 0.5 + 0.5)) * h * 0.8)
+                        RoundedRectangle(cornerRadius: barW / 2)
+                            .fill(.blue.opacity(0.8))
+                            .frame(width: max(2, barW), height: barH)
+                    }
+                }
+                .frame(maxHeight: .infinity, alignment: .center)
+            }
+        }
+    }
+
+    private var micButton: some View {
+        ZStack {
+            Circle()
+                .fill(.white.opacity(0.6))
+                .frame(width: 72, height: 72)
+            Circle()
+                .stroke(Color.primary.opacity(0.15), lineWidth: 0.5)
+                .frame(width: 72, height: 72)
+            Image(systemName: voiceRecognizer.isRecording ? "mic.fill" : "mic")
+                .font(.system(size: 26, weight: .semibold))
+                .foregroundStyle(voiceRecognizer.isRecording ? Color.blue : Color.primary)
+                .scaleEffect(voiceRecognizer.isRecording ? 1.15 : 1)
+                .animation(.spring(response: 0.2), value: voiceRecognizer.isRecording)
+        }
+        .shadow(color: .black.opacity(0.06), radius: 6, x: 0, y: 3)
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    if !voiceRecognizer.isRecording {
+                        voiceRecognizer.startRecording()
+                    }
+                }
+                .onEnded { _ in
+                    voiceRecognizer.stopRecording()
+                }
+        )
     }
 
     @ViewBuilder
@@ -1572,7 +1706,7 @@ struct GameView: View {
     }
 
     @discardableResult
-    private func applyRecordOperation(action: StatAction, playerID: UUID, side: TeamSide, at: Date? = nil) -> Bool {
+    func applyRecordOperation(action: StatAction, playerID: UUID, side: TeamSide, at: Date? = nil) -> Bool {
         guard isOnCourt(playerID, side: side) else { return false }
 
         mutateSnapshot {
@@ -2821,6 +2955,7 @@ enum StatAction {
     case twoMade, twoMissed, threeMade, threeMissed
     case bonusMade, bonusMissed, freeThrowMade, freeThrowMissed
     case foul, assist, rebound, block, steal, turnover
+    case layupMade, layupMissed, midRangeMade, midRangeMissed, paintMade, paintMissed
 
     var eventCode: String {
         switch self {
@@ -2838,6 +2973,12 @@ enum StatAction {
         case .block: return "stat.block"
         case .steal: return "stat.steal"
         case .turnover: return "stat.turnover"
+        case .layupMade: return "stat.layupMade"
+        case .layupMissed: return "stat.layupMissed"
+        case .midRangeMade: return "stat.midRangeMade"
+        case .midRangeMissed: return "stat.midRangeMissed"
+        case .paintMade: return "stat.paintMade"
+        case .paintMissed: return "stat.paintMissed"
         }
     }
 
@@ -2857,6 +2998,12 @@ enum StatAction {
         case .block: return "action_block"
         case .steal: return "action_steal"
         case .turnover: return "action_turnover"
+        case .layupMade: return "action_layup_made"
+        case .layupMissed: return "action_layup_missed"
+        case .midRangeMade: return "action_mid_range_made"
+        case .midRangeMissed: return "action_mid_range_missed"
+        case .paintMade: return "action_paint_made"
+        case .paintMissed: return "action_paint_missed"
         }
     }
 
@@ -2866,7 +3013,7 @@ enum StatAction {
 
     var points: Int {
         switch self {
-        case .twoMade: return 2
+        case .twoMade, .layupMade, .midRangeMade, .paintMade: return 2
         case .threeMade: return 3
         case .bonusMade, .freeThrowMade: return 1
         default: return 0
@@ -2880,6 +3027,21 @@ enum StatAction {
             stats.twoAttempts += 1
         case .twoMissed:
             stats.twoAttempts += 1
+        case .layupMade:
+            stats.layupMade += 1; stats.layupAttempts += 1
+            stats.twoMade += 1; stats.twoAttempts += 1
+        case .layupMissed:
+            stats.layupAttempts += 1; stats.twoAttempts += 1
+        case .midRangeMade:
+            stats.midRangeMade += 1; stats.midRangeAttempts += 1
+            stats.twoMade += 1; stats.twoAttempts += 1
+        case .midRangeMissed:
+            stats.midRangeAttempts += 1; stats.twoAttempts += 1
+        case .paintMade:
+            stats.paintMade += 1; stats.paintAttempts += 1
+            stats.twoMade += 1; stats.twoAttempts += 1
+        case .paintMissed:
+            stats.paintAttempts += 1; stats.twoAttempts += 1
         case .threeMade:
             stats.threeMade += 1
             stats.threeAttempts += 1
@@ -2958,6 +3120,27 @@ enum StatAction {
         case .turnover:
             guard stats.turnovers > 0 else { return false }
             stats.turnovers -= 1
+        case .layupMade:
+            guard stats.layupMade > 0, stats.layupAttempts > 0, stats.twoMade > 0, stats.twoAttempts > 0 else { return false }
+            stats.layupMade -= 1; stats.layupAttempts -= 1
+            stats.twoMade -= 1; stats.twoAttempts -= 1
+        case .layupMissed:
+            guard stats.layupAttempts > 0, stats.twoAttempts > 0 else { return false }
+            stats.layupAttempts -= 1; stats.twoAttempts -= 1
+        case .midRangeMade:
+            guard stats.midRangeMade > 0, stats.midRangeAttempts > 0, stats.twoMade > 0, stats.twoAttempts > 0 else { return false }
+            stats.midRangeMade -= 1; stats.midRangeAttempts -= 1
+            stats.twoMade -= 1; stats.twoAttempts -= 1
+        case .midRangeMissed:
+            guard stats.midRangeAttempts > 0, stats.twoAttempts > 0 else { return false }
+            stats.midRangeAttempts -= 1; stats.twoAttempts -= 1
+        case .paintMade:
+            guard stats.paintMade > 0, stats.paintAttempts > 0, stats.twoMade > 0, stats.twoAttempts > 0 else { return false }
+            stats.paintMade -= 1; stats.paintAttempts -= 1
+            stats.twoMade -= 1; stats.twoAttempts -= 1
+        case .paintMissed:
+            guard stats.paintAttempts > 0, stats.twoAttempts > 0 else { return false }
+            stats.paintAttempts -= 1; stats.twoAttempts -= 1
         }
         return true
     }
@@ -3019,6 +3202,8 @@ private extension StatAction {
         case .block: return .block
         case .steal: return .steal
         case .turnover: return .turnover
+        case .layupMade, .midRangeMade, .paintMade: return .twoMade
+        case .layupMissed, .midRangeMissed, .paintMissed: return .twoMissed
         }
     }
 }
@@ -3027,7 +3212,7 @@ extension StatAction: Equatable {}
 
 extension StatAction: CaseIterable {
     static var allCases: [StatAction] {
-        [.twoMade, .twoMissed, .threeMade, .threeMissed, .bonusMade, .bonusMissed, .freeThrowMade, .freeThrowMissed, .foul, .assist, .rebound, .block, .steal, .turnover]
+        [.twoMade, .twoMissed, .threeMade, .threeMissed, .bonusMade, .bonusMissed, .freeThrowMade, .freeThrowMissed, .foul, .assist, .rebound, .block, .steal, .turnover, .layupMade, .layupMissed, .midRangeMade, .midRangeMissed, .paintMade, .paintMissed]
     }
 }
 
@@ -3047,10 +3232,14 @@ private struct CompactTeamRow: View {
     var body: some View {
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(team?.name ?? side.displayName)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                HStack(spacing: 4) {
+                    Text(team?.name ?? side.displayName)
+                        .font(.caption.weight(.semibold))
+                    Text(side == .home ? "(主队)" : "(客队)")
+                        .font(.system(size: 8, weight: .medium))
+                        .foregroundStyle(.tertiary)
+                }
+                .lineLimit(1)
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text("\(score)")
                         .font(.title.monospacedDigit().weight(.bold))
@@ -3109,11 +3298,11 @@ private struct CompactTeamRow: View {
                                                 .background(Circle().fill(.white))
                                         }
                                     }
-                                    Text(player.name)
+                                    Text(player.number.isEmpty ? player.name : "\(player.number) \(player.name)")
                                         .font(.caption2)
                                         .foregroundStyle(onCourtPlayerIDs.contains(player.id) ? .primary : .secondary)
                                         .lineLimit(1)
-                                        .frame(width: 56)
+                                        .frame(width: 64)
                                 }
                                 .opacity(isSelected ? 1 : 0.6)
                             }
@@ -3880,10 +4069,10 @@ private struct SelectablePlayerAvatarButton: View {
                             .offset(y: 8)
                     }
                 }
-                Text(player.name)
+                Text(player.number.isEmpty ? player.name : "\(player.number) \(player.name)")
                     .font(.caption)
                     .lineLimit(1)
-                    .frame(width: 64)
+                    .frame(width: 72)
             }
             .foregroundStyle(GamePalette.text)
         }

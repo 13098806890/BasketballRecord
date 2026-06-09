@@ -642,6 +642,12 @@ struct PlayerStats: Codable, Hashable {
     var twoAttempts = 0
     var threeMade = 0
     var threeAttempts = 0
+    var layupMade = 0
+    var layupAttempts = 0
+    var midRangeMade = 0
+    var midRangeAttempts = 0
+    var paintMade = 0
+    var paintAttempts = 0
     var bonusFreeThrowMade = 0
     var bonusFreeThrowAttempts = 0
     var freeThrowMade = 0
@@ -668,6 +674,9 @@ struct PlayerStats: Codable, Hashable {
         case blocks
         case steals
         case turnovers
+        case layupMade, layupAttempts
+        case midRangeMade, midRangeAttempts
+        case paintMade, paintAttempts
     }
 
     init() { }
@@ -688,6 +697,12 @@ struct PlayerStats: Codable, Hashable {
         blocks = try container.decodeIfPresent(Int.self, forKey: .blocks) ?? 0
         steals = try container.decodeIfPresent(Int.self, forKey: .steals) ?? 0
         turnovers = try container.decodeIfPresent(Int.self, forKey: .turnovers) ?? 0
+        layupMade = try container.decodeIfPresent(Int.self, forKey: .layupMade) ?? 0
+        layupAttempts = try container.decodeIfPresent(Int.self, forKey: .layupAttempts) ?? 0
+        midRangeMade = try container.decodeIfPresent(Int.self, forKey: .midRangeMade) ?? 0
+        midRangeAttempts = try container.decodeIfPresent(Int.self, forKey: .midRangeAttempts) ?? 0
+        paintMade = try container.decodeIfPresent(Int.self, forKey: .paintMade) ?? 0
+        paintAttempts = try container.decodeIfPresent(Int.self, forKey: .paintAttempts) ?? 0
     }
 
     var made: Int { twoMade + threeMade }

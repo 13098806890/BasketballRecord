@@ -122,6 +122,12 @@
 "action_steal" = "스틸";
 "action_block" = "블락";
 "action_turnover" = "턴오버";
+"action_layup_made" = "Layup Made";
+"action_layup_missed" = "Layup Missed";
+"action_mid_range_made" = "Mid-Range Made";
+"action_mid_range_missed" = "Mid-Range Missed";
+"action_paint_made" = "Paint Made";
+"action_paint_missed" = "Paint Missed";
 "button_continue" = "계속";
 "button_pause" = "일시정지";
 "button_substitute" = "교체";
@@ -852,6 +858,7 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 
 
 "settings_show_bluetooth_button" = "블루투스 협동 표시";
+"settings_show_voice_button" = "음성 버튼 표시";
 "settings_cloud_storage" = "iCloud 저장소";
 
 

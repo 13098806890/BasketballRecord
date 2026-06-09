@@ -4,3 +4,5 @@
 "NSLocalNetworkUsageDescription" = "Pour découvrir et connecter les appareils à proximité afin de synchroniser les jeux et les données d'équipe.";
 "NSBonjourServiceTypesUsageDescription" = "Pour synchroniser les jeux et les données d'équipe entre les appareils.";
 "NSPhotoLibraryUsageDescription" = "Pour sélectionner des photos d'avatar pour les joueurs.";
+"NSSpeechRecognitionUsageDescription" = "Pour enregistrer les statistiques du match par la voix.";
+"NSMicrophoneUsageDescription" = "Utilisé pour la reconnaissance vocale et l'enregistrement des données de match.";
