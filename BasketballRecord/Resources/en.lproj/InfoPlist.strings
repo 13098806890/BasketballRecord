@@ -4,3 +4,5 @@
 "NSLocalNetworkUsageDescription" = "To discover and connect nearby devices for syncing games and team data.";
 "NSBonjourServiceTypesUsageDescription" = "To sync games and team data between devices.";
 "NSPhotoLibraryUsageDescription" = "To select avatar photos for players.";
+"NSSpeechRecognitionUsageDescription" = "For voice-based game stat recording.";
+"NSMicrophoneUsageDescription" = "Used for speech recognition to record game data.";

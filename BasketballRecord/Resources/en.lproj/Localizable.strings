@@ -19,6 +19,8 @@
 "settings_bluetooth_games" = "Bluetooth Collaboration Games";
 "empty_no_bluetooth_games" = "No Bluetooth collaboration games";
 "settings_show_bluetooth_button" = "Show Bluetooth Collaboration";
+"settings_show_voice_button" = "Show Voice Button";
+"settings_voice_log" = "Voice Log";
 "button_collab_games" = "Bluetooth Games";
 "settings_cloud_storage" = "iCloud Storage";
 "cloud_storage_description" = "Tap a game to enable or disable cloud storage. Cloud-stored games sync across your devices.";
@@ -178,6 +180,12 @@
 "action_steal" = "Steal";
 "action_block" = "Block";
 "action_turnover" = "Turnover";
+"action_layup_made" = "Layup Made";
+"action_layup_missed" = "Layup Missed";
+"action_mid_range_made" = "Mid-Range Made";
+"action_mid_range_missed" = "Mid-Range Missed";
+"action_paint_made" = "Paint Made";
+"action_paint_missed" = "Paint Missed";
 "button_continue" = "Continue";
 "button_pause" = "Pause";
 "button_substitute" = "Substitute";

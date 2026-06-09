@@ -122,6 +122,12 @@
 "action_steal" = "Rubata";
 "action_block" = "Stoppata";
 "action_turnover" = "Persa";
+"action_layup_made" = "Layup Made";
+"action_layup_missed" = "Layup Missed";
+"action_mid_range_made" = "Mid-Range Made";
+"action_mid_range_missed" = "Mid-Range Missed";
+"action_paint_made" = "Paint Made";
+"action_paint_missed" = "Paint Missed";
 "button_continue" = "Continua";
 "button_pause" = "Pausa";
 "button_substitute" = "Sostituisci";
@@ -587,6 +593,7 @@
 
 
 "settings_show_bluetooth_button" = "Mostra collaborazione Bluetooth";
+"settings_show_voice_button" = "Mostra pulsante vocale";
 "settings_cloud_storage" = "Archiviazione iCloud";
 
 

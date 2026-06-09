@@ -31,6 +31,12 @@
 "action_steal" = "Перехват";
 "action_block" = "Блок";
 "action_turnover" = "Потеря";
+"action_layup_made" = "Layup Made";
+"action_layup_missed" = "Layup Missed";
+"action_mid_range_made" = "Mid-Range Made";
+"action_mid_range_missed" = "Mid-Range Missed";
+"action_paint_made" = "Paint Made";
+"action_paint_missed" = "Paint Missed";
 "button_continue" = "Продолжить";
 "button_pause" = "Пауза";
 "button_substitute" = "Замена";
@@ -589,6 +595,7 @@
 
 
 "settings_show_bluetooth_button" = "Показывать Bluetooth-совместный доступ";
+"settings_show_voice_button" = "Показать кнопку голоса";
 "settings_cloud_storage" = "Хранилище iCloud";
 
 "stat_label_2pt" = "2PT";

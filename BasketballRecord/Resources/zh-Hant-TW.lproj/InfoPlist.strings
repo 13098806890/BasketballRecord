@@ -4,3 +4,5 @@
 "NSLocalNetworkUsageDescription" = "用於發現並連接附近設備，同步比賽與球隊數據。";
 "NSBonjourServiceTypesUsageDescription" = "用於在設備間同步比賽與球隊數據。";
 "NSPhotoLibraryUsageDescription" = "用於為球員選擇頭像照片。";
+"NSSpeechRecognitionUsageDescription" = "用於通過語音快速記錄比賽數據。";
+"NSMicrophoneUsageDescription" = "用於語音識別以記錄比賽數據。";

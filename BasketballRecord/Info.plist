@@ -6,5 +6,9 @@
 	<array>
 		<string>_bskrecord-sync._tcp</string>
 	</array>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>用于通过语音快速记录比赛数据</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>用于语音识别以记录比赛数据</string>
 </dict>
 </plist>

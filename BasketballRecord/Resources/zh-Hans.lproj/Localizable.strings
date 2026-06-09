@@ -39,6 +39,8 @@
 "settings_bluetooth_games" = "蓝牙协同比赛";
 "empty_no_bluetooth_games" = "暂无蓝牙协同比赛";
 "settings_show_bluetooth_button" = "显示蓝牙协同邀请";
+"settings_show_voice_button" = "显示语音按钮";
+"settings_voice_log" = "语音日志";
 "button_collab_games" = "蓝牙协同";
 "settings_cloud_storage" = "iCloud 存储";
 "cloud_storage_description" = "点击比赛来开启或关闭云存储。存储在云端的比赛会在各设备间同步。";
@@ -196,6 +198,12 @@
 "action_steal" = "抢断";
 "action_block" = "封盖";
 "action_turnover" = "失误";
+"action_layup_made" = "上篮命中";
+"action_layup_missed" = "上篮未中";
+"action_mid_range_made" = "中投命中";
+"action_mid_range_missed" = "中投未中";
+"action_paint_made" = "篮下命中";
+"action_paint_missed" = "篮下未中";
 "button_continue" = "继续";
 "button_pause" = "暂停";
 "button_substitute" = "换人";

@@ -106,6 +106,14 @@ final class AppStore: ObservableObject {
         didSet { scheduleSave() }
     }
 
+    @Published var showsVoiceButton = true {
+        didSet { scheduleSave() }
+    }
+
+    @Published var voiceLog: [VoiceLogEntry] = [] {
+        didSet { scheduleSave() }
+    }
+
     @Published var cloudEnabledGameIDs: Set<UUID> = []
 
     func downloadFromCloud(_ game: SavedGame) {
@@ -172,6 +180,7 @@ final class AppStore: ObservableObject {
         var hiddenCareerStatItems: Set<CareerStatItem>
         var keepsScreenAwake: Bool
         var showsBluetoothGamesButton: Bool
+        var showsVoiceButton: Bool?
     }
 
     init() {
@@ -780,7 +789,8 @@ final class AppStore: ObservableObject {
             gameGroups: gameGroups,
             hiddenCareerStatItems: hiddenCareerStatItems,
             keepsScreenAwake: keepsScreenAwake,
-            showsBluetoothGamesButton: showsBluetoothGamesButton
+            showsBluetoothGamesButton: showsBluetoothGamesButton,
+            showsVoiceButton: showsVoiceButton
         )
         safeWrite(meta, forKey: metaKey)
 
@@ -864,6 +874,7 @@ final class AppStore: ObservableObject {
             hiddenCareerStatItems = meta.hiddenCareerStatItems
             keepsScreenAwake = meta.keepsScreenAwake
             showsBluetoothGamesButton = meta.showsBluetoothGamesButton
+            showsVoiceButton = meta.showsVoiceButton ?? true
         } else {
             seedSampleData()
         }
