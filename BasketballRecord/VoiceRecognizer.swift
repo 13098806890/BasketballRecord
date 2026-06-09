@@ -54,9 +54,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     /// Single-letter Chinese pronunciation approximation
-    private static func letterPinyin(_ ch: Character) -> String {
+    static func letterPinyin(_ ch: Character) -> String {
         switch ch {
-        case "a": return "a"; case "b": return "bo"; case "c": return "ci"
+        case "a": return "ei"; case "b": return "bo"; case "c": return "ci"
         case "d": return "di"; case "e": return "e"
         case "f": return "efu"; case "g": return "ji"; case "h": return "equ"
         case "i": return "ai"; case "j": return "jie"; case "k": return "ke"
@@ -80,39 +80,71 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     var onCommand: ((VoiceCommand) -> Void)?
     var onSubstitution: ((TeamSide, UUID, UUID) -> Void)?
 
-    private let voicePatterns: [String: [String]] = {
-        var d: [String: [String]] = [:]
-        d["stat.twoMade"] = ["两分命中", "2分命中", "两分进", "2分进"]
-        d["stat.twoMissed"] = ["两分未中", "两分没中", "两分不中", "2分未中", "2分没中", "2分不中", "两分打铁"]
-        d["stat.layupMade"] = ["上篮命中", "上篮进", "上篮得分", "上篮成功"]
-        d["stat.layupMissed"] = ["上篮不进", "上篮没中", "上篮不中"]
-        d["stat.midRangeMade"] = ["中投命中", "中投进", "中投得分", "中投成功", "中距离命中"]
-        d["stat.midRangeMissed"] = ["中投未中", "中投不中", "中投不进", "中投没中"]
-        d["stat.paintMade"] = ["篮下命中", "篮下进", "篮下得分", "篮下成功", "内线命中"]
-        d["stat.paintMissed"] = ["篮下未中", "篮下不中", "篮下不进", "篮下没中"]
-        d["stat.threeMade"] = ["三分命中", "3分命中", "三分进", "3分进", "远投"]
-        d["stat.threeMissed"] = ["三分未中", "三分没中", "三分不中", "3分未中", "3分没中", "3分不中"]
-        d["stat.freeThrowMade"] = ["罚球命中", "罚球进"]
-        d["stat.freeThrowMissed"] = ["罚球未中", "罚球没中", "罚球不中", "罚篮未中", "罚篮没中", "罚篮不中"]
-        d["stat.bonusMade"] = ["加罚命中", "加罚进"]
-        d["stat.bonusMissed"] = ["加罚未中", "加罚没中", "加罚不中"]
-        d["stat.foul"] = ["犯规"]
-        d["stat.rebound"] = ["篮板", "板", "前场板", "后场板", "抢板", "nanban", "nan ban", "nan"]
-        d["stat.assist"] = ["助攻", "成功"]
-        d["stat.block"] = ["盖帽", "封盖"]
-        d["stat.steal"] = ["抢断", "断球"]
-        d["stat.turnover"] = ["失误", "走步", "违例"]
-        d["event.period"] = ["开始", "第一节", "第1节", "第二节", "第2节", "第三节", "第3节", "第四节", "第4节", "下一节"]
-        d["event.pause"] = ["暂停", "停表", "继续", "继续比赛", "比赛继续"]
-        d["event.game_end"] = ["结束", "比赛结束", "完场"]
-        d["event.substitution"] = ["换人", "替换"]
-        return d
-    }()
+    private struct VoiceShotDef {
+        let keyword: String
+        let eventPrefix: String
+    }
 
-    private lazy var pinyinPatterns: [(pinyin: String, eventCode: String)] = {
-        voicePatterns.flatMap { eventCode, patterns in
-            patterns.map { (Self.fuzzyPinyin(Self.toPinyin($0)), eventCode) }
+    private let voiceShotTypes: [VoiceShotDef] = [
+        .init(keyword: "两分", eventPrefix: "stat.two"),
+        .init(keyword: "2分", eventPrefix: "stat.two"),
+        .init(keyword: "三分", eventPrefix: "stat.three"),
+        .init(keyword: "3分", eventPrefix: "stat.three"),
+        .init(keyword: "上篮", eventPrefix: "stat.layup"),
+        .init(keyword: "中投", eventPrefix: "stat.midRange"),
+        .init(keyword: "中距离", eventPrefix: "stat.midRange"),
+        .init(keyword: "篮下", eventPrefix: "stat.paint"),
+        .init(keyword: "内线", eventPrefix: "stat.paint"),
+        .init(keyword: "罚球", eventPrefix: "stat.freeThrow"),
+        .init(keyword: "罚篮", eventPrefix: "stat.freeThrow"),
+        .init(keyword: "加罚", eventPrefix: "stat.bonus"),
+    ]
+
+    private let voiceMadeStates = ["命中", "进", "得分", "成功"]
+    private let voiceMissedStates = ["未中", "没中", "不中", "不进", "没进", "打铁"]
+
+    private lazy var pinyinPatterns: [(pinyin: String, chinese: String, eventCode: String)] = {
+        var results: [(String, String, String)] = []
+
+        // Cartesian product: shot type × made/missed state
+        for shot in voiceShotTypes {
+            for state in voiceMadeStates {
+                let chinese = shot.keyword + state
+                results.append((Self.fuzzyPinyin(Self.toPinyin(chinese)), chinese,
+                                shot.eventPrefix + "Made"))
+            }
+            for state in voiceMissedStates {
+                let chinese = shot.keyword + state
+                results.append((Self.fuzzyPinyin(Self.toPinyin(chinese)), chinese,
+                                shot.eventPrefix + "Missed"))
+            }
         }
+
+        // Non-shot actions and events (manually defined)
+        let special: [(String, String, String)] = [
+            ("远投", "远投", "stat.threeMade"),
+            ("犯规", "犯规", "stat.foul"),
+            ("篮板", "篮板", "stat.rebound"), ("板", "板", "stat.rebound"),
+            ("前场板", "前场板", "stat.rebound"), ("后场板", "后场板", "stat.rebound"), ("抢板", "抢板", "stat.rebound"),
+            ("nanban", "nanban", "stat.rebound"), ("nan ban", "nan ban", "stat.rebound"), ("nan", "nan", "stat.rebound"),
+            ("助攻", "助攻", "stat.assist"), ("成功", "成功", "stat.assist"),
+            ("盖帽", "盖帽", "stat.block"), ("封盖", "封盖", "stat.block"),
+            ("抢断", "抢断", "stat.steal"), ("断球", "断球", "stat.steal"),
+            ("失误", "失误", "stat.turnover"), ("走步", "走步", "stat.turnover"), ("违例", "违例", "stat.turnover"),
+            ("开始", "开始", "event.period"), ("第一节", "第一节", "event.period"), ("第1节", "第1节", "event.period"),
+            ("第二节", "第二节", "event.period"), ("第2节", "第2节", "event.period"), ("第三节", "第三节", "event.period"),
+            ("第3节", "第3节", "event.period"), ("第四节", "第四节", "event.period"), ("第4节", "第4节", "event.period"),
+            ("下一节", "下一节", "event.period"),
+            ("暂停", "暂停", "event.pause"), ("停表", "停表", "event.pause"), ("继续", "继续", "event.pause"),
+            ("继续比赛", "继续比赛", "event.pause"), ("比赛继续", "比赛继续", "event.pause"),
+            ("结束", "结束", "event.game_end"), ("比赛结束", "比赛结束", "event.game_end"), ("完场", "完场", "event.game_end"),
+            ("换人", "换人", "event.substitution"), ("替换", "替换", "event.substitution"),
+        ]
+        for (phrase, chinese, code) in special {
+            results.append((Self.fuzzyPinyin(Self.toPinyin(phrase)), chinese, code))
+        }
+
+        return results
     }()
 
     func configure(store: AppStore) {
@@ -225,7 +257,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             for variant in nameVariants {
                 let namePinyin = Self.fuzzyPinyin(variant)
                 let score = Self.nameSimilarity(namePinyin, fuzzyTP)
-                if score > threshold {
+                if score >= threshold {
                     let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
                     results.append((id, side, score))
                     break
@@ -233,20 +265,56 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             }
         }
 
-        return results.sorted { $0.2 > $1.2 }
+        return results.sorted { a, b in
+            if a.2 != b.2 { return a.2 > b.2 }
+            let aName = store.player(for: a.0)?.name ?? ""
+            let bName = store.player(for: b.0)?.name ?? ""
+            return aName.count > bName.count
+        }
     }
 
     private func handleSubstitution(text: String, textPinyin: String) {
         let fuzzyTextPinyin = Self.fuzzyPinyin(textPinyin)
         guard let store, let snapshot = currentSnapshot else { return }
 
-        // Search each side: match one on-court player (outgoing) and one bench player (incoming)
+        // Try number-based matching first
+        let textNumber = extractNumber(from: text)
+        if let textNumber {
+            for side in [TeamSide.home, TeamSide.away] {
+                let courtIDs = side == .home ? snapshot.homeOnCourtPlayerIDs : snapshot.awayOnCourtPlayerIDs
+                let benchIDs = (side == .home ? snapshot.homeAvailablePlayerIDs : snapshot.awayAvailablePlayerIDs)
+                    .filter { !courtIDs.contains($0) }
+                let courtByNumber = courtIDs.first { store.player(for: $0)?.number == "\(textNumber)" }
+                let benchByNumber = benchIDs.first { store.player(for: $0)?.number == "\(textNumber)" }
+                if let outgoing = courtByNumber, let incoming = benchByNumber {
+                    flashColor = .green
+                    let p1 = store.player(for: outgoing)?.name ?? "?"
+                    let p2 = store.player(for: incoming)?.name ?? "?"
+                    addLog(text: text, isSuccess: true, action: "换人", playerName: "\(p1)→\(p2)")
+                    onSubstitution?(side, outgoing, incoming)
+                    Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
+                    return
+                }
+            }
+        }
+
+        // Fall back to name matching
+        var detailParts: [String] = []
         for side in [TeamSide.home, TeamSide.away] {
+            let label = side == .home ? "主队" : "客队"
             let courtIDs = side == .home ? snapshot.homeOnCourtPlayerIDs : snapshot.awayOnCourtPlayerIDs
             let benchIDs = (side == .home ? snapshot.homeAvailablePlayerIDs : snapshot.awayAvailablePlayerIDs)
                 .filter { !courtIDs.contains($0) }
             let courtMatches = matchPlayerIDs(from: text, textPinyin: fuzzyTextPinyin, in: courtIDs)
             let benchMatches = matchPlayerIDs(from: text, textPinyin: fuzzyTextPinyin, in: benchIDs)
+            let courtDesc = courtMatches.prefix(3).map { id, _, s -> String in
+                "\(store.player(for: id)?.name ?? "?")(\(String(format: "%.2f", s)))"
+            }.joined(separator: ", ")
+            let benchDesc = benchMatches.prefix(3).map { id, _, s -> String in
+                "\(store.player(for: id)?.name ?? "?")(\(String(format: "%.2f", s)))"
+            }.joined(separator: ", ")
+            detailParts.append("\(label): 上场=\(courtDesc.isEmpty ? "无" : courtDesc), 下场=\(benchDesc.isEmpty ? "无" : benchDesc)")
+
             guard let outgoing = courtMatches.first, let incoming = benchMatches.first else {
                 continue
             }
@@ -259,6 +327,8 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             return
         }
 
+        let detail = detailParts.joined(separator: " | ")
+        addLog(text: text, isSuccess: false, action: "换人", matchDetail: detail)
         showError("未识别到换人球员")
         flashColor = .red
         Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
@@ -272,12 +342,16 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let threshold: Double = 0.48
         var bestEventScore = threshold
         var matchedEventCode: String?
+        var matchedPinyin: String?
+        var matchPosition = 0
 
-        for (fuzzyPinyin, eventCode) in pinyinPatterns {
-            let (score, _) = Self.bestMatch(fuzzyPinyin, fuzzyTextPinyin)
+        for (fuzzyPinyin, _, eventCode) in pinyinPatterns {
+            let (score, pos) = Self.bestMatch(fuzzyPinyin, fuzzyTextPinyin)
             if score > bestEventScore {
                 bestEventScore = score
                 matchedEventCode = eventCode
+                matchedPinyin = fuzzyPinyin
+                matchPosition = pos
             }
         }
 
@@ -329,6 +403,26 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         // Match player — number matching first, then name matching
         guard let store, let snapshot = currentSnapshot else { return }
         let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
+
+        // Skip fuzzy player matching if action consumes most of the text (no room for a name)
+        let textClean = fuzzyTextPinyin.replacingOccurrences(of: " ", with: "")
+        let patternClean = (matchedPinyin ?? "").replacingOccurrences(of: " ", with: "")
+        let prefixLen = matchPosition
+        let suffixLen = textClean.count - patternClean.count - prefixLen
+        let canFuzzyMatchPlayer = prefixLen > 0 || suffixLen > 0
+
+        // Build residual pinyin (only the text outside the matched pattern window)
+        let residualFuzzy: String
+        if prefixLen + patternClean.count <= textClean.count {
+            let chars = Array(textClean)
+            let prefix = String(chars[0..<prefixLen])
+            let suffix = String(chars[(prefixLen + patternClean.count)...])
+            let parts = [prefix, suffix].filter { !$0.isEmpty }
+            residualFuzzy = parts.joined(separator: " ")
+        } else {
+            residualFuzzy = fuzzyTextPinyin
+        }
+
         var bestPlayer: (UUID, TeamSide, Double)?
 
         let number = extractNumber(from: text)
@@ -343,8 +437,8 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             }
         }
 
-        if bestPlayer == nil {
-            bestPlayer = matchPlayerIDs(from: text, textPinyin: fuzzyTextPinyin, in: allIDs).first
+        if bestPlayer == nil, canFuzzyMatchPlayer, !containsNumberKeyword(text) {
+            bestPlayer = matchPlayerIDs(from: text, textPinyin: residualFuzzy, in: allIDs).first
         }
 
         guard let (playerID, side, _) = bestPlayer else {
@@ -378,7 +472,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     private func extractNumber(from text: String) -> Int? {
-        let pattern = try? NSRegularExpression(pattern: "(\\d+)\\s*号")
+        let pattern = try? NSRegularExpression(pattern: "(\\d+)\\s*(号|hao)")
         if let match = pattern?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
             let range = Range(match.range(at: 1), in: text)!
             let num = Int(String(text[range]))!
@@ -386,6 +480,10 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             return num
         }
         return nil
+    }
+
+    private func containsNumberKeyword(_ text: String) -> Bool {
+        text.contains("号") || text.contains("hao")
     }
 
     static func toPinyin(_ s: String) -> String {
@@ -453,7 +551,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     /// Name-specific similarity: divides by min(len) for the denominator.
     /// Short names (3-4 pinyin chars) can match within long text without being penalized.
-    /// Caps at 0.95 to prevent overly-short names from scoring 1.0 accidentally.
+    /// Cap scales with name length: longer names (more reliable match) can score closer to 1.0.
     static func nameSimilarity(_ namePinyin: String, _ textPinyin: String) -> Double {
         let aClean = namePinyin.replacingOccurrences(of: " ", with: "")
         let bClean = textPinyin.replacingOccurrences(of: " ", with: "")
@@ -461,9 +559,10 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let bChars = Array(bClean)
         guard !aChars.isEmpty else { return 0 }
         let denom = Double(min(aChars.count, bChars.count))
+        let cap = 0.80 + Double(aChars.count) * 0.03
         if bChars.count < aChars.count {
             let matches = zip(aChars, bChars).filter { $0 == $1 }.count
-            return min(Double(matches) / denom, 0.95)
+            return min(Double(matches) / denom, cap)
         }
         var best = 0.0
         for offset in 0...(bChars.count - aChars.count) {
@@ -474,6 +573,6 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             let score = Double(matches) / denom
             best = max(best, score)
         }
-        return min(best, 0.95)
+        return min(best, cap)
     }
 }

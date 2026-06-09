@@ -9,8 +9,10 @@ final class VoiceMatchingTests: XCTestCase {
     let homePlayer1ID = UUID(uuidString: "10000000-0000-0000-0000-000000000001")!
     let homePlayer2ID = UUID(uuidString: "10000000-0000-0000-0000-000000000002")!
     let homePlayer3ID = UUID(uuidString: "10000000-0000-0000-0000-000000000003")!
+    let homePlayer4ID = UUID(uuidString: "10000000-0000-0000-0000-000000000004")!
     let awayPlayer1ID = UUID(uuidString: "20000000-0000-0000-0000-000000000001")!
     let awayPlayer2ID = UUID(uuidString: "20000000-0000-0000-0000-000000000002")!
+    let awayPlayer3ID = UUID(uuidString: "20000000-0000-0000-0000-000000000003")!
     let homeTeamID = UUID(uuidString: "30000000-0000-0000-0000-000000000001")!
     let awayTeamID = UUID(uuidString: "30000000-0000-0000-0000-000000000002")!
 
@@ -21,20 +23,22 @@ final class VoiceMatchingTests: XCTestCase {
             Player(id: homePlayer1ID, name: "张三", number: "3"),
             Player(id: homePlayer2ID, name: "李四", number: "7"),
             Player(id: homePlayer3ID, name: "王五", number: "10"),
+            Player(id: homePlayer4ID, name: "AD", number: "1"),
             Player(id: awayPlayer1ID, name: "赵六", number: "5"),
             Player(id: awayPlayer2ID, name: "Bobo", number: "23"),
+            Player(id: awayPlayer3ID, name: "老冯", number: "8"),
         ]
         store.teams = [
-            Team(id: homeTeamID, name: "红队", playerIDs: [homePlayer1ID, homePlayer2ID, homePlayer3ID]),
-            Team(id: awayTeamID, name: "蓝队", playerIDs: [awayPlayer1ID, awayPlayer2ID]),
+            Team(id: homeTeamID, name: "红队", playerIDs: [homePlayer1ID, homePlayer2ID, homePlayer3ID, homePlayer4ID]),
+            Team(id: awayTeamID, name: "蓝队", playerIDs: [awayPlayer1ID, awayPlayer2ID, awayPlayer3ID]),
         ]
         snapshot = GameSnapshot()
         snapshot.homeTeamID = homeTeamID
         snapshot.awayTeamID = awayTeamID
-        snapshot.homeOnCourtPlayerIDs = [homePlayer1ID, homePlayer2ID, homePlayer3ID]
-        snapshot.awayOnCourtPlayerIDs = [awayPlayer1ID, awayPlayer2ID]
-        snapshot.homeAvailablePlayerIDs = [homePlayer1ID, homePlayer2ID, homePlayer3ID]
-        snapshot.awayAvailablePlayerIDs = [awayPlayer1ID, awayPlayer2ID]
+        snapshot.homeOnCourtPlayerIDs = [homePlayer1ID, homePlayer2ID, homePlayer3ID, homePlayer4ID]
+        snapshot.awayOnCourtPlayerIDs = [awayPlayer1ID, awayPlayer2ID, awayPlayer3ID]
+        snapshot.homeAvailablePlayerIDs = [homePlayer1ID, homePlayer2ID, homePlayer3ID, homePlayer4ID]
+        snapshot.awayAvailablePlayerIDs = [awayPlayer1ID, awayPlayer2ID, awayPlayer3ID]
     }
 
     // MARK: - Pinyin Conversion
@@ -203,6 +207,23 @@ final class VoiceMatchingTests: XCTestCase {
         XCTAssertEqual(result.eventCode, "stat.rebound")
     }
 
+    func testActionWithoutPlayerDoesNotMatchFuzzyPlayer() {
+        // Pure action text "三分不中" should NOT fuzzy-match a player like "老冯"
+        let result = findEvent(text: "三分不中")
+        XCTAssertEqual(result.eventCode, "stat.threeMissed")
+        XCTAssertNil(result.playerName, "Pure action text should not match any player via fuzzy pinyin")
+    }
+
+    func testActionWithPlayerNameMatchesCorrectly() {
+        // "老冯三分不中" should match player 老冯 via direct substring
+        assertMatch(text: "老冯三分不中", expectedEvent: "stat.threeMissed", expectedPlayer: "老冯")
+    }
+
+    func testASRIdMatchesPlayerAD() {
+        // ASR may transcribe "AD" as "id" — should still match player AD via fuzzy pinyin
+        assertMatch(text: "id两分命中", expectedEvent: "stat.twoMade", expectedPlayer: "AD")
+    }
+
     // MARK: - No Match Cases
 
     func testNoMatchGibberish() {
@@ -224,6 +245,8 @@ final class VoiceMatchingTests: XCTestCase {
         let threshold = 0.5
         var bestEventScore = threshold
         var matchedEventCode: String?
+        var matchedPattern: String?
+        var matchPosition = 0
 
         let recognizer = VoiceRecognizer()
         recognizer.configure(store: store)
@@ -264,10 +287,12 @@ final class VoiceMatchingTests: XCTestCase {
 
         for (pinyin, eventCode) in patterns {
             let fuzzyPinyin = VoiceRecognizer.fuzzyPinyin(pinyin)
-            let score = VoiceRecognizer.similarity(fuzzyPinyin, fuzzyTextPinyin)
+            let (score, pos) = VoiceRecognizer.bestMatch(fuzzyPinyin, fuzzyTextPinyin)
             if score > bestEventScore {
                 bestEventScore = score
                 matchedEventCode = eventCode
+                matchedPattern = fuzzyPinyin
+                matchPosition = pos
             }
         }
 
@@ -275,29 +300,38 @@ final class VoiceMatchingTests: XCTestCase {
             return (nil, nil)
         }
 
-        // Match player
-        let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
-        let matchThreshold = 0.4
-        var bestPlayerName: String?
-        var bestPlayerScore = matchThreshold
-
-        for id in allIDs {
-            guard let player = store.player(for: id) else { continue }
-            let nameLower = player.name.lowercased()
-            if text.lowercased().contains(nameLower) {
-                return (eventCode, player.name)
-            }
-            let namePinyin = VoiceRecognizer.fuzzyPinyin(VoiceRecognizer.toPinyin(player.name))
-            let score = VoiceRecognizer.nameSimilarity(namePinyin, fuzzyTextPinyin)
-            if score > bestPlayerScore {
-                bestPlayerScore = score
-                bestPlayerName = player.name
-            }
+        // Skip player matching for commands
+        if eventCode == "event.period" || eventCode == "event.pause" || eventCode == "event.game_end" || eventCode == "event.substitution" {
+            return (eventCode, nil)
         }
 
-        // Try number
-        if let range = text.range(of: "\\d+\\s*号", options: .regularExpression) {
-            let numStr = String(text[range]).trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "号", with: "")
+        // Match player — same logic as production processText
+        let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
+
+        let textClean = fuzzyTextPinyin.replacingOccurrences(of: " ", with: "")
+        let patternClean = (matchedPattern ?? "").replacingOccurrences(of: " ", with: "")
+        let prefixLen = matchPosition
+        let suffixLen = textClean.count - patternClean.count - prefixLen
+        let canFuzzyMatchPlayer = prefixLen > 0 || suffixLen > 0
+
+        // Build residual pinyin (only the text outside the matched pattern window)
+        let residualFuzzy: String
+        if prefixLen + patternClean.count <= textClean.count {
+            let chars = Array(textClean)
+            let prefix = String(chars[0..<prefixLen])
+            let suffix = String(chars[(prefixLen + patternClean.count)...])
+            let parts = [prefix, suffix].filter { !$0.isEmpty }
+            residualFuzzy = parts.joined(separator: " ")
+        } else {
+            residualFuzzy = fuzzyTextPinyin
+        }
+
+        // Number matching first
+        if let range = text.range(of: "\\d+\\s*(号|hao)", options: .regularExpression) {
+            let numStr = String(text[range])
+                .trimmingCharacters(in: .whitespaces)
+                .replacingOccurrences(of: "号", with: "")
+                .replacingOccurrences(of: "hao", with: "")
             if let number = Int(numStr) {
                 for id in allIDs {
                     guard let player = store.player(for: id) else { continue }
@@ -308,7 +342,43 @@ final class VoiceMatchingTests: XCTestCase {
             }
         }
 
-        return (eventCode, bestPlayerName)
+        // Fuzzy player matching against residual pinyin only
+        if canFuzzyMatchPlayer, !text.contains("号"), !text.contains("hao") {
+            let matchThreshold = 0.5
+            var bestPlayerName: String?
+            var bestPlayerScore = matchThreshold
+
+            for id in allIDs {
+                guard let player = store.player(for: id) else { continue }
+                let nameLower = player.name.lowercased()
+                if text.lowercased().contains(nameLower) {
+                    return (eventCode, player.name)
+                }
+                let nameFuzzy = VoiceRecognizer.fuzzyPinyin(VoiceRecognizer.toPinyin(player.name))
+                let score = VoiceRecognizer.nameSimilarity(nameFuzzy, residualFuzzy)
+                if score >= bestPlayerScore {
+                    bestPlayerScore = score
+                    bestPlayerName = player.name
+                }
+                // Also try letter-pinyin variants for English names
+                let letters = player.name.lowercased().filter { $0.isLetter && $0.isASCII }
+                if letters.count >= 2 && letters.count <= 4 {
+                    let letterPinyins = letters.map { VoiceRecognizer.letterPinyin($0) }
+                    let letterFuzzy = VoiceRecognizer.fuzzyPinyin(letterPinyins.joined(separator: " "))
+                    let letterScore = VoiceRecognizer.nameSimilarity(letterFuzzy, residualFuzzy)
+                    if letterScore >= bestPlayerScore {
+                        bestPlayerScore = letterScore
+                        bestPlayerName = player.name
+                    }
+                }
+            }
+
+            if let name = bestPlayerName {
+                return (eventCode, name)
+            }
+        }
+
+        return (eventCode, nil)
     }
 
     private func assertMatch(text: String, expectedEvent: String, expectedPlayer: String, file: StaticString = #filePath, line: UInt = #line) {

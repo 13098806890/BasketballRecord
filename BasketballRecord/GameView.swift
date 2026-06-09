@@ -250,11 +250,24 @@ struct GameView: View {
                         statAlertMessage = NSLocalizedString("stat_game_already_finished", comment: "")
                         return
                     }
+                    guard !snapshot.isPaused else {
+                        statAlertMessage = NSLocalizedString("stat_game_paused", comment: "")
+                        return
+                    }
                     guard snapshot.periodIsRunning else {
                         statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: ""), snapshot.currentPeriod + 1)
                         return
                     }
-                    self.applyRecordOperation(action: action, playerID: playerID, side: side, at: clockNow)
+                    let now = Date()
+                    let operation = BluetoothLiveOperationPayload.record(
+                        action: action.liveAction,
+                        playerID: playerID,
+                        side: side.liveSide,
+                        at: now
+                    )
+                    _ = submitLiveOperation(operation) {
+                        self.applyRecordOperation(action: action, playerID: playerID, side: side, at: now)
+                    }
                 }
                 voiceRecognizer.onCommand = { [self] command in
                     switch command {
