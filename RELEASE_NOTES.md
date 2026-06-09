@@ -1,5 +1,21 @@
 # Release Notes
 
+## 1.16 (2026-06-09)
+
+### 修复
+
+- 语音统计操作与按键使用同一代码路径：语音回调改用 `submitLiveOperation`，确保与按钮一致的蓝牙同步、暂停/结束等状态检查。
+- 语音号码替换（换人）支持号码匹配：`handleSubstitution` 先用 `extractNumber` 提取球衣号码，号码匹配失败再回退到姓名模糊匹配。
+- `extractNumber` 支持 "hao" 拼音：正则 `(\d+)\s*(号|hao)`，处理 ASR 输出 "5hao" 代替 "5号" 的情况。
+- 球员匹配只查残留拼音（动作模式之外的部分），消除 "老冯" 通过动作词 "fen" 产生误匹配的问题。
+- 文本含 "号"/"hao" 但无数字时跳过姓名匹配，防止 "haoz三分没中" 中的 "hao" 被误认为球员名。
+- 修复 `testASRIdMatchesPlayerAD` 和 `testActionWithoutPlayerDoesNotMatchFuzzyPlayer` 两个测试用例。
+
+### 兼容性
+
+- iOS 17.6+
+- Xcode 17+
+
 ## 1.15 (2026-06-08)
 
 ### 新增
