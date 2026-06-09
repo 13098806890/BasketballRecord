@@ -558,7 +558,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let aChars = Array(aClean)
         let bChars = Array(bClean)
         guard !aChars.isEmpty else { return 0 }
-        let denom = Double(min(aChars.count, bChars.count))
+        let denom = Double(max(aChars.count, bChars.count))
         let cap = 0.80 + Double(aChars.count) * 0.03
         if bChars.count < aChars.count {
             let matches = zip(aChars, bChars).filter { $0 == $1 }.count
