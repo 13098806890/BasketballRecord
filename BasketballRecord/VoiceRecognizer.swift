@@ -549,9 +549,50 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         bestMatch(a, b).score
     }
 
-    /// Name-specific similarity: divides by min(len) for the denominator.
-    /// Short names (3-4 pinyin chars) can match within long text without being penalized.
-    /// Cap scales with name length: longer names (more reliable match) can score closer to 1.0.
+    /// Character-level phonetic similarity for pinyin.
+    /// Gives partial credit for commonly confused vowels and consonants.
+    static func charSimilarity(_ c1: Character, _ c2: Character) -> Double {
+        guard c1 != c2 else { return 1.0 }
+        switch (c1, c2) {
+        // Vowel confusions
+        case ("a", "o"), ("o", "a"): return 0.5
+        case ("a", "e"), ("e", "a"): return 0.4
+        case ("a", "u"), ("u", "a"): return 0.2
+        case ("o", "e"), ("e", "o"): return 0.6
+        case ("o", "u"), ("u", "o"): return 0.6  // ao↔ou, uo↔ou
+        case ("e", "i"), ("i", "e"): return 0.5  // ei↔ie
+        case ("e", "u"), ("u", "e"): return 0.2
+        case ("i", "u"), ("u", "i"): return 0.3  // iu↔ui
+        // Unvoiced ↔ aspirated stop/affricate
+        case ("b", "p"), ("p", "b"): return 0.7
+        case ("d", "t"), ("t", "d"): return 0.7
+        case ("g", "k"), ("k", "g"): return 0.7
+        case ("j", "q"), ("q", "j"): return 0.7
+        case ("z", "c"), ("c", "z"): return 0.7
+        // Affricate ↔ fricative
+        case ("j", "x"), ("x", "j"): return 0.5
+        case ("q", "x"), ("x", "q"): return 0.5
+        case ("z", "s"), ("s", "z"): return 0.5
+        case ("c", "s"), ("s", "c"): return 0.5
+        // Nasal ↔ lateral (common in southern Chinese dialects)
+        case ("n", "l"), ("l", "n"): return 0.6
+        // Bilabial ↔ labiodental
+        case ("p", "f"), ("f", "p"): return 0.3
+        // Velar fricative ↔ labiodental fricative (Min/Hakka dialects)
+        case ("h", "f"), ("f", "h"): return 0.3
+        // Alveolar stop ↔ nasal
+        case ("d", "n"), ("n", "d"): return 0.5
+        case ("d", "l"), ("l", "d"): return 0.4
+        case ("t", "n"), ("n", "t"): return 0.4
+        // Bilabial ↔ alveolar nasal
+        case ("m", "n"), ("n", "m"): return 0.3
+        default: return 0.0
+        }
+    }
+
+    /// Name-specific similarity: character-level phonetic matching with partial credit.
+    /// Uses `charSimilarity` instead of exact `==` to handle common pinyin confusions.
+    /// Denominator is max(len) to prevent short names from over-matching via coincidental overlap.
     static func nameSimilarity(_ namePinyin: String, _ textPinyin: String) -> Double {
         let aClean = namePinyin.replacingOccurrences(of: " ", with: "")
         let bClean = textPinyin.replacingOccurrences(of: " ", with: "")
@@ -561,16 +602,16 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let denom = Double(max(aChars.count, bChars.count))
         let cap = 0.80 + Double(aChars.count) * 0.03
         if bChars.count < aChars.count {
-            let matches = zip(aChars, bChars).filter { $0 == $1 }.count
-            return min(Double(matches) / denom, cap)
+            let score = zip(aChars, bChars).map(Self.charSimilarity).reduce(0, +) / denom
+            return min(score, cap)
         }
         var best = 0.0
         for offset in 0...(bChars.count - aChars.count) {
-            var matches = 0
+            var total = 0.0
             for i in aChars.indices {
-                if aChars[i] == bChars[offset + i] { matches += 1 }
+                total += Self.charSimilarity(aChars[i], bChars[offset + i])
             }
-            let score = Double(matches) / denom
+            let score = total / denom
             best = max(best, score)
         }
         return min(best, cap)
