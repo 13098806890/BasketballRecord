@@ -594,11 +594,12 @@
 
 "settings_show_bluetooth_button" = "Mostrar colaboración Bluetooth";
 "settings_show_voice_button" = "Mostrar botón de voz";
-"settings_voice_log" = "Voice Log";
-"voice_log_empty" = "No voice records";
-"voice_log_copy" = "Copy Record";
-"voice_log_copy_all" = "Copy All";
-"voice_log_delete_all_confirm" = "Delete all voice records?";
+"settings_voice_log" = "Registro de voz";
+"voice_log_empty" = "Sin registros de voz";
+"voice_log_copy" = "Copiar registro";
+"voice_log_copy_all" = "Copiar todo";
+"voice_log_delete_all_confirm" = "¿Eliminar todos los registros de voz?";
+"settings_voice_shortcuts" = "Accesos directos de voz";
 "settings_cloud_storage" = "Almacenamiento iCloud";
 
 
@@ -857,6 +858,19 @@
 "search_no_results" = "Sin resultados";
 "section_nearby_devices" = "Dispositivos cercanos";
 "stats_games" = "G";
+
+"settings_voice" = "Voz";
+"settings_voice_instruction" = "Instrucciones de voz";
+"settings_show_voice_button_footer" = "Mostrar un botón de micrófono en la página de puntuación para entrada de voz.";
+"voice_shortcuts_empty" = "Sin accesos directos de voz";
+"voice_shortcuts_empty_desc" = "Cree frases personalizadas para activar acciones.";
+"voice_shortcuts_custom" = "Personalizado";
+"voice_shortcuts_phrase_placeholder" = "Ingrese frase…";
+"voice_shortcuts_phrase_footer" = "Diga esta frase para activar la acción seleccionada.";
+"voice_shortcuts_shot_section" = "Acciones de tiro";
+"voice_shortcuts_stat_section" = "Acciones estadísticas";
+"voice_shortcuts_action" = "Acción";
+"voice_shortcuts_add_title" = "Agregar acceso directo";
 
 "link_privacy_policy" = "Política de privacidad";
 "link_terms_of_eula" = "Términos de uso (EULA)";

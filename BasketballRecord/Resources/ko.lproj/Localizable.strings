@@ -859,11 +859,12 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 
 "settings_show_bluetooth_button" = "블루투스 협동 표시";
 "settings_show_voice_button" = "음성 버튼 표시";
-"settings_voice_log" = "Voice Log";
-"voice_log_empty" = "No voice records";
-"voice_log_copy" = "Copy Record";
-"voice_log_copy_all" = "Copy All";
-"voice_log_delete_all_confirm" = "Delete all voice records?";
+"settings_voice_log" = "음성 로그";
+"voice_log_empty" = "음성 기록 없음";
+"voice_log_copy" = "기록 복사";
+"voice_log_copy_all" = "모두 복사";
+"voice_log_delete_all_confirm" = "모든 음성 기록을 삭제하시겠습니까?";
+"settings_voice_shortcuts" = "음성 단축키";
 "settings_cloud_storage" = "iCloud 저장소";
 
 
@@ -888,6 +889,19 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "icloud_error_temporarily_unavailable" = "iCloud를 일시적으로 사용할 수 없습니다. 나중에 다시 시도해 주세요.";
 "icloud_error_unknown" = "알 수 없는 iCloud 오류입니다.";
 "stats_games" = "G";
+
+"settings_voice" = "음성";
+"settings_voice_instruction" = "음성 사용 설명";
+"settings_show_voice_button_footer" = "득점 페이지에 마이크 버튼을 표시하여 음성 입력을 지원합니다.";
+"voice_shortcuts_empty" = "음성 단축키 없음";
+"voice_shortcuts_empty_desc" = "사용자 정의 구문을 만들어 작업을 실행합니다.";
+"voice_shortcuts_custom" = "사용자 정의";
+"voice_shortcuts_phrase_placeholder" = "구문 입력…";
+"voice_shortcuts_phrase_footer" = "이 구문을 말하면 선택한 작업이 실행됩니다.";
+"voice_shortcuts_shot_section" = "슛 작업";
+"voice_shortcuts_stat_section" = "통계 작업";
+"voice_shortcuts_action" = "작업";
+"voice_shortcuts_add_title" = "단축키 추가";
 
 "link_privacy_policy" = "개인정보 처리방침";
 "link_terms_of_eula" = "이용 약관 (EULA)";

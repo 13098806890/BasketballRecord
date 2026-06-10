@@ -887,6 +887,19 @@
 "alert_period_auto_ended_time_format" = "Period %d ended (time limit reached)";
 "alert_period_auto_ended_score_format" = "Period %d ended (score limit reached)";
 
+"settings_voice" = "Voice";
+"settings_voice_instruction" = "Voice Instructions";
+"settings_show_voice_button_footer" = "Show a microphone button on the scoring page for voice input.";
+"voice_shortcuts_empty" = "No Voice Shortcuts";
+"voice_shortcuts_empty_desc" = "Create custom phrases to trigger actions.";
+"voice_shortcuts_custom" = "Custom";
+"voice_shortcuts_phrase_placeholder" = "Enter phrase…";
+"voice_shortcuts_phrase_footer" = "Say this phrase to trigger the selected action.";
+"voice_shortcuts_shot_section" = "Shot Actions";
+"voice_shortcuts_stat_section" = "Stat Actions";
+"voice_shortcuts_action" = "Action";
+"voice_shortcuts_add_title" = "Add Shortcut";
+
 "link_privacy_policy" = "Privacy Policy";
 "link_terms_of_eula" = "Terms of Use (EULA)";
 "subscription_auto_renew_info" = "Auto-renewable subscription. Cancel anytime via App Store settings.";

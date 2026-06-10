@@ -1,0 +1,16 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Upload metadata (promotional text & what's new) to App Store Connect"
+  lane :upload_metadata do
+    deliver(
+      force: true,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_app_version_update: true,
+      submit_for_review: false,
+      automatic_release: false,
+      metadata_path: "fastlane/metadata"
+    )
+  end
+end

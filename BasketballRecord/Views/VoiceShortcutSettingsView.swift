@@ -3,52 +3,88 @@ import SwiftUI
 struct VoiceShortcutSettingsView: View {
     @ObservedObject var store: AppStore
     @State private var newPhrase = ""
-    @State private var newEvent = "stat.twoMade"
+    @State private var newEvent = StatAction.twoMade
     @State private var showingAdd = false
 
-    let eventOptions: [(label: String, code: String)] = [
-        ("两分命中", "stat.twoMade"), ("两分未中", "stat.twoMissed"),
-        ("三分命中", "stat.threeMade"), ("三分未中", "stat.threeMissed"),
-        ("罚球命中", "stat.freeThrowMade"), ("罚球未中", "stat.freeThrowMissed"),
-        ("加罚命中", "stat.bonusMade"), ("加罚未中", "stat.bonusMissed"),
-        ("上篮命中", "stat.layupMade"), ("上篮未中", "stat.layupMissed"),
-        ("中投命中", "stat.midRangeMade"), ("中投未中", "stat.midRangeMissed"),
-        ("篮下命中", "stat.paintMade"), ("篮下未中", "stat.paintMissed"),
-        ("犯规", "stat.foul"), ("篮板", "stat.rebound"),
-        ("助攻", "stat.assist"), ("盖帽", "stat.block"),
-        ("抢断", "stat.steal"), ("失误", "stat.turnover"),
+    private let shotActions: [StatAction] = [
+        .twoMade, .twoMissed, .threeMade, .threeMissed,
+        .layupMade, .layupMissed, .midRangeMade, .midRangeMissed,
+        .paintMade, .paintMissed, .freeThrowMade, .freeThrowMissed,
+        .bonusMade, .bonusMissed,
     ]
+
+    private let statActions: [StatAction] = [
+        .foul, .assist, .rebound, .block, .steal, .turnover,
+    ]
+
+    private func icon(for action: StatAction) -> String {
+        switch action {
+        case .twoMade, .twoMissed: return "2.circle"
+        case .threeMade, .threeMissed: return "3.circle"
+        case .layupMade, .layupMissed: return "arrow.up.forward.circle"
+        case .midRangeMade, .midRangeMissed: return "circle.dotted"
+        case .paintMade, .paintMissed: return "square.filled.on.square"
+        case .freeThrowMade, .freeThrowMissed: return "1.circle"
+        case .bonusMade, .bonusMissed: return "plus.circle"
+        case .foul: return "exclamationmark.triangle"
+        case .assist: return "hand.raised"
+        case .rebound: return "arrow.up.circle"
+        case .block: return "shield.lefthalf.filled"
+        case .steal: return "hand.raised.fill"
+        case .turnover: return "arrow.triangle.2.circlepath"
+        }
+    }
 
     var body: some View {
         List {
             if store.customVoiceMappings.isEmpty {
-                ContentUnavailableView("暂无自定义指令", systemImage: "waveform.and.mic")
+                Section {
+                    ContentUnavailableView(
+                        LocalizedStringKey("voice_shortcuts_empty"),
+                        systemImage: "waveform.and.mic",
+                        description: Text(LocalizedStringKey("voice_shortcuts_empty_desc"))
+                    )
+                }
             }
 
-            ForEach(Array(store.customVoiceMappings.sorted(by: { $0.key < $1.key })), id: \.key) { phrase, code in
-                HStack {
-                    Text(phrase)
-                        .font(.body.weight(.medium))
-                    Spacer()
-                    Text(eventLabel(for: code))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .swipeActions(edge: .trailing) {
-                    Button(role: .destructive) {
-                        store.customVoiceMappings.removeValue(forKey: phrase)
-                    } label: {
-                        Label("删除", systemImage: "trash")
+            Section(LocalizedStringKey("voice_shortcuts_custom")) {
+                ForEach(Array(store.customVoiceMappings.sorted(by: { $0.key < $1.key })), id: \.key) { phrase, code in
+                    HStack(spacing: 12) {
+                        Image(systemName: icon(for: StatAction(eventCode: code) ?? .twoMade))
+                            .font(.title3)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 24)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(phrase)
+                                .font(.body.weight(.medium))
+                            Text(actionLabel(for: code))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            store.customVoiceMappings.removeValue(forKey: phrase)
+                        } label: {
+                            Label(LocalizedStringKey("common_delete"), systemImage: "trash")
+                        }
                     }
                 }
             }
         }
-        .navigationTitle("语音快捷指令")
+        .navigationTitle(LocalizedStringKey("settings_voice_shortcuts"))
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     newPhrase = ""
-                    newEvent = "stat.twoMade"
+                    newEvent = .twoMade
                     showingAdd = true
                 } label: {
                     Image(systemName: "plus")
@@ -59,25 +95,45 @@ struct VoiceShortcutSettingsView: View {
             NavigationStack {
                 Form {
                     Section {
-                        TextField("说出的指令", text: $newPhrase)
+                        TextField(LocalizedStringKey("voice_shortcuts_phrase_placeholder"), text: $newPhrase)
+                    } footer: {
+                        Text(LocalizedStringKey("voice_shortcuts_phrase_footer"))
                     }
-                    Section {
-                        Picker("对应动作", selection: $newEvent) {
-                            ForEach(eventOptions, id: \.code) { opt in
-                                Text(opt.label).tag(opt.code)
+
+                    Section(LocalizedStringKey("voice_shortcuts_shot_section")) {
+                        Picker(LocalizedStringKey("voice_shortcuts_action"), selection: $newEvent) {
+                            ForEach(shotActions, id: \.self) { action in
+                                HStack {
+                                    Image(systemName: icon(for: action))
+                                    Text(NSLocalizedString(action.messageKey, comment: ""))
+                                }.tag(action)
                             }
                         }
+                        .pickerStyle(.menu)
+                    }
+
+                    Section(LocalizedStringKey("voice_shortcuts_stat_section")) {
+                        Picker(LocalizedStringKey("voice_shortcuts_action"), selection: $newEvent) {
+                            ForEach(statActions, id: \.self) { action in
+                                HStack {
+                                    Image(systemName: icon(for: action))
+                                    Text(NSLocalizedString(action.messageKey, comment: ""))
+                                }.tag(action)
+                            }
+                        }
+                        .pickerStyle(.menu)
                     }
                 }
-                .navigationTitle("新增指令")
+                .navigationTitle(LocalizedStringKey("voice_shortcuts_add_title"))
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("取消") { showingAdd = false }
+                        Button(LocalizedStringKey("common_cancel")) { showingAdd = false }
                     }
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("保存") {
-                            guard !newPhrase.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-                            store.customVoiceMappings[newPhrase.trimmingCharacters(in: .whitespaces)] = newEvent
+                        Button(LocalizedStringKey("common_save")) {
+                            let trimmed = newPhrase.trimmingCharacters(in: .whitespaces)
+                            guard !trimmed.isEmpty else { return }
+                            store.customVoiceMappings[trimmed] = newEvent.eventCode
                             showingAdd = false
                         }
                         .disabled(newPhrase.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -87,7 +143,20 @@ struct VoiceShortcutSettingsView: View {
         }
     }
 
-    private func eventLabel(for code: String) -> String {
-        eventOptions.first(where: { $0.code == code })?.label ?? code
+    private func actionLabel(for code: String) -> String {
+        if let action = StatAction.allCases.first(where: { $0.eventCode == code }) {
+            return NSLocalizedString(action.messageKey, comment: "")
+        }
+        return code
+    }
+}
+
+extension StatAction {
+    init?(eventCode: String) {
+        for action in StatAction.allCases where action.eventCode == eventCode {
+            self = action
+            return
+        }
+        return nil
     }
 }
