@@ -2,10 +2,7 @@ import SwiftUI
 
 struct VoiceLogView: View {
     @Binding var log: [VoiceLogEntry]
-<<<<<<< HEAD
-=======
     @State private var selectedEntry: VoiceLogEntry?
->>>>>>> main
 
     var body: some View {
         List {
@@ -13,11 +10,7 @@ struct VoiceLogView: View {
                 ContentUnavailableView("暂无语音记录", systemImage: "waveform")
             }
 
-<<<<<<< HEAD
-            ForEach(Array(log.enumerated()), id: \.element.id) { _, entry in
-=======
             ForEach(log, id: \.id) { entry in
->>>>>>> main
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
                         Image(systemName: entry.isSuccess ? "checkmark.circle.fill" : "xmark.circle.fill")
@@ -55,19 +48,11 @@ struct VoiceLogView: View {
                             Text(detail)
                                 .font(.caption2)
                                 .foregroundStyle(.tertiary)
-<<<<<<< HEAD
-=======
                                 .textSelection(.enabled)
->>>>>>> main
                         }
                     }
                 }
                 .padding(.vertical, 4)
-<<<<<<< HEAD
-            }
-        }
-        .navigationTitle("语音日志")
-=======
                 .contentShape(Rectangle())
                 .contextMenu {
                     Button {
@@ -111,6 +96,5 @@ struct VoiceLogView: View {
         if let action = entry.action { lines.append("动作: \(action)") }
         if let detail = entry.matchDetail { lines.append("详情: \(detail)") }
         return lines.joined(separator: "\n")
->>>>>>> main
     }
 }
