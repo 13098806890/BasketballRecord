@@ -1,6 +1,42 @@
 # Release Notes
 
-## 1.18 (2026-06-10)
+## 1.19 (2026-06-10)
+
+### 修复
+
+- **暂停按钮无响应修复**：节结束时若比赛处于暂停状态，点击暂停按钮不再静默忽略，改为弹窗提示（与统计数据提示方式一致）。
+- **语音节开始自动取消暂停**：第 X 节开始时（语音或按键），比赛自动取消暂停状态。
+
+### 多语言语音规则扩展（Phase 2）
+
+- 法文、俄文、意大利文、西班牙文、韩文 5 种语言的 `VoiceRules` 大幅扩充：
+  - 投篮关键词新增常用口语（如法文 "panier" "couche"、西文 "tres puntos" "pintura"、韩文 "투포인트" "쓰리포인트" 等）
+  - 命中/未中状态新增口语表达
+  - 统计事件新增犯规、篮板细分、走步、违例等关键词
+  - 换人/命令事件补充口语说法
+- 英文、德文、日文 3 种语言同步补充未覆盖的口语关键词。
+- 所有语言新增对应的单元测试覆盖。
+
+### 语音识别架构重构
+
+- `VoiceRecognizer` 改为 `VoiceRules` 驱动：`voiceShotTypes`/`voiceMadeStates`/`voiceMissedStates` 从 `let` 改为 `var`，支持语言切换时动态更新。
+- 删除 `pinyinPatterns` 惰性属性（硬编码的中文特殊条目已迁移至 `VoiceRules`）。
+- `nonShotEvents` 构建去掉去重逻辑，确保同义词（如"板"/"前场板"/"后场板"）均可匹配。
+- 换人预检从 `currentRules.substitutionKeywords` 读取，不再硬编码 "换"/"替换"。
+- `extractNumber` 支持多语言格式：CJK（号/番/번）、英文（number 5/#5）、纯数字（1-99）。
+- 投篮事件新增拼音兜底匹配：中文关键词匹配失败后自动尝试模糊拼音匹配，修复 ASR 返回拼音（如 "zhang san fa lan ming zhong"）时罚篮/加罚无法识别的问题。
+- `game_end` 命令从中文规则中移除（避免 ASR 将"第X节结束"误识别为"结束"触发整场比赛结束）。
+- `commandEvents` 中 `event.game_end` 正确映射为 `.finishGame`（不再错误降级为 `.togglePause`）。
+
+### 代码清理
+
+- `VoiceRules_de.swift`、`_en.swift`、`_fr.swift`、`_it.swift`、`_ja.swift`、`_ko.swift`、`_ru.swift`、`_es.swift` 8 种语言新增口语同义词。
+- 文档：3 种语言新增语音规则说明文档（`docs/VoiceRules/voice_rules_en.md`、`voice_rules_ja.md`、`voice_rules_de.md`）。
+
+### 兼容性
+
+- iOS 17.6+
+- Xcode 17+
 
 ### 多语言语音识别框架
 
