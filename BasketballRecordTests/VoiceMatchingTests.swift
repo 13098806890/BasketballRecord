@@ -161,12 +161,121 @@ final class VoiceMatchingTests: XCTestCase {
         assertCommand(text: "开始比赛", expectedCommand: "startPeriod")
     }
 
-    func testMatchFinishGame() {
-        assertCommand(text: "结束比赛", expectedCommand: "finishGame")
-    }
-
     func testMatchSubstitution() {
         assertCommand(text: "换人", expectedCommand: "substitution")
+    }
+
+
+    func testSubstitutionSingleChar() {
+        assertCommand(text: "换", expectedCommand: "substitution")
+    }
+
+    func testSubstitutionWithNames() {
+        assertCommand(text: "换张三李四", expectedCommand: "substitution")
+    }
+
+    func testSubstitutionWithNumbers() {
+        assertCommand(text: "3号换5号", expectedCommand: "substitution")
+    }
+
+    func testSubstitutionWithTeamPrefix() {
+        assertCommand(text: "主队8号换客队88号", expectedCommand: "substitution")
+    }
+
+    func testSubstitutionHuanTi() {
+        assertCommand(text: "替换", expectedCommand: "substitution")
+    }
+
+    func testSubstitutionWithEnglishNames() {
+        assertCommand(text: "波波换哼哼", expectedCommand: "substitution")
+    }
+
+    func testSubstitutionByNameIntegration() async throws {
+        let pid1 = UUID()  // bobo — on court, #8
+        let pid2 = UUID()  // 哼哼 — on bench, #88
+        store.players.append(Player(id: pid1, name: "bobo", number: "8"))
+        store.players.append(Player(id: pid2, name: "哼哼", number: "88"))
+        snapshot.homeOnCourtPlayerIDs = [pid1, homePlayer1ID]
+        snapshot.homeAvailablePlayerIDs = [pid1, homePlayer1ID, pid2]
+
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "zh-CN"))
+
+        let expectation = expectation(description: "onSubstitution called")
+        var capturedOutgoing: UUID?
+        var capturedIncoming: UUID?
+        recognizer.onSubstitution = { side, outgoing, incoming in
+            capturedOutgoing = outgoing
+            capturedIncoming = incoming
+            expectation.fulfill()
+        }
+
+        recognizer.simulateText("bobo换哼哼")
+
+        await fulfillment(of: [expectation], timeout: 1.0)
+        XCTAssertEqual(capturedOutgoing, pid1, "bobo should be outgoing (on court)")
+        XCTAssertEqual(capturedIncoming, pid2, "哼哼 should be incoming (on bench)")
+    }
+
+    func testSubstitutionByNumberIntegration() async throws {
+        let pid1 = UUID()
+        let pid2 = UUID()
+        store.players.append(Player(id: pid1, name: "bobo", number: "8"))
+        store.players.append(Player(id: pid2, name: "哼哼", number: "88"))
+        snapshot.homeOnCourtPlayerIDs = [pid1, homePlayer1ID]
+        snapshot.homeAvailablePlayerIDs = [pid1, homePlayer1ID, pid2]
+
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "zh-CN"))
+
+        let expectation = expectation(description: "onSubstitution called by number")
+        var capturedOutgoing: UUID?
+        var capturedIncoming: UUID?
+        recognizer.onSubstitution = { _, outgoing, incoming in
+            capturedOutgoing = outgoing
+            capturedIncoming = incoming
+            expectation.fulfill()
+        }
+
+        recognizer.simulateText("8号换88号")
+
+        await fulfillment(of: [expectation], timeout: 1.0)
+        XCTAssertEqual(capturedOutgoing, pid1, "8号 should be outgoing")
+        XCTAssertEqual(capturedIncoming, pid2, "88号 should be incoming")
+    }
+
+    func testSubstitutionWithoutPlayerFails() {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+
+        var called = false
+        recognizer.onSubstitution = { _, _, _ in called = true }
+        recognizer.simulateText("换人")
+
+        XCTAssertFalse(called, "onSubstitution should not fire without matching players")
+        XCTAssertNotNil(recognizer.errorMessage, "should show error")
+    }
+
+    func testMatchContinueDoesNotMatchEnd() {
+        // "比赛继续" should NOT match event.game_end
+        let result = findEvent(text: "比赛继续")
+        XCTAssertNotEqual(result.eventCode, "event.game_end")
+    }
+
+    func testMatchContinueMatchesPause() {
+        let result = findEvent(text: "比赛继续")
+        XCTAssertEqual(result.eventCode, "event.pause")
+    }
+
+    func testContinueDoesNotMatchPeriod() {
+        // "继续" alone should not match event.period
+        let result = findEvent(text: "继续")
+        XCTAssertEqual(result.eventCode, "event.pause")
     }
 
     // MARK: - Fuzzy Matching
@@ -222,6 +331,208 @@ final class VoiceMatchingTests: XCTestCase {
     func testASRIdMatchesPlayerAD() {
         // ASR may transcribe "AD" as "id" — should still match player AD via fuzzy pinyin
         assertMatch(text: "id两分命中", expectedEvent: "stat.twoMade", expectedPlayer: "AD")
+    }
+
+    // MARK: - English Voice Integration Tests
+
+    func testEnglishTwoMade() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        var capturedPlayerID: UUID?
+        recognizer.onAction = { action, pid, _ in
+            capturedAction = action
+            capturedPlayerID = pid
+            exp.fulfill()
+        }
+        recognizer.simulateText("张三 two made")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .twoMade)
+        XCTAssertEqual(capturedPlayerID, homePlayer1ID)
+    }
+
+    func testEnglishThreeMissed() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action
+            exp.fulfill()
+        }
+        recognizer.simulateText("李四 three missed")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .threeMissed)
+    }
+
+    func testEnglishFreeThrowMade() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action
+            exp.fulfill()
+        }
+        recognizer.simulateText("王五 free throw good")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .freeThrowMade)
+    }
+
+    func testEnglishFoul() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action
+            exp.fulfill()
+        }
+        recognizer.simulateText("张三 foul")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .foul)
+    }
+
+    func testEnglishRebound() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action
+            exp.fulfill()
+        }
+        recognizer.simulateText("李四 board")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .rebound)
+    }
+
+    func testEnglishAssist() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action
+            exp.fulfill()
+        }
+        recognizer.simulateText("李四 dime")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .assist)
+    }
+
+    func testEnglishBlock() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action
+            exp.fulfill()
+        }
+        recognizer.simulateText("王五 swat")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .block)
+    }
+
+    func testEnglishSteal() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action
+            exp.fulfill()
+        }
+        recognizer.simulateText("赵六 takeaway")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .steal)
+    }
+
+    func testEnglishTurnover() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action
+            exp.fulfill()
+        }
+        recognizer.simulateText("赵六 walk")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .turnover)
+    }
+
+    func testEnglishTimeout() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onCommand called")
+        var capturedCmd: VoiceCommand?
+        recognizer.onCommand = { cmd in
+            capturedCmd = cmd
+            exp.fulfill()
+        }
+        recognizer.simulateText("timeout")
+        await fulfillment(of: [exp], timeout: 1.0)
+        if case .togglePause = capturedCmd { } else { XCTFail("Expected togglePause") }
+    }
+
+    func testEnglishSubstitution() async throws {
+        let pid1 = UUID()
+        let pid2 = UUID()
+        store.players.append(Player(id: pid1, name: "John", number: "8"))
+        store.players.append(Player(id: pid2, name: "Mike", number: "88"))
+        snapshot.homeOnCourtPlayerIDs = [pid1, homePlayer1ID]
+        snapshot.homeAvailablePlayerIDs = [pid1, homePlayer1ID, pid2]
+
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onSubstitution called")
+        var capturedOutgoing: UUID?
+        var capturedIncoming: UUID?
+        recognizer.onSubstitution = { _, outgoing, incoming in
+            capturedOutgoing = outgoing
+            capturedIncoming = incoming
+            exp.fulfill()
+        }
+        recognizer.simulateText("John sub in Mike")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedOutgoing, pid1)
+        XCTAssertEqual(capturedIncoming, pid2)
     }
 
     // MARK: - No Match Cases
@@ -280,8 +591,6 @@ final class VoiceMatchingTests: XCTestCase {
             ("di er jie", "event.period"), ("di 2 jie", "event.period"),
             ("di san jie", "event.period"), ("di 3 jie", "event.period"),
             ("di si jie", "event.period"), ("di 4 jie", "event.period"),
-            ("jie shu", "event.game_end"), ("bi sai jie shu", "event.game_end"),
-            ("wan chang", "event.game_end"),
             ("huan ren", "event.substitution"), ("ti huan", "event.substitution"),
         ]
 
@@ -301,7 +610,7 @@ final class VoiceMatchingTests: XCTestCase {
         }
 
         // Skip player matching for commands
-        if eventCode == "event.period" || eventCode == "event.pause" || eventCode == "event.game_end" || eventCode == "event.substitution" {
+        if eventCode == "event.period" || eventCode == "event.pause" || eventCode == "event.substitution" {
             return (eventCode, nil)
         }
 
@@ -395,7 +704,6 @@ final class VoiceMatchingTests: XCTestCase {
         let commandMap: [String: [String]] = [
             "togglePause": ["event.pause"],
             "startPeriod": ["event.period"],
-            "finishGame": ["event.game_end"],
             "substitution": ["event.substitution"],
         ]
         guard let expectedCodes = commandMap[expectedCommand] else {

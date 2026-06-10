@@ -76,11 +76,8 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     override init() {
         let rules = VoiceRules.forCurrentAppLanguage()
-        voiceShotTypes = rules.shotKeywords.map { VoiceShotDef(keyword: $0.keyword, eventPrefix: $0.eventPrefix) }
-        voiceMadeStates = rules.madeStates
-        voiceMissedStates = rules.missedStates
         super.init()
-        currentRules = rules
+        applyRules(rules)
         speechRecognizer = SFSpeechRecognizer(locale: rules.speechRecognizerLocale)
     }
 
@@ -98,7 +95,15 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         case let id where id.hasPrefix("zh-Hant"): rules = .traditionalChinese
         default: rules = .chinese
         }
+        applyRules(rules)
+        speechRecognizer = SFSpeechRecognizer(locale: rules.speechRecognizerLocale)
+    }
+
+    private func applyRules(_ rules: VoiceRules) {
         currentRules = rules
+        voiceShotTypes = rules.shotKeywords.map { VoiceShotDef(keyword: $0.keyword, eventPrefix: $0.eventPrefix) }
+        voiceMadeStates = rules.madeStates
+        voiceMissedStates = rules.missedStates
     }
 
     private var store: AppStore?
@@ -114,54 +119,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let eventPrefix: String
     }
 
-    private let voiceShotTypes: [VoiceShotDef]
-    private let voiceMadeStates: [String]
-    private let voiceMissedStates: [String]
-
-    private lazy var pinyinPatterns: [(pinyin: String, chinese: String, eventCode: String)] = {
-        var results: [(String, String, String)] = []
-
-        // Cartesian product: shot type × made/missed state
-        for shot in voiceShotTypes {
-            for state in voiceMadeStates {
-                let chinese = shot.keyword + state
-                results.append((Self.fuzzyPinyin(Self.toPinyin(chinese)), chinese,
-                                shot.eventPrefix + "Made"))
-            }
-            for state in voiceMissedStates {
-                let chinese = shot.keyword + state
-                results.append((Self.fuzzyPinyin(Self.toPinyin(chinese)), chinese,
-                                shot.eventPrefix + "Missed"))
-            }
-        }
-
-        // Non-shot actions and events (manually defined)
-        let special: [(String, String, String)] = [
-            ("远投", "远投", "stat.threeMade"),
-            ("犯规", "犯规", "stat.foul"),
-            ("篮板", "篮板", "stat.rebound"), ("板", "板", "stat.rebound"),
-            ("前场板", "前场板", "stat.rebound"), ("后场板", "后场板", "stat.rebound"), ("抢板", "抢板", "stat.rebound"),
-            ("nanban", "nanban", "stat.rebound"), ("nan ban", "nan ban", "stat.rebound"), ("nan", "nan", "stat.rebound"),
-            ("助攻", "助攻", "stat.assist"), ("成功", "成功", "stat.assist"),
-            ("盖帽", "盖帽", "stat.block"), ("封盖", "封盖", "stat.block"),
-            ("抢断", "抢断", "stat.steal"), ("断球", "断球", "stat.steal"),
-            ("失误", "失误", "stat.turnover"), ("走步", "走步", "stat.turnover"), ("违例", "违例", "stat.turnover"),
-            ("开始", "开始", "event.period"), ("第一节", "第一节", "event.period"), ("第1节", "第1节", "event.period"),
-            ("第二节", "第二节", "event.period"), ("第2节", "第2节", "event.period"), ("第三节", "第三节", "event.period"),
-            ("第3节", "第3节", "event.period"), ("第四节", "第四节", "event.period"), ("第4节", "第4节", "event.period"),
-            ("下一节", "下一节", "event.period"),
-            ("暂停", "暂停", "event.pause"), ("停表", "停表", "event.pause"), ("继续", "继续", "event.pause"),
-            ("继续比赛", "继续比赛", "event.pause"), ("比赛继续", "比赛继续", "event.pause"),
-            ("结束", "结束", "event.game_end"), ("比赛结束", "比赛结束", "event.game_end"), ("完场", "完场", "event.game_end"),
-            ("换人", "换人", "event.substitution"), ("替换", "替换", "event.substitution"),
-            ("换", "换", "event.substitution"), ("换上", "换上", "event.substitution"), ("换下", "换下", "event.substitution"),
-        ]
-        for (phrase, chinese, code) in special {
-            results.append((Self.fuzzyPinyin(Self.toPinyin(phrase)), chinese, code))
-        }
-
-        return results
-    }()
+    private var voiceShotTypes: [VoiceShotDef] = []
+    private var voiceMadeStates: [String] = []
+    private var voiceMissedStates: [String] = []
 
     func configure(store: AppStore) {
         self.store = store
@@ -338,9 +298,8 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         }
 
         // Split by keyword: everything before = subject, everything after = object
-        let keywordVariants = ["替换", "换下", "换上", "换"]
         var subject = text, object = "", usedKw = ""
-        for kw in keywordVariants {
+        for kw in currentRules.substitutionKeywords {
             if let range = text.range(of: kw) {
                 subject = String(text[text.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
                 object = String(text[range.upperBound...]).trimmingCharacters(in: .whitespaces)
@@ -447,31 +406,24 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         }
 
         // Pre-check for substitution
-        if text.contains("换") || text.contains("替换") {
+        if currentRules.substitutionKeywords.contains(where: { text.contains($0) }) {
             handleSubstitution(text: text, textPinyin: textPinyin)
             return
         }
 
-        // Build a precedence-ordered list of events with their keywords and Chinese text
-        // Each entry: (keyword, chineseKeyword, eventCode, isShot, needsPlayer)
-        typealias Evt = (keyword: String, chinese: String, code: String, isShot: Bool)
-
         // Shot events
-        var allEvents: [Evt] = []
+        var allEvents: [(keyword: String, chinese: String, code: String, isShot: Bool)] = []
         for shot in voiceShotTypes {
             allEvents.append((shot.keyword, shot.keyword, shot.eventPrefix, true))
         }
 
-        // Non-shot events
-        let nonShotStatCodes: Set<String> = ["stat.foul", "stat.rebound", "stat.assist", "stat.block", "stat.steal", "stat.turnover"]
-        let commandCodes: Set<String> = ["event.period", "event.pause", "event.game_end"]
+        // Non-shot events — from currentRules (no dedup, all variants preserved)
         var nonShotEvents: [(chinese: String, code: String)] = []
-        for (_, chinese, code) in pinyinPatterns {
-            if nonShotStatCodes.contains(code) || commandCodes.contains(code) {
-                if !nonShotEvents.contains(where: { $0.code == code }) {
-                    nonShotEvents.append((chinese, code))
-                }
-            }
+        for (keyword, code) in currentRules.statEvents {
+            nonShotEvents.append((keyword, code))
+        }
+        for (keyword, code) in currentRules.commandEvents {
+            nonShotEvents.append((keyword, code))
         }
 
         // Helper: find keyword in original Chinese text, split into [left, keyword, right]
@@ -543,19 +495,8 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 return false
             }
 
-            guard let action = StatAction.allCases.first(where: { $0.eventCode == finalCode }) ?? (isShot ? nil : nil) else {
-                // For shots, StatAction may use stat.twoMade etc — already handled by finalCode
-                // Find by prefix
-                let found = StatAction.allCases.first { $0.eventCode == finalCode }
-                guard let act = found else {
-                    addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "❌ 无对应StatAction: \(finalCode)"); return false
-                }
-                let pn = store.player(for: pid)?.name ?? "?"
-                addLog(text: text, isSuccess: true, action: act.message, playerName: pn, matchedPattern: finalCode, matchDetail: "球员匹配: \(dbgPlayer)")
-                match = (pid, sd, act); flashColor = .green; onAction?(act, pid, sd)
-                Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
-                Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == pid { match = nil } } }
-                return true
+            guard let action = StatAction.allCases.first(where: { $0.eventCode == finalCode }) else {
+                addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "❌ 无对应StatAction: \(finalCode)"); return false
             }
 
             let pn = store.player(for: pid)?.name ?? "?"
@@ -574,6 +515,69 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             }
         }
 
+        // 1b) Pinyin fallback for shot events — handles ASR pinyin output or misrecognized characters
+        let textFuzzy = Self.fuzzyPinyin(Self.toPinyin(text))
+        for shot in voiceShotTypes {
+            let shotPinyin = Self.fuzzyPinyin(Self.toPinyin(shot.keyword))
+            guard let kwRange = textFuzzy.range(of: shotPinyin) else { continue }
+            let leftPinyin = String(textFuzzy[textFuzzy.startIndex..<kwRange.lowerBound]).trimmingCharacters(in: .whitespaces)
+            let rightPinyin = String(textFuzzy[kwRange.upperBound...]).trimmingCharacters(in: .whitespaces)
+            addLog(text: text, isSuccess: false, action: shot.eventPrefix, matchDetail: "🔍 拼音回退: 关键词pinyin=\(shotPinyin) | 左侧拼音: \(leftPinyin.isEmpty ? "空" : leftPinyin) | 右侧拼音: \(rightPinyin.isEmpty ? "空" : rightPinyin)")
+            var bestStateScore = 0.0
+            var foundMade: Bool?
+            for state in voiceMadeStates {
+                let statePinyin = Self.fuzzyPinyin(Self.toPinyin(state))
+                let s = Self.similarity(rightPinyin, statePinyin)
+                if s > bestStateScore { bestStateScore = s; foundMade = true }
+            }
+            for state in voiceMissedStates {
+                let statePinyin = Self.fuzzyPinyin(Self.toPinyin(state))
+                let s = Self.similarity(rightPinyin, statePinyin)
+                if s > bestStateScore { bestStateScore = s; foundMade = false }
+            }
+            guard let isMade = foundMade else { continue }
+            let finalCode = shot.eventPrefix + (isMade ? "Made" : "Missed")
+            guard let store, let snapshot = currentSnapshot else { return }
+            let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
+            var playerID: UUID?; var side: TeamSide?; var playerScore: Double = 0; var dbgPlayer = ""
+            let number = extractNumber(from: text)
+            if let number {
+                for id in allIDs {
+                    guard let p = store.player(for: id) else { continue }
+                    if p.number == "\(number)" {
+                        playerID = id; side = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away; playerScore = 100
+                        dbgPlayer = "号码\(number)直配"
+                        break
+                    }
+                }
+            }
+            if playerID == nil, !leftPinyin.isEmpty {
+                let (matches, dbg) = matchPlayerIDsDebug(text: leftPinyin, textPinyin: leftPinyin, in: allIDs, context: "拼音回退球员")
+                dbgPlayer = dbg
+                if let m = matches.first {
+                    playerID = m.0; side = m.1; playerScore = m.2
+                }
+            }
+            guard let pid = playerID, let sd = side else {
+                addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "❌ 拼音回退: 未匹配到球员 | 左侧拼音: \(leftPinyin.isEmpty ? "空" : leftPinyin)")
+                showError("未识别：\"\(text)\""); flashColor = .red
+                Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
+                return
+            }
+            guard let action = StatAction.allCases.first(where: { $0.eventCode == finalCode }) else {
+                addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "❌ 拼音回退: 无对应StatAction: \(finalCode)")
+                showError("未识别：\"\(text)\""); flashColor = .red
+                Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
+                return
+            }
+            let pn = store.player(for: pid)?.name ?? "?"
+            addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: finalCode, matchDetail: "拼音回退球员: \(dbgPlayer)")
+            match = (pid, sd, action); flashColor = .green; onAction?(action, pid, sd)
+            Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
+            Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == pid { match = nil } } }
+            return
+        }
+
         // 2) Non-shot events — direct text match
         for (chinese, code) in nonShotEvents {
             guard code.hasPrefix("stat.") else { continue } // skip commands
@@ -588,9 +592,11 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             guard code.hasPrefix("event.") else { continue }
             if findKeyword(chinese) != nil {
                 addLog(text: text, isSuccess: true, action: code, matchDetail: "命令: \(chinese)")
-                let label = code == "event.period" ? "节次" : code == "event.pause" ? "暂停" : code == "event.game_end" ? "结束比赛" : chinese
                 flashColor = .green
-                let cmd: VoiceCommand = code == "event.period" ? .startPeriod : code == "event.pause" ? .togglePause : .finishGame
+                let cmd: VoiceCommand
+                if code == "event.period" { cmd = .startPeriod }
+                else if code == "event.pause" { cmd = .togglePause }
+                else { cmd = .finishGame }
                 onCommand?(cmd)
                 Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
                 return
@@ -603,31 +609,69 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     private func extractNumber(from text: String) -> Int? {
-        let pattern = try? NSRegularExpression(pattern: "(\\d+)\\s*(号|hao)")
-        if let match = pattern?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
+        // Try CJK patterns: 号, hao, 番, 번
+        let cjk = try? NSRegularExpression(pattern: "(\\d+)\\s*(号|hao|番|번)")
+        if let match = cjk?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
             guard match.numberOfRanges > 1 else { return nil }
             let range = Range(match.range(at: 1), in: text)!
             let num = Int(String(text[range]))!
             guard num >= 0, num <= 99 else { return nil }
+            return num
+        }
+        // Try English patterns: number 5, no.5, #5
+        let eng = try? NSRegularExpression(pattern: "(?:number|no\\.?|#)\\s*(\\d+)", options: [.caseInsensitive])
+        if let match = eng?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
+            guard match.numberOfRanges > 1 else { return nil }
+            let range = Range(match.range(at: 1), in: text)!
+            let num = Int(String(text[range]))!
+            guard num >= 0, num <= 99 else { return nil }
+            return num
+        }
+        // Try standalone number at word boundary
+        let standalone = try? NSRegularExpression(pattern: "(?:^|\\s)(\\d+)(?:\\s|$)")
+        if let match = standalone?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
+            guard match.numberOfRanges > 1 else { return nil }
+            let range = Range(match.range(at: 1), in: text)!
+            let num = Int(String(text[range]))!
+            guard num >= 1, num <= 99 else { return nil }
             return num
         }
         return nil
     }
 
     private func extractAllNumbers(from text: String) -> [Int] {
-        let pattern = try? NSRegularExpression(pattern: "(\\d+)\\s*(号|hao)")
-        let matches = pattern?.matches(in: text, range: NSRange(text.startIndex..., in: text)) ?? []
-        return matches.compactMap { match in
+        // CJK: 号, hao, 番, 번
+        let cjk = try? NSRegularExpression(pattern: "(\\d+)\\s*(号|hao|番|번)")
+        var nums = cjk?.matches(in: text, range: NSRange(text.startIndex..., in: text)).compactMap { match -> Int? in
             guard match.numberOfRanges > 1 else { return nil }
             let range = Range(match.range(at: 1), in: text)!
             let num = Int(String(text[range]))!
             guard num >= 0, num <= 99 else { return nil }
             return num
-        }
+        } ?? []
+        // English: number 5, no.5, #5
+        let eng = try? NSRegularExpression(pattern: "(?:number|no\\.?|#)\\s*(\\d+)", options: [.caseInsensitive])
+        nums += eng?.matches(in: text, range: NSRange(text.startIndex..., in: text)).compactMap { match -> Int? in
+            guard match.numberOfRanges > 1 else { return nil }
+            let range = Range(match.range(at: 1), in: text)!
+            let num = Int(String(text[range]))!
+            guard num >= 0, num <= 99 else { return nil }
+            return num
+        } ?? []
+        // Standalone numbers
+        let standalone = try? NSRegularExpression(pattern: "(?:^|\\s)(\\d+)(?:\\s|$)")
+        nums += standalone?.matches(in: text, range: NSRange(text.startIndex..., in: text)).compactMap { match -> Int? in
+            guard match.numberOfRanges > 1 else { return nil }
+            let range = Range(match.range(at: 1), in: text)!
+            let num = Int(String(text[range]))!
+            guard num >= 1, num <= 99 else { return nil }
+            return num
+        } ?? []
+        return nums
     }
 
     private func containsNumberKeyword(_ text: String) -> Bool {
-        text.contains("号") || text.contains("hao")
+        text.contains("号") || text.contains("hao") || text.contains("番") || text.contains("번")
     }
 
     static func toPinyin(_ s: String) -> String {

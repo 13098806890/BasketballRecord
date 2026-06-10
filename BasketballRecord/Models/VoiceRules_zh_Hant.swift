@@ -53,9 +53,6 @@ extension VoiceRules {
             ("繼續", "event.pause"),
             ("繼續比賽", "event.pause"),
             ("比賽繼續", "event.pause"),
-            ("結束", "event.game_end"),
-            ("比賽結束", "event.game_end"),
-            ("完場", "event.game_end"),
         ],
         fuzzyMap: [
             ("zh", "z"), ("ch", "c"), ("sh", "s"),

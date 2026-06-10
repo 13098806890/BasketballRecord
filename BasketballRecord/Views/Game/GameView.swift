@@ -629,7 +629,7 @@ struct GameView: View {
                     .frame(maxWidth: .infinity, minHeight: 34)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .pause))
-                .disabled(!snapshot.periodIsRunning || snapshot.isComplete)
+                .disabled(snapshot.isComplete)
             }
 
             HStack(spacing: 8) {
@@ -1681,7 +1681,14 @@ struct GameView: View {
     }
 
     private func togglePause() {
-        guard snapshot.periodIsRunning, !snapshot.isComplete else { return }
+        guard !snapshot.isComplete else {
+            statAlertMessage = NSLocalizedString("stat_game_already_finished", comment: "Game already finished message")
+            return
+        }
+        guard snapshot.periodIsRunning else {
+            statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: "Period not started message"), snapshot.currentPeriod)
+            return
+        }
         let now = Date()
         _ = submitLiveOperation(.togglePause(at: now)) {
             applyTogglePauseOperation(at: now)
