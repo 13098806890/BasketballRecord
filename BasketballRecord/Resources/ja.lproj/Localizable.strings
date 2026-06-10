@@ -889,6 +889,7 @@
 "voice_shortcuts_stat_section" = "統計アクション";
 "voice_shortcuts_action" = "アクション";
 "voice_shortcuts_add_title" = "ショートカットを追加";
+"voice_shortcuts_edit_title" = "ショートカットを編集";
 
 "link_privacy_policy" = "プライバシーポリシー";
 "link_terms_of_eula" = "利用規約 (EULA)";

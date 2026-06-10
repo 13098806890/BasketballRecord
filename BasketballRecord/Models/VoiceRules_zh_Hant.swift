@@ -58,6 +58,21 @@ extension VoiceRules {
             ("zh", "z"), ("ch", "c"), ("sh", "s"),
             ("r", "l"),
             ("eng", "en"), ("ing", "in"), ("ang", "an"),
+        ],
+        surnamePinyinOverrides: [
+            "曾": ["zeng"],
+            "單": ["shan"],
+            "朴": ["piao"],
+            "解": ["xie"],
+            "區": ["ou"],
+            "仇": ["qiu"],
+            "蓋": ["ge"],
+            "查": ["zha"],
+            "華": ["hua"],
+            "繆": ["miao"],
+            "覃": ["qin"],
+            "芮": ["rui"],
+            "逄": ["pang"],
         ]
     )
 }

@@ -900,6 +900,7 @@
 "voice_shortcuts_stat_section" = "统计动作";
 "voice_shortcuts_action" = "动作";
 "voice_shortcuts_add_title" = "添加快捷指令";
+"voice_shortcuts_edit_title" = "编辑快捷指令";
 
 "link_privacy_policy" = "隐私政策";
 "link_terms_of_eula" = "使用条款 (EULA)";

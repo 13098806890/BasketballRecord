@@ -32,6 +32,12 @@ struct VoiceRules: Sendable {
     /// Additional pinyin/fuzzy normalization per language (empty for non-CJK)
     let fuzzyMap: [(String, String)]
 
+    /// Polyphonic surname overrides: character → alternative pinyin readings.
+    /// For a character that CFStringTransform converts to the wrong reading for surname use,
+    /// list one or more alternative pinyin forms that should also be tried.
+    /// Only populated for CJK locales; empty for others.
+    let surnamePinyinOverrides: [Character: [String]]
+
     /// Detect the best rule set for the current app language.
     static func forCurrentAppLanguage() -> VoiceRules {
         let preferredLang = Bundle.main.preferredLocalizations.first ?? "zh-Hans"

@@ -871,6 +871,7 @@
 "voice_shortcuts_stat_section" = "Azioni statistiche";
 "voice_shortcuts_action" = "Azione";
 "voice_shortcuts_add_title" = "Aggiungi scorciatoia";
+"voice_shortcuts_edit_title" = "Modifica scorciatoia";
 
 "link_privacy_policy" = "Informativa sulla privacy";
 "link_terms_of_eula" = "Termini di utilizzo (EULA)";

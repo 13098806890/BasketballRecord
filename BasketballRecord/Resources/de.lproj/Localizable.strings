@@ -871,6 +871,7 @@
 "voice_shortcuts_stat_section" = "Statistikaktionen";
 "voice_shortcuts_action" = "Aktion";
 "voice_shortcuts_add_title" = "Kurzbefehl hinzufügen";
+"voice_shortcuts_edit_title" = "Kurzbefehl bearbeiten";
 
 "link_privacy_policy" = "Datenschutz";
 "link_terms_of_eula" = "Nutzungsbedingungen (EULA)";

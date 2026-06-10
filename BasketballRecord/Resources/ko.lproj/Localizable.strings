@@ -902,6 +902,7 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "voice_shortcuts_stat_section" = "통계 작업";
 "voice_shortcuts_action" = "작업";
 "voice_shortcuts_add_title" = "단축키 추가";
+"voice_shortcuts_edit_title" = "단축키 편집";
 
 "link_privacy_policy" = "개인정보 처리방침";
 "link_terms_of_eula" = "이용 약관 (EULA)";

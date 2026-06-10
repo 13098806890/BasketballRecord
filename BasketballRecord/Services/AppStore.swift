@@ -848,6 +848,13 @@ final class AppStore: ObservableObject {
                 }
             }
             hasMigratedToCoreData = true
+
+            // Voice metadata is stored only in UserDefaults, not Core Data
+            if let meta: StoreMeta = safeRead(StoreMeta.self, forKey: metaKey) {
+                if let cm = meta.customVoiceMappings { customVoiceMappings = cm }
+                if let vl = meta.voiceLog { voiceLog = vl }
+                showsVoiceButton = meta.showsVoiceButton ?? false
+            }
             return
         }
 
