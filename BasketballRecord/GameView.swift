@@ -753,35 +753,62 @@ struct GameView: View {
     }
 
     private var voiceWave: some View {
-        TimelineView(.animation(minimumInterval: 0.06)) { timeline in
-            WaveView(time: timeline.date)
+        TimelineView(.animation(minimumInterval: 0.04)) { timeline in
+            ThreeWaves(time: timeline.date)
         }
-        .frame(width: UIScreen.main.bounds.width * 0.5, height: 100)
-        .background(.blue.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
+        .frame(height: 120)
     }
 
-    private struct WaveView: View {
+    private struct ThreeWaves: View {
         let time: Date
         var body: some View {
             GeometryReader { geo in
                 let w = geo.size.width
                 let h = geo.size.height
                 let midY = h / 2
-                let phase = time.timeIntervalSinceReferenceDate * 5
-                let barCount = max(Int(w / 8), 12)
-                let barSpacing: CGFloat = 6
-                let barW = (w - CGFloat(barCount - 1) * barSpacing) / CGFloat(barCount)
+                let phase = time.timeIntervalSinceReferenceDate * 3.5
+                let amp = h * 0.28
 
-                HStack(spacing: barSpacing) {
-                    ForEach(0..<barCount, id: \.self) { i in
-                        let angle = Double(i) / Double(barCount) * .pi * 3 + phase
-                        let barH = max(4, CGFloat((sin(angle) * 0.5 + 0.5)) * h * 0.8)
-                        RoundedRectangle(cornerRadius: barW / 2)
-                            .fill(.blue.opacity(0.8))
-                            .frame(width: max(2, barW), height: barH)
+                Canvas { context, size in
+                    let samples = Int(w / 2)
+                    let waves: [(offset: Double, color: Color)] = [
+                        (0, Color.cyan),
+                        (2.5, Color.green),
+                        (5.0, Color(red: 1, green: 0.75, blue: 0.8)),
+                    ]
+
+                    for (offset, color) in waves {
+                        var path = Path()
+                        let firstPt = CGPoint(x: 0, y: midY + sin(phase + offset) * amp)
+                        path.move(to: firstPt)
+
+                        for i in 0..<samples {
+                            let x = CGFloat(i) / CGFloat(samples) * w
+                            let angle = Double(i) / Double(samples) * .pi * 3 + phase + offset
+                            let y = midY + sin(angle) * amp
+                            path.addLine(to: CGPoint(x: x, y: y))
+                        }
+
+                        // Draw with per-segment width for tapered effect
+                        let allPts = (0..<samples).map { i -> CGPoint in
+                            let x = CGFloat(i) / CGFloat(samples) * w
+                            let angle = Double(i) / Double(samples) * .pi * 3 + phase + offset
+                            return CGPoint(x: x, y: midY + sin(angle) * amp)
+                        }
+
+                        for i in 0..<(allPts.count - 1) {
+                            let progress = Double(i) / Double(allPts.count - 1)
+                            let edgeDist = min(progress, 1 - progress) * 2
+                            let width = CGFloat(0.5 + edgeDist * 2.0)
+                            let alpha = 0.15 + edgeDist * 0.7
+                            context.stroke(
+                                Path { p in p.move(to: allPts[i]); p.addLine(to: allPts[i + 1]) },
+                                with: .color(color.opacity(alpha)),
+                                lineWidth: width
+                            )
+                        }
                     }
                 }
-                .frame(maxHeight: .infinity, alignment: .center)
             }
         }
     }
@@ -3311,7 +3338,7 @@ private struct CompactTeamRow: View {
                                                 .background(Circle().fill(.white))
                                         }
                                     }
-                                    Text(player.number.isEmpty ? player.name : "\(player.number) \(player.name)")
+                                    Text(player.number.isEmpty ? player.name : "\(player.number)号 \(player.name)")
                                         .font(.caption2)
                                         .foregroundStyle(onCourtPlayerIDs.contains(player.id) ? .primary : .secondary)
                                         .lineLimit(1)
@@ -4082,7 +4109,7 @@ private struct SelectablePlayerAvatarButton: View {
                             .offset(y: 8)
                     }
                 }
-                Text(player.number.isEmpty ? player.name : "\(player.number) \(player.name)")
+                Text(player.number.isEmpty ? player.name : "\(player.number)号 \(player.name)")
                     .font(.caption)
                     .lineLimit(1)
                     .frame(width: 72)

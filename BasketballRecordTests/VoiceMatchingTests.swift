@@ -169,6 +169,116 @@ final class VoiceMatchingTests: XCTestCase {
         assertCommand(text: "换人", expectedCommand: "substitution")
     }
 
+    func testSubstitutionSingleChar() {
+        assertCommand(text: "换", expectedCommand: "substitution")
+    }
+
+    func testSubstitutionWithNames() {
+        assertCommand(text: "换张三李四", expectedCommand: "substitution")
+    }
+
+    func testSubstitutionWithNumbers() {
+        assertCommand(text: "3号换5号", expectedCommand: "substitution")
+    }
+
+    func testSubstitutionWithTeamPrefix() {
+        assertCommand(text: "主队8号换客队88号", expectedCommand: "substitution")
+    }
+
+    func testSubstitutionHuanTi() {
+        assertCommand(text: "替换", expectedCommand: "substitution")
+    }
+
+    func testSubstitutionWithEnglishNames() {
+        assertCommand(text: "波波换哼哼", expectedCommand: "substitution")
+    }
+
+    func testSubstitutionByNameIntegration() async throws {
+        let pid1 = UUID()  // bobo — on court, #8
+        let pid2 = UUID()  // 哼哼 — on bench, #88
+        store.players.append(Player(id: pid1, name: "bobo", number: "8"))
+        store.players.append(Player(id: pid2, name: "哼哼", number: "88"))
+        snapshot.homeOnCourtPlayerIDs = [pid1, homePlayer1ID]
+        snapshot.homeAvailablePlayerIDs = [pid1, homePlayer1ID, pid2]
+
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+
+        let expectation = expectation(description: "onSubstitution called")
+        var capturedOutgoing: UUID?
+        var capturedIncoming: UUID?
+        recognizer.onSubstitution = { side, outgoing, incoming in
+            capturedOutgoing = outgoing
+            capturedIncoming = incoming
+            expectation.fulfill()
+        }
+
+        recognizer.simulateText("bobo换哼哼")
+
+        await fulfillment(of: [expectation], timeout: 1.0)
+        XCTAssertEqual(capturedOutgoing, pid1, "bobo should be outgoing (on court)")
+        XCTAssertEqual(capturedIncoming, pid2, "哼哼 should be incoming (on bench)")
+    }
+
+    func testSubstitutionByNumberIntegration() async throws {
+        let pid1 = UUID()
+        let pid2 = UUID()
+        store.players.append(Player(id: pid1, name: "bobo", number: "8"))
+        store.players.append(Player(id: pid2, name: "哼哼", number: "88"))
+        snapshot.homeOnCourtPlayerIDs = [pid1, homePlayer1ID]
+        snapshot.homeAvailablePlayerIDs = [pid1, homePlayer1ID, pid2]
+
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+
+        let expectation = expectation(description: "onSubstitution called by number")
+        var capturedOutgoing: UUID?
+        var capturedIncoming: UUID?
+        recognizer.onSubstitution = { _, outgoing, incoming in
+            capturedOutgoing = outgoing
+            capturedIncoming = incoming
+            expectation.fulfill()
+        }
+
+        recognizer.simulateText("8号换88号")
+
+        await fulfillment(of: [expectation], timeout: 1.0)
+        XCTAssertEqual(capturedOutgoing, pid1, "8号 should be outgoing")
+        XCTAssertEqual(capturedIncoming, pid2, "88号 should be incoming")
+    }
+
+    func testSubstitutionWithoutPlayerFails() {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+
+        var called = false
+        recognizer.onSubstitution = { _, _, _ in called = true }
+        recognizer.simulateText("换人")
+
+        XCTAssertFalse(called, "onSubstitution should not fire without matching players")
+        XCTAssertNotNil(recognizer.errorMessage, "should show error")
+    }
+
+    func testMatchContinueDoesNotMatchEnd() {
+        // "比赛继续" should NOT match event.game_end
+        let result = findEvent(text: "比赛继续")
+        XCTAssertNotEqual(result.eventCode, "event.game_end")
+    }
+
+    func testMatchContinueMatchesPause() {
+        let result = findEvent(text: "比赛继续")
+        XCTAssertEqual(result.eventCode, "event.pause")
+    }
+
+    func testContinueDoesNotMatchPeriod() {
+        // "继续" alone should not match event.period
+        let result = findEvent(text: "继续")
+        XCTAssertEqual(result.eventCode, "event.pause")
+    }
+
     // MARK: - Fuzzy Matching
 
     func testFuzzyNasalRebound() {
@@ -242,6 +352,11 @@ final class VoiceMatchingTests: XCTestCase {
         let textPinyin = VoiceRecognizer.toPinyin(text)
         let fuzzyTextPinyin = VoiceRecognizer.fuzzyPinyin(textPinyin)
 
+        // Pre-check for substitution (same as VoiceRecognizer.processText)
+        if text.contains("换") || text.contains("替换") {
+            return ("event.substitution", nil)
+        }
+
         let threshold = 0.5
         var bestEventScore = threshold
         var matchedEventCode: String?
@@ -275,7 +390,9 @@ final class VoiceMatchingTests: XCTestCase {
             ("zhu gong", "stat.assist"), ("gai mao", "stat.block"), ("feng gai", "stat.block"),
             ("qiang duan", "stat.steal"), ("duan qiu", "stat.steal"),
             ("shi wu", "stat.turnover"), ("zou bu", "stat.turnover"), ("wei li", "stat.turnover"),
-            ("zan ting", "event.pause"), ("ting biao", "event.pause"), ("kai shi", "event.period"),
+            ("zan ting", "event.pause"), ("ting biao", "event.pause"), ("ji xu", "event.pause"),
+            ("bi sai ji xu", "event.pause"), ("ji xu bi sai", "event.pause"),
+            ("kai shi", "event.period"),
             ("di yi jie", "event.period"), ("di 1 jie", "event.period"),
             ("di er jie", "event.period"), ("di 2 jie", "event.period"),
             ("di san jie", "event.period"), ("di 3 jie", "event.period"),
