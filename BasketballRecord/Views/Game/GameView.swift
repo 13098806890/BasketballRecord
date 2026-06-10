@@ -827,7 +827,7 @@ struct GameView: View {
                         for i in 0..<(allPts.count - 1) {
                             let progress = Double(i) / Double(allPts.count - 1)
                             let edgeDist = min(progress, 1 - progress) * 2
-                            let width = CGFloat(0.5 + edgeDist * 2.0)
+                            let width = CGFloat(0.5 + edgeDist * 7.0)
                             let alpha = 0.15 + edgeDist * 0.7
                             context.stroke(
                                 Path { p in p.move(to: allPts[i]); p.addLine(to: allPts[i + 1]) },
@@ -2893,6 +2893,7 @@ struct GameView: View {
     }()
 }
 
+<<<<<<< HEAD:BasketballRecord/GameView.swift
 enum TeamSide: String {
     case home = "主队"
     case away = "客队"
@@ -4156,3 +4157,5 @@ private struct SelectablePlayerAvatarButton: View {
         .buttonStyle(.plain)
     }
 }
+=======
+>>>>>>> main:BasketballRecord/Views/Game/GameView.swift

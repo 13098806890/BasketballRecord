@@ -1,5 +1,33 @@
 # Release Notes
 
+## 1.17 (2026-06-10)
+
+### 语音识别重大重构
+
+- 重新设计匹配流程：先直接匹配 event 关键词（原文精确查找），再分词匹配主语（球员）和状态（命中/未中），不再依赖拼音滑窗评分。
+- 换人逻辑重写：按关键词"替换/换"将文本分为主/宾语，分别匹配场上（被换下）和场下（替补），支持两种语序。
+- 球员名字匹配只查关键词前后的文本，不查全文拼音，大幅减少误匹配。
+- 号码匹配优先于名字匹配：文本中含"3号"等关键词时，先按号码精确查找。
+
+### 新增
+
+- 三色波浪语音动画（青/绿/淡粉），渐变粗细，全屏宽度。
+- 语音日志持久化（随 StoreMeta 写入 UserDefaults/Core Data），右滑可删除，支持复制单条和全部。
+- 每个匹配步骤的详细日志写入语音日志，方便调试。
+
+### 代码重构
+
+- 项目结构重组：文件迁移到 `Views/`、`Models/`、`Services/` 子目录。
+- GameView.swift（4100→2866行）：拆分为 StatAction、CompactTeamRow、TeamStatsView、GameSetupView、SubstitutionViews、PastelButtonStyle、PlayerAvatarButton 共 8 个文件。
+- ContentView.swift（2900→495行）：拆分为 CareerView、HistoryView、SavedGameDetailView、ImportGameView、PlayerGameDetailView 共 5 个文件。
+- RosterView.swift（3100→2163行）：拆分为 PlayerProfileView。
+- 所有跨文件引用调整为 `internal` 访问级别。
+
+### 兼容性
+
+- iOS 17.6+
+- Xcode 17+
+
 ## 1.16 (2026-06-09)
 
 ### 修复
