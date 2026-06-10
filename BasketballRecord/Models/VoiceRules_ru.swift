@@ -44,6 +44,7 @@ extension VoiceRules {
             ("конец", "event.game_end"),
             ("конец игры", "event.game_end"),
         ],
-        fuzzyMap: []
+        fuzzyMap: [],
+        surnamePinyinOverrides: [:]
     )
 }

@@ -5,6 +5,8 @@ struct VoiceShortcutSettingsView: View {
     @State private var newPhrase = ""
     @State private var newEvent = StatAction.twoMade
     @State private var showingAdd = false
+    @State private var editingPhrase = ""
+    @State private var showingEdit = false
 
     private let shotActions: [StatAction] = [
         .twoMade, .twoMissed, .threeMade, .threeMissed,
@@ -49,25 +51,33 @@ struct VoiceShortcutSettingsView: View {
 
             Section(LocalizedStringKey("voice_shortcuts_custom")) {
                 ForEach(Array(store.customVoiceMappings.sorted(by: { $0.key < $1.key })), id: \.key) { phrase, code in
-                    HStack(spacing: 12) {
-                        Image(systemName: icon(for: StatAction(eventCode: code) ?? .twoMade))
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                            .frame(width: 24)
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(phrase)
-                                .font(.body.weight(.medium))
-                            Text(actionLabel(for: code))
-                                .font(.caption)
+                    Button {
+                        editingPhrase = phrase
+                        newPhrase = phrase
+                        newEvent = StatAction(eventCode: code) ?? .twoMade
+                        showingEdit = true
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: icon(for: StatAction(eventCode: code) ?? .twoMade))
+                                .font(.title3)
                                 .foregroundStyle(.secondary)
+                                .frame(width: 24)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(phrase)
+                                    .font(.body.weight(.medium))
+                                    .foregroundStyle(.primary)
+                                Text(actionLabel(for: code))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
                         }
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
                     }
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {
@@ -92,52 +102,66 @@ struct VoiceShortcutSettingsView: View {
             }
         }
         .sheet(isPresented: $showingAdd) {
-            NavigationStack {
-                Form {
-                    Section {
-                        TextField(LocalizedStringKey("voice_shortcuts_phrase_placeholder"), text: $newPhrase)
-                    } footer: {
-                        Text(LocalizedStringKey("voice_shortcuts_phrase_footer"))
-                    }
+            editSheet(title: LocalizedStringKey("voice_shortcuts_add_title"), isNew: true)
+        }
+        .sheet(isPresented: $showingEdit) {
+            editSheet(title: LocalizedStringKey("voice_shortcuts_edit_title"), isNew: false)
+        }
+    }
 
-                    Section(LocalizedStringKey("voice_shortcuts_shot_section")) {
-                        Picker(LocalizedStringKey("voice_shortcuts_action"), selection: $newEvent) {
-                            ForEach(shotActions, id: \.self) { action in
-                                HStack {
-                                    Image(systemName: icon(for: action))
-                                    Text(NSLocalizedString(action.messageKey, comment: ""))
-                                }.tag(action)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                    }
+    private func editSheet(title: LocalizedStringKey, isNew: Bool) -> some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField(LocalizedStringKey("voice_shortcuts_phrase_placeholder"), text: $newPhrase)
+                } footer: {
+                    Text(LocalizedStringKey("voice_shortcuts_phrase_footer"))
+                }
 
-                    Section(LocalizedStringKey("voice_shortcuts_stat_section")) {
-                        Picker(LocalizedStringKey("voice_shortcuts_action"), selection: $newEvent) {
-                            ForEach(statActions, id: \.self) { action in
-                                HStack {
-                                    Image(systemName: icon(for: action))
-                                    Text(NSLocalizedString(action.messageKey, comment: ""))
-                                }.tag(action)
-                            }
+                Section(LocalizedStringKey("voice_shortcuts_shot_section")) {
+                    Picker(LocalizedStringKey("voice_shortcuts_action"), selection: $newEvent) {
+                        ForEach(shotActions, id: \.self) { action in
+                            HStack {
+                                Image(systemName: icon(for: action))
+                                Text(NSLocalizedString(action.messageKey, comment: ""))
+                            }.tag(action)
                         }
-                        .pickerStyle(.menu)
+                    }
+                    .pickerStyle(.menu)
+                }
+
+                Section(LocalizedStringKey("voice_shortcuts_stat_section")) {
+                    Picker(LocalizedStringKey("voice_shortcuts_action"), selection: $newEvent) {
+                        ForEach(statActions, id: \.self) { action in
+                            HStack {
+                                Image(systemName: icon(for: action))
+                                Text(NSLocalizedString(action.messageKey, comment: ""))
+                            }.tag(action)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+            }
+            .navigationTitle(title)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(LocalizedStringKey("common_cancel")) {
+                        showingAdd = false
+                        showingEdit = false
                     }
                 }
-                .navigationTitle(LocalizedStringKey("voice_shortcuts_add_title"))
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button(LocalizedStringKey("common_cancel")) { showingAdd = false }
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button(LocalizedStringKey("common_save")) {
-                            let trimmed = newPhrase.trimmingCharacters(in: .whitespaces)
-                            guard !trimmed.isEmpty else { return }
-                            store.customVoiceMappings[trimmed] = newEvent.eventCode
-                            showingAdd = false
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(LocalizedStringKey("common_save")) {
+                        let trimmed = newPhrase.trimmingCharacters(in: .whitespaces)
+                        guard !trimmed.isEmpty else { return }
+                        if !isNew, editingPhrase != trimmed {
+                            store.customVoiceMappings.removeValue(forKey: editingPhrase)
                         }
-                        .disabled(newPhrase.trimmingCharacters(in: .whitespaces).isEmpty)
+                        store.customVoiceMappings[trimmed] = newEvent.eventCode
+                        showingAdd = false
+                        showingEdit = false
                     }
+                    .disabled(newPhrase.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
         }

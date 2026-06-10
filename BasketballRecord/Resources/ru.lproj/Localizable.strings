@@ -866,6 +866,7 @@
 "voice_shortcuts_stat_section" = "Статистические действия";
 "voice_shortcuts_action" = "Действие";
 "voice_shortcuts_add_title" = "Добавить команду";
+"voice_shortcuts_edit_title" = "Редактировать команду";
 
 "link_privacy_policy" = "Конфиденциальность";
 "link_terms_of_eula" = "Условия использования (EULA)";

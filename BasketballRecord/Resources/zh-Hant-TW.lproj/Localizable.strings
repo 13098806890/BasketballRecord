@@ -892,6 +892,7 @@
 "voice_shortcuts_stat_section" = "統計動作";
 "voice_shortcuts_action" = "動作";
 "voice_shortcuts_add_title" = "新增快捷指令";
+"voice_shortcuts_edit_title" = "編輯快捷指令";
 
 "link_privacy_policy" = "隱私政策";
 "link_terms_of_eula" = "使用條款 (EULA)";

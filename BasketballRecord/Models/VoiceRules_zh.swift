@@ -58,6 +58,21 @@ extension VoiceRules {
             ("zh", "z"), ("ch", "c"), ("sh", "s"),
             ("r", "l"),
             ("eng", "en"), ("ing", "in"), ("ang", "an"),
+        ],
+        surnamePinyinOverrides: [
+            "曾": ["zeng"],        // surname: Zēng, not Céng
+            "单": ["shan"],        // surname: Shàn, not Dān
+            "朴": ["piao"],        // surname: Piáo (Korean origin), not Pǔ
+            "解": ["xie"],         // surname: Xiè, not Jiě
+            "区": ["ou"],          // surname: Ōu, not Qū
+            "仇": ["qiu"],         // surname: Qiú, not Chóu
+            "盖": ["ge"],          // surname: Gě, not Gài
+            "查": ["zha"],         // surname: Zhā, not Chá
+            "华": ["hua"],         // surname: Huà, not Huá (both common)
+            "缪": ["miao"],        // surname: Miào, not Miù
+            "覃": ["qin"],         // surname: Qín, not Tán
+            "芮": ["rui"],         // surname: Ruì
+            "逄": ["pang"],        // surname: Páng
         ]
     )
 }

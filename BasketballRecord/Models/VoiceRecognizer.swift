@@ -41,7 +41,8 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     /// Generate pinyin variants for a player name that may contain English letters/abbreviations.
     /// Only generates variants for multi-letter names (2-4 chars) to avoid short-name false matches.
-    private static func namePinyinVariants(_ name: String) -> [String] {
+    /// If `surnameOverrides` is provided, also generates variants with alternative surname readings.
+    private static func namePinyinVariants(_ name: String, surnameOverrides: [Character: [String]] = [:]) -> [String] {
         let clean = Self.toPinyin(name)
         var variants = [clean]
         // For multi-letter English names, add letter-pinyin approximations
@@ -49,6 +50,20 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         if letters.count >= 2 && letters.count <= 4 {
             let letterPinyins = letters.map { Self.letterPinyin($0) }
             variants.append(letterPinyins.joined(separator: " "))
+        }
+        // Add surname pinyin overrides for polyphonic Chinese surnames
+        if !surnameOverrides.isEmpty {
+            let chars = Array(name)
+            let syllables = clean.split(separator: " ").map(String.init)
+            guard syllables.count == chars.count else { return variants }
+            for (i, ch) in chars.enumerated() {
+                guard let alternatives = surnameOverrides[ch] else { continue }
+                for alt in alternatives {
+                    var altSyllables = syllables
+                    altSyllables[i] = alt
+                    variants.append(altSyllables.joined(separator: " "))
+                }
+            }
         }
         return variants
     }
@@ -236,7 +251,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             }
             // Fuzzy pinyin match — try all pronunciation variants
             let fuzzyTP = Self.fuzzyPinyin(textPinyin)
-            let nameVariants = Self.namePinyinVariants(player.name)
+            let nameVariants = Self.namePinyinVariants(player.name, surnameOverrides: currentRules.surnamePinyinOverrides)
             var matched = false
             for variant in nameVariants {
                 let namePinyin = Self.fuzzyPinyin(variant)
@@ -367,42 +382,41 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let textPinyin = Self.toPinyin(text)
         addLog(text: text, isSuccess: false, action: nil, matchDetail: "开始匹配 → 原文: \(text) | 拼音: \(textPinyin)")
 
-        // Priority 1: Check custom voice mappings
-        if let eventCode = store?.customVoiceMappings[text] {
-            let action = StatAction.allCases.first(where: { $0.eventCode == eventCode })
-            guard let store, let snapshot = currentSnapshot, let act = action else {
-                addLog(text: text, isSuccess: false, action: eventCode, matchDetail: "自定义映射无对应动作")
+        // Priority 1: Check custom voice mappings — contains-match, not exact dict lookup
+        if let mappings = store?.customVoiceMappings {
+            for (phrase, eventCode) in mappings {
+                guard let range = text.range(of: phrase) else { continue }
+                let action = StatAction.allCases.first(where: { $0.eventCode == eventCode })
+                guard let store, let snapshot = currentSnapshot, let act = action else {
+                    addLog(text: text, isSuccess: false, action: eventCode, matchDetail: "自定义映射无对应动作: \(phrase)")
+                    return
+                }
+                let leftText = String(text[text.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
+                let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
+                let number = extractNumber(from: leftText)
+                var pid: UUID?; var sd: TeamSide?
+                if let number {
+                    for id in allIDs {
+                        guard let p = store.player(for: id) else { continue }
+                        if p.number == "\(number)" { pid = id; sd = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away; break }
+                    }
+                }
+                if pid == nil, !leftText.isEmpty {
+                    let leftPinyin = Self.fuzzyPinyin(Self.toPinyin(leftText))
+                    let (matches, _) = matchPlayerIDsDebug(text: leftText, textPinyin: leftPinyin, in: allIDs, context: "自定义映射")
+                    if let m = matches.first { pid = m.0; sd = m.1 }
+                }
+                guard let playerID = pid, let side = sd else {
+                    addLog(text: text, isSuccess: false, action: eventCode, matchDetail: "自定义映射无球员匹配: \(phrase)")
+                    return
+                }
+                let pn = store.player(for: playerID)?.name ?? "?"
+                addLog(text: text, isSuccess: true, action: act.message, playerName: pn, matchedPattern: eventCode, matchDetail: "自定义映射: \(phrase)")
+                match = (playerID, side, act); flashColor = .green; onAction?(act, playerID, side)
+                Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
+                Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == playerID { match = nil } } }
                 return
             }
-            let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
-            let number = extractNumber(from: text)
-            var pid: UUID?; var sd: TeamSide?
-            if let number {
-                for id in allIDs {
-                    guard let p = store.player(for: id) else { continue }
-                    if p.number == "\(number)" { pid = id; sd = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away; break }
-                }
-            }
-            guard let playerID = pid, let side = sd else {
-                // No number — try matching player name from full text
-                let (matches, _) = matchPlayerIDsDebug(text: text, textPinyin: textPinyin, in: allIDs, context: "自定义映射")
-                if let m = matches.first {
-                    let pn = store.player(for: m.0)?.name ?? "?"
-                    addLog(text: text, isSuccess: true, action: act.message, playerName: pn, matchedPattern: eventCode, matchDetail: "自定义映射匹配")
-                    match = (m.0, m.1, act); flashColor = .green; onAction?(act, m.0, m.1)
-                    Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
-                    Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == m.0 { match = nil } } }
-                } else {
-                    addLog(text: text, isSuccess: false, action: eventCode, matchDetail: "自定义映射无球员匹配")
-                }
-                return
-            }
-            let pn = store.player(for: playerID)?.name ?? "?"
-            addLog(text: text, isSuccess: true, action: act.message, playerName: pn, matchedPattern: eventCode, matchDetail: "自定义映射+号码")
-            match = (playerID, sd!, act); flashColor = .green; onAction?(act, playerID, sd!)
-            Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
-            Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == playerID { match = nil } } }
-            return
         }
 
         // Pre-check for substitution

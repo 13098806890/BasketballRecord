@@ -899,6 +899,7 @@
 "voice_shortcuts_stat_section" = "Stat Actions";
 "voice_shortcuts_action" = "Action";
 "voice_shortcuts_add_title" = "Add Shortcut";
+"voice_shortcuts_edit_title" = "Edit Shortcut";
 
 "link_privacy_policy" = "Privacy Policy";
 "link_terms_of_eula" = "Terms of Use (EULA)";
