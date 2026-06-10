@@ -193,6 +193,75 @@ final class VoiceMatchingTests: XCTestCase {
         assertCommand(text: "波波换哼哼", expectedCommand: "substitution")
     }
 
+    func testSubstitutionByNameIntegration() async throws {
+        let pid1 = UUID()  // bobo — on court, #8
+        let pid2 = UUID()  // 哼哼 — on bench, #88
+        store.players.append(Player(id: pid1, name: "bobo", number: "8"))
+        store.players.append(Player(id: pid2, name: "哼哼", number: "88"))
+        snapshot.homeOnCourtPlayerIDs = [pid1, homePlayer1ID]
+        snapshot.homeAvailablePlayerIDs = [pid1, homePlayer1ID, pid2]
+
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+
+        let expectation = expectation(description: "onSubstitution called")
+        var capturedOutgoing: UUID?
+        var capturedIncoming: UUID?
+        recognizer.onSubstitution = { side, outgoing, incoming in
+            capturedOutgoing = outgoing
+            capturedIncoming = incoming
+            expectation.fulfill()
+        }
+
+        recognizer.simulateText("bobo换哼哼")
+
+        await fulfillment(of: [expectation], timeout: 1.0)
+        XCTAssertEqual(capturedOutgoing, pid1, "bobo should be outgoing (on court)")
+        XCTAssertEqual(capturedIncoming, pid2, "哼哼 should be incoming (on bench)")
+    }
+
+    func testSubstitutionByNumberIntegration() async throws {
+        let pid1 = UUID()
+        let pid2 = UUID()
+        store.players.append(Player(id: pid1, name: "bobo", number: "8"))
+        store.players.append(Player(id: pid2, name: "哼哼", number: "88"))
+        snapshot.homeOnCourtPlayerIDs = [pid1, homePlayer1ID]
+        snapshot.homeAvailablePlayerIDs = [pid1, homePlayer1ID, pid2]
+
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+
+        let expectation = expectation(description: "onSubstitution called by number")
+        var capturedOutgoing: UUID?
+        var capturedIncoming: UUID?
+        recognizer.onSubstitution = { _, outgoing, incoming in
+            capturedOutgoing = outgoing
+            capturedIncoming = incoming
+            expectation.fulfill()
+        }
+
+        recognizer.simulateText("8号换88号")
+
+        await fulfillment(of: [expectation], timeout: 1.0)
+        XCTAssertEqual(capturedOutgoing, pid1, "8号 should be outgoing")
+        XCTAssertEqual(capturedIncoming, pid2, "88号 should be incoming")
+    }
+
+    func testSubstitutionWithoutPlayerFails() {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+
+        var called = false
+        recognizer.onSubstitution = { _, _, _ in called = true }
+        recognizer.simulateText("换人")
+
+        XCTAssertFalse(called, "onSubstitution should not fire without matching players")
+        XCTAssertNotNil(recognizer.errorMessage, "should show error")
+    }
+
     func testMatchContinueDoesNotMatchEnd() {
         // "比赛继续" should NOT match event.game_end
         let result = findEvent(text: "比赛继续")

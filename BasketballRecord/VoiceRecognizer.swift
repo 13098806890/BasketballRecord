@@ -238,288 +238,315 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         }
     }
 
-    private func matchPlayerIDs(from text: String, textPinyin: String, in allIDs: [UUID]) -> [(UUID, TeamSide, Double)] {
-        guard let store, let snapshot = currentSnapshot else { return [] }
+    private func matchPlayerIDs(from text: String, textPinyin: String, in allIDs: [UUID], context: String = "") -> [(UUID, TeamSide, Double)] {
+        let (results, _) = matchPlayerIDsDebug(text: text, textPinyin: textPinyin, in: allIDs, context: context)
+        return results
+    }
+
+    private func matchPlayerIDsDebug(text: String, textPinyin: String, in allIDs: [UUID], context: String = "") -> ([(UUID, TeamSide, Double)], String) {
+        guard let store, let snapshot = currentSnapshot else { return ([], "\(context): store/snapshot=nil") }
         let threshold = 0.5
         var results: [(UUID, TeamSide, Double)] = []
+        var details: [String] = []
 
         for id in allIDs {
             guard let player = store.player(for: id) else { continue }
-            // Direct text match — also try stripping descriptive prefixes
             let nameLower = player.name.lowercased()
+            // Direct text match
             if text.lowercased().contains(nameLower) || nameLower.contains(text.lowercased()) {
                 let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
                 results.append((id, side, 1.0))
+                details.append("\(player.name)(直配1.0)")
                 continue
             }
             // Fuzzy pinyin match — try all pronunciation variants
             let fuzzyTP = Self.fuzzyPinyin(textPinyin)
             let nameVariants = Self.namePinyinVariants(player.name)
+            var matched = false
             for variant in nameVariants {
                 let namePinyin = Self.fuzzyPinyin(variant)
                 let score = Self.nameSimilarity(namePinyin, fuzzyTP)
                 if score >= threshold {
                     let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
                     results.append((id, side, score))
+                    details.append("\(player.name)(拼音\(String(format:"%.2f", score)))")
+                    matched = true
                     break
                 }
             }
+            if !matched {
+                let pinyin = Self.fuzzyPinyin(Self.toPinyin(player.name))
+                let score = Self.nameSimilarity(pinyin, fuzzyTP)
+                details.append("\(player.name)(拼音=\(pinyin) vs \(fuzzyTP)=\(String(format:"%.2f", score)))")
+            }
         }
 
-        return results.sorted { a, b in
+                let sorted = results.sorted { a, b in
             if a.2 != b.2 { return a.2 > b.2 }
             let aName = store.player(for: a.0)?.name ?? ""
             let bName = store.player(for: b.0)?.name ?? ""
             return aName.count > bName.count
         }
+
+        let dbg = details.joined(separator: ", ")
+        return (sorted, "\(context)[\(dbg)]")
     }
 
     private func handleSubstitution(text: String, textPinyin: String) {
         let fuzzyTextPinyin = Self.fuzzyPinyin(textPinyin)
         guard let store, let snapshot = currentSnapshot else { return }
 
-        // Try number-based matching first
+        var dbgLines: [String] = []
+        dbgLines.append("原文: \(text)")
+        dbgLines.append("拼音: \(textPinyin)")
+        dbgLines.append("场上主: \(snapshot.homeOnCourtPlayerIDs.map { store.player(for: $0)?.name ?? "?" }.joined(separator: ","))")
+        dbgLines.append("场下主: \((snapshot.homeAvailablePlayerIDs.filter { !snapshot.homeOnCourtPlayerIDs.contains($0) }).map { store.player(for: $0)?.name ?? "?" }.joined(separator: ","))")
+        dbgLines.append("场上客: \(snapshot.awayOnCourtPlayerIDs.map { store.player(for: $0)?.name ?? "?" }.joined(separator: ","))")
+        dbgLines.append("场下客: \((snapshot.awayAvailablePlayerIDs.filter { !snapshot.awayOnCourtPlayerIDs.contains($0) }).map { store.player(for: $0)?.name ?? "?" }.joined(separator: ","))")
+
+        // Try numbers first (on full text)
         let numbers = extractAllNumbers(from: text)
+        dbgLines.append("号码: \(numbers)")
         if numbers.count >= 2 {
             for side in [TeamSide.home, TeamSide.away] {
-                let courtIDs = side == .home ? snapshot.homeOnCourtPlayerIDs : snapshot.awayOnCourtPlayerIDs
-                let benchIDs = (side == .home ? snapshot.homeAvailablePlayerIDs : snapshot.awayAvailablePlayerIDs)
-                    .filter { !courtIDs.contains($0) }
-                // First number matched on court = outgoing, second on bench = incoming
-                if let outgoing = courtIDs.first(where: { store.player(for: $0)?.number == "\(numbers[0])" }),
-                   let incoming = benchIDs.first(where: { store.player(for: $0)?.number == "\(numbers[1])" }) {
-                    flashColor = .green
-                    let p1 = store.player(for: outgoing)?.name ?? "?"
-                    let p2 = store.player(for: incoming)?.name ?? "?"
-                    addLog(text: text, isSuccess: true, action: "换人", playerName: "\(p1)→\(p2)")
-                    onSubstitution?(side, outgoing, incoming)
-                    Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
-                    return
-                }
-                // Try reversed order
-                if let outgoing = courtIDs.first(where: { store.player(for: $0)?.number == "\(numbers[1])" }),
-                   let incoming = benchIDs.first(where: { store.player(for: $0)?.number == "\(numbers[0])" }) {
-                    flashColor = .green
-                    let p1 = store.player(for: outgoing)?.name ?? "?"
-                    let p2 = store.player(for: incoming)?.name ?? "?"
-                    addLog(text: text, isSuccess: true, action: "换人", playerName: "\(p1)→\(p2)")
-                    onSubstitution?(side, outgoing, incoming)
-                    Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
-                    return
+                let cIDs = side == .home ? snapshot.homeOnCourtPlayerIDs : snapshot.awayOnCourtPlayerIDs
+                let bIDs = (side == .home ? snapshot.homeAvailablePlayerIDs : snapshot.awayAvailablePlayerIDs).filter { !cIDs.contains($0) }
+                for (a, b) in [(numbers[0], numbers[1]), (numbers[1], numbers[0])] {
+                    if let o = cIDs.first(where: { store.player(for: $0)?.number == "\(a)" }),
+                       let i = bIDs.first(where: { store.player(for: $0)?.number == "\(b)" }) {
+                        let p1 = store.player(for: o)?.name ?? "?"; let p2 = store.player(for: i)?.name ?? "?"
+                        addLog(text: text, isSuccess: true, action: "换人", playerName: "\(p1)→\(p2)"); flashColor = .green
+                        onSubstitution?(side, o, i); Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }; return
+                    }
                 }
             }
-        } else if let singleNum = numbers.first {
-            // Single number: try to find another player by name for the other role
+        }
+
+        // Split by keyword: everything before = subject, everything after = object
+        let keywordVariants = ["替换", "换下", "换上", "换"]
+        var subject = text, object = "", usedKw = ""
+        for kw in keywordVariants {
+            if let range = text.range(of: kw) {
+                subject = String(text[text.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
+                object = String(text[range.upperBound...]).trimmingCharacters(in: .whitespaces)
+                usedKw = kw; break
+            }
+        }
+        dbgLines.append("关键词: \(usedKw)")
+        dbgLines.append("主语[\(subject)]")
+        dbgLines.append("宾语[\(object)]")
+
+        guard !subject.isEmpty, !object.isEmpty else {
+            addLog(text: text, isSuccess: false, action: "换人", matchDetail: dbgLines.joined(separator: " | "))
+            showError("换人失败: 无主语/宾语"); flashColor = .red
+            Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }; return
+        }
+
+        let subPinyin = Self.fuzzyPinyin(Self.toPinyin(subject))
+        let objPinyin = Self.fuzzyPinyin(Self.toPinyin(object))
+
+        // Try BOTH orderings since "A 替换 B" could mean A incoming OR A outgoing.
+        for (label, courtP, benchP) in [("主语上场", subPinyin, objPinyin), ("主语下场", objPinyin, subPinyin)] {
             for side in [TeamSide.home, TeamSide.away] {
-                let courtIDs = side == .home ? snapshot.homeOnCourtPlayerIDs : snapshot.awayOnCourtPlayerIDs
-                let benchIDs = (side == .home ? snapshot.homeAvailablePlayerIDs : snapshot.awayAvailablePlayerIDs)
-                    .filter { !courtIDs.contains($0) }
-
-                if let courtPlayer = courtIDs.first(where: { store.player(for: $0)?.number == "\(singleNum)" }) {
-                    let benchMatches = matchPlayerIDs(from: text, textPinyin: fuzzyTextPinyin, in: benchIDs)
-                    if let incoming = benchMatches.first {
-                        flashColor = .green
-                        let p1 = store.player(for: courtPlayer)?.name ?? "?"
-                        let p2 = store.player(for: incoming.0)?.name ?? "?"
-                        addLog(text: text, isSuccess: true, action: "换人", playerName: "\(p1)→\(p2)")
-                        onSubstitution?(side, courtPlayer, incoming.0)
-                        Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
-                        return
-                    }
-                }
-
-                if let benchPlayer = benchIDs.first(where: { store.player(for: $0)?.number == "\(singleNum)" }) {
-                    let courtMatches = matchPlayerIDs(from: text, textPinyin: fuzzyTextPinyin, in: courtIDs)
-                    if let outgoing = courtMatches.first {
-                        flashColor = .green
-                        let p1 = store.player(for: outgoing.0)?.name ?? "?"
-                        let p2 = store.player(for: benchPlayer)?.name ?? "?"
-                        addLog(text: text, isSuccess: true, action: "换人", playerName: "\(p1)→\(p2)")
-                        onSubstitution?(side, outgoing.0, benchPlayer)
-                        Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
-                        return
-                    }
+                let cIDs = side == .home ? snapshot.homeOnCourtPlayerIDs : snapshot.awayOnCourtPlayerIDs
+                let bIDs = (side == .home ? snapshot.homeAvailablePlayerIDs : snapshot.awayAvailablePlayerIDs).filter { !cIDs.contains($0) }
+                let lbl = side == .home ? "主" : "客"
+                let courtText = courtP == subPinyin ? subject : object
+                let benchText = benchP == objPinyin ? object : subject
+                let (cM, cD) = matchPlayerIDsDebug(text: courtText, textPinyin: courtP, in: cIDs, context: "\(lbl)场上(\(label))")
+                let (bM, bD) = matchPlayerIDsDebug(text: benchText, textPinyin: benchP, in: bIDs, context: "\(lbl)场下(\(label))")
+                dbgLines.append("\(label) \(lbl): 场上\(cD) | 场下\(bD)")
+                if let ot = cM.first, let it = bM.first {
+                    let outN = store.player(for: ot.0)?.name ?? "?"; let inN = store.player(for: it.0)?.name ?? "?"
+                    addLog(text: text, isSuccess: true, action: "换人", playerName: "\(outN)→\(inN)"); flashColor = .green
+                    onSubstitution?(side, ot.0, it.0); Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }; return
                 }
             }
         }
 
-        // Fall back to name matching
-        var detailParts: [String] = []
-        for side in [TeamSide.home, TeamSide.away] {
-            let label = side == .home ? "主队" : "客队"
-            let courtIDs = side == .home ? snapshot.homeOnCourtPlayerIDs : snapshot.awayOnCourtPlayerIDs
-            let benchIDs = (side == .home ? snapshot.homeAvailablePlayerIDs : snapshot.awayAvailablePlayerIDs)
-                .filter { !courtIDs.contains($0) }
-            let courtMatches = matchPlayerIDs(from: text, textPinyin: fuzzyTextPinyin, in: courtIDs)
-            let benchMatches = matchPlayerIDs(from: text, textPinyin: fuzzyTextPinyin, in: benchIDs)
-            let courtDesc = courtMatches.prefix(3).map { id, _, s -> String in
-                "\(store.player(for: id)?.name ?? "?")(\(String(format: "%.2f", s)))"
-            }.joined(separator: ", ")
-            let benchDesc = benchMatches.prefix(3).map { id, _, s -> String in
-                "\(store.player(for: id)?.name ?? "?")(\(String(format: "%.2f", s)))"
-            }.joined(separator: ", ")
-            detailParts.append("\(label): 上场=\(courtDesc.isEmpty ? "无" : courtDesc), 下场=\(benchDesc.isEmpty ? "无" : benchDesc)")
-
-            guard let outgoing = courtMatches.first, let incoming = benchMatches.first else {
-                continue
+        // Cross-side fallback: try both orderings
+        let allCourt = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
+        let allBench = (snapshot.homeAvailablePlayerIDs + snapshot.awayAvailablePlayerIDs).filter { !allCourt.contains($0) }
+        for (label, cP, bP) in [("跨场上场", subPinyin, objPinyin), ("跨场下场", objPinyin, subPinyin)] {
+            let ct = cP == subPinyin ? subject : object; let bt = bP == objPinyin ? object : subject
+            let (cM, cD) = matchPlayerIDsDebug(text: ct, textPinyin: cP, in: allCourt, context: label+"场上")
+            let (bM, bD) = matchPlayerIDsDebug(text: bt, textPinyin: bP, in: allBench, context: label+"场下")
+            dbgLines.append("\(label): 场上\(cD) | 场下\(bD)")
+            if let ot = cM.first, let it = bM.first {
+                let sd: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(ot.0) ? .home : .away
+                let outN = store.player(for: ot.0)?.name ?? "?"; let inN = store.player(for: it.0)?.name ?? "?"
+                addLog(text: text, isSuccess: true, action: "换人", playerName: "\(outN)→\(inN)"); flashColor = .green
+                onSubstitution?(sd, ot.0, it.0); Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }; return
             }
-            flashColor = .green
-            let p1 = store.player(for: outgoing.0)?.name ?? "?"
-            let p2 = store.player(for: incoming.0)?.name ?? "?"
-            addLog(text: text, isSuccess: true, action: "换人", playerName: "\(p1)→\(p2)")
-            onSubstitution?(side, outgoing.0, incoming.0)
-            Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
-            return
         }
 
-        let detail = detailParts.joined(separator: " | ")
-        addLog(text: text, isSuccess: false, action: "换人", matchDetail: detail)
-        showError("未识别到换人球员")
-        flashColor = .red
+        addLog(text: text, isSuccess: false, action: "换人", matchDetail: dbgLines.joined(separator: " | "))
+        showError("换人失败"); flashColor = .red
         Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
+    }
+
+    func simulateText(_ text: String) {
+        processText(text)
     }
 
     private func processText(_ text: String) {
         let textPinyin = Self.toPinyin(text)
-        let fuzzyTextPinyin = Self.fuzzyPinyin(textPinyin)
+        addLog(text: text, isSuccess: false, action: nil, matchDetail: "开始匹配 → 原文: \(text) | 拼音: \(textPinyin)")
 
-        // Pre-check for substitution: "换" or "替换" anywhere in text (too short for similarity)
+        // Pre-check for substitution
         if text.contains("换") || text.contains("替换") {
             handleSubstitution(text: text, textPinyin: textPinyin)
             return
         }
 
-        // Score each pattern by sliding-window similarity
-        let threshold: Double = 0.55
-        var bestEventScore = threshold
-        var matchedEventCode: String?
-        var matchedPinyin: String?
-        var matchPosition = 0
+        // Build a precedence-ordered list of events with their keywords and Chinese text
+        // Each entry: (keyword, chineseKeyword, eventCode, isShot, needsPlayer)
+        typealias Evt = (keyword: String, chinese: String, code: String, isShot: Bool)
 
-        for (fuzzyPinyin, _, eventCode) in pinyinPatterns {
-            let (score, pos) = Self.bestMatch(fuzzyPinyin, fuzzyTextPinyin)
-            if score > bestEventScore {
-                bestEventScore = score
-                matchedEventCode = eventCode
-                matchedPinyin = fuzzyPinyin
-                matchPosition = pos
-            }
+        // Shot events
+        var allEvents: [Evt] = []
+        for shot in voiceShotTypes {
+            allEvents.append((shot.keyword, shot.keyword, shot.eventPrefix, true))
         }
 
-        guard let eventCode = matchedEventCode else {
-            addLog(text: text, isSuccess: false, matchDetail: "拼音: \(textPinyin)")
-            showError("未识别：\"\(text)\"")
-            flashColor = .red
-            Task {
-                try? await Task.sleep(for: .seconds(0.5))
-                flashColor = nil
-            }
-            return
-        }
-
-        // Handle game commands (no player needed)
-        if eventCode == "event.period" || eventCode == "event.pause" || eventCode == "event.game_end" {
-            match = nil
-            let commandLabel: String = eventCode == "event.period" ? "节次"
-                : eventCode == "event.pause" ? "暂停" : "结束比赛"
-            addLog(text: text, isSuccess: true, action: commandLabel, matchedPattern: eventCode, matchDetail: "拼音: \(textPinyin)")
-            flashColor = .green
-            let command: VoiceCommand = eventCode == "event.period" ? .startPeriod
-                : eventCode == "event.pause" ? .togglePause : .finishGame
-            onCommand?(command)
-            Task {
-                try? await Task.sleep(for: .seconds(0.5))
-                await MainActor.run { flashColor = nil }
-            }
-            return
-        }
-
-        // Handle substitution (two players)
-        if eventCode == "event.substitution" {
-            handleSubstitution(text: text, textPinyin: textPinyin)
-            return
-        }
-
-        // Parse StatAction from eventCode
-        guard let action = StatAction.allCases.first(where: { $0.eventCode == eventCode }) else {
-            showError("未识别：\"\(text)\"")
-            flashColor = .red
-            Task {
-                try? await Task.sleep(for: .seconds(0.5))
-                flashColor = nil
-            }
-            return
-        }
-
-        // Match player — number matching first, then name matching
-        guard let store, let snapshot = currentSnapshot else { return }
-        let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
-
-        // Skip fuzzy player matching if action consumes most of the text (no room for a name)
-        let textClean = fuzzyTextPinyin.replacingOccurrences(of: " ", with: "")
-        let patternClean = (matchedPinyin ?? "").replacingOccurrences(of: " ", with: "")
-        let prefixLen = matchPosition
-        let suffixLen = textClean.count - patternClean.count - prefixLen
-        let canFuzzyMatchPlayer = prefixLen > 0 || suffixLen > 0
-
-        // Build residual pinyin (only the text outside the matched pattern window)
-        let residualFuzzy: String
-        if prefixLen + patternClean.count <= textClean.count {
-            let chars = Array(textClean)
-            let prefix = String(chars[0..<prefixLen])
-            let suffix = String(chars[(prefixLen + patternClean.count)...])
-            let parts = [prefix, suffix].filter { !$0.isEmpty }
-            residualFuzzy = parts.joined(separator: " ")
-        } else {
-            residualFuzzy = fuzzyTextPinyin
-        }
-
-        var bestPlayer: (UUID, TeamSide, Double)?
-
-        let number = extractNumber(from: text)
-        if let number {
-            for id in allIDs {
-                guard let player = store.player(for: id) else { continue }
-                if player.number == "\(number)" {
-                    let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
-                    bestPlayer = (id, side, 100)
-                    break
+        // Non-shot events
+        let nonShotStatCodes: Set<String> = ["stat.foul", "stat.rebound", "stat.assist", "stat.block", "stat.steal", "stat.turnover"]
+        let commandCodes: Set<String> = ["event.period", "event.pause", "event.game_end"]
+        var nonShotEvents: [(chinese: String, code: String)] = []
+        for (_, chinese, code) in pinyinPatterns {
+            if nonShotStatCodes.contains(code) || commandCodes.contains(code) {
+                if !nonShotEvents.contains(where: { $0.code == code }) {
+                    nonShotEvents.append((chinese, code))
                 }
             }
         }
 
-        if bestPlayer == nil, canFuzzyMatchPlayer, !containsNumberKeyword(text) {
-            bestPlayer = matchPlayerIDs(from: text, textPinyin: residualFuzzy, in: allIDs).first
+        // Helper: find keyword in original Chinese text, split into [left, keyword, right]
+        func findKeyword(_ kw: String) -> (left: String, right: String)? {
+            guard let range = text.range(of: kw) else { return nil }
+            let left = String(text[text.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
+            let right = String(text[range.upperBound...]).trimmingCharacters(in: .whitespaces)
+            return (left, right)
         }
 
-        guard let (playerID, side, _) = bestPlayer else {
-            addLog(text: text, isSuccess: false, action: eventCode, matchDetail: "拼音: \(textPinyin), 未匹配到球员")
-            showError("未识别：\"\(text)\"")
-            flashColor = .red
-            Task {
-                try? await Task.sleep(for: .seconds(0.5))
-                flashColor = nil
+        // Helper: match player from left text, then execute action
+        func resolvePlayer(leftText: String, eventCode: String, isShot: Bool, rightText: String) -> Bool {
+            guard let store, let snapshot = currentSnapshot else { return false }
+
+            let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
+            var playerID: UUID?; var side: TeamSide?; var playerScore: Double = 0
+            var dbgPlayer = ""
+
+            let number = extractNumber(from: text)
+            if let number {
+                for id in allIDs {
+                    guard let p = store.player(for: id) else { continue }
+                    if p.number == "\(number)" {
+                        playerID = id; side = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away; playerScore = 100
+                        dbgPlayer = "号码\(number)直配"
+                        break
+                    }
+                }
             }
-            return
+
+            if playerID == nil, !leftText.isEmpty {
+                let leftPinyin = Self.fuzzyPinyin(Self.toPinyin(leftText))
+                let (matches, dbg) = matchPlayerIDsDebug(text: leftText, textPinyin: leftPinyin, in: allIDs, context: "左侧球员")
+                dbgPlayer = dbg
+                if let m = matches.first {
+                    playerID = m.0; side = m.1; playerScore = m.2
+                }
+            }
+
+            // Determine made/missed for shots
+            let finalCode: String
+            if isShot {
+                var bestStateScore = 0.0
+                var foundMade: Bool?
+                for state in voiceMadeStates {
+                    let sp = Self.fuzzyPinyin(Self.toPinyin(state))
+                    let s = Self.similarity(sp, Self.fuzzyPinyin(Self.toPinyin(rightText)))
+                    if s > bestStateScore { bestStateScore = s; foundMade = true }
+                }
+                for state in voiceMissedStates {
+                    let sp = Self.fuzzyPinyin(Self.toPinyin(state))
+                    let s = Self.similarity(sp, Self.fuzzyPinyin(Self.toPinyin(rightText)))
+                    if s > bestStateScore { bestStateScore = s; foundMade = false }
+                }
+                let isMade = foundMade ?? true
+                finalCode = eventCode + (isMade ? "Made" : "Missed")
+
+                // Log state matching
+                let stateLabel = foundMade.map { $0 ? "命中" : "未中" } ?? "默认命中"
+                addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "🔍 关键词: \(eventCode) | 右侧状态=\(rightText.isEmpty ? "空" : rightText) → \(stateLabel)(得分=\(String(format:"%.2f", bestStateScore)))")
+            } else {
+                finalCode = eventCode
+            }
+
+            guard let pid = playerID, let sd = side else {
+                addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "❌ 未匹配到球员 | 左侧文本: \(leftText.isEmpty ? "空" : leftText) | 拼音: \(textPinyin)")
+                showError("未识别：\"\(text)\""); flashColor = .red
+                Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
+                return false
+            }
+
+            guard let action = StatAction.allCases.first(where: { $0.eventCode == finalCode }) ?? (isShot ? nil : nil) else {
+                // For shots, StatAction may use stat.twoMade etc — already handled by finalCode
+                // Find by prefix
+                let found = StatAction.allCases.first { $0.eventCode == finalCode }
+                guard let act = found else {
+                    addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "❌ 无对应StatAction: \(finalCode)"); return false
+                }
+                let pn = store.player(for: pid)?.name ?? "?"
+                addLog(text: text, isSuccess: true, action: act.message, playerName: pn, matchedPattern: finalCode, matchDetail: "球员匹配: \(dbgPlayer)")
+                match = (pid, sd, act); flashColor = .green; onAction?(act, pid, sd)
+                Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
+                Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == pid { match = nil } } }
+                return true
+            }
+
+            let pn = store.player(for: pid)?.name ?? "?"
+            addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: finalCode, matchDetail: "球员匹配: \(dbgPlayer)")
+            match = (pid, sd, action); flashColor = .green; onAction?(action, pid, sd)
+            Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
+            Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == pid { match = nil } } }
+            return true
         }
 
-        let player = store.player(for: playerID)
-        addLog(text: text, isSuccess: true, action: action.message, playerName: player?.name, matchedPattern: eventCode, matchDetail: "拼音: \(textPinyin)")
-
-        match = (playerID, side, action)
-        flashColor = .green
-        onAction?(action, playerID, side)
-
-        Task {
-            try? await Task.sleep(for: .seconds(0.5))
-            await MainActor.run { flashColor = nil }
-        }
-        Task {
-            try? await Task.sleep(for: .seconds(1.5))
-            await MainActor.run {
-                if match?.playerID == playerID { match = nil }
+        // 1) Try shot keywords first — direct text match
+        for evt in allEvents {
+            if let (left, right) = findKeyword(evt.keyword) {
+                addLog(text: text, isSuccess: false, action: evt.code, matchDetail: "🔍 找到关键词「\(evt.keyword)」 | 左侧原文: \(left.isEmpty ? "空" : left) | 右侧原文: \(right.isEmpty ? "空" : right)")
+                if resolvePlayer(leftText: left, eventCode: evt.code, isShot: true, rightText: right) { return }
             }
         }
+
+        // 2) Non-shot events — direct text match
+        for (chinese, code) in nonShotEvents {
+            guard code.hasPrefix("stat.") else { continue } // skip commands
+            if let (left, _) = findKeyword(chinese) {
+                addLog(text: text, isSuccess: false, action: code, matchDetail: "🔍 找到关键词「\(chinese)」 | 左侧原文: \(left.isEmpty ? "空" : left)")
+                if resolvePlayer(leftText: left, eventCode: code, isShot: false, rightText: "") { return }
+            }
+        }
+
+        // 3) Command events — no player needed
+        for (chinese, code) in nonShotEvents {
+            guard code.hasPrefix("event.") else { continue }
+            if findKeyword(chinese) != nil {
+                addLog(text: text, isSuccess: true, action: code, matchDetail: "命令: \(chinese)")
+                let label = code == "event.period" ? "节次" : code == "event.pause" ? "暂停" : code == "event.game_end" ? "结束比赛" : chinese
+                flashColor = .green
+                let cmd: VoiceCommand = code == "event.period" ? .startPeriod : code == "event.pause" ? .togglePause : .finishGame
+                onCommand?(cmd)
+                Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
+                return
+            }
+        }
+
+        addLog(text: text, isSuccess: false, matchDetail: "❌ 全文无匹配: \(text) | 拼音: \(textPinyin)")
+        showError("未识别：\"\(text)\""); flashColor = .red
+        Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
     }
 
     private func extractNumber(from text: String) -> Int? {
