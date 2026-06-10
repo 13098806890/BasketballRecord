@@ -278,15 +278,15 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         guard let store, let snapshot = currentSnapshot else { return }
 
         // Try number-based matching first
-        let textNumber = extractNumber(from: text)
-        if let textNumber {
+        let numbers = extractAllNumbers(from: text)
+        if numbers.count >= 2 {
             for side in [TeamSide.home, TeamSide.away] {
                 let courtIDs = side == .home ? snapshot.homeOnCourtPlayerIDs : snapshot.awayOnCourtPlayerIDs
                 let benchIDs = (side == .home ? snapshot.homeAvailablePlayerIDs : snapshot.awayAvailablePlayerIDs)
                     .filter { !courtIDs.contains($0) }
-                let courtByNumber = courtIDs.first { store.player(for: $0)?.number == "\(textNumber)" }
-                let benchByNumber = benchIDs.first { store.player(for: $0)?.number == "\(textNumber)" }
-                if let outgoing = courtByNumber, let incoming = benchByNumber {
+                // First number matched on court = outgoing, second on bench = incoming
+                if let outgoing = courtIDs.first(where: { store.player(for: $0)?.number == "\(numbers[0])" }),
+                   let incoming = benchIDs.first(where: { store.player(for: $0)?.number == "\(numbers[1])" }) {
                     flashColor = .green
                     let p1 = store.player(for: outgoing)?.name ?? "?"
                     let p2 = store.player(for: incoming)?.name ?? "?"
@@ -294,6 +294,50 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     onSubstitution?(side, outgoing, incoming)
                     Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
                     return
+                }
+                // Try reversed order
+                if let outgoing = courtIDs.first(where: { store.player(for: $0)?.number == "\(numbers[1])" }),
+                   let incoming = benchIDs.first(where: { store.player(for: $0)?.number == "\(numbers[0])" }) {
+                    flashColor = .green
+                    let p1 = store.player(for: outgoing)?.name ?? "?"
+                    let p2 = store.player(for: incoming)?.name ?? "?"
+                    addLog(text: text, isSuccess: true, action: "换人", playerName: "\(p1)→\(p2)")
+                    onSubstitution?(side, outgoing, incoming)
+                    Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
+                    return
+                }
+            }
+        } else if let singleNum = numbers.first {
+            // Single number: try to find another player by name for the other role
+            for side in [TeamSide.home, TeamSide.away] {
+                let courtIDs = side == .home ? snapshot.homeOnCourtPlayerIDs : snapshot.awayOnCourtPlayerIDs
+                let benchIDs = (side == .home ? snapshot.homeAvailablePlayerIDs : snapshot.awayAvailablePlayerIDs)
+                    .filter { !courtIDs.contains($0) }
+
+                if let courtPlayer = courtIDs.first(where: { store.player(for: $0)?.number == "\(singleNum)" }) {
+                    let benchMatches = matchPlayerIDs(from: text, textPinyin: fuzzyTextPinyin, in: benchIDs)
+                    if let incoming = benchMatches.first {
+                        flashColor = .green
+                        let p1 = store.player(for: courtPlayer)?.name ?? "?"
+                        let p2 = store.player(for: incoming.0)?.name ?? "?"
+                        addLog(text: text, isSuccess: true, action: "换人", playerName: "\(p1)→\(p2)")
+                        onSubstitution?(side, courtPlayer, incoming.0)
+                        Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
+                        return
+                    }
+                }
+
+                if let benchPlayer = benchIDs.first(where: { store.player(for: $0)?.number == "\(singleNum)" }) {
+                    let courtMatches = matchPlayerIDs(from: text, textPinyin: fuzzyTextPinyin, in: courtIDs)
+                    if let outgoing = courtMatches.first {
+                        flashColor = .green
+                        let p1 = store.player(for: outgoing.0)?.name ?? "?"
+                        let p2 = store.player(for: benchPlayer)?.name ?? "?"
+                        addLog(text: text, isSuccess: true, action: "换人", playerName: "\(p1)→\(p2)")
+                        onSubstitution?(side, outgoing.0, benchPlayer)
+                        Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
+                        return
+                    }
                 }
             }
         }
@@ -480,6 +524,16 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             return num
         }
         return nil
+    }
+
+    private func extractAllNumbers(from text: String) -> [Int] {
+        let pattern = try? NSRegularExpression(pattern: "(\\d+)\\s*(号|hao)")
+        let matches = pattern?.matches(in: text, range: NSRange(text.startIndex..., in: text)) ?? []
+        return matches.compactMap { match in
+            let range = Range(match.range(at: 1), in: text)!
+            let num = Int(String(text[range]))!
+            return (num >= 0 && num <= 99) ? num : nil
+        }
     }
 
     private func containsNumberKeyword(_ text: String) -> Bool {
