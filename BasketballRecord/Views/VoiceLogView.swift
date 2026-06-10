@@ -2,12 +2,12 @@ import SwiftUI
 
 struct VoiceLogView: View {
     @Binding var log: [VoiceLogEntry]
-    @State private var selectedEntry: VoiceLogEntry?
+    @State private var showDeleteAll = false
 
     var body: some View {
         List {
             if log.isEmpty {
-                ContentUnavailableView("暂无语音记录", systemImage: "waveform")
+                ContentUnavailableView(LocalizedStringKey("voice_log_empty"), systemImage: "waveform")
             }
 
             ForEach(log, id: \.id) { entry in
@@ -58,7 +58,7 @@ struct VoiceLogView: View {
                     Button {
                         UIPasteboard.general.string = copyText(entry)
                     } label: {
-                        Label("复制这条记录", systemImage: "doc.on.doc")
+                        Label(LocalizedStringKey("voice_log_copy"), systemImage: "doc.on.doc")
                     }
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
@@ -67,21 +67,34 @@ struct VoiceLogView: View {
                             log.remove(at: idx)
                         }
                     } label: {
-                        Label("删除", systemImage: "trash")
+                        Label(LocalizedStringKey("common_delete"), systemImage: "trash")
                     }
                 }
             }
         }
-        .navigationTitle("语音日志")
+        .navigationTitle(LocalizedStringKey("settings_voice_log"))
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    let allText = log.map { copyText($0) }.joined(separator: "\n---\n")
-                    UIPasteboard.general.string = allText
-                } label: {
-                    Label("复制全部", systemImage: "doc.on.doc.fill")
+            ToolbarItemGroup(placement: .primaryAction) {
+                if !log.isEmpty {
+                    Button(role: .destructive) {
+                        showDeleteAll = true
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                    .confirmationDialog(LocalizedStringKey("voice_log_delete_all_confirm"), isPresented: $showDeleteAll) {
+                        Button(LocalizedStringKey("common_delete"), role: .destructive) {
+                            log.removeAll()
+                        }
+                        Button(LocalizedStringKey("common_cancel"), role: .cancel) {}
+                    }
+
+                    Button {
+                        let allText = log.map { copyText($0) }.joined(separator: "\n---\n")
+                        UIPasteboard.general.string = allText
+                    } label: {
+                        Label(LocalizedStringKey("voice_log_copy_all"), systemImage: "doc.on.doc.fill")
+                    }
                 }
-                .disabled(log.isEmpty)
             }
         }
     }

@@ -859,6 +859,11 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 
 "settings_show_bluetooth_button" = "블루투스 협동 표시";
 "settings_show_voice_button" = "음성 버튼 표시";
+"settings_voice_log" = "Voice Log";
+"voice_log_empty" = "No voice records";
+"voice_log_copy" = "Copy Record";
+"voice_log_copy_all" = "Copy All";
+"voice_log_delete_all_confirm" = "Delete all voice records?";
 "settings_cloud_storage" = "iCloud 저장소";
 
 

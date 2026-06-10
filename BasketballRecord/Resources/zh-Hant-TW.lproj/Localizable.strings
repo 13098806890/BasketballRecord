@@ -853,6 +853,11 @@
 "stats_total_points" = "總得分";
 "settings_show_bluetooth_button" = "顯示藍牙協同邀請";
 "settings_show_voice_button" = "顯示語音按鈕";
+"settings_voice_log" = "Voice Log";
+"voice_log_empty" = "No voice records";
+"voice_log_copy" = "Copy Record";
+"voice_log_copy_all" = "Copy All";
+"voice_log_delete_all_confirm" = "Delete all voice records?";
 "settings_cloud_storage" = "iCloud 儲存";
 "stats_points_format_short" = "得分";
 "stats_rebound_assist_steal_block" = "籃板 / 助攻 / 抄截 / 火鍋";

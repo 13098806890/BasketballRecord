@@ -594,6 +594,11 @@
 
 "settings_show_bluetooth_button" = "Afficher la collaboration Bluetooth";
 "settings_show_voice_button" = "Afficher le bouton vocal";
+"settings_voice_log" = "Voice Log";
+"voice_log_empty" = "No voice records";
+"voice_log_copy" = "Copy Record";
+"voice_log_copy_all" = "Copy All";
+"voice_log_delete_all_confirm" = "Delete all voice records?";
 "settings_cloud_storage" = "Stockage iCloud";
 
 

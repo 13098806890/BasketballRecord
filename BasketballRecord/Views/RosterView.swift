@@ -83,6 +83,16 @@ struct RosterView: View {
                     }
 
                     NavigationLink {
+                        VoiceShortcutSettingsView(store: store)
+                    } label: {
+                        settingsRow(
+                            title: LocalizedStringKey("settings_voice_shortcuts"),
+                            systemImage: "waveform.and.mic",
+                            countText: "\(store.customVoiceMappings.count)"
+                        )
+                    }
+
+                    NavigationLink {
                         CloudStorageView()
                     } label: {
                         settingsRow(

@@ -41,6 +41,11 @@
 "settings_show_bluetooth_button" = "显示蓝牙协同邀请";
 "settings_show_voice_button" = "显示语音按钮";
 "settings_voice_log" = "语音日志";
+"voice_log_empty" = "暂无语音记录";
+"voice_log_copy" = "复制这条记录";
+"voice_log_copy_all" = "复制全部";
+"voice_log_delete_all_confirm" = "删除所有语音记录？";
+"settings_voice_shortcuts" = "语音快捷指令";
 "button_collab_games" = "蓝牙协同";
 "settings_cloud_storage" = "iCloud 存储";
 "cloud_storage_description" = "点击比赛来开启或关闭云存储。存储在云端的比赛会在各设备间同步。";

@@ -21,6 +21,11 @@
 "settings_show_bluetooth_button" = "Show Bluetooth Collaboration";
 "settings_show_voice_button" = "Show Voice Button";
 "settings_voice_log" = "Voice Log";
+"voice_log_empty" = "No voice records";
+"voice_log_copy" = "Copy Record";
+"voice_log_copy_all" = "Copy All";
+"voice_log_delete_all_confirm" = "Delete all voice records?";
+"settings_voice_shortcuts" = "Voice Shortcuts";
 "button_collab_games" = "Bluetooth Games";
 "settings_cloud_storage" = "iCloud Storage";
 "cloud_storage_description" = "Tap a game to enable or disable cloud storage. Cloud-stored games sync across your devices.";
