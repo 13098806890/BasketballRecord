@@ -139,6 +139,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             ("继续比赛", "继续比赛", "event.pause"), ("比赛继续", "比赛继续", "event.pause"),
             ("结束", "结束", "event.game_end"), ("比赛结束", "比赛结束", "event.game_end"), ("完场", "完场", "event.game_end"),
             ("换人", "换人", "event.substitution"), ("替换", "替换", "event.substitution"),
+            ("换", "换", "event.substitution"), ("换上", "换上", "event.substitution"), ("换下", "换下", "event.substitution"),
         ]
         for (phrase, chinese, code) in special {
             results.append((Self.fuzzyPinyin(Self.toPinyin(phrase)), chinese, code))
@@ -382,8 +383,14 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let textPinyin = Self.toPinyin(text)
         let fuzzyTextPinyin = Self.fuzzyPinyin(textPinyin)
 
+        // Pre-check for substitution: "换" or "替换" anywhere in text (too short for similarity)
+        if text.contains("换") || text.contains("替换") {
+            handleSubstitution(text: text, textPinyin: textPinyin)
+            return
+        }
+
         // Score each pattern by sliding-window similarity
-        let threshold: Double = 0.48
+        let threshold: Double = 0.55
         var bestEventScore = threshold
         var matchedEventCode: String?
         var matchedPinyin: String?
@@ -518,6 +525,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     private func extractNumber(from text: String) -> Int? {
         let pattern = try? NSRegularExpression(pattern: "(\\d+)\\s*(号|hao)")
         if let match = pattern?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
+            guard match.numberOfRanges > 1 else { return nil }
             let range = Range(match.range(at: 1), in: text)!
             let num = Int(String(text[range]))!
             guard num >= 0, num <= 99 else { return nil }
@@ -530,9 +538,11 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let pattern = try? NSRegularExpression(pattern: "(\\d+)\\s*(号|hao)")
         let matches = pattern?.matches(in: text, range: NSRange(text.startIndex..., in: text)) ?? []
         return matches.compactMap { match in
+            guard match.numberOfRanges > 1 else { return nil }
             let range = Range(match.range(at: 1), in: text)!
             let num = Int(String(text[range]))!
-            return (num >= 0 && num <= 99) ? num : nil
+            guard num >= 0, num <= 99 else { return nil }
+            return num
         }
     }
 
