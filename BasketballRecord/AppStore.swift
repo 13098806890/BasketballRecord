@@ -181,6 +181,10 @@ final class AppStore: ObservableObject {
         var keepsScreenAwake: Bool
         var showsBluetoothGamesButton: Bool
         var showsVoiceButton: Bool?
+<<<<<<< HEAD
+=======
+        var voiceLog: [VoiceLogEntry]?
+>>>>>>> main
     }
 
     init() {
@@ -790,7 +794,12 @@ final class AppStore: ObservableObject {
             hiddenCareerStatItems: hiddenCareerStatItems,
             keepsScreenAwake: keepsScreenAwake,
             showsBluetoothGamesButton: showsBluetoothGamesButton,
+<<<<<<< HEAD
             showsVoiceButton: showsVoiceButton
+=======
+            showsVoiceButton: showsVoiceButton,
+            voiceLog: voiceLog
+>>>>>>> main
         )
         safeWrite(meta, forKey: metaKey)
 
@@ -875,6 +884,10 @@ final class AppStore: ObservableObject {
             keepsScreenAwake = meta.keepsScreenAwake
             showsBluetoothGamesButton = meta.showsBluetoothGamesButton
             showsVoiceButton = meta.showsVoiceButton ?? true
+<<<<<<< HEAD
+=======
+            if let vl = meta.voiceLog { voiceLog = vl }
+>>>>>>> main
         } else {
             seedSampleData()
         }
