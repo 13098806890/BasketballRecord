@@ -31,7 +31,7 @@
 ### 代码清理
 
 - `VoiceRules_de.swift`、`_en.swift`、`_fr.swift`、`_it.swift`、`_ja.swift`、`_ko.swift`、`_ru.swift`、`_es.swift` 8 种语言新增口语同义词。
-- 文档：3 种语言新增语音规则说明文档（`docs/VoiceRules/voice_rules_en.md`、`voice_rules_ja.md`、`voice_rules_de.md`）。
+- 文档：全部 8 种非中文语言新增语音规则说明文档（`docs/VoiceRules/voice_rules_{en,ja,de,fr,ru,it,es,ko}.md`）。
 
 ### 兼容性
 
