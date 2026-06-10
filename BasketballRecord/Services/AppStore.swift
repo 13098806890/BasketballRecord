@@ -110,6 +110,10 @@ final class AppStore: ObservableObject {
         didSet { scheduleSave() }
     }
 
+    @Published var customVoiceMappings: [String: String] = [:] {
+        didSet { scheduleSave() }
+    }
+
     @Published var voiceLog: [VoiceLogEntry] = [] {
         didSet { scheduleSave() }
     }
@@ -181,6 +185,7 @@ final class AppStore: ObservableObject {
         var keepsScreenAwake: Bool
         var showsBluetoothGamesButton: Bool
         var showsVoiceButton: Bool?
+        var customVoiceMappings: [String: String]?
         var voiceLog: [VoiceLogEntry]?
     }
 
@@ -792,6 +797,7 @@ final class AppStore: ObservableObject {
             keepsScreenAwake: keepsScreenAwake,
             showsBluetoothGamesButton: showsBluetoothGamesButton,
             showsVoiceButton: showsVoiceButton,
+            customVoiceMappings: customVoiceMappings,
             voiceLog: voiceLog
         )
         safeWrite(meta, forKey: metaKey)
@@ -877,6 +883,7 @@ final class AppStore: ObservableObject {
             keepsScreenAwake = meta.keepsScreenAwake
             showsBluetoothGamesButton = meta.showsBluetoothGamesButton
             showsVoiceButton = meta.showsVoiceButton ?? true
+            if let cm = meta.customVoiceMappings { customVoiceMappings = cm }
             if let vl = meta.voiceLog { voiceLog = vl }
         } else {
             seedSampleData()

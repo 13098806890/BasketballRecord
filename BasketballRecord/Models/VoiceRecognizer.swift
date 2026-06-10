@@ -69,10 +69,37 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         }
     }
 
-    private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "zh-CN"))
+    private var speechRecognizer: SFSpeechRecognizer?
     private let audioEngine = AVAudioEngine()
     private let recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
     private var recognitionTask: SFSpeechRecognitionTask?
+
+    override init() {
+        let rules = VoiceRules.forCurrentAppLanguage()
+        voiceShotTypes = rules.shotKeywords.map { VoiceShotDef(keyword: $0.keyword, eventPrefix: $0.eventPrefix) }
+        voiceMadeStates = rules.madeStates
+        voiceMissedStates = rules.missedStates
+        super.init()
+        currentRules = rules
+        speechRecognizer = SFSpeechRecognizer(locale: rules.speechRecognizerLocale)
+    }
+
+    func updateRules(for locale: Locale) {
+        let rules: VoiceRules
+        switch locale.identifier {
+        case let id where id.hasPrefix("en"): rules = .english
+        case let id where id.hasPrefix("ja"): rules = .japanese
+        case let id where id.hasPrefix("ko"): rules = .korean
+        case let id where id.hasPrefix("de"): rules = .german
+        case let id where id.hasPrefix("es"): rules = .spanish
+        case let id where id.hasPrefix("fr"): rules = .french
+        case let id where id.hasPrefix("it"): rules = .italian
+        case let id where id.hasPrefix("ru"): rules = .russian
+        case let id where id.hasPrefix("zh-Hant"): rules = .traditionalChinese
+        default: rules = .chinese
+        }
+        currentRules = rules
+    }
 
     private var store: AppStore?
     var currentSnapshot: GameSnapshot?
@@ -80,28 +107,16 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     var onCommand: ((VoiceCommand) -> Void)?
     var onSubstitution: ((TeamSide, UUID, UUID) -> Void)?
 
+    var currentRules: VoiceRules = .chinese
+
     private struct VoiceShotDef {
         let keyword: String
         let eventPrefix: String
     }
 
-    private let voiceShotTypes: [VoiceShotDef] = [
-        .init(keyword: "两分", eventPrefix: "stat.two"),
-        .init(keyword: "2分", eventPrefix: "stat.two"),
-        .init(keyword: "三分", eventPrefix: "stat.three"),
-        .init(keyword: "3分", eventPrefix: "stat.three"),
-        .init(keyword: "上篮", eventPrefix: "stat.layup"),
-        .init(keyword: "中投", eventPrefix: "stat.midRange"),
-        .init(keyword: "中距离", eventPrefix: "stat.midRange"),
-        .init(keyword: "篮下", eventPrefix: "stat.paint"),
-        .init(keyword: "内线", eventPrefix: "stat.paint"),
-        .init(keyword: "罚球", eventPrefix: "stat.freeThrow"),
-        .init(keyword: "罚篮", eventPrefix: "stat.freeThrow"),
-        .init(keyword: "加罚", eventPrefix: "stat.bonus"),
-    ]
-
-    private let voiceMadeStates = ["命中", "进", "得分", "成功"]
-    private let voiceMissedStates = ["未中", "没中", "不中", "不进", "没进", "打铁"]
+    private let voiceShotTypes: [VoiceShotDef]
+    private let voiceMadeStates: [String]
+    private let voiceMissedStates: [String]
 
     private lazy var pinyinPatterns: [(pinyin: String, chinese: String, eventCode: String)] = {
         var results: [(String, String, String)] = []
@@ -392,6 +407,44 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     private func processText(_ text: String) {
         let textPinyin = Self.toPinyin(text)
         addLog(text: text, isSuccess: false, action: nil, matchDetail: "开始匹配 → 原文: \(text) | 拼音: \(textPinyin)")
+
+        // Priority 1: Check custom voice mappings
+        if let eventCode = store?.customVoiceMappings[text] {
+            let action = StatAction.allCases.first(where: { $0.eventCode == eventCode })
+            guard let store, let snapshot = currentSnapshot, let act = action else {
+                addLog(text: text, isSuccess: false, action: eventCode, matchDetail: "自定义映射无对应动作")
+                return
+            }
+            let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
+            let number = extractNumber(from: text)
+            var pid: UUID?; var sd: TeamSide?
+            if let number {
+                for id in allIDs {
+                    guard let p = store.player(for: id) else { continue }
+                    if p.number == "\(number)" { pid = id; sd = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away; break }
+                }
+            }
+            guard let playerID = pid, let side = sd else {
+                // No number — try matching player name from full text
+                let (matches, _) = matchPlayerIDsDebug(text: text, textPinyin: textPinyin, in: allIDs, context: "自定义映射")
+                if let m = matches.first {
+                    let pn = store.player(for: m.0)?.name ?? "?"
+                    addLog(text: text, isSuccess: true, action: act.message, playerName: pn, matchedPattern: eventCode, matchDetail: "自定义映射匹配")
+                    match = (m.0, m.1, act); flashColor = .green; onAction?(act, m.0, m.1)
+                    Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
+                    Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == m.0 { match = nil } } }
+                } else {
+                    addLog(text: text, isSuccess: false, action: eventCode, matchDetail: "自定义映射无球员匹配")
+                }
+                return
+            }
+            let pn = store.player(for: playerID)?.name ?? "?"
+            addLog(text: text, isSuccess: true, action: act.message, playerName: pn, matchedPattern: eventCode, matchDetail: "自定义映射+号码")
+            match = (playerID, sd!, act); flashColor = .green; onAction?(act, playerID, sd!)
+            Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
+            Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == playerID { match = nil } } }
+            return
+        }
 
         // Pre-check for substitution
         if text.contains("换") || text.contains("替换") {

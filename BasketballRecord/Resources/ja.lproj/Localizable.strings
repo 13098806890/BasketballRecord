@@ -9,6 +9,11 @@
 "settings_keep_screen_awake" = "画面を常に点灯する";
 "settings_show_simulation_button" = "シミュレーションボタンを表示";
 "settings_show_voice_button" = "音声ボタンを表示";
+"settings_voice_log" = "Voice Log";
+"voice_log_empty" = "No voice records";
+"voice_log_copy" = "Copy Record";
+"voice_log_copy_all" = "Copy All";
+"voice_log_delete_all_confirm" = "Delete all voice records?";
 "settings_career_display" = "キャリア表示";
 "settings_section_data_management" = "データ管理";
 "settings_teams" = "チーム";
