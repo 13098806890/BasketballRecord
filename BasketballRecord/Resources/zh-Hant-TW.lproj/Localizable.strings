@@ -853,11 +853,12 @@
 "stats_total_points" = "總得分";
 "settings_show_bluetooth_button" = "顯示藍牙協同邀請";
 "settings_show_voice_button" = "顯示語音按鈕";
-"settings_voice_log" = "Voice Log";
-"voice_log_empty" = "No voice records";
-"voice_log_copy" = "Copy Record";
-"voice_log_copy_all" = "Copy All";
-"voice_log_delete_all_confirm" = "Delete all voice records?";
+"settings_voice_log" = "語音日誌";
+"voice_log_empty" = "暫無語音記錄";
+"voice_log_copy" = "複製這條記錄";
+"voice_log_copy_all" = "複製全部";
+"voice_log_delete_all_confirm" = "刪除所有語音記錄？";
+"settings_voice_shortcuts" = "語音快捷指令";
 "settings_cloud_storage" = "iCloud 儲存";
 "stats_points_format_short" = "得分";
 "stats_rebound_assist_steal_block" = "籃板 / 助攻 / 抄截 / 火鍋";
@@ -878,6 +879,19 @@
 "icloud_error_temporarily_unavailable" = "iCloud 暫時不可用，請稍後再試。";
 "icloud_error_unknown" = "未知的 iCloud 錯誤。";
 "stats_games" = "出場";
+
+"settings_voice" = "語音";
+"settings_voice_instruction" = "語音說明";
+"settings_show_voice_button_footer" = "在記分頁顯示麥克風按鈕，支援語音輸入。";
+"voice_shortcuts_empty" = "沒有語音快捷指令";
+"voice_shortcuts_empty_desc" = "建立自訂短語來觸發動作。";
+"voice_shortcuts_custom" = "自訂";
+"voice_shortcuts_phrase_placeholder" = "輸入短語…";
+"voice_shortcuts_phrase_footer" = "說出這個短語來觸選中的動作。";
+"voice_shortcuts_shot_section" = "投籃動作";
+"voice_shortcuts_stat_section" = "統計動作";
+"voice_shortcuts_action" = "動作";
+"voice_shortcuts_add_title" = "新增快捷指令";
 
 "link_privacy_policy" = "隱私政策";
 "link_terms_of_eula" = "使用條款 (EULA)";

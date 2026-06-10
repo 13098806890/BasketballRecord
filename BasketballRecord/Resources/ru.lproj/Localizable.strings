@@ -596,11 +596,12 @@
 
 "settings_show_bluetooth_button" = "Показывать Bluetooth-совместный доступ";
 "settings_show_voice_button" = "Показать кнопку голоса";
-"settings_voice_log" = "Voice Log";
-"voice_log_empty" = "No voice records";
-"voice_log_copy" = "Copy Record";
-"voice_log_copy_all" = "Copy All";
-"voice_log_delete_all_confirm" = "Delete all voice records?";
+"settings_voice_log" = "Журнал голоса";
+"voice_log_empty" = "Нет голосовых записей";
+"voice_log_copy" = "Копировать запись";
+"voice_log_copy_all" = "Копировать все";
+"voice_log_delete_all_confirm" = "Удалить все голосовые записи?";
+"settings_voice_shortcuts" = "Голосовые команды";
 "settings_cloud_storage" = "Хранилище iCloud";
 
 "stat_label_2pt" = "2PT";
@@ -852,6 +853,19 @@
 "game_group_assigned_to" = "Группа: %@";
 "section_nearby_devices" = "Устройства рядом";
 "stats_games" = "G";
+
+"settings_voice" = "Голос";
+"settings_voice_instruction" = "Голосовые инструкции";
+"settings_show_voice_button_footer" = "Показать кнопку микрофона на странице подсчёта для голосового ввода.";
+"voice_shortcuts_empty" = "Нет голосовых команд";
+"voice_shortcuts_empty_desc" = "Создайте пользовательские фразы для запуска действий.";
+"voice_shortcuts_custom" = "Пользовательские";
+"voice_shortcuts_phrase_placeholder" = "Введите фразу…";
+"voice_shortcuts_phrase_footer" = "Произнесите эту фразу, чтобы выполнить выбранное действие.";
+"voice_shortcuts_shot_section" = "Действия броска";
+"voice_shortcuts_stat_section" = "Статистические действия";
+"voice_shortcuts_action" = "Действие";
+"voice_shortcuts_add_title" = "Добавить команду";
 
 "link_privacy_policy" = "Конфиденциальность";
 "link_terms_of_eula" = "Условия использования (EULA)";

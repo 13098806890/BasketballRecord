@@ -73,22 +73,12 @@ struct RosterView: View {
                     }
 
                     NavigationLink {
-                        VoiceLogView(log: $store.voiceLog)
+                        VoiceSettingsView(store: store)
                     } label: {
                         settingsRow(
-                            title: LocalizedStringKey("settings_voice_log"),
-                            systemImage: "waveform",
-                            countText: "\(store.voiceLog.count)"
-                        )
-                    }
-
-                    NavigationLink {
-                        VoiceShortcutSettingsView(store: store)
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("settings_voice_shortcuts"),
-                            systemImage: "waveform.and.mic",
-                            countText: "\(store.customVoiceMappings.count)"
+                            title: LocalizedStringKey("settings_voice"),
+                            systemImage: "waveform.circle.fill",
+                            countText: nil
                         )
                     }
 

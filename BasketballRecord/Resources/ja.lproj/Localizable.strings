@@ -9,11 +9,12 @@
 "settings_keep_screen_awake" = "画面を常に点灯する";
 "settings_show_simulation_button" = "シミュレーションボタンを表示";
 "settings_show_voice_button" = "音声ボタンを表示";
-"settings_voice_log" = "Voice Log";
-"voice_log_empty" = "No voice records";
-"voice_log_copy" = "Copy Record";
-"voice_log_copy_all" = "Copy All";
-"voice_log_delete_all_confirm" = "Delete all voice records?";
+"settings_voice_log" = "音声ログ";
+"voice_log_empty" = "音声記録がありません";
+"voice_log_copy" = "記録をコピー";
+"voice_log_copy_all" = "すべてコピー";
+"voice_log_delete_all_confirm" = "すべての音声記録を削除しますか？";
+"settings_voice_shortcuts" = "音声ショートカット";
 "settings_career_display" = "キャリア表示";
 "settings_section_data_management" = "データ管理";
 "settings_teams" = "チーム";
@@ -875,6 +876,19 @@
 "icloud_error_unknown" = "不明なiCloudエラーです。";
 "section_nearby_devices" = "近くのデバイス";
 "stats_games" = "G";
+
+"settings_voice" = "音声";
+"settings_voice_instruction" = "音声の使い方";
+"settings_show_voice_button_footer" = "採点ページにマイクボタンを表示し、音声入力を有効にします。";
+"voice_shortcuts_empty" = "音声ショートカットがありません";
+"voice_shortcuts_empty_desc" = "カスタムフレーズを作成してアクションをトリガーします。";
+"voice_shortcuts_custom" = "カスタム";
+"voice_shortcuts_phrase_placeholder" = "フレーズを入力…";
+"voice_shortcuts_phrase_footer" = "このフレーズを言うと、選択したアクションが実行されます。";
+"voice_shortcuts_shot_section" = "シュートアクション";
+"voice_shortcuts_stat_section" = "統計アクション";
+"voice_shortcuts_action" = "アクション";
+"voice_shortcuts_add_title" = "ショートカットを追加";
 
 "link_privacy_policy" = "プライバシーポリシー";
 "link_terms_of_eula" = "利用規約 (EULA)";

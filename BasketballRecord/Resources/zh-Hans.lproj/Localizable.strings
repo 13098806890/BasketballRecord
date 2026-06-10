@@ -888,6 +888,19 @@
 "alert_period_auto_ended_time_format" = "第%d节结束（时间到）";
 "alert_period_auto_ended_score_format" = "第%d节结束（比分到达上限）";
 
+"settings_voice" = "语音";
+"settings_voice_instruction" = "语音说明";
+"settings_show_voice_button_footer" = "在记分页显示麦克风按钮，支持语音输入。";
+"voice_shortcuts_empty" = "没有语音快捷指令";
+"voice_shortcuts_empty_desc" = "创建自定义短语来触发动作。";
+"voice_shortcuts_custom" = "自定义";
+"voice_shortcuts_phrase_placeholder" = "输入短语…";
+"voice_shortcuts_phrase_footer" = "说出这个短语来触发选中的动作。";
+"voice_shortcuts_shot_section" = "投篮动作";
+"voice_shortcuts_stat_section" = "统计动作";
+"voice_shortcuts_action" = "动作";
+"voice_shortcuts_add_title" = "添加快捷指令";
+
 "link_privacy_policy" = "隐私政策";
 "link_terms_of_eula" = "使用条款 (EULA)";
 "subscription_auto_renew_info" = "自动续期订阅。可随时在 App Store 设置中取消。";
