@@ -999,16 +999,23 @@ final class AppStore: ObservableObject {
     }
 
     private func seedSampleData() {
+        func loadPhoto(_ name: String) -> Data? {
+            guard let url = Bundle.main.url(forResource: name, withExtension: "png", subdirectory: "PlayerPhotos") else { return nil }
+            return try? Data(contentsOf: url)
+        }
+
         let samplePlayers = [
-            Player(name: NSLocalizedString("sample_player_1", comment: "Sample player 1"), height: "180", weight: "76", number: "7"),
-            Player(name: NSLocalizedString("sample_player_2", comment: "Sample player 2"), height: "186", weight: "82", number: "11"),
-            Player(name: NSLocalizedString("sample_player_3", comment: "Sample player 3"), height: "178", weight: "72", number: "23"),
-            Player(name: NSLocalizedString("sample_player_4", comment: "Sample player 4"), height: "192", weight: "88", number: "33")
+            Player(name: NSLocalizedString("demo_player_haruko", comment: "Haruko Akagi"), height: "163", weight: "52", number: "10", photoData: loadPhoto("赤木晴子")),
+            Player(name: NSLocalizedString("demo_player_sakuragi", comment: "Hanamichi Sakuragi"), height: "189", weight: "83", number: "11", photoData: loadPhoto("樱木花道")),
+            Player(name: NSLocalizedString("demo_player_rukawa", comment: "Kaede Rukawa"), height: "187", weight: "75", number: "14", photoData: loadPhoto("流川枫")),
+            Player(name: NSLocalizedString("demo_player_sendoh", comment: "Sendoh"), height: "190", weight: "79", number: "7", photoData: loadPhoto("仙道")),
+            Player(name: NSLocalizedString("demo_player_ayako", comment: "Ayako"), height: "168", weight: "55", number: "5", photoData: loadPhoto("彩子")),
+            Player(name: NSLocalizedString("demo_player_maki", comment: "Shinichi Maki"), height: "184", weight: "78", number: "4", photoData: loadPhoto("牧绅一")),
         ]
         players = samplePlayers
         teams = [
-            Team(name: NSLocalizedString("team_home_default", comment: "Home team"), playerIDs: Array(samplePlayers.prefix(2).map(\.id))),
-            Team(name: NSLocalizedString("team_away_default", comment: "Away team"), playerIDs: Array(samplePlayers.suffix(2).map(\.id)))
+            Team(name: NSLocalizedString("demo_team_shohoku", comment: "Shohoku"), playerIDs: Array(samplePlayers[0...2].map(\.id))),
+            Team(name: NSLocalizedString("demo_team_ryonan", comment: "Ryonan"), playerIDs: Array(samplePlayers[3...5].map(\.id)))
         ]
     }
 

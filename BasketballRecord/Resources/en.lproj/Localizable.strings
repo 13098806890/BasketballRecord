@@ -206,6 +206,8 @@
 "text_simulating" = "Simulating...";
 "team_home_default" = "Home";
 "team_away_default" = "Away";
+"demo_team_shohoku" = "Shohoku";
+"demo_team_ryonan" = "Ryonan";
 "label_events" = "Events";
 "text_no_players" = "No players";
 "label_rec" = "REC";
@@ -771,10 +773,12 @@
 "deepseek_error_request_failed_format" = "Request failed (%d): %@";
 /* AppStore */
 "player_unknown_default" = "Unknown Player";
-"sample_player_1" = "Alex Carter";
-"sample_player_2" = "Jordan Lee";
-"sample_player_3" = "Sam Rivera";
-"sample_player_4" = "Casey Park";
+"demo_player_haruko" = "Haruko Akagi";
+"demo_player_sakuragi" = "Hanamichi Sakuragi";
+"demo_player_rukawa" = "Kaede Rukawa";
+"demo_player_sendoh" = "Sendoh";
+"demo_player_ayako" = "Ayako";
+"demo_player_maki" = "Shinichi Maki";
 
 /* AI Summary Prompt Keys */
 "ai_system_role" = "You are a professional basketball analyst and commentator.";

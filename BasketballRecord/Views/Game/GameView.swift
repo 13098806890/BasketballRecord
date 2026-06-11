@@ -816,10 +816,10 @@ struct GameView: View {
     private var micButton: some View {
         ZStack {
             Circle()
-                .fill(.white.opacity(0.6))
+                .fill(.white.opacity(0.85))
                 .frame(width: 72, height: 72)
             Circle()
-                .stroke(Color.primary.opacity(0.15), lineWidth: 0.5)
+                .stroke(Color.primary.opacity(0.12), lineWidth: 0.5)
                 .frame(width: 72, height: 72)
             Image(systemName: voiceRecognizer.isRecording ? "mic.fill" : "mic")
                 .font(.system(size: 26, weight: .semibold))
@@ -827,7 +827,7 @@ struct GameView: View {
                 .scaleEffect(voiceRecognizer.isRecording ? 1.15 : 1)
                 .animation(.spring(response: 0.2), value: voiceRecognizer.isRecording)
         }
-        .shadow(color: .black.opacity(0.06), radius: 6, x: 0, y: 3)
+        .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in

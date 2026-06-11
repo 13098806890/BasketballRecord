@@ -227,6 +227,8 @@
 "alert_finish_game_message" = "结束后将无法继续本场记分，确认结束当前比赛吗？";
 "team_home_default" = "主队";
 "team_away_default" = "客队";
+"demo_team_shohoku" = "湘北";
+"demo_team_ryonan" = "陵南";
 "label_events" = "事件";
 "text_no_players" = "无球员";
 "label_rec" = "REC";
@@ -772,10 +774,12 @@
 "deepseek_error_request_failed_format" = "请求失败（%d）：%@";
 /* AppStore */
 "player_unknown_default" = "未知球员";
-"sample_player_1" = "张三";
-"sample_player_2" = "李四";
-"sample_player_3" = "王五";
-"sample_player_4" = "赵六";
+"demo_player_haruko" = "赤木晴子";
+"demo_player_sakuragi" = "樱木花道";
+"demo_player_rukawa" = "流川枫";
+"demo_player_sendoh" = "仙道";
+"demo_player_ayako" = "彩子";
+"demo_player_maki" = "牧绅一";
 
 /* AI Summary Prompt Keys */
 "ai_system_role" = "你是专业篮球解说与数据分析师。";

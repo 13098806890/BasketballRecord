@@ -143,6 +143,8 @@
 "text_simulating" = "시뮬레이션 중...";
 "team_home_default" = "홈";
 "team_away_default" = "원정";
+"demo_team_shohoku" = "쇼호쿠";
+"demo_team_ryonan" = "료난";
 "label_events" = "이벤트";
 "text_no_players" = "선수 없음";
 "label_rec" = "REC";
@@ -702,10 +704,12 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "deepseek_error_request_failed_format" = "Request failed (%d): %@";
 /* AppStore */
 "player_unknown_default" = "Unknown Player";
-"sample_player_1" = "Alex Carter";
-"sample_player_2" = "Jordan Lee";
-"sample_player_3" = "Sam Rivera";
-"sample_player_4" = "Casey Park";
+"demo_player_haruko" = "아카기 하루코";
+"demo_player_sakuragi" = "사쿠라기 하나미치";
+"demo_player_rukawa" = "루카와 카에데";
+"demo_player_sendoh" = "센도";
+"demo_player_ayako" = "아야코";
+"demo_player_maki" = "마키 신이치";
 
 
 /* AI Summary Prompt Keys - English Fallback */
