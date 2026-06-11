@@ -1000,7 +1000,7 @@ final class AppStore: ObservableObject {
 
     private func seedSampleData() {
         func loadPhoto(_ name: String) -> Data? {
-            guard let url = Bundle.main.url(forResource: name, withExtension: "png", subdirectory: "PlayerPhotos") else { return nil }
+            guard let url = Bundle.main.url(forResource: name, withExtension: "png") else { return nil }
             return try? Data(contentsOf: url)
         }
 
