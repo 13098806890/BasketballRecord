@@ -8,6 +8,7 @@ struct VoiceSettingsView: View {
             Section {
                 Toggle(isOn: $store.showsVoiceButton) {
                     Label(LocalizedStringKey("settings_show_voice_button"), systemImage: "mic.fill")
+                        .foregroundStyle(.primary)
                 }
             } footer: {
                 Text(LocalizedStringKey("settings_show_voice_button_footer"))
