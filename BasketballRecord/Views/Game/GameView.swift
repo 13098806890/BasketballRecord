@@ -1355,7 +1355,7 @@ struct GameView: View {
         if response.payload.accepted {
             bluetooth.noteAcceptedLiveSession(sessionID: response.payload.sessionID, with: response.fromPeerName)
             liveParticipantNames.insert(response.fromPeerName)
-            sendAuthoritativeSnapshot(reason: "新设备加入")
+            sendAuthoritativeSnapshot(reason: "New device joined")
         } else {
             liveParticipantNames.remove(response.fromPeerName)
         }
@@ -1508,13 +1508,13 @@ struct GameView: View {
         liveParticipantNames.insert(incoming.fromPeerName)
 
         guard incoming.payload.op.baseVersion == liveVersion else {
-            sendAuthoritativeSnapshot(reason: "版本不一致，触发重同步", to: [incoming.fromPeerID])
+            sendAuthoritativeSnapshot(reason: "Version mismatch, triggering resync", to: [incoming.fromPeerID])
             return
         }
 
         let applied = applyLiveOperationPayload(incoming.payload.op.payload)
         guard applied else {
-            sendAuthoritativeSnapshot(reason: "操作无法应用，触发重同步", to: [incoming.fromPeerID])
+            sendAuthoritativeSnapshot(reason: "Operation could not be applied, triggering resync", to: [incoming.fromPeerID])
             return
         }
 
@@ -1599,7 +1599,7 @@ struct GameView: View {
             return
         }
 
-        sendAuthoritativeSnapshot(reason: "收到重同步请求", to: [incoming.fromPeerID])
+        sendAuthoritativeSnapshot(reason: "Resync request received", to: [incoming.fromPeerID])
     }
 
     private var isLiveSessionActive: Bool {
@@ -2481,6 +2481,7 @@ struct GameView: View {
         _ = submitLiveOperation(.undo) {
             guard let previous = undoStack.popLast() else { return false }
             redoStack.append(snapshot)
+            if redoStack.count > 30 { redoStack.removeFirst(redoStack.count - 30) }
             snapshot = previous
             ensureSelectedPlayer()
             autoSaveCurrentGame()
@@ -2715,14 +2716,11 @@ struct GameView: View {
                 let message = lastLog.message
                 let incomingName = name(for: incomingID)
                 let allPlayers = players(in: snapshot.homeTeamID) + players(in: snapshot.awayTeamID)
-                let playerNames = allPlayers.map(\.name).filter { $0 != incomingName && message.contains($0) }
-                if let outgoingName = playerNames.max(by: { $0.count < $1.count }) {
-                    outgoingID = allPlayers.first(where: { $0.name == outgoingName })!.id
+                let playerNames = allPlayers.filter { $0.id != incomingID && message.contains($0.name) }
+                if let outgoingMatch = playerNames.max(by: { $0.name.count < $1.name.count }) {
+                    outgoingID = outgoingMatch.id
                 } else {
-                    guard let range = message.range(of: " 替换 ") ?? message.range(of: " vs ") else { return false }
-                    let outgoingName = String(message[range.upperBound...]).trimmingCharacters(in: .whitespaces)
-                    guard let resolvedID = playerID(for: outgoingName, action: .turnover, in: snapshot) else { return false }
-                    outgoingID = resolvedID
+                    return false
                 }
             }
             // Swap back: remove incoming, add outgoing

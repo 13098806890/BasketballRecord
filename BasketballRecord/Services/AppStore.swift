@@ -235,6 +235,9 @@ final class AppStore: ObservableObject {
 
     func deletePlayers(at offsets: IndexSet) {
         let removedIDs = offsets.map { players[$0].id }
+        for id in removedIDs {
+            try? FileManager.default.removeItem(at: photoFile(for: id))
+        }
         players.remove(atOffsets: offsets)
         teams = teams.map { team in
             var copy = team
@@ -717,28 +720,20 @@ final class AppStore: ObservableObject {
     }
 
     private func safeWrite<T: Encodable>(_ value: T, forKey key: String) {
-        guard var data = try? JSONEncoder().encode(value) else {
+        var valueToEncode = value
+        // If it's a game with excessive undo snapshots, trim them first
+        if key.hasPrefix("game_"), var game = value as? SavedGame {
+            let trimmedUndo = game.undoSnapshots.count > 30
+            let trimmedPrev = game.previousSnapshot != nil
+            if trimmedUndo { game.undoSnapshots = Array(game.undoSnapshots.suffix(30)) }
+            if trimmedPrev { game.previousSnapshot = nil }
+            if trimmedUndo || trimmedPrev { valueToEncode = game as! T }
+        }
+        guard let data = try? JSONEncoder().encode(valueToEncode) else {
             print("[Storage] Failed to encode \(key)")
             return
         }
         print("[Storage] Writing \(key): \(data.count) bytes")
-
-        // If it's a game with excessive undo snapshots, trim them
-        if key.hasPrefix("game_"), var game = value as? SavedGame {
-            if game.undoSnapshots.count > 30 || game.previousSnapshot != nil {
-                let originalCount = data.count
-                let trimmedUndo = game.undoSnapshots.count > 30
-                let trimmedPrev = game.previousSnapshot != nil
-                if trimmedUndo {
-                    game.undoSnapshots = Array(game.undoSnapshots.suffix(30))
-                }
-                game.previousSnapshot = nil
-                if let newData = try? JSONEncoder().encode(game) {
-                    print("[Storage] Trimmed game \(key): undo \(game.undoSnapshots.count)->\(trimmedUndo ? 30 : game.undoSnapshots.count), prev=\(trimmedPrev ? "removed" : "none"). Size: \(originalCount)->\(newData.count) bytes")
-                    data = newData
-                }
-            }
-        }
 
         if data.count >= 3_000_000 {
             let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -858,16 +853,13 @@ final class AppStore: ObservableObject {
             return
         }
 
-        // If new format keys exist, clean up old legacy storage silently
-        if UserDefaults.standard.data(forKey: metaKey) != nil {
+        // Try loading from the old monolithic format first (migration)
+        if UserDefaults.standard.data(forKey: metaKey) == nil, migrateFromLegacyStorage() {
+            // Safe to clean up old storage only after migration fully succeeded
             UserDefaults.standard.removeObject(forKey: storageKey)
             let oldFile = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
                 .appendingPathComponent("appstore_v2.json")
             try? FileManager.default.removeItem(at: oldFile)
-        }
-
-        // Try loading from the old monolithic format first (migration)
-        if migrateFromLegacyStorage() {
             migrateToCoreData()
             return
         }
@@ -1035,9 +1027,12 @@ final class AppStore: ObservableObject {
                 + Array(snapshot.playingSecondsByPlayerID.keys)
                 + Array(snapshot.plusMinusByPlayerID.keys)
         ))
-        let playerNames = Dictionary(uniqueKeysWithValues: gamePlayerIDs.compactMap { playerID in
-            player(for: playerID).map { (playerID, $0.name) }
-        })
+        var playerNames: [UUID: String] = [:]
+        for playerID in gamePlayerIDs {
+            if let p = player(for: playerID), playerNames[playerID] == nil {
+                playerNames[playerID] = p.name
+            }
+        }
 
         return SavedGame(
             id: id,

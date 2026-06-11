@@ -23,6 +23,10 @@ struct SubstitutionView: View {
                         Text(awayTeamName).tag(TeamSide.away)
                     }
                     .pickerStyle(.segmented)
+                    .onChange(of: side) { _, _ in
+                        outgoingPlayerID = nil
+                        incomingPlayerID = nil
+                    }
                 }
                 .padding(.horizontal)
 

@@ -15,11 +15,11 @@ enum AIProvider: String, Codable, CaseIterable, Identifiable {
         }
     }
 
-    var endpoint: URL {
+    var endpoint: URL? {
         switch self {
-        case .deepseek: return URL(string: "https://api.deepseek.com/chat/completions")!
-        case .openAI: return URL(string: "https://api.openai.com/v1/chat/completions")!
-        case .anthropic: return URL(string: "https://api.anthropic.com/v1/messages")!
+        case .deepseek: return URL(string: "https://api.deepseek.com/chat/completions")
+        case .openAI: return URL(string: "https://api.openai.com/v1/chat/completions")
+        case .anthropic: return URL(string: "https://api.anthropic.com/v1/messages")
         }
     }
 
@@ -70,7 +70,8 @@ struct AIService {
     }
 
     private func sendOpenAICompatible(model: AIModel, apiKey: String, systemPrompt: String, userPrompt: String, temperature: Double, maxTokens: Int) async throws -> String {
-        var request = URLRequest(url: model.provider.endpoint)
+        guard let endpoint = model.provider.endpoint else { throw AIServiceError.invalidEndpoint }
+        var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
         request.timeoutInterval = 45
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -102,7 +103,8 @@ struct AIService {
     }
 
     private func sendAnthropic(model: AIModel, apiKey: String, systemPrompt: String, userPrompt: String, temperature: Double, maxTokens: Int) async throws -> String {
-        var request = URLRequest(url: model.provider.endpoint)
+        guard let endpoint = model.provider.endpoint else { throw AIServiceError.invalidEndpoint }
+        var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
         request.timeoutInterval = 45
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -140,7 +142,7 @@ struct AIService {
 }
 
 enum AIServiceError: LocalizedError {
-    case missingAPIKey, invalidResponse, emptyResponse
+    case missingAPIKey, invalidResponse, emptyResponse, invalidEndpoint
     case serverError(statusCode: Int, message: String)
 
     var errorDescription: String? {
@@ -148,6 +150,7 @@ enum AIServiceError: LocalizedError {
         case .missingAPIKey: return NSLocalizedString("deepseek_error_missing_api_key", comment: "Missing API Key")
         case .invalidResponse: return NSLocalizedString("deepseek_error_bad_response", comment: "Bad response")
         case .emptyResponse: return NSLocalizedString("deepseek_error_empty_response", comment: "Empty response")
+        case .invalidEndpoint: return "Invalid API endpoint"
         case let .serverError(code, msg): return String(format: NSLocalizedString("deepseek_error_request_failed_format", comment: "Request failed"), code, msg)
         }
     }

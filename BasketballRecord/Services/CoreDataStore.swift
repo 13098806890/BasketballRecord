@@ -195,6 +195,9 @@ struct CoreDataStore {
     private func deleteAll(_ entity: String) {
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: entity)
         let batch = NSBatchDeleteRequest(fetchRequest: request)
-        _ = try? context.execute(batch)
+        batch.resultType = .resultTypeObjectIDs
+        guard let result = try? context.execute(batch) as? NSBatchDeleteResult,
+              let ids = result.result as? [NSManagedObjectID] else { return }
+        NSManagedObjectContext.mergeChanges(fromRemoteContextSave: [NSDeletedObjectsKey: ids], into: [context])
     }
 }

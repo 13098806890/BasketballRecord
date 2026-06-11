@@ -1501,6 +1501,7 @@ extension BluetoothSyncManager: MCNearbyServiceAdvertiserDelegate {
         invitationHandler: @escaping (Bool, MCSession?) -> Void
     ) {
         DispatchQueue.main.async {
+            print("[Bluetooth] Auto-accepting invitation from \(peerID.displayName)")
             self.statusMessage = String(format: NSLocalizedString("status_peer_requesting_connection_format", comment: "Peer requesting connection"), peerID.displayName)
             invitationHandler(true, self.session)
         }

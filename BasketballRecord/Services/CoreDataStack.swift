@@ -14,6 +14,16 @@ struct CoreDataStack {
             }
         }
         container.viewContext.automaticallyMergesChangesFromParent = true
+#if DEBUG
+        // Force an in-memory store so the app still functions even if persistent store fails
+        if container.persistentStoreCoordinator.persistentStores.isEmpty {
+            let desc = NSPersistentStoreDescription()
+            desc.type = NSInMemoryStoreType
+            container.persistentStoreCoordinator.addPersistentStore(with: desc, completionHandler: { _, error in
+                if let error { print("[CoreData] Memory fallback error: \(error)") }
+            })
+        }
+#endif
     }
 
     var context: NSManagedObjectContext {
