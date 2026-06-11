@@ -33,3 +33,11 @@
    - 同步方式（merge / cherry-pick / 重新改一遍）
 4. `main_free_pro` 不应合入 `main`，反之亦然。如果需要让双向分支都有某段改动，用户会明确说。
 5. 涉及 `PurchaseManager.swift` 和 `AppIcon.appiconset/AppIcon-1024.png` 的改动，默认只在当前分支生效，不会自动带到另一个分支。
+
+## 版本号规则
+
+`main_free_pro` 分支的大版本号（major version）始终比 `main` 分支大 1，小版本号保持一致。例如：
+- `main` 为 1.20 → `main_free_pro` 为 **2.20**
+- `main` 为 1.21 → `main_free_pro` 为 **2.21**
+
+在修改 `CFBundleShortVersionString` 时务必同时更新两个分支并遵守此规则。

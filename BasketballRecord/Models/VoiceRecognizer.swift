@@ -337,7 +337,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     private func handleSubstitution(text: String, textPinyin: String) {
-        let fuzzyTextPinyin = Self.fuzzyPinyin(textPinyin)
+        let _ = Self.fuzzyPinyin(textPinyin)
         guard let store, let snapshot = currentSnapshot else { return }
 
         var dbgLines: [String] = []
@@ -511,7 +511,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             guard let store, let snapshot = currentSnapshot else { return false }
 
             let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
-            var playerID: UUID?; var side: TeamSide?; var playerScore: Double = 0
+            var playerID: UUID?; var side: TeamSide?
             var dbgPlayer = ""
 
             let number = extractNumber(from: text)
@@ -522,7 +522,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     guard p.number == "\(number)" else { continue }
                     let pSide: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
                     if let pref = preferredSide, pSide != pref { continue }
-                    playerID = id; side = pSide; playerScore = 100
+                    playerID = id; side = pSide
                     dbgPlayer = "号码\(number)直配\(preferredSide.map { $0 == .home ? "(主队)" : "(客队)" } ?? "")"
                     break
                 }
@@ -530,7 +530,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     for id in allIDs {
                         guard let p = store.player(for: id) else { continue }
                         if p.number == "\(number)" {
-                            playerID = id; side = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away; playerScore = 100
+                            playerID = id; side = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
                             dbgPlayer = "号码\(number)直配(跨队)"
                             break
                         }
@@ -543,7 +543,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 let (matches, dbg) = matchPlayerIDsDebug(text: leftText, textPinyin: leftPinyin, in: allIDs, context: "左侧球员")
                 dbgPlayer = dbg
                 if let m = matches.first {
-                    playerID = m.0; side = m.1; playerScore = m.2
+                    playerID = m.0; side = m.1
                 }
             }
 
@@ -626,7 +626,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             let finalCode = shot.eventPrefix + (isMade ? "Made" : "Missed")
             guard let store, let snapshot = currentSnapshot else { return }
             let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
-            var playerID: UUID?; var side: TeamSide?; var playerScore: Double = 0; var dbgPlayer = ""
+            var playerID: UUID?; var side: TeamSide?; var dbgPlayer = ""
             let number = extractNumber(from: text)
             if let number {
                 let preferredSide = detectTeamPrefix(text)
@@ -635,7 +635,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     guard p.number == "\(number)" else { continue }
                     let pSide: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
                     if let pref = preferredSide, pSide != pref { continue }
-                    playerID = id; side = pSide; playerScore = 100
+                    playerID = id; side = pSide
                     dbgPlayer = "号码\(number)直配\(preferredSide.map { $0 == .home ? "(主队)" : "(客队)" } ?? "")"
                     break
                 }
@@ -643,7 +643,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     for id in allIDs {
                         guard let p = store.player(for: id) else { continue }
                         if p.number == "\(number)" {
-                            playerID = id; side = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away; playerScore = 100
+                            playerID = id; side = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
                             dbgPlayer = "号码\(number)直配(跨队)"
                             break
                         }
@@ -654,7 +654,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 let (matches, dbg) = matchPlayerIDsDebug(text: leftPinyin, textPinyin: leftPinyin, in: allIDs, context: "拼音回退球员")
                 dbgPlayer = dbg
                 if let m = matches.first {
-                    playerID = m.0; side = m.1; playerScore = m.2
+                    playerID = m.0; side = m.1
                 }
             }
             guard let pid = playerID, let sd = side else {
