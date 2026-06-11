@@ -23,13 +23,24 @@ struct TeamStatsDisclosureView: View {
                     Text(homeName)
                         .font(.caption.weight(.semibold))
                     Spacer()
-                    Text(String(format: NSLocalizedString("stats_points_format", comment: "Points format"), homeStats.points))
-                        .font(.title.monospacedDigit().weight(.bold))
+                    VStack(alignment: .center, spacing: 0) {
+                        Text("\(homeStats.points)")
+                            .font(.title2.monospacedDigit().weight(.bold))
+                        Text(LocalizedStringKey("stats_points_format_short"))
+                            .font(.system(size: 8))
+                            .foregroundStyle(.secondary)
+                    }
                     Text("vs")
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(.secondary)
-                    Text(String(format: NSLocalizedString("stats_points_format", comment: "Points format"), awayStats.points))
-                        .font(.title.monospacedDigit().weight(.bold))
+                        .padding(.horizontal, 4)
+                    VStack(alignment: .center, spacing: 0) {
+                        Text("\(awayStats.points)")
+                            .font(.title2.monospacedDigit().weight(.bold))
+                        Text(LocalizedStringKey("stats_points_format_short"))
+                            .font(.system(size: 8))
+                            .foregroundStyle(.secondary)
+                    }
                     Spacer()
                     Text(awayName)
                         .font(.caption.weight(.semibold))
@@ -64,10 +75,9 @@ struct TeamStatsDisclosureView: View {
                            away: String(format: "%.2f", awayStats.pointsPerShot),
                            awayPct: nil)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 10)
-            .padding(.leading, -20)
+            .padding(10)
             .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+            .padding(.leading, -20)
         } label: {
             HStack {
                 Text(LocalizedStringKey("label_team_stats"))
