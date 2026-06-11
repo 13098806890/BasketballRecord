@@ -562,6 +562,8 @@
 "pro_feature_cloud_2" = "Elija qué juegos subir individualmente";
 "pro_feature_ai_1" = "Genere resúmenes de juegos con IA";
 "pro_feature_ai_2" = "Soporte para DeepSeek, OpenAI y Anthropic";
+"pro_feature_voice_1" = "Anotación por voz con soporte multilingüe";
+"pro_feature_voice_2" = "Accesos directos de voz personalizados y registro de reconocimiento";
 "settings_doc_help_groups_title" = "Grupos de juegos";
 "settings_doc_help_groups_item1_title" = "Cree grupos para organizar sus juegos";
 "settings_doc_help_groups_item1_desc" = "Agregue grupos personalizados ilimitados como Playoffs o Liga de Primavera.";

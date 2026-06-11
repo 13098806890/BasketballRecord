@@ -343,6 +343,10 @@ struct ProSubscriptionStoreView: View {
             SettingsFeatureItem(LocalizedStringKey("pro_feature_ai_1"), LocalizedStringKey("")),
             SettingsFeatureItem(LocalizedStringKey("pro_feature_ai_2"), LocalizedStringKey("")),
         ]),
+        SettingsFeatureSection(icon: "waveform.circle.fill", title: LocalizedStringKey("settings_voice"), items: [
+            SettingsFeatureItem(LocalizedStringKey("pro_feature_voice_1"), LocalizedStringKey("")),
+            SettingsFeatureItem(LocalizedStringKey("pro_feature_voice_2"), LocalizedStringKey("")),
+        ]),
     ]
 
     var body: some View {

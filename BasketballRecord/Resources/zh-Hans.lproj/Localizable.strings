@@ -82,6 +82,8 @@
 "pro_feature_cloud_2" = "可逐场选择需要上传的比赛";
 "pro_feature_ai_1" = "AI 自动生成比赛总结";
 "pro_feature_ai_2" = "支持 DeepSeek、OpenAI、Anthropic";
+"pro_feature_voice_1" = "多语言语音记分，说出即可记录";
+"pro_feature_voice_2" = "自定义语音快捷指令和识别日志";
 "settings_doc_help_groups_title" = "比赛分组";
 "settings_doc_help_groups_item1_title" = "创建分组管理比赛";
 "settings_doc_help_groups_item1_desc" = "可以创建无限的自定义分组，如\"季后赛\"、\"春季联赛\"等。";

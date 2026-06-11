@@ -826,6 +826,8 @@
 "pro_feature_cloud_2" = "可逐場選擇需要上傳的比賽";
 "pro_feature_ai_1" = "AI 自動生成比賽總結";
 "pro_feature_ai_2" = "支援 DeepSeek、OpenAI、Anthropic";
+"pro_feature_voice_1" = "多語言語音記分，說出即可記錄";
+"pro_feature_voice_2" = "自定義語音快捷指令和辨識日誌";
 "settings_doc_help_groups_title" = "比賽分組";
 "settings_doc_help_groups_item1_title" = "創建分組管理比賽";
 "settings_doc_help_groups_item1_desc" = "可以創建無限的自訂分組，如「季後賽」、「春季聯賽」等。";
