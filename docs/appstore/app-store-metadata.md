@@ -128,6 +128,12 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 - 野球局快速記分
 - 賽季回顧與個人成長追蹤
 
+Terms of Use:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+Privacy Policy:
+https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
+
 ---
 
 ### Deutsch（German）
@@ -136,6 +142,10 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
 Jedes Basketballspiel aufzeichnen, Spieler- und Teamstatistiken automatisch erfassen. Bluetooth-Kollaboration, Import/Export, KI-Spielzusammenfassungen und MVP-Wahl. Deine Basketball-Reise, dokumentiert.
 
+
+**关键词（100字符内，逗号分隔）**：籃球,記分,比賽統計,球隊管理,球員資料,生涯統計,訓練賽,MVP,數據分析,裁判,記分員,技術統計,語音記分,語音辨識,比賽記錄
+
+**关键词（100字符内，逗号分隔）**：Basketball,Punktezähler,Statistik,Team,Spieler,Training,Turnier,Sprachsteuerung,Spracherkennung
 **Beschreibung（4000 Zeichen）**
 
 Basketball Journey ist eine Basketball-Aufzeichnungs-App für Trainingsspiele, Pickup-Spiele und Mannschaftsinterne Spiele. Erfasse schnell Punkte, Spielerstatistiken, Spielverläufe und Karrieredaten.
@@ -160,6 +170,12 @@ Anwendungsfälle:
 - Schnelle Punkteerfassung bei Pickup-Spielen
 - Saisonrückblick und persönliche Fortschrittsverfolgung
 
+Terms of Use:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+Privacy Policy:
+https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
+
 ---
 
 ### Español（Spanish）
@@ -168,6 +184,8 @@ Anwendungsfälle:
 
 Registra cada partido de baloncesto con estadísticas automáticas de jugadores y equipos. Colaboración Bluetooth, importación/exportación, resúmenes con IA y selección de MVP. Tu trayectoria baloncestística, documentada.
 
+
+**关键词（100字符内，逗号分隔）**：baloncesto,anotador,estadísticas,equipo,jugador,árbitro,torneo,marcador,anotación voz,puntuación
 **Descripción（4000 caracteres）**
 
 Basketball Journey es una aplicación de registro de baloncesto para entrenamientos, partidos informales y scrimmages internos. Registra rápidamente puntuaciones, estadísticas de jugadores, historial y datos de carrera.
@@ -192,6 +210,12 @@ Casos de uso:
 - Puntuación rápida en partidos informales
 - Revisión de temporada y seguimiento personal
 
+Terms of Use:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+Privacy Policy:
+https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
+
 ---
 
 ### Français（French）
@@ -200,6 +224,8 @@ Casos de uso:
 
 Enregistrez chaque match de basketball avec des statistiques automatiques. Collaboration Bluetooth, import/export, résumés IA et sélection MVP. Votre parcours basketball, documenté.
 
+
+**关键词（100字符内，逗号分隔）**：basketball,scoreur,statistiques,équipe,joueur,arbitre,tournoi,notation vocale,score direct,scout
 **Description（4000 caractères）**
 
 Basketball Journey est une application d'enregistrement de basketball pour les entraînements, les matchs informels et les scrimmages internes. Suivez rapidement les scores, les statistiques des joueurs, l'historique et les données de carrière.
@@ -224,6 +250,12 @@ Cas d'utilisation :
 - Score rapide pour matchs informels
 - Révision de saison et suivi personnel
 
+Terms of Use:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+Privacy Policy:
+https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
+
 ---
 
 ### Italiano（Italian）
@@ -232,6 +264,8 @@ Cas d'utilisation :
 
 Registra ogni partita di basket con statistiche automatiche. Collaborazione Bluetooth, import/export, riassunti AI e selezione MVP. Il tuo percorso nel basket, documentato.
 
+
+**关键词（100字符内，逗号分隔）**：basket,segnapunti,statistiche,squadra,giocatore,arbitro,torneo,tabellone,punteggio vocale,punti
 **Descrizione（4000 caratteri）**
 
 Basketball Journey è un'app per la registrazione di basket per allenamenti, partite improvvisate e scrimmage interni. Registra rapidamente punteggi, statistiche giocatori, cronologia e dati di carriera.
@@ -256,6 +290,12 @@ Casi d'uso:
 - Punteggio rapido per partite improvvisate
 - Revisione stagionale e monitoraggio personale
 
+Terms of Use:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+Privacy Policy:
+https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
+
 ---
 
 ### 日本語（Japanese）
@@ -264,6 +304,8 @@ Casi d'uso:
 
 すべてのバスケットボールの試合を記録し、選手とチームの統計を自動集計。Bluetooth 協調記録、インポート/エクスポート、AI 試合サマリーと MVP 選出に対応。
 
+
+**关键词（100字符内，逗号分隔）**：バスケ,得点板,試合記録,統計,チーム管理,選手データ,練習試合,MVP,審判,得点係,トーナメント,ライブスコア,音声記録,音声認識,音声得点
 **説明（4000 文字以内）**
 
 Basketball Journey は、トレーニングマッチ、ストリートバスケ、チーム内練習試合のためのバスケットボール記録アプリです。素早く得点、選手統計、試合履歴、キャリアデータを記録できます。
@@ -288,6 +330,12 @@ Basketball Journey は、トレーニングマッチ、ストリートバスケ�
 - ストリートバスケのクイック記録
 - シーズン振り返りと個人成長の追跡
 
+Terms of Use:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+Privacy Policy:
+https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
+
 ---
 
 ### 한국어（Korean）
@@ -296,6 +344,8 @@ Basketball Journey は、トレーニングマッチ、ストリートバスケ�
 
 모든 농구 경기를 기록하고 선수와 팀 통계를 자동 집계합니다. Bluetooth 협업 기록, 가져오기/내보내기, AI 경기 요약 및 MVP 선정을 지원합니다.
 
+
+**关键词（100字符内，逗号分隔）**：농구,득점판,경기 기록,통계,팀 관리,선수 데이터,연습 경기,MVP,심판,득점원,라이브 스코어,음성 득점,음성 기록,음성 인식
 **설명（4000자 이내）**
 
 Basketball Journey는 훈련 경기, 길거리 농구, 팀 내 연습 경기를 위한 농구 기록 앱입니다. 득점, 선수 통계, 경기 기록 및 경력 데이터를 빠르게 기록할 수 있습니다.
@@ -320,6 +370,12 @@ Basketball Journey는 훈련 경기, 길거리 농구, 팀 내 연습 경기를 
 - 길거리 농구 빠른 득점 기록
 - 시즌 검토 및 개인 성장 추적
 
+Terms of Use:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+Privacy Policy:
+https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
+
 ---
 
 ### Русский（Russian）
@@ -328,6 +384,8 @@ Basketball Journey는 훈련 경기, 길거리 농구, 팀 내 연습 경기를 
 
 Записывайте каждую баскетбольную игру с автоматической статистикой игроков и команд. Bluetooth-синхронизация, импорт/экспорт, ИИ-резюме и выбор MVP. Ваш баскетбольный путь задокументирован.
 
+
+**关键词（100字符内，逗号分隔）**：баскетбол,статистика,команда,игрок,судья,турнир,табло,голосовой подсчёт,голосовое распознавание
 **Описание（4000 символов）**
 
 Basketball Journey — это приложение для записи баскетбольных матчей для тренировок, уличных игр и командных соревнований. Быстро фиксируйте очки, статистику игроков, историю игр и карьерные данные.
