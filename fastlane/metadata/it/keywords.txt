@@ -1,1 +1,1 @@
-basket,segnapunti,statistiche,squadra,giocatore,arbitro,torneo,scouting,tabellone,punti,punteggio
+basket,segnapunti,statistiche,squadra,giocatore,arbitro,torneo,tabellone,punteggio vocale,punti

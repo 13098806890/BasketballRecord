@@ -1,1 +1,1 @@
-baloncesto,anotador,estadísticas,equipo,jugador,árbitro,torneo,scouting,marcador,puntuación vivo
+baloncesto,anotador,estadísticas,equipo,jugador,árbitro,torneo,marcador,anotación voz,puntuación
