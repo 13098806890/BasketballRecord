@@ -765,6 +765,7 @@ private enum SettingsDocument: String, Identifiable {
 
 private struct SettingsDocumentView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     let document: SettingsDocument
 
     var body: some View {
