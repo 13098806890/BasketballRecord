@@ -251,8 +251,8 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             if playerName != nil { logPlayerName = playerName }
             logPattern = matchedPattern ?? logPattern
             logIsSuccess = logIsSuccess || isSuccess
-            // Auto-flush on final result: success with action+player, or any ❌/failure terminator
-            let isFailure = matchDetail?.hasPrefix("❌") == true || matchDetail?.hasPrefix("全文无匹配") == true || action == "换人" && !isSuccess
+            // Auto-flush on final result: success with action+player, or any ❌ failure terminator
+            let isFailure = matchDetail?.hasPrefix("❌") == true || (!isSuccess && (matchDetail != nil || action != nil))
             if (isSuccess && action != nil && playerName != nil) || isFailure {
                 logFlush(isSuccess: isSuccess, action: action, playerName: playerName, matchedPattern: matchedPattern)
             }
@@ -466,9 +466,12 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
                 let pn = store.player(for: playerID)?.name ?? "?"
                 addLog(text: text, isSuccess: true, action: act.message, playerName: pn, matchedPattern: eventCode, matchDetail: "自定义映射: \(phrase)")
-                match = (playerID, side, act); flashColor = .green; onAction?(act, playerID, side)
+                let actCopy = act; let pidCopy = playerID; let sideCopy = side
+                DispatchQueue.main.async { [self] in
+                    match = (pidCopy, sideCopy, actCopy); flashColor = .green; onAction?(actCopy, pidCopy, sideCopy)
+                }
                 Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
-                Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == playerID { match = nil } } }
+                Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == pidCopy { match = nil } } }
                 return
             }
         }
@@ -581,9 +584,12 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
             let pn = store.player(for: pid)?.name ?? "?"
             addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: finalCode, matchDetail: "球员匹配: \(dbgPlayer)")
-            match = (pid, sd, action); flashColor = .green; onAction?(action, pid, sd)
+            let actCopy = action; let pidCopy = pid; let sideCopy = sd
+            DispatchQueue.main.async { [self] in
+                match = (pidCopy, sideCopy, actCopy); flashColor = .green; onAction?(actCopy, pidCopy, sideCopy)
+            }
             Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
-            Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == pid { match = nil } } }
+            Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == pidCopy { match = nil } } }
             return true
         }
 
@@ -664,9 +670,12 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             }
             let pn = store.player(for: pid)?.name ?? "?"
             addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: finalCode, matchDetail: "拼音回退球员: \(dbgPlayer)")
-            match = (pid, sd, action); flashColor = .green; onAction?(action, pid, sd)
+            let actCopy = action; let pidCopy = pid; let sideCopy = sd
+            DispatchQueue.main.async { [self] in
+                match = (pidCopy, sideCopy, actCopy); flashColor = .green; onAction?(actCopy, pidCopy, sideCopy)
+            }
             Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
-            Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == pid { match = nil } } }
+            Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == pidCopy { match = nil } } }
             return
         }
 
@@ -689,7 +698,8 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 if code == "event.period" { cmd = .startPeriod }
                 else if code == "event.pause" { cmd = .togglePause }
                 else { cmd = .finishGame }
-                onCommand?(cmd)
+                let cmdCopy = cmd
+                DispatchQueue.main.async { [self] in onCommand?(cmdCopy); flashColor = .green }
                 Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
                 return
             }

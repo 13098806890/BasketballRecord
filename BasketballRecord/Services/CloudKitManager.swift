@@ -134,27 +134,29 @@ final class CloudKitManager: ObservableObject {
             return []
         }
 
-        var games: [SavedGame] = []
-        for id in ids {
-            let recordID = CKRecord.ID(recordName: id.uuidString)
-            do {
-                let record = try await database.record(for: recordID)
-                guard let asset = record["gameData"] as? CKAsset,
-                      let fileURL = asset.fileURL,
-                      let data = try? Data(contentsOf: fileURL),
-                      let game = try? JSONDecoder().decode(SavedGame.self, from: data) else {
-                    print("[CloudKit] Failed to decode record for \(id)")
-                    continue
+        let recordIDs = ids.map { CKRecord.ID(recordName: $0.uuidString) }
+        return await withCheckedContinuation { continuation in
+            let operation = CKFetchRecordsOperation(recordIDs: recordIDs)
+            operation.fetchRecordsCompletionBlock = { recordsByID, error in
+                if let error {
+                    print("[CloudKit] Batch fetch error: \(error)")
+                    continuation.resume(returning: [])
+                    return
                 }
-                games.append(game)
-            } catch CKError.unknownItem {
-                print("[CloudKit] Record not found: \(id)")
-            } catch {
-                print("[CloudKit] Error fetching \(id): \(error)")
+                var games: [SavedGame] = []
+                for (_, record) in recordsByID ?? [:] {
+                    if let asset = record["gameData"] as? CKAsset,
+                       let fileURL = asset.fileURL,
+                       let data = try? Data(contentsOf: fileURL),
+                       let game = try? JSONDecoder().decode(SavedGame.self, from: data) {
+                        games.append(game)
+                    }
+                }
+                print("[CloudKit] Fetched \(games.count)/\(ids.count) games")
+                continuation.resume(returning: games)
             }
+            database.add(operation)
         }
-        print("[CloudKit] Fetched \(games.count)/\(ids.count) games")
-        return games
     }
 
     /// Sync local games marked as cloud-enabled to CloudKit, and download any new games.

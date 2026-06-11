@@ -39,8 +39,8 @@ struct VoiceLogView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 2) {
-                        if let pinyin = Optional(entry.textPinyin), !pinyin.isEmpty {
-                            Text("拼音: \(pinyin)")
+                        if !entry.textPinyin.isEmpty {
+                            Text("Pinyin: \(entry.textPinyin)")
                                 .font(.caption2)
                                 .foregroundStyle(.tertiary)
                         }
@@ -103,11 +103,11 @@ struct VoiceLogView: View {
         var lines: [String] = []
         let icon = entry.isSuccess ? "✅" : "❌"
         lines.append("\(icon) \(entry.text)")
-        lines.append("时间: \(entry.timestamp.formatted(date: .omitted, time: .standard))")
-        lines.append("拼音: \(entry.textPinyin)")
-        if let name = entry.playerName { lines.append("球员: \(name)") }
-        if let action = entry.action { lines.append("动作: \(action)") }
-        if let detail = entry.matchDetail { lines.append("详情: \(detail)") }
+        lines.append("Time: \(entry.timestamp.formatted(date: .omitted, time: .standard))")
+        lines.append("Pinyin: \(entry.textPinyin)")
+        if let name = entry.playerName { lines.append("Player: \(name)") }
+        if let action = entry.action { lines.append("Action: \(action)") }
+        if let detail = entry.matchDetail { lines.append("Detail: \(detail)") }
         return lines.joined(separator: "\n")
     }
 }
