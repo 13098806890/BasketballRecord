@@ -150,6 +150,8 @@
 "text_simulating" = "シミュレーション中...";
 "team_home_default" = "ホーム";
 "team_away_default" = "アウェイ";
+"demo_team_shohoku" = "湘北";
+"demo_team_ryonan" = "陵南";
 "label_events" = "イベント";
 "text_no_players" = "選手がいません";
 "label_rec" = "REC";
@@ -743,10 +745,12 @@
 "deepseek_error_request_failed_format" = "リクエストに失敗しました（%d）: %@";
 /* AppStore */
 "player_unknown_default" = "不明な選手";
-"sample_player_1" = "Alex Carter";
-"sample_player_2" = "Jordan Lee";
-"sample_player_3" = "Sam Rivera";
-"sample_player_4" = "Casey Park";
+"demo_player_haruko" = "赤木晴子";
+"demo_player_sakuragi" = "桜木花道";
+"demo_player_rukawa" = "流川楓";
+"demo_player_sendoh" = "仙道";
+"demo_player_ayako" = "彩子";
+"demo_player_maki" = "牧紳一";
 
 /* Game Grouping */
 "game_group_nav_title" = "試合グループ";

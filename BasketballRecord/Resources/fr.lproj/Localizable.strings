@@ -143,6 +143,8 @@
 "text_simulating" = "Simulation en cours...";
 "team_home_default" = "Domicile";
 "team_away_default" = "Visiteur";
+"demo_team_shohoku" = "Shohoku";
+"demo_team_ryonan" = "Ryonan";
 "label_events" = "Événements";
 "text_no_players" = "Aucun joueur";
 "label_rec" = "REC";
@@ -806,10 +808,12 @@
 "deepseek_error_empty_response" = "Le modèle a renvoyé une réponse vide. Veuillez réessayer plus tard.";
 "deepseek_error_request_failed_format" = "Demande échouée (%d) : %@";
 "player_unknown_default" = "Joueur inconnu";
-"sample_player_1" = "Alex Carter";
-"sample_player_2" = "Jordan Lee";
-"sample_player_3" = "Sam Rivera";
-"sample_player_4" = "Casey Park";
+"demo_player_haruko" = "Haruko Akagi";
+"demo_player_sakuragi" = "Hanamichi Sakuragi";
+"demo_player_rukawa" = "Kaede Rukawa";
+"demo_player_sendoh" = "Sendoh";
+"demo_player_ayako" = "Ayako";
+"demo_player_maki" = "Shinichi Maki";
 "ai_system_role" = "You are a professional basketball analyst and commentator.";
 "ai_test_connection_prompt" = "Please reply only with: Connection successful";
 "ai_prompt_task_description" = "You will generate a post-game review based on basketball game data. Output strictly in English and follow the Markdown structure below. Do not add other level-1 titles:";
