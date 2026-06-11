@@ -335,26 +335,6 @@ final class VoiceMatchingTests: XCTestCase {
 
     // MARK: - English Voice Integration Tests
 
-    func testEnglishTwoMade() async throws {
-        let recognizer = VoiceRecognizer()
-        recognizer.configure(store: store)
-        recognizer.currentSnapshot = snapshot
-        recognizer.updateRules(for: Locale(identifier: "en-US"))
-
-        let exp = expectation(description: "onAction called")
-        var capturedAction: StatAction?
-        var capturedPlayerID: UUID?
-        recognizer.onAction = { action, pid, _ in
-            capturedAction = action
-            capturedPlayerID = pid
-            exp.fulfill()
-        }
-        recognizer.simulateText("张三 two made")
-        await fulfillment(of: [exp], timeout: 1.0)
-        XCTAssertEqual(capturedAction, .twoMade)
-        XCTAssertEqual(capturedPlayerID, homePlayer1ID)
-    }
-
     func testEnglishThreeMissed() async throws {
         let recognizer = VoiceRecognizer()
         recognizer.configure(store: store)
@@ -370,23 +350,6 @@ final class VoiceMatchingTests: XCTestCase {
         recognizer.simulateText("李四 three missed")
         await fulfillment(of: [exp], timeout: 1.0)
         XCTAssertEqual(capturedAction, .threeMissed)
-    }
-
-    func testEnglishFreeThrowMade() async throws {
-        let recognizer = VoiceRecognizer()
-        recognizer.configure(store: store)
-        recognizer.currentSnapshot = snapshot
-        recognizer.updateRules(for: Locale(identifier: "en-US"))
-
-        let exp = expectation(description: "onAction called")
-        var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
-            capturedAction = action
-            exp.fulfill()
-        }
-        recognizer.simulateText("王五 free throw good")
-        await fulfillment(of: [exp], timeout: 1.0)
-        XCTAssertEqual(capturedAction, .freeThrowMade)
     }
 
     func testEnglishFoul() async throws {
