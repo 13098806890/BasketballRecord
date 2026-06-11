@@ -28,25 +28,30 @@
 
 **宣传文本（170 字以内）**
 
-记录每一场篮球比赛，自动统计球员与球队数据，支持蓝牙协同记分、导入导出和 AI 赛后总结与 MVP 评选，让你的篮球生涯有据可查。
+记录每一场篮球比赛，自动统计球员与球队数据，支持语音记分、蓝牙协同、导入导出和 AI 赛后总结，让你的篮球生涯有据可查。
 
 **描述（4000 字以内）**
 
-篮球生涯是一款面向训练赛、野球局和队内比赛的篮球记录应用。你可以快速完成比赛记分、球员技术统计、历史回看与生涯数据整理。
+篮球生涯是一款专为篮球爱好者、球队训练和业余赛事打造的比赛记录与数据统计应用。
 
-核心功能：
+主要功能：
 
-- **快速记分与技术统计**：支持 2 分 / 3 分、罚球、篮板、助攻、抢断、盖帽、失误、犯规等完整数据；
-- **完整比赛流程**：支持开节、暂停、继续、换人、晚到球员加入、自动结束节次与结束比赛；
-- **球队与球员管理**：可创建、编辑球队与球员，支持头像、号码、身高、体重等信息；
-- **历史与生涯分析**：按比赛查看详情，按球员查看累计与场均数据，支持首发 / 替补场次统计；
-- **AI 比赛总结**：接入 DeepSeek、OpenAI 或 Anthropic，可生成比赛总结、MVP 与高亮时刻，并保存到比赛记录；
-- **比赛分组管理**：创建分组对比赛进行归类，便于按组筛选历史与生涯数据；
+- **实时比赛记分与技术统计**：两分、三分、罚球、篮板、助攻、抢断、盖帽等完整数据记录；
+- **语音记分**：按住麦克风说出指令即可记录，支持 9 种语言，自动处理同音字等 ASR 错误；
+- **完整比赛流程管理**：开节、暂停、继续、换人、晚到球员加入、自动结束节次与结束比赛；
+- **球队与球员管理**：创建、编辑球队与球员，支持头像、号码、身高、体重等信息；
+- **生涯与赛季统计分析**：按比赛查看详情，按球员查看累计与场均数据；
+- **AI 比赛总结与 MVP 评选**：接入 DeepSeek、OpenAI 或 Anthropic，自动生成比赛总结与高光时刻；
+- **自定义比赛分组与赛季管理**：创建分组对比赛进行归类，便于筛选历史与生涯数据；
 - **蓝牙协同记分**：多台设备通过蓝牙实时同步记分事件，适合多人协作记录；
-- **iCloud 云存储**：将比赛数据同步到 iCloud，跨设备查看与恢复；
 - **数据导入导出**：支持备份、迁移与跨设备恢复，支持数据合并与 UUID 映射；
-- **撤销与重做**：记分过程中随时撤销或重做操作；
-- **比赛模拟**：快速模拟比赛数据用于测试或演示。
+- **iCloud 云同步（Pro）**：将比赛数据同步到 iCloud，跨设备查看与恢复。
+
+Terms of Use:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+Privacy Policy:
+https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
 适用场景：
 
@@ -60,31 +65,36 @@
 
 **Promotional Text (170 characters)**
 
-Record every basketball game with automatic player and team stats. Supports Bluetooth collaborative scoring, data import/export, AI-powered game summaries and MVP selection. Your basketball journey, documented.
+Record every basketball game with player and team stats. Voice scoring, Bluetooth collaboration, import/export, AI summaries and MVP. Your basketball journey, documented.
 
 **Description (4000 characters)**
 
-Basketball Journey is a basketball record app designed for training matches, pickup games, and intra-team scrimmages. Quickly track scores, player statistics, game history, and career data.
+Basketball Journey is a basketball record app for training matches, pickup games, and amateur tournaments.
 
-Core Features:
+Key Features:
 
-- **Quick Scoring & Full Stats**: 2PT/3PT, free throws, rebounds, assists, steals, blocks, turnovers, fouls, and more;
-- **Complete Game Flow**: Period management, substitutions, late-arriving players, auto-end period, pause/resume, and game completion;
-- **Team & Player Management**: Create and edit teams and players with avatars, jersey numbers, height, weight, and more;
-- **History & Career Analysis**: View per-game details, per-player cumulative and average stats, starter/bench game counts;
-- **AI Game Summaries**: Connect DeepSeek, OpenAI, or Anthropic to generate game summaries, MVP, and highlights — saved to game records;
+- **Real-time Scoring & Full Stats**: 2PT/3PT, free throws, rebounds, assists, steals, blocks, turnovers, fouls, and more;
+- **Voice Scoring**: Hold the mic and speak commands — supports 9 languages with intelligent ASR error handling;
+- **Complete Game Flow**: Period management, substitutions, late arrivals, auto-end period, pause/resume;
+- **Team & Player Management**: Avatars, jersey numbers, height, weight, and more;
+- **Career & Season Analysis**: Per-game details, per-player cumulative and average stats;
+- **AI Game Summaries & MVP**: Connect DeepSeek, OpenAI, or Anthropic for automatic game highlights;
 - **Game Groups**: Organize games into groups for filtered history and career views;
-- **Bluetooth Collaborative Scoring**: Sync scoring events in real-time across multiple devices via Bluetooth;
-- **iCloud Storage**: Sync game data to iCloud for cross-device access and restore;
-- **Data Import/Export**: Backup, migrate, and restore across devices, with data merging and UUID mapping;
-- **Undo & Redo**: Undo or redo scoring operations at any time;
-- **Game Simulation**: Quickly simulate game data for testing or demonstration.
+- **Bluetooth Collaborative Scoring**: Real-time sync across multiple devices;
+- **Data Import/Export**: Backup, migrate, and restore with UUID mapping;
+- **iCloud Sync (Pro)**: Sync game data across devices.
 
 Use Cases:
 
 - Team training and intra-team scrimmage recording
 - Quick pickup game scoring
 - Season review and personal growth tracking
+
+Terms of Use:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+Privacy Policy:
+https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
 ---
 
