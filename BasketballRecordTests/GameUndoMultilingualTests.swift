@@ -154,7 +154,6 @@ final class GameUndoMultilingualTests: XCTestCase {
     // MARK: - EventCode → Action Mapping (language-independent)
 
     func testAllStatActionsMapFromEventCode() {
-        let expectedCount = 14
         var foundCount = 0
         for action in StatAction.allCases {
             guard let mapped = StatAction.allCases.first(where: { $0.eventCode == action.eventCode }) else {
@@ -164,7 +163,7 @@ final class GameUndoMultilingualTests: XCTestCase {
             XCTAssertEqual(mapped, action)
             foundCount += 1
         }
-        XCTAssertEqual(foundCount, expectedCount)
+        XCTAssertEqual(foundCount, StatAction.allCases.count)
     }
 
     // MARK: - Multilingual Undo (eventCode + playerID bypass message parsing)
@@ -356,15 +355,16 @@ final class GameUndoMultilingualTests: XCTestCase {
         stats.twoMade = 1
         stats.twoAttempts = 1
         snapshot.statsByPlayerID[homePlayerID] = stats
+        let playerName = store.player(for: homePlayerID)?.name ?? "?"
         snapshot.logs.append(GameLogEntry(
             timestamp: Date(),
-            message: "张三 2分命中 (2:0)",
+            message: "\(playerName) \(StatAction.twoMade.message) (2:0)",
             eventCode: nil,
             playerID: nil
         ))
 
         let result = revertLastAction(in: &snapshot)
-        XCTAssertTrue(result, "Legacy Chinese-only undo should succeed via parseLog fallback")
+        XCTAssertTrue(result, "Legacy undo should succeed via parseLog fallback")
         XCTAssertEqual(snapshot.statsByPlayerID[homePlayerID]?.twoMade, 0)
     }
 
@@ -374,9 +374,10 @@ final class GameUndoMultilingualTests: XCTestCase {
         stats.twoMade = 1
         stats.twoAttempts = 1
         snapshot.statsByPlayerID[homePlayerID] = stats
+        let playerName = store.player(for: homePlayerID)?.name ?? "?"
         snapshot.logs.append(GameLogEntry(
             timestamp: Date(),
-            message: "张三 2分命中 (2:0)",
+            message: "\(playerName) \(StatAction.twoMade.message) (2:0)",
             eventCode: nil,
             playerID: homePlayerID
         ))

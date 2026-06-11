@@ -884,7 +884,8 @@ final class AppStore: ObservableObject {
             showsVoiceButton = meta.showsVoiceButton ?? true
             if let cm = meta.customVoiceMappings { customVoiceMappings = cm }
             if let vl = meta.voiceLog { voiceLog = vl }
-        } else {
+        } else if UserDefaults.standard.data(forKey: storageKey) == nil {
+            // Only seed sample data if no old storage exists (corrupt or not)
             seedSampleData()
         }
 

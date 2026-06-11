@@ -7,10 +7,12 @@ final class AppStoreOperationsTests: XCTestCase {
 
     override func setUpWithError() throws {
         clearStore()
+        CoreDataStore().clearAll()
     }
 
     override func tearDownWithError() throws {
         clearStore()
+        CoreDataStore().clearAll()
     }
 
     func testTeamExportImportRoundTripKeepsUUIDsAndBasicInfo() throws {
