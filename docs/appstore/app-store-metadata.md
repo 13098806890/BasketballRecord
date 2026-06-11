@@ -45,7 +45,7 @@
 - **自定义比赛分组与赛季管理**：创建分组对比赛进行归类，便于筛选历史与生涯数据；
 - **蓝牙协同记分**：多台设备通过蓝牙实时同步记分事件，适合多人协作记录；
 - **数据导入导出**：支持备份、迁移与跨设备恢复，支持数据合并与 UUID 映射；
-- **iCloud 云同步（Pro）**：将比赛数据同步到 iCloud，跨设备查看与恢复。
+- **iCloud (Pro)（Pro）（Pro） (Pro) (Pro) (Pro) 云同步（Pro）**：将比赛数据同步到 iCloud，跨设备查看与恢复。
 
 Terms of Use:
 https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
@@ -58,6 +58,17 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 - 球队训练与队内对抗赛记录
 - 野球局快速记分
 - 赛季复盘与个人成长追踪
+
+**新版本更新说明：**
+
+### 版本 1.21
+
+- **语音记分**：按住麦克风说出指令即可记录，支持 9 种语言
+- **语音快捷指令**：自定义短语映射到常用动作
+- **智能语音匹配**：自动处理同音字、声调偏差等 ASR 错误
+- **换人语音操作**：两种语序均可识别
+- **自定义多音字姓氏**：13 个常见姓氏自动适配
+- **语音日志**：查看每次识别的详细匹配过程
 
 ---
 
@@ -74,7 +85,7 @@ Basketball Journey is a basketball record app for training matches, pickup games
 Key Features:
 
 - **Real-time Scoring & Full Stats**: 2PT/3PT, free throws, rebounds, assists, steals, blocks, turnovers, fouls, and more;
-- **Voice Scoring**: Hold the mic and speak commands — supports 9 languages with intelligent ASR error handling;
+- **Voice Scoring (Pro)**: Hold the mic and speak commands — supports 9 languages with intelligent ASR error handling;
 - **Complete Game Flow**: Period management, substitutions, late arrivals, auto-end period, pause/resume;
 - **Team & Player Management**: Avatars, jersey numbers, height, weight, and more;
 - **Career & Season Analysis**: Per-game details, per-player cumulative and average stats;
@@ -82,7 +93,7 @@ Key Features:
 - **Game Groups**: Organize games into groups for filtered history and career views;
 - **Bluetooth Collaborative Scoring**: Real-time sync across multiple devices;
 - **Data Import/Export**: Backup, migrate, and restore with UUID mapping;
-- **iCloud Sync (Pro)**: Sync game data across devices.
+- **iCloud Sync (Pro)**: Sync game data across devices (Pro).
 
 Use Cases:
 
@@ -95,6 +106,17 @@ https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 
 Privacy Policy:
 https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
+
+**新版本更新说明：**
+
+### Version 1.21
+
+- **Voice Scoring**: Hold the mic and speak commands — supports 9 languages
+- **Voice Shortcuts**: Map custom phrases to frequent actions
+- **Smart ASR Matching**: Handles homophones, tone errors, and common misrecognitions
+- **Voice Substitution**: Supports both word orders for player substitutions
+- **Multi-surname Support**: 13 common Chinese surnames with variant pronunciations
+- **Voice Log**: Review detailed recognition steps for each command
 
 ---
 
@@ -117,7 +139,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 - **AI 比賽總結**：接入 DeepSeek、OpenAI 或 Anthropic，可生成比賽總結、MVP 與高光時刻，並儲存到比賽記錄；
 - **比賽分組管理**：建立分組對比賽進行歸類，便於按組篩選歷史與生涯資料；
 - **藍牙協同記分**：多臺裝置透過藍牙即時同步記分事件，適合多人協作記錄；
-- **iCloud 雲端儲存**：將比賽資料同步到 iCloud，跨裝置檢視與恢復；
+- **iCloud 雲端儲存（Pro）**：將比賽資料同步到 iCloud，跨裝置檢視與恢復；
 - **資料匯入匯出**：支援備份、遷移與跨裝置恢復，支援資料合併與 UUID 對應；
 - **復原與重做**：記分過程中隨時復原或重做操作；
 - **比賽模擬**：快速模擬比賽資料用於測試或展示。
@@ -134,6 +156,16 @@ https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 Privacy Policy:
 https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
+**新版本更新说明：**
+
+### 版本 1.21
+
+- **語音快捷指令**：自訂短語對應常用動作
+- **智慧語音匹配**：自動處理同音字、聲調偏差等 ASR 錯誤
+- **換人語音操作**：兩種語序均可辨識
+- **多音字姓氏支援**：13 個常見姓氏自動適配
+- **語音日誌**：查看每次識別的詳細匹配過程
+
 ---
 
 ### Deutsch（German）
@@ -145,7 +177,7 @@ Jedes Basketballspiel aufzeichnen, Spieler- und Teamstatistiken automatisch erfa
 
 **关键词（100字符内，逗号分隔）**：籃球,記分,比賽統計,球隊管理,球員資料,生涯統計,訓練賽,MVP,數據分析,裁判,記分員,技術統計,語音記分,語音辨識,比賽記錄
 
-**关键词（100字符内，逗号分隔）**：Basketball,Punktezähler,Statistik,Team,Spieler,Training,Turnier,Sprachsteuerung,Spracherkennung
+**关键词（100字符内，逗号分隔）**：Basketball,Punktezähler,Statistik,Team,Spieler,Training,Turnier,Sprachsteuerung (Pro),Spracherkennung
 **Beschreibung（4000 Zeichen）**
 
 Basketball Journey ist eine Basketball-Aufzeichnungs-App für Trainingsspiele, Pickup-Spiele und Mannschaftsinterne Spiele. Erfasse schnell Punkte, Spielerstatistiken, Spielverläufe und Karrieredaten.
@@ -159,10 +191,9 @@ Kernfunktionen:
 - **KI-Spielzusammenfassungen**: Verbinde DeepSeek, OpenAI oder Anthropic, um Zusammenfassungen, MVP und Highlights zu generieren und zu speichern;
 - **Spielgruppen**: Spiele in Gruppen organisieren für gefilterte Verlaufs- und Karriereansichten;
 - **Bluetooth-Kollaboration**: Punkteereignisse in Echtzeit über mehrere Geräte via Bluetooth synchronisieren;
-- **iCloud-Speicher**: Spieldaten in iCloud sichern für geräteübergreifenden Zugriff;
+- **iCloud-Speicher (Pro)**: Spieldaten in iCloud sichern für geräteübergreifenden Zugriff;
 - **Datenimport/Export**: Backup, Migration und Wiederherstellung mit Datenzusammenführung und UUID-Zuordnung;
 - **Rückgängig & Wiederholen**: Punkteoperationen jederzeit rückgängig machen oder wiederholen;
-- **Spielsimulation**: Spieldaten schnell für Tests oder Demonstrationen simulieren.
 
 Anwendungsfälle:
 
@@ -176,6 +207,17 @@ https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 Privacy Policy:
 https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
+**新版本更新说明：**
+
+### Version 1.21
+
+- **Sprachsteuerung**: Mikrofon gedrückt halten und Befehle sprechen — 9 Sprachen unterstützt
+- **Sprachbefehle**: Eigene Phrasen für häufige Aktionen festlegen
+- **Intelligente ASR-Erkennung**: Verarbeitet Homophone und Aussprachefehler
+- **Auswechslung per Sprache**: Beide Wortstellungen erkennbar
+- **Mehrsilbige Nachnamen**: 13 häufige chinesische Nachnamen mit Varianten
+- **Sprachprotokoll**: Detaillierte Erkennungsschritte einsehen
+
 ---
 
 ### Español（Spanish）
@@ -185,7 +227,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 Registra cada partido de baloncesto con estadísticas automáticas de jugadores y equipos. Colaboración Bluetooth, importación/exportación, resúmenes con IA y selección de MVP. Tu trayectoria baloncestística, documentada.
 
 
-**关键词（100字符内，逗号分隔）**：baloncesto,anotador,estadísticas,equipo,jugador,árbitro,torneo,marcador,anotación voz,puntuación
+**关键词（100字符内，逗号分隔）**：baloncesto,anotador,estadísticas,equipo,jugador,árbitro,torneo,marcador,anotación (Pro) voz,puntuación
 **Descripción（4000 caracteres）**
 
 Basketball Journey es una aplicación de registro de baloncesto para entrenamientos, partidos informales y scrimmages internos. Registra rápidamente puntuaciones, estadísticas de jugadores, historial y datos de carrera.
@@ -202,7 +244,6 @@ Funciones principales:
 - **Almacenamiento iCloud**: Sincroniza datos de partidos en iCloud para acceso multidispositivo;
 - **Importación/Exportación**: Copia de seguridad, migración y restauración con fusión de datos y mapeo UUID;
 - **Deshacer y rehacer**: Deshace o rehace operaciones de puntuación en cualquier momento;
-- **Simulación de partido**: Simula datos de partido rápidamente para pruebas o demostraciones.
 
 Casos de uso:
 
@@ -216,6 +257,17 @@ https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 Privacy Policy:
 https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
+**新版本更新说明：**
+
+### Versión 1.21
+
+- **Anotación por Voz**: Mantén el micrófono y habla comandos — 9 idiomas
+- **Accesos Directos de Voz**: Frases personalizadas para acciones frecuentes
+- **Coincidencia ASR Inteligente**: Maneja homófonos y errores de tono
+- **Sustitución por Voz**: Ambos órdenes de palabras reconocidos
+- **Apellidos Polifónicos**: 13 apellidos chinos comunes con variantes
+- **Registro de Voz**: Revisa los pasos de reconocimiento detallados
+
 ---
 
 ### Français（French）
@@ -225,7 +277,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 Enregistrez chaque match de basketball avec des statistiques automatiques. Collaboration Bluetooth, import/export, résumés IA et sélection MVP. Votre parcours basketball, documenté.
 
 
-**关键词（100字符内，逗号分隔）**：basketball,scoreur,statistiques,équipe,joueur,arbitre,tournoi,notation vocale,score direct,scout
+**关键词（100字符内，逗号分隔）**：basketball,scoreur,statistiques,équipe,joueur,arbitre,tournoi,notation vocal (Pro)e,score direct,scout
 **Description（4000 caractères）**
 
 Basketball Journey est une application d'enregistrement de basketball pour les entraînements, les matchs informels et les scrimmages internes. Suivez rapidement les scores, les statistiques des joueurs, l'historique et les données de carrière.
@@ -242,7 +294,6 @@ Fonctionnalités principales :
 - **Stockage iCloud** : Synchronisez les données de match sur iCloud pour un accès multi-appareils ;
 - **Import/Export** : Sauvegarde, migration et restauration avec fusion de données et mapping UUID ;
 - **Annuler et rétablir** : Annulez ou rétablissez les opérations à tout moment ;
-- **Simulation de match** : Simulez rapidement des données de match pour tests ou démonstrations.
 
 Cas d'utilisation :
 
@@ -256,6 +307,17 @@ https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 Privacy Policy:
 https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
+**新版本更新说明：**
+
+### Version 1.21
+
+- **Notation Vocale**: Maintenez le micro et parlez — 9 langues supportées
+- **Raccourcis Vocaux**: Phrases personnalisées pour actions fréquentes
+- **Reconnaissance ASR Intelligente**: Gère les homophones et erreurs de prononciation
+- **Remplacement Vocal**: Les deux ordres de mots reconnus
+- **Noms de Famille Polyphoniques**: 13 noms chinois courants avec variantes
+- **Journal Vocal**: Consultez les étapes détaillées de reconnaissance
+
 ---
 
 ### Italiano（Italian）
@@ -265,7 +327,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 Registra ogni partita di basket con statistiche automatiche. Collaborazione Bluetooth, import/export, riassunti AI e selezione MVP. Il tuo percorso nel basket, documentato.
 
 
-**关键词（100字符内，逗号分隔）**：basket,segnapunti,statistiche,squadra,giocatore,arbitro,torneo,tabellone,punteggio vocale,punti
+**关键词（100字符内，逗号分隔）**：basket,segnapunti,statistiche,squadra,giocatore,arbitro,torneo,tabellone,punteggio vocale (Pro),punti
 **Descrizione（4000 caratteri）**
 
 Basketball Journey è un'app per la registrazione di basket per allenamenti, partite improvvisate e scrimmage interni. Registra rapidamente punteggi, statistiche giocatori, cronologia e dati di carriera.
@@ -282,7 +344,6 @@ Funzionalità principali:
 - **Archiviazione iCloud**: Sincronizza dati partite su iCloud per accesso multi-dispositivo;
 - **Import/Export**: Backup, migrazione e ripristino con fusione dati e mapping UUID;
 - **Annulla e ripeti**: Annulla o ripeti le operazioni in qualsiasi momento;
-- **Simulazione partita**: Simula rapidamente dati di partita per test o dimostrazioni.
 
 Casi d'uso:
 
@@ -296,6 +357,17 @@ https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 Privacy Policy:
 https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
+**新版本更新说明：**
+
+### Versione 1.21
+
+- **Punteggio Vocale**: Tieni premuto il microfono e parla — 9 lingue supportate
+- **Scorciatoie Vocali**: Frasi personalizzate per azioni frequenti
+- **Corrispondenza ASR Intelligente**: Gestisce omofoni ed errori di tono
+- **Sostituzione Vocale**: Entrambi gli ordini delle parole riconosciuti
+- **Cognomi Polifonici**: 13 cognomi cinesi comuni con varianti
+- **Registro Vocale**: Rivedi i dettagli del riconoscimento
+
 ---
 
 ### 日本語（Japanese）
@@ -305,7 +377,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 すべてのバスケットボールの試合を記録し、選手とチームの統計を自動集計。Bluetooth 協調記録、インポート/エクスポート、AI 試合サマリーと MVP 選出に対応。
 
 
-**关键词（100字符内，逗号分隔）**：バスケ,得点板,試合記録,統計,チーム管理,選手データ,練習試合,MVP,審判,得点係,トーナメント,ライブスコア,音声記録,音声認識,音声得点
+**关键词（100字符内，逗号分隔）**：バスケ,得点板,試合記録,統計,チーム管理,選手データ,練習試合,MVP,審判,得点係,トーナメント,ライブスコア,音声（Pro）記録,音声認識,音声得点
 **説明（4000 文字以内）**
 
 Basketball Journey は、トレーニングマッチ、ストリートバスケ、チーム内練習試合のためのバスケットボール記録アプリです。素早く得点、選手統計、試合履歴、キャリアデータを記録できます。
@@ -322,7 +394,6 @@ Basketball Journey は、トレーニングマッチ、ストリートバスケ�
 - **iCloud ストレージ**：試合データを iCloud に同期してデバイス間でアクセス；
 - **データインポート/エクスポート**：バックアップ、移行、復元、データ結合と UUID マッピングに対応；
 - **元に戻す/やり直す**：いつでも操作を元に戻したりやり直したり可能；
-- **試合シミュレーション**：テストやデモ用に試合データをすばやく生成。
 
 使用例：
 
@@ -336,6 +407,17 @@ https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 Privacy Policy:
 https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
+**新版本更新说明：**
+
+### バージョン 1.21
+
+- **音声記録**: マイクを押しながら話すだけで記録、9言語対応
+- **音声ショートカット**: よく使う操作にフレーズを割り当て
+- **スマートASRマッチング**: 同音異義語や声調の誤りを自動処理
+- **音声交代**: 両方の語順を認識可能
+- **多音字姓対応**: 13の一般的な中国姓に異なる発音を自動適用
+- **音声ログ**: 認識の詳細な過程を確認
+
 ---
 
 ### 한국어（Korean）
@@ -345,7 +427,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 모든 농구 경기를 기록하고 선수와 팀 통계를 자동 집계합니다. Bluetooth 협업 기록, 가져오기/내보내기, AI 경기 요약 및 MVP 선정을 지원합니다.
 
 
-**关键词（100字符内，逗号分隔）**：농구,득점판,경기 기록,통계,팀 관리,선수 데이터,연습 경기,MVP,심판,득점원,라이브 스코어,음성 득점,음성 기록,음성 인식
+**关键词（100字符内，逗号分隔）**：농구,득점판,경기 기록,통계,팀 관리,선수 데이터,연습 경기,MVP,심판,득점원,라이브 스코어,음성（Pro） 득점,음성 기록,음성 인식
 **설명（4000자 이내）**
 
 Basketball Journey는 훈련 경기, 길거리 농구, 팀 내 연습 경기를 위한 농구 기록 앱입니다. 득점, 선수 통계, 경기 기록 및 경력 데이터를 빠르게 기록할 수 있습니다.
@@ -362,7 +444,6 @@ Basketball Journey는 훈련 경기, 길거리 농구, 팀 내 연습 경기를 
 - **iCloud 저장소**: 경기 데이터를 iCloud에 동기화하여 기기 간 액세스;
 - **데이터 가져오기/내보내기**: 백업, 마이그레이션, 복원, 데이터 병합 및 UUID 매핑 지원;
 - **실행 취소/다시 실행**: 언제든지 작업을 실행 취소하거나 다시 실행;
-- **경기 시뮬레이션**: 테스트 또는 데모용 경기 데이터 빠르게 생성.
 
 사용 사례:
 
@@ -376,6 +457,17 @@ https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 Privacy Policy:
 https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
+**新版本更新说明：**
+
+### 버전 1.21
+
+- **음성 득점**: 마이크를 누르고 명령을 말하면 기록, 9개 언어 지원
+- **음성 단축키**: 자주 쓰는 동작에 문구 매핑
+- **지능형 ASR 매칭**: 동음이의어 및 성조 오류 자동 처리
+- **음성 교체**: 두 가지 어순 모두 인식 가능
+- **다성 문자 성 지원**: 13개 중국 성씨 변형 발음 자동 적용
+- **음성 로그**: 인식 상세 과정 확인
+
 ---
 
 ### Русский（Russian）
@@ -385,7 +477,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 Записывайте каждую баскетбольную игру с автоматической статистикой игроков и команд. Bluetooth-синхронизация, импорт/экспорт, ИИ-резюме и выбор MVP. Ваш баскетбольный путь задокументирован.
 
 
-**关键词（100字符内，逗号分隔）**：баскетбол,статистика,команда,игрок,судья,турнир,табло,голосовой подсчёт,голосовое распознавание
+**关键词（100字符内，逗号分隔）**：баскетбол,статистика,команда,игрок,судья,турнир,табло,голосовой (Pro) подсчёт,голосовое распознавание
 **Описание（4000 символов）**
 
 Basketball Journey — это приложение для записи баскетбольных матчей для тренировок, уличных игр и командных соревнований. Быстро фиксируйте очки, статистику игроков, историю игр и карьерные данные.
@@ -402,13 +494,23 @@ Basketball Journey — это приложение для записи баск�
 - **iCloud-хранилище**: Синхронизируйте данные игр в iCloud для доступа с разных устройств;
 - **Импорт/Экспорт данных**: Резервное копирование, миграция и восстановление с объединением данных и сопоставлением UUID;
 - **Отмена и повтор**: Отменяйте или повторяйте операции в любое время;
-- **Симуляция игры**: Быстро создавайте данные игры для тестирования или демонстрации.
 
 Сценарии использования:
 
 - Командные тренировки и внутренние соревнования
 - Быстрая запись уличных игр
 - Обзор сезона и отслеживание личного прогресса
+
+**新版本更新说明：**
+
+### Версия 1.21
+
+- **Голосовой подсчёт**: Нажмите микрофон и говорите — поддержка 9 языков
+- **Голосовые команды**: Настройте фразы для частых действий
+- **Умное ASR-сопоставление**: Обрабатывает омофоны и ошибки произношения
+- **Замена голосом**: Распознаёт оба порядка слов
+- **Многословные фамилии**: 13 распространённых китайских фамилий с вариантами
+- **Журнал распознавания**: Просмотр детальных шагов распознавания
 
 ---
 
