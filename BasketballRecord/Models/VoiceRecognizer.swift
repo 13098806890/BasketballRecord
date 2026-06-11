@@ -38,6 +38,14 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     @Published var flashColor: Color?
     @Published var errorMessage: String?
     private let maxLogCount = 200
+    /// Buffered log detail for the current recognition session.
+    /// Accumulates all matching steps; flushed to store.voiceLog on completion or failure.
+    private var logBuffer: String = ""
+    private var logText: String = ""
+    private var logIsSuccess = false
+    private var logAction: String?
+    private var logPlayerName: String?
+    private var logPattern: String?
 
     /// Generate pinyin variants for a player name that may contain English letters/abbreviations.
     /// Only generates variants for multi-letter names (2-4 chars) to avoid short-name false matches.
@@ -204,7 +212,52 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         try? AVAudioSession.sharedInstance().setActive(false)
     }
 
+    /// Start buffering log details for a new recognition session.
+    private func logStart(_ text: String) {
+        logText = text
+        logBuffer = ""
+        logIsSuccess = false
+        logAction = nil
+        logPlayerName = nil
+        logPattern = nil
+    }
+
+    /// Append a step detail to the buffer (does NOT write to store yet).
+    private func logStep(_ msg: String) {
+        if logBuffer.isEmpty { logBuffer = msg }
+        else { logBuffer += " | \(msg)" }
+    }
+
+    /// Finalize and persist the log entry with the accumulated buffer.
+    private func logFlush(isSuccess: Bool, action: String? = nil, playerName: String? = nil, matchedPattern: String? = nil) {
+        guard let store else { return }
+        let entry = VoiceLogEntry(
+            timestamp: Date(), text: logText,
+            textPinyin: Self.toPinyin(logText),
+            isSuccess: isSuccess, action: action ?? logAction,
+            playerName: playerName ?? logPlayerName,
+            matchedPattern: matchedPattern ?? logPattern,
+            matchDetail: logBuffer
+        )
+        store.voiceLog.insert(entry, at: 0)
+        if store.voiceLog.count > maxLogCount { store.voiceLog.removeLast() }
+    }
+
     private func addLog(text: String, isSuccess: Bool, action: String? = nil, playerName: String? = nil, matchedPattern: String? = nil, matchDetail: String? = nil) {
+        // If a log buffer is active, accumulate into the buffer.
+        if !logText.isEmpty {
+            if let detail = matchDetail { logStep(detail) }
+            if action != nil { logAction = action }
+            if playerName != nil { logPlayerName = playerName }
+            logPattern = matchedPattern ?? logPattern
+            logIsSuccess = logIsSuccess || isSuccess
+            // Auto-flush on final result: success with action+player, or any ❌/failure terminator
+            let isFailure = matchDetail?.hasPrefix("❌") == true || matchDetail?.hasPrefix("全文无匹配") == true || action == "换人" && !isSuccess
+            if (isSuccess && action != nil && playerName != nil) || isFailure {
+                logFlush(isSuccess: isSuccess, action: action, playerName: playerName, matchedPattern: matchedPattern)
+            }
+            return
+        }
         guard let store else { return }
         let entry = VoiceLogEntry(
             timestamp: Date(), text: text,
@@ -379,8 +432,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     private func processText(_ text: String) {
+        logStart(text)
         let textPinyin = Self.toPinyin(text)
-        addLog(text: text, isSuccess: false, action: nil, matchDetail: "开始匹配 → 原文: \(text) | 拼音: \(textPinyin)")
+        logStep("原文: \(text) | 拼音: \(textPinyin)")
 
         // Priority 1: Check custom voice mappings — contains-match, not exact dict lookup
         if let mappings = store?.customVoiceMappings {
@@ -458,12 +512,24 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
             let number = extractNumber(from: text)
             if let number {
+                let preferredSide = detectTeamPrefix(text)
                 for id in allIDs {
                     guard let p = store.player(for: id) else { continue }
-                    if p.number == "\(number)" {
-                        playerID = id; side = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away; playerScore = 100
-                        dbgPlayer = "号码\(number)直配"
-                        break
+                    guard p.number == "\(number)" else { continue }
+                    let pSide: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
+                    if let pref = preferredSide, pSide != pref { continue }
+                    playerID = id; side = pSide; playerScore = 100
+                    dbgPlayer = "号码\(number)直配\(preferredSide.map { $0 == .home ? "(主队)" : "(客队)" } ?? "")"
+                    break
+                }
+                if playerID == nil, preferredSide != nil {
+                    for id in allIDs {
+                        guard let p = store.player(for: id) else { continue }
+                        if p.number == "\(number)" {
+                            playerID = id; side = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away; playerScore = 100
+                            dbgPlayer = "号码\(number)直配(跨队)"
+                            break
+                        }
                     }
                 }
             }
@@ -556,12 +622,24 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             var playerID: UUID?; var side: TeamSide?; var playerScore: Double = 0; var dbgPlayer = ""
             let number = extractNumber(from: text)
             if let number {
+                let preferredSide = detectTeamPrefix(text)
                 for id in allIDs {
                     guard let p = store.player(for: id) else { continue }
-                    if p.number == "\(number)" {
-                        playerID = id; side = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away; playerScore = 100
-                        dbgPlayer = "号码\(number)直配"
-                        break
+                    guard p.number == "\(number)" else { continue }
+                    let pSide: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
+                    if let pref = preferredSide, pSide != pref { continue }
+                    playerID = id; side = pSide; playerScore = 100
+                    dbgPlayer = "号码\(number)直配\(preferredSide.map { $0 == .home ? "(主队)" : "(客队)" } ?? "")"
+                    break
+                }
+                if playerID == nil, preferredSide != nil {
+                    for id in allIDs {
+                        guard let p = store.player(for: id) else { continue }
+                        if p.number == "\(number)" {
+                            playerID = id; side = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away; playerScore = 100
+                            dbgPlayer = "号码\(number)直配(跨队)"
+                            break
+                        }
                     }
                 }
             }
@@ -620,6 +698,17 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         addLog(text: text, isSuccess: false, matchDetail: "❌ 全文无匹配: \(text) | 拼音: \(textPinyin)")
         showError("未识别：\"\(text)\""); flashColor = .red
         Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
+    }
+
+    /// Detect team prefix in text: "主队", "客队" or their pinyin
+    private func detectTeamPrefix(_ text: String) -> TeamSide? {
+        let lower = text.lowercased().trimmingCharacters(in: .whitespaces)
+        if lower.hasPrefix("主队") || lower.hasPrefix("zhudui") || lower.hasPrefix("zhu dui") { return .home }
+        if lower.hasPrefix("客队") || lower.hasPrefix("kedui") || lower.hasPrefix("ke dui") { return .away }
+        // English variants
+        if lower.hasPrefix("home") { return .home }
+        if lower.hasPrefix("away") { return .away }
+        return nil
     }
 
     private func extractNumber(from text: String) -> Int? {

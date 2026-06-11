@@ -56,22 +56,6 @@ struct RosterView: View {
                             .labelsHidden()
                     }
 
-                    HStack(spacing: 12) {
-                        Image(systemName: "mic.fill")
-                            .font(.subheadline.weight(.semibold))
-                            .symbolRenderingMode(.monochrome)
-                            .foregroundStyle(.secondary)
-                            .frame(width: 28, height: 28)
-
-                        Text(LocalizedStringKey("settings_show_voice_button"))
-                            .font(.body.weight(.medium))
-
-                        Spacer()
-
-                        Toggle("", isOn: $store.showsVoiceButton)
-                            .labelsHidden()
-                    }
-
                     NavigationLink {
                         VoiceSettingsView(store: store)
                     } label: {

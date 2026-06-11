@@ -121,10 +121,7 @@ struct VoiceShortcutSettingsView: View {
                 Section(LocalizedStringKey("voice_shortcuts_shot_section")) {
                     Picker(LocalizedStringKey("voice_shortcuts_action"), selection: $newEvent) {
                         ForEach(shotActions, id: \.self) { action in
-                            HStack {
-                                Image(systemName: icon(for: action))
-                                Text(NSLocalizedString(action.messageKey, comment: ""))
-                            }.tag(action)
+                            Text(NSLocalizedString(action.messageKey, comment: "")).tag(action)
                         }
                     }
                     .pickerStyle(.menu)
@@ -133,10 +130,7 @@ struct VoiceShortcutSettingsView: View {
                 Section(LocalizedStringKey("voice_shortcuts_stat_section")) {
                     Picker(LocalizedStringKey("voice_shortcuts_action"), selection: $newEvent) {
                         ForEach(statActions, id: \.self) { action in
-                            HStack {
-                                Image(systemName: icon(for: action))
-                                Text(NSLocalizedString(action.messageKey, comment: ""))
-                            }.tag(action)
+                            Text(NSLocalizedString(action.messageKey, comment: "")).tag(action)
                         }
                     }
                     .pickerStyle(.menu)
