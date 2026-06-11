@@ -137,23 +137,29 @@ final class CloudKitManager: ObservableObject {
         let recordIDs = ids.map { CKRecord.ID(recordName: $0.uuidString) }
         return await withCheckedContinuation { continuation in
             let operation = CKFetchRecordsOperation(recordIDs: recordIDs)
-            operation.fetchRecordsCompletionBlock = { recordsByID, error in
-                if let error {
-                    print("[CloudKit] Batch fetch error: \(error)")
-                    continuation.resume(returning: [])
-                    return
-                }
-                var games: [SavedGame] = []
-                for (_, record) in recordsByID ?? [:] {
+            var games: [SavedGame] = []
+            operation.perRecordResultBlock = { _, recordResult in
+                switch recordResult {
+                case .success(let record):
                     if let asset = record["gameData"] as? CKAsset,
                        let fileURL = asset.fileURL,
                        let data = try? Data(contentsOf: fileURL),
                        let game = try? JSONDecoder().decode(SavedGame.self, from: data) {
                         games.append(game)
                     }
+                case .failure(let error):
+                    print("[CloudKit] Fetch error: \(error)")
                 }
-                print("[CloudKit] Fetched \(games.count)/\(ids.count) games")
-                continuation.resume(returning: games)
+            }
+            operation.fetchRecordsResultBlock = { result in
+                switch result {
+                case .success:
+                    print("[CloudKit] Fetched \(games.count)/\(ids.count) games")
+                    continuation.resume(returning: games)
+                case .failure(let error):
+                    print("[CloudKit] Batch fetch error: \(error)")
+                    continuation.resume(returning: [])
+                }
             }
             database.add(operation)
         }

@@ -348,7 +348,7 @@ struct GameView: View {
         }
         .scrollBounceBehavior(.basedOnSize)
         .overlay(alignment: .bottom) {
-            if store.showsVoiceButton, !needsNewGameSetup {
+            if store.showsVoiceButton, store.isPro, !needsNewGameSetup {
                 VStack(spacing: 6) {
                     if let error = voiceRecognizer.errorMessage {
                         Text(error)
@@ -835,10 +835,6 @@ struct GameView: View {
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in
-                    guard store.isPro else {
-                        isShowingPurchase = true
-                        return
-                    }
                     if !voiceRecognizer.isRecording {
                         voiceRecognizer.startRecording()
                     }
@@ -2722,7 +2718,6 @@ struct GameView: View {
                 outgoingID = storedOutgoingID
             } else {
                 let message = lastLog.message
-                let incomingName = name(for: incomingID)
                 let allPlayers = players(in: snapshot.homeTeamID) + players(in: snapshot.awayTeamID)
                 let playerNames = allPlayers.filter { $0.id != incomingID && message.contains($0.name) }
                 if let outgoingMatch = playerNames.max(by: { $0.name.count < $1.name.count }) {
