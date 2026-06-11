@@ -56,6 +56,7 @@ struct GameView: View {
     @State private var highlightedLogDismissTask: Task<Void, Never>?
     @State private var showAutoEndAlert = false
     @State private var autoEndAlertMessage = ""
+    @State private var isShowingPurchase = false
     @StateObject private var voiceRecognizer = VoiceRecognizer()
 
     private let matchClockTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -156,6 +157,9 @@ struct GameView: View {
                     awayUnregisteredPlayers: unregisteredPlayers(for: .away),
                     onConfirm: performLateArrival
                 )
+            }
+            .sheet(isPresented: $isShowingPurchase) {
+                ProSubscriptionStoreView()
             }
     }
 
@@ -831,6 +835,10 @@ struct GameView: View {
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in
+                    guard store.isPro else {
+                        isShowingPurchase = true
+                        return
+                    }
                     if !voiceRecognizer.isRecording {
                         voiceRecognizer.startRecording()
                     }
