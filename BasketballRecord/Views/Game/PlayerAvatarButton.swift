@@ -24,7 +24,7 @@ struct SelectablePlayerAvatarButton: View {
                     }
                 }
                 Text(player.number.isEmpty ? player.name : "No\(player.number) \(player.name)")
-                    .font(.system(size: 9))
+                    .font(.system(size: 8))
                     .lineLimit(1)
                     .frame(width: 72)
             }

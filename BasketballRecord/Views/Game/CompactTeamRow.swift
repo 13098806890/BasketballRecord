@@ -83,7 +83,7 @@ struct CompactTeamRow: View {
                                         }
                                     }
                                     Text(player.number.isEmpty ? player.name : "No\(player.number) \(player.name)")
-                                        .font(.system(size: 8))
+                                        .font(.system(size: 7.5))
                                         .foregroundStyle(onCourtPlayerIDs.contains(player.id) ? .primary : .secondary)
                                         .lineLimit(1)
                                         .frame(width: 64)
