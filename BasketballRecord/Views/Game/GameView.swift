@@ -1547,20 +1547,20 @@ struct GameView: View {
 
         guard incoming.payload.op.baseVersion == liveVersion,
               incoming.payload.newVersion == liveVersion + 1 else {
-            requestLiveResync(reason: "收到提交版本异常")
+            requestLiveResync(reason: "Commit version mismatch")
             return
         }
 
         let applied = applyLiveOperationPayload(incoming.payload.op.payload)
         guard applied else {
-            requestLiveResync(reason: "收到提交但本地无法应用")
+            requestLiveResync(reason: "Commit could not be applied locally")
             return
         }
 
         liveVersion = incoming.payload.newVersion
         let computedHash = stateHash(for: buildLiveStatePayload())
         guard computedHash == incoming.payload.stateHash else {
-            requestLiveResync(reason: "提交后哈希不一致")
+            requestLiveResync(reason: "Hash mismatch after commit")
             return
         }
 

@@ -23,8 +23,8 @@ struct SelectablePlayerAvatarButton: View {
                             .offset(y: 8)
                     }
                 }
-                Text(player.number.isEmpty ? player.name : "\(player.number)号 \(player.name)")
-                    .font(.caption)
+                Text(player.number.isEmpty ? player.name : "No\(player.number) \(player.name)")
+                    .font(.system(size: 9))
                     .lineLimit(1)
                     .frame(width: 72)
             }
