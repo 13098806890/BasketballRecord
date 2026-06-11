@@ -19,7 +19,7 @@ struct TeamStatsDisclosureView: View {
     var body: some View {
         DisclosureGroup(isExpanded: $isExpanded) {
             VStack(spacing: 6) {
-                HStack {
+                HStack(spacing: 0) {
                     Text(homeName)
                         .font(.caption.weight(.semibold))
                     Spacer()
@@ -64,7 +64,9 @@ struct TeamStatsDisclosureView: View {
                            away: String(format: "%.2f", awayStats.pointsPerShot),
                            awayPct: nil)
             }
-            .padding(10)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 10)
+            .padding(.leading, -20)
             .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
         } label: {
             HStack {
