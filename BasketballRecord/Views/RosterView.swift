@@ -65,6 +65,14 @@ struct RosterView: View {
                             countText: nil
                         )
                     }
+                    .disabled(!store.isPro)
+                    .overlay {
+                        if !store.isPro {
+                            Color.clear
+                                .contentShape(Rectangle())
+                                .onTapGesture { isShowingPurchase = true }
+                        }
+                    }
 
                     NavigationLink {
                         CloudStorageView()
@@ -316,7 +324,7 @@ struct RosterView: View {
     }
 }
 
-private struct ProSubscriptionStoreView: View {
+struct ProSubscriptionStoreView: View {
     @Environment(\.dismiss) private var dismiss
 
     private let features: [SettingsFeatureSection] = [
