@@ -890,6 +890,8 @@
 "settings_voice" = "Voice";
 "settings_voice_instruction" = "Voice Instructions";
 "settings_show_voice_button_footer" = "Show a microphone button on the scoring page for voice input.";
+"settings_voice_log_enable" = "Enable Voice Log";
+"settings_voice_log_enable_footer" = "Record recognition details for debugging and review.";
 "voice_shortcuts_empty" = "No Voice Shortcuts";
 "voice_shortcuts_empty_desc" = "Create custom phrases to trigger actions.";
 "voice_shortcuts_custom" = "Custom";

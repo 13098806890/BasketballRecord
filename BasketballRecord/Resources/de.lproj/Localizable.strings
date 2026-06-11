@@ -862,6 +862,8 @@
 "settings_voice" = "Sprache";
 "settings_voice_instruction" = "Sprachanleitung";
 "settings_show_voice_button_footer" = "Mikrofontaste auf der Bewertungsseite für Spracheingabe anzeigen.";
+"settings_voice_log_enable" = "Sprachprotokoll aktivieren";
+"settings_voice_log_enable_footer" = "Zeichnet Erkennungsdetails zum Debuggen und Überprüfen auf.";
 "voice_shortcuts_empty" = "Keine Sprachkurzbefehle";
 "voice_shortcuts_empty_desc" = "Erstellen Sie benutzerdefinierte Phrasen, um Aktionen auszulösen.";
 "voice_shortcuts_custom" = "Benutzerdefiniert";

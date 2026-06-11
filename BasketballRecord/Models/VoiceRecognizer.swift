@@ -230,7 +230,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     /// Finalize and persist the log entry with the accumulated buffer.
     private func logFlush(isSuccess: Bool, action: String? = nil, playerName: String? = nil, matchedPattern: String? = nil) {
-        guard let store else { return }
+        guard let store, store.voiceLogEnabled else { return }
         let entry = VoiceLogEntry(
             timestamp: Date(), text: logText,
             textPinyin: Self.toPinyin(logText),
@@ -244,6 +244,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     private func addLog(text: String, isSuccess: Bool, action: String? = nil, playerName: String? = nil, matchedPattern: String? = nil, matchDetail: String? = nil) {
+        guard store?.voiceLogEnabled != false else { return }
         // If a log buffer is active, accumulate into the buffer.
         if !logText.isEmpty {
             if let detail = matchDetail { logStep(detail) }

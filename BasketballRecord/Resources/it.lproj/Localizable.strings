@@ -862,6 +862,8 @@
 "settings_voice" = "Voce";
 "settings_voice_instruction" = "Istruzioni vocali";
 "settings_show_voice_button_footer" = "Mostra un pulsante microfono sulla pagina di punteggio per l'input vocale.";
+"settings_voice_log_enable" = "Abilita registro vocale";
+"settings_voice_log_enable_footer" = "Registra i dettagli di riconoscimento per debug e revisione.";
 "voice_shortcuts_empty" = "Nessuna scorciatoia vocale";
 "voice_shortcuts_empty_desc" = "Crea frasi personalizzate per attivare azioni.";
 "voice_shortcuts_custom" = "Personalizzato";

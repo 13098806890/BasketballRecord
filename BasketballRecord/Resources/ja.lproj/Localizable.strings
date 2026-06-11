@@ -880,6 +880,8 @@
 "settings_voice" = "音声";
 "settings_voice_instruction" = "音声の使い方";
 "settings_show_voice_button_footer" = "採点ページにマイクボタンを表示し、音声入力を有効にします。";
+"settings_voice_log_enable" = "音声ログを有効にする";
+"settings_voice_log_enable_footer" = "音声認識の詳細なマッチング過程を記録し、デバッグや確認に役立てます。";
 "voice_shortcuts_empty" = "音声ショートカットがありません";
 "voice_shortcuts_empty_desc" = "カスタムフレーズを作成してアクションをトリガーします。";
 "voice_shortcuts_custom" = "カスタム";

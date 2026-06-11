@@ -405,12 +405,23 @@ final class AppStoreOperationsTests: XCTestCase {
     }
 
     func testCorruptedStoredPayloadDoesNotSeedSampleData() {
-        UserDefaults.standard.set(Data([0x00, 0x01, 0x02]), forKey: storageKey)
+        // Force-clear CoreData using an explicit save to flush
+        let cd = CoreDataStore()
+        cd.clearAll()
+        cd.stack.save()
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: "store_meta")
+        defaults.removeObject(forKey: storageKey)
+        defaults.removeObject(forKey: "store_games_index")
+
+        // Write corrupt data to old storage key
+        defaults.set(Data([0x00, 0x01, 0x02]), forKey: storageKey)
 
         let store = AppStore()
 
-        XCTAssertTrue(store.players.isEmpty)
-        XCTAssertTrue(store.teams.isEmpty)
+        // After load: corrupt legacy data should NOT trigger sample data seeding
+        XCTAssertTrue(store.players.isEmpty, "Expected empty players, got \(store.players.count)")
+        XCTAssertTrue(store.teams.isEmpty, "Expected empty teams, got \(store.teams.count)")
         XCTAssertTrue(store.savedGames.isEmpty)
     }
 
