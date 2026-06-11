@@ -862,6 +862,8 @@
 "settings_voice" = "Voix";
 "settings_voice_instruction" = "Instructions vocales";
 "settings_show_voice_button_footer" = "Afficher un bouton microphone sur la page de notation pour la saisie vocale.";
+"settings_voice_log_enable" = "Activer le journal vocal";
+"settings_voice_log_enable_footer" = "Enregistre les détails de reconnaissance pour le débogage et la révision.";
 "voice_shortcuts_empty" = "Aucun raccourci vocal";
 "voice_shortcuts_empty_desc" = "Créez des phrases personnalisées pour déclencher des actions.";
 "voice_shortcuts_custom" = "Personnalisé";

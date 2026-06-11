@@ -110,6 +110,10 @@ final class AppStore: ObservableObject {
         didSet { scheduleSave() }
     }
 
+    @Published var voiceLogEnabled = true {
+        didSet { scheduleSave() }
+    }
+
     @Published var customVoiceMappings: [String: String] = [:] {
         didSet { scheduleSave() }
     }
@@ -187,6 +191,7 @@ final class AppStore: ObservableObject {
         var showsVoiceButton: Bool?
         var customVoiceMappings: [String: String]?
         var voiceLog: [VoiceLogEntry]?
+        var voiceLogEnabled: Bool?
     }
 
     init() {
@@ -793,7 +798,8 @@ final class AppStore: ObservableObject {
             showsBluetoothGamesButton: showsBluetoothGamesButton,
             showsVoiceButton: showsVoiceButton,
             customVoiceMappings: customVoiceMappings,
-            voiceLog: voiceLog
+            voiceLog: voiceLog,
+            voiceLogEnabled: voiceLogEnabled
         )
         safeWrite(meta, forKey: metaKey)
 
@@ -849,6 +855,7 @@ final class AppStore: ObservableObject {
                 if let cm = meta.customVoiceMappings { customVoiceMappings = cm }
                 if let vl = meta.voiceLog { voiceLog = vl }
                 showsVoiceButton = meta.showsVoiceButton ?? false
+                voiceLogEnabled = meta.voiceLogEnabled ?? true
             }
             return
         }
@@ -882,6 +889,7 @@ final class AppStore: ObservableObject {
             keepsScreenAwake = meta.keepsScreenAwake
             showsBluetoothGamesButton = meta.showsBluetoothGamesButton
             showsVoiceButton = meta.showsVoiceButton ?? true
+            voiceLogEnabled = meta.voiceLogEnabled ?? true
             if let cm = meta.customVoiceMappings { customVoiceMappings = cm }
             if let vl = meta.voiceLog { voiceLog = vl }
         } else if UserDefaults.standard.data(forKey: storageKey) == nil {

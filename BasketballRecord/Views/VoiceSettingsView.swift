@@ -15,6 +15,15 @@ struct VoiceSettingsView: View {
             }
 
             Section {
+                Toggle(isOn: $store.voiceLogEnabled) {
+                    Label(LocalizedStringKey("settings_voice_log_enable"), systemImage: "doc.text")
+                        .foregroundStyle(.primary)
+                }
+            } footer: {
+                Text(LocalizedStringKey("settings_voice_log_enable_footer"))
+            }
+
+            Section {
                 NavigationLink {
                     VoiceLogView(log: $store.voiceLog)
                 } label: {
