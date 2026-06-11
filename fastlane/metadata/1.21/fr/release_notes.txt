@@ -1,6 +1,0 @@
-- Notation Vocale: Maintenez le micro et parlez — 9 langues supportées
-- Raccourcis Vocaux: Phrases personnalisées pour actions fréquentes
-- Reconnaissance ASR Intelligente: Gère les homophones et erreurs de prononciation
-- Remplacement Vocal: Les deux ordres de mots reconnus
-- Noms de Famille Polyphoniques: 13 noms chinois courants avec variantes
-- Journal Vocal: Consultez les étapes détaillées de reconnaissance
