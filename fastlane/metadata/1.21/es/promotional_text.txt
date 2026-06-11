@@ -1,1 +1,0 @@
-Registra cada partido de baloncesto con estadísticas automáticas de jugadores y equipos. Colaboración Bluetooth, importación/exportación, resúmenes con IA y selección de MVP. Tu trayectoria baloncestística, documentada.

@@ -1,6 +1,0 @@
-- Sprachsteuerung: Mikrofon gedrückt halten und Befehle sprechen — 9 Sprachen unterstützt
-- Sprachbefehle: Eigene Phrasen für häufige Aktionen festlegen
-- Intelligente ASR-Erkennung: Verarbeitet Homophone und Aussprachefehler
-- Auswechslung per Sprache: Beide Wortstellungen erkennbar
-- Mehrsilbige Nachnamen: 13 häufige chinesische Nachnamen mit Varianten
-- Sprachprotokoll: Detaillierte Erkennungsschritte einsehen
