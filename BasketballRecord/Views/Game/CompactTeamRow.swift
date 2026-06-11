@@ -19,7 +19,7 @@ struct CompactTeamRow: View {
                 HStack(spacing: 4) {
                     Text(team?.name ?? side.displayName)
                         .font(.caption.weight(.semibold))
-                    Text(side == .home ? "(主队)" : "(客队)")
+                    Text(side == .home ? LocalizedStringKey("team_home_default") : LocalizedStringKey("team_away_default"))
                         .font(.system(size: 8, weight: .medium))
                         .foregroundStyle(.tertiary)
                 }
@@ -82,8 +82,8 @@ struct CompactTeamRow: View {
                                                 .background(Circle().fill(.white))
                                         }
                                     }
-                                    Text(player.number.isEmpty ? player.name : "\(player.number)号 \(player.name)")
-                                        .font(.caption2)
+                                    Text(player.number.isEmpty ? player.name : "No\(player.number) \(player.name)")
+                                        .font(.system(size: 8))
                                         .foregroundStyle(onCourtPlayerIDs.contains(player.id) ? .primary : .secondary)
                                         .lineLimit(1)
                                         .frame(width: 64)
