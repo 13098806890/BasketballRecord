@@ -356,26 +356,28 @@ struct ProSubscriptionStoreView: View {
                 .task { await PurchaseManager.shared.loadProducts() }
         } else {
             SubscriptionStoreView(subscriptions: products) {
-                VStack(alignment: .leading, spacing: 14) {
-                    HStack(spacing: 12) {
-                        Image(systemName: "crown.fill")
-                            .font(.title2)
-                            .foregroundStyle(.blue)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(LocalizedStringKey("section_pro"))
-                                .font(.headline)
-                            Text(LocalizedStringKey("pro_description"))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 14) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "crown.fill")
+                                .font(.title2)
+                                .foregroundStyle(.blue)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(LocalizedStringKey("section_pro"))
+                                    .font(.headline)
+                                Text(LocalizedStringKey("pro_description"))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        VStack(alignment: .leading, spacing: 16) {
+                            ForEach(features) { section in
+                                featureSectionView(section)
+                            }
                         }
                     }
-                    VStack(alignment: .leading, spacing: 16) {
-                        ForEach(features) { section in
-                            featureSectionView(section)
-                        }
-                    }
+                    .padding(16)
                 }
-                .padding(16)
             }
             .storeButton(.visible, for: .restorePurchases)
             .storeButton(.visible, for: .policies)
