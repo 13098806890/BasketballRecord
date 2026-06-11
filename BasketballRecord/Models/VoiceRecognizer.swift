@@ -274,7 +274,13 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     private func showError(_ msg: String) {
         errorMessage = msg
+        let impact = UIImpactFeedbackGenerator(style: .medium)
+        impact.prepare()
         Task {
+            for _ in 0..<3 {
+                await MainActor.run { impact.impactOccurred() }
+                try? await Task.sleep(for: .seconds(0.08))
+            }
             try? await Task.sleep(for: .seconds(1.5))
             await MainActor.run {
                 if errorMessage == msg { errorMessage = nil }
