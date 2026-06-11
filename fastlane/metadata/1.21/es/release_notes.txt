@@ -1,0 +1,6 @@
+- Anotación por Voz: Mantén el micrófono y habla comandos — 9 idiomas
+- Accesos Directos de Voz: Frases personalizadas para acciones frecuentes
+- Coincidencia ASR Inteligente: Maneja homófonos y errores de tono
+- Sustitución por Voz: Ambos órdenes de palabras reconocidos
+- Apellidos Polifónicos: 13 apellidos chinos comunes con variantes
+- Registro de Voz: Revisa los pasos de reconocimiento detallados

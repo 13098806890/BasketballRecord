@@ -1,0 +1,5 @@
+- Accesos directos de voz personalizados con coincidencia contain y extracción de jugador
+- Se corrigió la persistencia del registro de voz
+- Edición de accesos directos tocando las filas de la lista
+- Compatibilidad con apellidos chinos polifónicos: 13 apellidos comunes
+- Nuevas claves de localización para los 10 idiomas

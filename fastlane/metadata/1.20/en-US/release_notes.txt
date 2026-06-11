@@ -1,0 +1,5 @@
+- Custom voice shortcuts with contains-match and player extraction
+- Fixed voice log not persisting across app restarts
+- Edit voice shortcuts by tapping on list rows
+- Polyphonic Chinese surname support: 13 common surnames auto-matched
+- New localization keys for all 10 languages

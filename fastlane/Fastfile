@@ -1,8 +1,16 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Upload metadata (promotional text & what's new) to App Store Connect"
-  lane :upload_metadata do
+  desc "Upload metadata for a specific version to App Store Connect"
+  lane :upload_metadata do |options|
+    version = options[:version] || "1.20"
+
+    api_key = app_store_connect_api_key(
+      key_id: "TD5N27BDJA",
+      issuer_id: "50853c64-5d54-42f0-85aa-a6e291d5066b",
+      key_filepath: "/Users/xiedongze/Downloads/AuthKey_TD5N27BDJA.p8"
+    )
+
     deliver(
       force: true,
       skip_binary_upload: true,
@@ -10,7 +18,8 @@ platform :ios do
       skip_app_version_update: true,
       submit_for_review: false,
       automatic_release: false,
-      metadata_path: "fastlane/metadata"
+      metadata_path: "fastlane/metadata/#{version}",
+      api_key: api_key
     )
   end
 end
