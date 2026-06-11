@@ -83,10 +83,10 @@ struct CompactTeamRow: View {
                                         }
                                     }
                                     Text(player.number.isEmpty ? player.name : "No\(player.number) \(player.name)")
-                                        .font(.system(size: 14, weight: .medium))
+                                        .font(.system(size: 12, weight: .medium))
                                         .foregroundStyle(onCourtPlayerIDs.contains(player.id) ? .primary : .secondary)
                                         .lineLimit(1)
-                                        .minimumScaleFactor(0.3)
+                                        .minimumScaleFactor(7.0 / 12.0)
                                         .frame(width: 64)
                                 }
                                 .opacity(isSelected ? 1 : 0.6)

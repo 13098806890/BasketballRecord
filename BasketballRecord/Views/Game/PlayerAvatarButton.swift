@@ -24,9 +24,9 @@ struct SelectablePlayerAvatarButton: View {
                     }
                 }
                 Text(player.number.isEmpty ? player.name : "No\(player.number) \(player.name)")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                     .lineLimit(1)
-                    .minimumScaleFactor(0.3)
+                    .minimumScaleFactor(8.0 / 14.0)
                     .frame(width: 72)
             }
             .foregroundStyle(GamePalette.text)
