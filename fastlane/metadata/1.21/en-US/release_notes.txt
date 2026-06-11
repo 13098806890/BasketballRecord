@@ -1,0 +1,6 @@
+- Voice Scoring: Hold the mic and speak commands — supports 9 languages
+- Voice Shortcuts: Map custom phrases to frequent actions
+- Smart ASR Matching: Handles homophones, tone errors, and common misrecognitions
+- Voice Substitution: Supports both word orders for player substitutions
+- Multi-surname Support: 13 common Chinese surnames with variant pronunciations
+- Voice Log: Review detailed recognition steps for each command

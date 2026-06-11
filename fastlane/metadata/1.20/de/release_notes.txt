@@ -1,0 +1,5 @@
+- Benutzerdefinierte Sprachbefehle mit Contains-Match und Spielererkennung
+- Fehlerbehebung: Sprachprotokoll blieb nach App-Neustart nicht erhalten
+- Sprachbefehle durch Antippen bearbeitbar
+- Polyphone chinesische Nachnamen: 13 häufige Nachnamen automatisch erkennbar
+- Neue Lokalisierungsschlüssel für alle 10 Sprachen

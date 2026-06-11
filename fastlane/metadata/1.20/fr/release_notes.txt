@@ -1,0 +1,5 @@
+- Raccourcis vocaux personnalisés avec correspondance contain et extraction du joueur
+- Correction de la persistance du journal vocal
+- Modification des raccourcis en appuyant sur les lignes de la liste
+- Prise en charge des noms de famille chinois polyphoniques : 13 noms courants
+- Nouvelles clés de localisation pour les 10 langues

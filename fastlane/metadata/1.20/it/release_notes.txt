@@ -1,0 +1,5 @@
+- Scorciatoie vocali personalizzate con corrispondenza contain ed estrazione del giocatore
+- Risolta la persistenza del registro vocale
+- Modifica delle scorciatoie toccando le righe dell'elenco
+- Supporto per cognomi cinesi polifonici: 13 cognomi comuni
+- Nuove chiavi di localizzazione per tutte le 10 lingue

@@ -1,0 +1,6 @@
+- Punteggio Vocale: Tieni premuto il microfono e parla — 9 lingue supportate
+- Scorciatoie Vocali: Frasi personalizzate per azioni frequenti
+- Corrispondenza ASR Intelligente: Gestisce omofoni ed errori di tono
+- Sostituzione Vocale: Entrambi gli ordini delle parole riconosciuti
+- Cognomi Polifonici: 13 cognomi cinesi comuni con varianti
+- Registro Vocale: Rivedi i dettagli del riconoscimento
