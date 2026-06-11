@@ -9,7 +9,7 @@
 - **App 名称**：篮球生涯
 - **副标题（30字内）**：篮球比赛记录与生涯统计
 - **分类**：体育
-- **关键词（100字符内，逗号分隔）**：篮球,记分,比赛统计,球队管理,球员数据,生涯统计,训练赛,野球,MVP,数据分析,篮球数据统计,篮球经理人,裁判,记分员,技术统计,赛事管理,比赛记录,篮球裁判,篮球记分员,MVP评选,球队数据
+- **关键词（100字符内，逗号分隔）**：篮球,记分,比赛统计,球队管理,球员数据,生涯统计,训练赛,野球,MVP,数据分析,裁判,记分员,技术统计,语音记分,语音识别,比赛记录
 
 ---
 
@@ -78,6 +78,8 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
 Record every basketball game with player and team stats. Voice scoring, Bluetooth collaboration, import/export, AI summaries and MVP. Your basketball journey, documented.
 
+
+**Keywords (100 characters, comma-separated)**：basketball,stats tracker,box score,live scoring,coach,referee,tournament,game record,voice scoring
 **Description (4000 characters)**
 
 Basketball Journey is a basketball record app for training matches, pickup games, and amateur tournaments.
@@ -177,7 +179,7 @@ Jedes Basketballspiel aufzeichnen, Spieler- und Teamstatistiken automatisch erfa
 
 **关键词（100字符内，逗号分隔）**：籃球,記分,比賽統計,球隊管理,球員資料,生涯統計,訓練賽,MVP,數據分析,裁判,記分員,技術統計,語音記分,語音辨識,比賽記錄
 
-**关键词（100字符内，逗号分隔）**：Basketball,Punktezähler,Statistik,Team,Spieler,Training,Turnier,Sprachsteuerung (Pro),Spracherkennung
+**关键词（100字符内，逗号分隔）**：Basketball,Punktezähler,Statistik,Team,Spieler,Training,Turnier,Sprachsteuerung,Spracherkennung
 **Beschreibung（4000 Zeichen）**
 
 Basketball Journey ist eine Basketball-Aufzeichnungs-App für Trainingsspiele, Pickup-Spiele und Mannschaftsinterne Spiele. Erfasse schnell Punkte, Spielerstatistiken, Spielverläufe und Karrieredaten.
@@ -227,7 +229,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 Registra cada partido de baloncesto con estadísticas automáticas de jugadores y equipos. Colaboración Bluetooth, importación/exportación, resúmenes con IA y selección de MVP. Tu trayectoria baloncestística, documentada.
 
 
-**关键词（100字符内，逗号分隔）**：baloncesto,anotador,estadísticas,equipo,jugador,árbitro,torneo,marcador,anotación (Pro) voz,puntuación
+**关键词（100字符内，逗号分隔）**：baloncesto,anotador,estadísticas,equipo,jugador,árbitro,torneo,marcador,anotación voz,puntuación
 **Descripción（4000 caracteres）**
 
 Basketball Journey es una aplicación de registro de baloncesto para entrenamientos, partidos informales y scrimmages internos. Registra rápidamente puntuaciones, estadísticas de jugadores, historial y datos de carrera.
@@ -277,7 +279,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 Enregistrez chaque match de basketball avec des statistiques automatiques. Collaboration Bluetooth, import/export, résumés IA et sélection MVP. Votre parcours basketball, documenté.
 
 
-**关键词（100字符内，逗号分隔）**：basketball,scoreur,statistiques,équipe,joueur,arbitre,tournoi,notation vocal (Pro)e,score direct,scout
+**关键词（100字符内，逗号分隔）**：basketball,scoreur,statistiques,équipe,joueur,arbitre,tournoi,notation vocale,score direct,scout
 **Description（4000 caractères）**
 
 Basketball Journey est une application d'enregistrement de basketball pour les entraînements, les matchs informels et les scrimmages internes. Suivez rapidement les scores, les statistiques des joueurs, l'historique et les données de carrière.
@@ -327,7 +329,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 Registra ogni partita di basket con statistiche automatiche. Collaborazione Bluetooth, import/export, riassunti AI e selezione MVP. Il tuo percorso nel basket, documentato.
 
 
-**关键词（100字符内，逗号分隔）**：basket,segnapunti,statistiche,squadra,giocatore,arbitro,torneo,tabellone,punteggio vocale (Pro),punti
+**关键词（100字符内，逗号分隔）**：basket,segnapunti,statistiche,squadra,giocatore,arbitro,torneo,tabellone,punteggio vocale,punti
 **Descrizione（4000 caratteri）**
 
 Basketball Journey è un'app per la registrazione di basket per allenamenti, partite improvvisate e scrimmage interni. Registra rapidamente punteggi, statistiche giocatori, cronologia e dati di carriera.
@@ -377,7 +379,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 すべてのバスケットボールの試合を記録し、選手とチームの統計を自動集計。Bluetooth 協調記録、インポート/エクスポート、AI 試合サマリーと MVP 選出に対応。
 
 
-**关键词（100字符内，逗号分隔）**：バスケ,得点板,試合記録,統計,チーム管理,選手データ,練習試合,MVP,審判,得点係,トーナメント,ライブスコア,音声（Pro）記録,音声認識,音声得点
+**关键词（100字符内，逗号分隔）**：バスケ,得点板,試合記録,統計,チーム管理,選手データ,練習試合,MVP,審判,得点係,トーナメント,ライブスコア,音声記録,音声認識,音声得点
 **説明（4000 文字以内）**
 
 Basketball Journey は、トレーニングマッチ、ストリートバスケ、チーム内練習試合のためのバスケットボール記録アプリです。素早く得点、選手統計、試合履歴、キャリアデータを記録できます。
@@ -427,7 +429,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 모든 농구 경기를 기록하고 선수와 팀 통계를 자동 집계합니다. Bluetooth 협업 기록, 가져오기/내보내기, AI 경기 요약 및 MVP 선정을 지원합니다.
 
 
-**关键词（100字符内，逗号分隔）**：농구,득점판,경기 기록,통계,팀 관리,선수 데이터,연습 경기,MVP,심판,득점원,라이브 스코어,음성（Pro） 득점,음성 기록,음성 인식
+**关键词（100字符内，逗号分隔）**：농구,득점판,경기 기록,통계,팀 관리,선수 데이터,연습 경기,MVP,심판,득점원,라이브 스코어,음성 득점,음성 기록,음성 인식
 **설명（4000자 이내）**
 
 Basketball Journey는 훈련 경기, 길거리 농구, 팀 내 연습 경기를 위한 농구 기록 앱입니다. 득점, 선수 통계, 경기 기록 및 경력 데이터를 빠르게 기록할 수 있습니다.
@@ -477,7 +479,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 Записывайте каждую баскетбольную игру с автоматической статистикой игроков и команд. Bluetooth-синхронизация, импорт/экспорт, ИИ-резюме и выбор MVP. Ваш баскетбольный путь задокументирован.
 
 
-**关键词（100字符内，逗号分隔）**：баскетбол,статистика,команда,игрок,судья,турнир,табло,голосовой (Pro) подсчёт,голосовое распознавание
+**关键词（100字符内，逗号分隔）**：баскетбол,статистика,команда,игрок,судья,турнир,табло,голосовой подсчёт,голосовое распознавание
 **Описание（4000 символов）**
 
 Basketball Journey — это приложение для записи баскетбольных матчей для тренировок, уличных игр и командных соревнований. Быстро фиксируйте очки, статистику игроков, историю игр и карьерные данные.
