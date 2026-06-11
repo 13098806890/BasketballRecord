@@ -1,5 +1,32 @@
 # Release Notes
 
+## 1.21 (2026-06-11)
+
+### 新增
+
+- **语音记分加入 Pro 订阅**：记分页麦克风按钮、设置页语音入口现为 Pro 功能，非 Pro 用户点击弹出购买页面。
+- **语音日志开关**：设置页新增「启用语音日志」开关，关闭后不再记录识别详细过程。
+- **灌篮高手 Demo 数据**：初始样例数据替换为湘北/陵南 6 名球员（赤木晴子、樱木花道、流川枫、仙道、彩子、牧绅一），附带头像照片。10 种语言对应角色翻译。
+- **订阅页可滚动**：特性说明区域改为 `ScrollView`，确保订阅按钮始终可见。
+
+### 修复
+
+- **代码审查修复**：修复 `Dictionary(uniqueKeysWithValues:)` 重复 ID 崩溃、`AIService` force-unwrap URL、`VoiceRecognizer` 回调线程安全、`revertLastAction` 中文硬编码解析、CoreData `NSBatchDeleteRequest` 上下文不一致等 20 项问题。
+- **ASR 语音变体补全**：为 10 种语言补充 55 条语音变体匹配规则，ASR 测试 209 全通过。
+- **SettingsDocumentView 语言切换**：添加 `@Environment(\.locale)` 观察，切换语言后自动刷新使用说明内容。
+- **Demo 照片加载路径修复**：`seedSampleData()` 从 Bundle 根目录加载球员头像。
+- **蓝牙协议中文转 English**：4 处 `sendAuthoritativeSnapshot` reason 参数由中文改为英文。
+- **SubstitutionView 切换 side 清空选择**：避免跨队换人。
+- **5 个测试用例修复**：更新 `StatAction` 数量、删除无效 VoiceMatching 测试、本地化 LegacyUndo 消息。
+- **订阅页 ProSubscriptionStoreView 改为 internal**：GameView 可直接调用购买页面。
+
+### 国际化
+
+- 新增 `settings_voice_log_enable` / `settings_voice_log_enable_footer` 至全部 10 种语言。
+- 新增 `pro_feature_voice_1` / `pro_feature_voice_2` 至全部 10 种语言。
+- 替换 `sample_player_1~4` 为 `demo_player_*` 灌篮高手角色名，全部 10 种语言。
+- Demo 球队 `demo_team_shohoku` / `demo_team_ryonan` 全部 10 种语言。
+
 ## 1.20 (2026-06-11)
 
 ### 修复
