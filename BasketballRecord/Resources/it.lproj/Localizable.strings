@@ -562,6 +562,8 @@
 "pro_feature_cloud_2" = "Scegli individualmente quali partite caricare";
 "pro_feature_ai_1" = "Genera riepiloghi partita con IA";
 "pro_feature_ai_2" = "Supporto per DeepSeek, OpenAI e Anthropic";
+"pro_feature_voice_1" = "Punteggio vocale con supporto multilingua";
+"pro_feature_voice_2" = "Scorciatoie vocali personalizzate e registro di riconoscimento";
 "settings_doc_help_groups_title" = "Gruppi di partite";
 "settings_doc_help_groups_item1_title" = "Crea gruppi per organizzare le tue partite";
 "settings_doc_help_groups_item1_desc" = "Aggiungi gruppi personalizzati illimitati come Playoff o Lega Primaverile.";
