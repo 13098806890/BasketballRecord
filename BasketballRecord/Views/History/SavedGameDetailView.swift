@@ -119,6 +119,31 @@ struct SavedGameDetailView: View {
                     }
                     .disabled(isGeneratingAISummary || (!store.isPro && aiConfig == nil))
 
+                    if !aiSummary.isEmpty {
+                        Button {
+                            let width = UIScreen.main.bounds.width - 32
+                            let renderer = ImageRenderer(content:
+                                aiSummaryContent
+                                    .frame(width: width)
+                                    .background(Color(uiColor: .systemBackground))
+                            )
+                            renderer.scale = UIScreen.main.scale
+                            if let image = renderer.uiImage {
+                                UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+                                savedToPhotos = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { savedToPhotos = false }
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: savedToPhotos ? "checkmark.circle.fill" : "photo.badge.arrow.down")
+                                    .foregroundStyle(savedToPhotos ? .green : .blue)
+                                Text(LocalizedStringKey(savedToPhotos ? "button_saved" : "button_save_to_photos"))
+                                    .font(.caption)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+
                     if let aiSummaryError {
                         Text(aiSummaryError)
                             .font(.caption)
@@ -461,28 +486,6 @@ struct SavedGameDetailView: View {
                     }
                 }
 
-                Button {
-                    let renderer = ImageRenderer(content: aiSummaryStyledView)
-                    renderer.scale = 2
-                    if let image = renderer.uiImage {
-                        UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
-                        savedToPhotos = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { savedToPhotos = false }
-                    }
-                } label: {
-                    Label(LocalizedStringKey("button_save_to_photos"), systemImage: "photo.badge.arrow.down")
-                        .font(.subheadline)
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                }
-                .disabled(savedToPhotos)
-                .overlay(alignment: .trailing) {
-                    if savedToPhotos {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                            .padding(.trailing, 8)
-                    }
-                }
             }
             .textSelection(.enabled)
         )

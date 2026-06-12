@@ -896,3 +896,5 @@ Format:
    Description";
 
 "button_save_to_photos" = "사진 앨범에 저장";
+
+"button_saved" = "저장됨";
