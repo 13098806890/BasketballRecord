@@ -2005,7 +2005,7 @@ struct GameView: View {
         undoStack.removeAll()
         redoStack.removeAll()
         currentGameRecordID = UUID()
-        snapshot = GameSnapshot(
+        var initialSnapshot = GameSnapshot(
             homeTeamID: config.homeTeamID,
             awayTeamID: config.awayTeamID,
             periodCount: config.periodCount,
@@ -2025,16 +2025,17 @@ struct GameView: View {
             periodTimeLimit: config.periodTimeLimit,
             periodScoreLimit: config.periodScoreLimit
         )
-        snapshot.homeTeamStatsMode = config.homeTeamStatsMode
-        snapshot.awayTeamStatsMode = config.awayTeamStatsMode
+        initialSnapshot.homeTeamStatsMode = config.homeTeamStatsMode
+        initialSnapshot.awayTeamStatsMode = config.awayTeamStatsMode
         if config.homeTeamStatsMode {
-            snapshot.homeOnCourtPlayerIDs = []
-            snapshot.homeAvailablePlayerIDs = []
+            initialSnapshot.homeOnCourtPlayerIDs = []
+            initialSnapshot.homeAvailablePlayerIDs = []
         }
         if config.awayTeamStatsMode {
-            snapshot.awayOnCourtPlayerIDs = []
-            snapshot.awayAvailablePlayerIDs = []
+            initialSnapshot.awayOnCourtPlayerIDs = []
+            initialSnapshot.awayAvailablePlayerIDs = []
         }
+        snapshot = initialSnapshot
         selectedPlayerID = nil
         selectedSide = .home
         ensureSelectedPlayer()
