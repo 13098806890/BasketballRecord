@@ -555,6 +555,31 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
             }
 
+            // Team stats mode: match team name instead of player
+            if playerID == nil, !leftText.isEmpty {
+                let lower = leftText.lowercased()
+                let homeName = store.team(for: snapshot.homeTeamID)?.name.lowercased() ?? ""
+                let awayName = store.team(for: snapshot.awayTeamID)?.name.lowercased() ?? ""
+                var matchedTeamID: UUID?
+                var matchedSide: TeamSide?
+
+                if lower.contains("主队") || lower.contains("zhudui") || lower.contains("zhu dui") || (!homeName.isEmpty && lower.contains(homeName)) {
+                    matchedTeamID = snapshot.homeTeamID
+                    matchedSide = .home
+                } else if lower.contains("客队") || lower.contains("kedui") || lower.contains("ke dui") || (!awayName.isEmpty && lower.contains(awayName)) {
+                    matchedTeamID = snapshot.awayTeamID
+                    matchedSide = .away
+                }
+
+                if let teamID = matchedTeamID, let matched = matchedSide {
+                    let isTeamMode = matched == .home ? snapshot.homeTeamStatsMode : snapshot.awayTeamStatsMode
+                    if isTeamMode {
+                        playerID = teamID; side = matched
+                        dbgPlayer = "球队: \(store.team(for: teamID)?.name ?? "?")"
+                    }
+                }
+            }
+
             if playerID == nil, !leftText.isEmpty {
                 let leftPinyin = Self.fuzzyPinyin(Self.toPinyin(leftText))
                 let (matches, dbg) = matchPlayerIDsDebug(text: leftText, textPinyin: leftPinyin, in: allIDs, context: "左侧球员")
@@ -664,6 +689,21 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                             dbgPlayer = "号码\(number)直配(跨队)"
                             break
                         }
+                    }
+                }
+            }
+            // Team stats mode (pinyin fallback)
+            if playerID == nil {
+                let lower = text.lowercased()
+                let homeName = store.team(for: snapshot.homeTeamID)?.name.lowercased() ?? ""
+                let awayName = store.team(for: snapshot.awayTeamID)?.name.lowercased() ?? ""
+                if lower.contains("主队") || lower.contains("zhudui") || (!homeName.isEmpty && lower.contains(homeName)) {
+                    if snapshot.homeTeamStatsMode, let tid = snapshot.homeTeamID {
+                        playerID = tid; side = .home; dbgPlayer = "球队: 主队"
+                    }
+                } else if lower.contains("客队") || lower.contains("kedui") || (!awayName.isEmpty && lower.contains(awayName)) {
+                    if snapshot.awayTeamStatsMode, let tid = snapshot.awayTeamID {
+                        playerID = tid; side = .away; dbgPlayer = "球队: 客队"
                     }
                 }
             }
