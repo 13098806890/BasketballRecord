@@ -127,7 +127,8 @@ struct CoreDataStore {
                 homePlayerIDs: homePlayerIDsData.flatMap { try? JSONDecoder().decode([UUID].self, from: $0) } ?? [],
                 awayPlayerIDs: awayPlayerIDsData.flatMap { try? JSONDecoder().decode([UUID].self, from: $0) } ?? [],
                 playerNamesByID: playerNamesData.flatMap { try? JSONDecoder().decode([UUID: String].self, from: $0) } ?? [:],
-                groupIDs: groupIDsData.flatMap { try? JSONDecoder().decode([UUID].self, from: $0) } ?? []
+                groupIDs: groupIDsData.flatMap { try? JSONDecoder().decode([UUID].self, from: $0) } ?? [],
+                displayName: obj.value(forKey: "displayName") as? String ?? ""
             )
         }
     }
