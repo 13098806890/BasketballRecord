@@ -750,30 +750,35 @@
 "demo_player_ayako" = "彩子";
 "demo_player_maki" = "牧绅一";
 /* AI Summary Prompt Keys */
-"ai_system_role" = "你是专业篮球解说与数据分析师。用自然的赛事解说风格输出，既不过于书面也不过于随意。严格基于提供的结构化数据，不得使用'可能''大概''或许'等不确定措辞。每条描述必须有数据支撑。数据说明：·[球员 +分 前比分→后比分 类型]表示每次得分事件及比分变化（open=首开纪录, extend=扩大领先, cut=缩小差距, tie=追平）·personal_run=个人连续得分·team_run=球队连续得分·rebound_streak=连续篮板·assist_streak=连续助攻·team_miss_streak=球队连续不中·personal_miss_streak=个人连续不中";
+"ai_system_role" = "You are a professional basketball analyst and commentator. Output in a natural commentary style — not too formal, not too casual. Base every statement strictly on the provided structured data. Do NOT use words like 'possibly', 'likely', 'maybe'. Data guide: ·[player +points prevScore->newScore context] = scoring event with score change (open=first score, extend=extend lead, cut=reduce gap, tie=tie game) ·personal_run=consecutive personal scoring ·team_run=consecutive team scoring ·rebound_streak=consecutive rebounds ·assist_streak=consecutive assists ·team_miss_streak=team consecutive missed shots ·personal_miss_streak=personal consecutive missed shots";
 "ai_test_connection_prompt" = "请仅回复：连接成功";
 "ai_prompt_task_description" = "你将基于一场篮球比赛数据生成赛后复盘。请严格用中文输出，并且严格按照以下 Markdown 结构，不要添加其他一级标题：";
 "ai_prompt_section_summary" = "比赛总结";
-"ai_prompt_section_summary_desc" = "（详细按节次分析：·引用【连续得分分析】中的事件描述每节走势·每次得分要说清谁得分、得了几分、当时比分是多少（直接引用前比分→后比分）·分析连续得分段、连续不中段的影响·连续篮板/助攻说明谁打得好·交替得分时段说明双方咬得很紧。用口语写，不要书面化。每节至少5-8句话）";
+"ai_prompt_section_summary_desc" = "(Detailed period-by-period analysis: ·Use scoring events from Scoring Run Analysis to describe each period's flow ·For each score, state who scored, how many points, and the exact score (refer to pre->post format) ·Analyze the impact of scoring runs and missed-shot streaks ·Consecutive rebounds/assists show player dominance ·Alternating scoring periods indicate a tight game. Conversational tone. At least 5-8 sentences per period)";
 "ai_prompt_section_mvp" = "MVP";
-"ai_prompt_section_mvp_desc" = "（只评选1人，从【球员数据】和【连续得分分析】中引用关键数据论证：该球员在得分/连续得分/篮板/助攻/防守端的贡献，以及他在关键时段对比赛走势的影响。至少3-5句话）";
+"ai_prompt_section_mvp_desc" = "(Select only 1 player. Use key data from Player Stats and Scoring Run Analysis: the player's scoring contributions, streaks, rebounds, assists, defense, and impact on game momentum during critical moments. At least 3-5 sentences)";
 "ai_prompt_section_highlights" = "高亮时刻";
-"ai_prompt_section_highlights_desc" = "（选出全场最重要的2个高亮时刻。从【连续得分分析】的数据中找个人连续得分或打破僵局的关键球。每个高亮写清楚当时比分、谁打的、怎么改变比赛走势。口语化，不要书面语）\n格式：\n1. 标题\n   描述\n2. 标题\n   描述";
+"ai_prompt_section_highlights_desc" = "(Select the 2 most important highlights of the game. Find personal scoring runs or clutch plays from Scoring Run Analysis. For each highlight, clearly state the score at the time, who made the play, and how it changed the game. Conversational tone, not formal)
+Format:
+1. Title
+   Description
+2. Title
+   Description";
 "ai_prompt_extra_requirements" = "额外要求：";
 "ai_prompt_req_1" = "- 直接输出 Markdown 正文，不要使用 ```markdown 或 ``` 代码块包裹。";
 "ai_prompt_req_2" = "- 不要输出字面量 \\n 或 \\\\n，请使用真实换行。";
 "ai_prompt_req_3" = "- 各级标题、段落、列表之间保留空行，保证排版清晰。";
-"ai_prompt_req_4" = "- 引用【连续得分分析】数据时，把open/extend/cut/tie这些标记转成口语。例如'张三命中2分，10-8→12-8，湘北领先4分'。不要直接输出'extend''cut''tie'这些词。每次提到比分必须列出具体数字。";
-"ai_prompt_req_5" = "- 结合比赛事件日志来描述高亮时刻。";
-"ai_prompt_req_6" = "- 不要虚构未给出的球员或事件。所有描述必须源自【事件日志】【连续得分分析】【球员数据】。球员每节得分以【每节得分汇总】中该节下方列出的数据为准，不要自行计算或推测。";
-"ai_prompt_req_7" = "- 如果日志中没有具体事件支撑某段描述，不要写那段描述。只写有数据支撑的内容。";
-"ai_prompt_req_8" = "- 【连续得分分析】中的数据已经系统预计算，直接引用即可，不需要自行从日志推算。";
-"ai_prompt_req_9" = "- 只能写日志中出现的具体事件。若日志记录'2分命中'，就写'2分命中'，不要改写为'上篮得分''跳投'等。";
-"ai_prompt_req_10" = "- 禁止使用'可能''大概''或许''倾向于'等不确定措辞。有数据就写确定结论，没数据就不写。";
-"ai_prompt_req_11" = "- 直接写出事实，不要附加'依据日志''根据数据'等引用说明。";
-"ai_prompt_req_12" = "- 高亮时刻中，必须引用【事件日志】中的具体回合。";
-"ai_prompt_req_14" = "- 解说风格介于书面和口语之间：避免'比赛伊始''首开纪录'等过于书面化的词，但也不要过于随意。用'第一节开局''XX命中''比分来到XX-XX'这种自然表达。每节至少5-8句话。";
-"ai_prompt_req_13" = "- 涉及'最高/最低/最多/最少'等数字表达时，必须与【数值校验】一致，禁止自行改写数值。";
+"ai_prompt_req_4" = "- When citing Scoring Run Analysis data, convert open/extend/cut/tie markers to natural language. Example: 'Zhang San hits a 2-pointer, 10-8 → 12-8, leading by 4'. Do NOT output 'extend', 'cut', 'tie' directly. Always include exact scores.";
+"ai_prompt_req_5" = "- Describe highlight moments based on the game event log.";
+"ai_prompt_req_6" = "- Do not invent players or events. All descriptions must come from Event Log, Scoring Run Analysis, and Player Stats. Player per-period scoring must match the data listed under each period in Period Score Summary. Do not calculate or guess.";
+"ai_prompt_req_7" = "- If no specific event in the log supports a description, do not write that description. Only write content backed by data.";
+"ai_prompt_req_8" = "- Scoring Run Analysis data is system-precomputed. Reference it directly. No need to calculate from raw logs.";
+"ai_prompt_req_9" = "- Only write events that appear in the log. If the log says 'two-point made', write 'two-point made'. Do not rewrite as 'layup' or 'jumper'.";
+"ai_prompt_req_10" = "- Do NOT use uncertain terms like 'possibly', 'likely', 'maybe', 'probably'. If data supports it, state it as fact. If not, don't write it.";
+"ai_prompt_req_11" = "- State facts directly. Do not add 'according to the log', 'based on data', or similar citations.";
+"ai_prompt_req_12" = "- Highlight moments must reference specific plays from the Event Log.";
+"ai_prompt_req_14" = "- Commentary style between formal and casual: avoid overly written phrases like 'at the commencement of play'. Use natural expressions like 'the first quarter opened with', 'X hits', 'the score becomes XX-XX'. At least 5-8 sentences per period.";
+"ai_prompt_req_13" = "- When using numeric expressions like 'highest', 'lowest', 'most', 'least', they must match Numeric Validation. Do not modify values.";
 "ai_prompt_game_info_label" = "【比赛信息】";
 "ai_prompt_date_label" = "日期：%@";
 "ai_prompt_matchup_label" = "对阵：%@ vs %@";
@@ -784,8 +789,8 @@
 "ai_prompt_highlight_clues_label" = "【高光候选线索（系统基于日志提取）】";
 "ai_prompt_numeric_facts_label" = "【数值校验（以此为准）】";
 "ai_prompt_event_log_label" = "【事件日志（最多24条，按时间）】";
-"ai_prompt_no_player_data" = "- 无可用球员数据";
-"ai_prompt_no_event_log" = "- 无事件日志";
+"ai_prompt_no_player_data" = "- No available player data";
+"ai_prompt_no_event_log" = "- No event log";
 "ai_prompt_player_line_format" = "- [%@] %@（%@） 时间 %@ 得分 %d 篮板 %d 助攻 %d 犯规 %d 封盖 %d 抢断 %d 失误 %d 投篮 %d/%d 三分 %d/%d 罚球 %d/%d 正负值 %@";
 "ai_prompt_side_home" = "主队";
 "ai_prompt_side_away" = "客队";

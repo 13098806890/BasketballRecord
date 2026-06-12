@@ -503,16 +503,16 @@
 "ai_prompt_req_1" = "- Output Markdown directly without ```markdown or ``` code fence wrapping.";
 "ai_prompt_req_2" = "- Do not output literal \\n or \\\\n; use actual line breaks.";
 "ai_prompt_req_3" = "- Keep blank lines between titles, paragraphs, and lists for clear formatting.";
-"ai_prompt_req_4" = "- Highlight moments should prioritize: consecutive scoring, team runs, clutch shots, key rebounds, assist chains, key blocks.";
+"ai_prompt_req_4" = "- When citing Scoring Run Analysis data, convert open/extend/cut/tie markers to natural language. Example: 'Zhang San hits a 2-pointer, 10-8 → 12-8, leading by 4'. Do NOT output 'extend', 'cut', 'tie' directly. Always include exact scores.";
 "ai_prompt_req_5" = "- Describe highlight moments based on the game event log.";
-"ai_prompt_req_6" = "- Do not invent players or events not provided.";
-"ai_prompt_req_7" = "- If data is insufficient, clearly state 'based on available records'.";
-"ai_prompt_req_8" = "- This app reliably records only: 2-point made/missed, 3-point made/missed, free throw made/missed, assist, rebound, foul, substitution, period start/end.";
-"ai_prompt_req_9" = "- If the log does not specify shot type (layup/mid-range/floater/dunk), do not describe specific shot types; write 'two-point made' or 'three-point made'.";
-"ai_prompt_req_10" = "- You may make reasonable inferences from score changes and consecutive events, but use tentative language like 'possibly/likely'; do not present inferences as confirmed facts.";
-"ai_prompt_req_11" = "- Do not use phrases like 'according to', 'reference event', or 'evidence' in the final output; do not attach citation brackets after each highlight.";
-"ai_prompt_req_12" = "- In highlight moments, if 'Period X, Minute Y, Second Z' info is provided, prioritize including in the corresponding entry.";
-"ai_prompt_req_13" = "- When using numeric expressions like 'highest/lowest/most/least', they must match the 【Numeric Validation】 section; do not modify values.";
+"ai_prompt_req_6" = "- Do not invent players or events. All descriptions must come from Event Log, Scoring Run Analysis, and Player Stats. Player per-period scoring must match the data listed under each period in Period Score Summary. Do not calculate or guess.";
+"ai_prompt_req_7" = "- If no specific event in the log supports a description, do not write that description. Only write content backed by data.";
+"ai_prompt_req_8" = "- Scoring Run Analysis data is system-precomputed. Reference it directly. No need to calculate from raw logs.";
+"ai_prompt_req_9" = "- Only write events that appear in the log. If the log says 'two-point made', write 'two-point made'. Do not rewrite as 'layup' or 'jumper'.";
+"ai_prompt_req_10" = "- Do NOT use uncertain terms like 'possibly', 'likely', 'maybe', 'probably'. If data supports it, state it as fact. If not, don't write it.";
+"ai_prompt_req_11" = "- State facts directly. Do not add 'according to the log', 'based on data', or similar citations.";
+"ai_prompt_req_12" = "- Highlight moments must reference specific plays from the Event Log.";
+"ai_prompt_req_13" = "- When using numeric expressions like 'highest', 'lowest', 'most', 'least', they must match Numeric Validation. Do not modify values.";
 "label_period_end_condition" = "Periodenende durch";
 "period_end_by_time" = "Zeit";
 "period_end_by_score" = "Punktzahl";
@@ -794,15 +794,20 @@
 "demo_player_sendoh" = "Sendoh";
 "demo_player_ayako" = "Ayako";
 "demo_player_maki" = "Shinichi Maki";
-"ai_system_role" = "You are a professional basketball analyst and commentator.";
+"ai_system_role" = "You are a professional basketball analyst and commentator. Output in a natural commentary style — not too formal, not too casual. Base every statement strictly on the provided structured data. Do NOT use words like 'possibly', 'likely', 'maybe'. Data guide: ·[player +points prevScore->newScore context] = scoring event with score change (open=first score, extend=extend lead, cut=reduce gap, tie=tie game) ·personal_run=consecutive personal scoring ·team_run=consecutive team scoring ·rebound_streak=consecutive rebounds ·assist_streak=consecutive assists ·team_miss_streak=team consecutive missed shots ·personal_miss_streak=personal consecutive missed shots";
 "ai_test_connection_prompt" = "Please reply only with: Connection successful";
 "ai_prompt_task_description" = "You will generate a post-game review based on basketball game data. Output strictly in English and follow the Markdown structure below. Do not add other level-1 titles:";
 "ai_prompt_section_summary" = "Game Summary";
-"ai_prompt_section_summary_desc" = "(2-4 paragraphs explaining the game flow, key turning points, and both teams' performance)";
+"ai_prompt_section_summary_desc" = "(Detailed period-by-period analysis: ·Use scoring events from Scoring Run Analysis to describe each period's flow ·For each score, state who scored, how many points, and the exact score (refer to pre->post format) ·Analyze the impact of scoring runs and missed-shot streaks ·Consecutive rebounds/assists show player dominance ·Alternating scoring periods indicate a tight game. Conversational tone. At least 5-8 sentences per period)";
 "ai_prompt_section_mvp" = "MVP";
-"ai_prompt_section_mvp_desc" = "(Select only 1 player, provide name, key stats and reasoning)";
+"ai_prompt_section_mvp_desc" = "(Select only 1 player. Use key data from Player Stats and Scoring Run Analysis: the player's scoring contributions, streaks, rebounds, assists, defense, and impact on game momentum during critical moments. At least 3-5 sentences)";
 "ai_prompt_section_highlights" = "Highlight Moments";
-"ai_prompt_section_highlights_desc" = "1. (Key possession)\n2. (Key possession)\n3. (Key possession)";
+"ai_prompt_section_highlights_desc" = "(Select the 2 most important highlights of the game. Find personal scoring runs or clutch plays from Scoring Run Analysis. For each highlight, clearly state the score at the time, who made the play, and how it changed the game. Conversational tone, not formal)
+Format:
+1. Title
+   Description
+2. Title
+   Description";
 "ai_prompt_extra_requirements" = "Additional Requirements:";
 "ai_prompt_game_info_label" = "【Game Information】";
 "ai_prompt_date_label" = "Date: %@";
@@ -861,3 +866,4 @@
 "link_terms_of_eula" = "Nutzungsbedingungen (EULA)";
 "subscription_auto_renew_info" = "Automatisch verlängerbares Abo. Jederzeit in den App Store-Einstellungen kündbar.";
 "button_save_to_photos" = "";
+"ai_prompt_req_14" = "- Commentary style between formal and casual: avoid overly written phrases like 'at the commencement of play'. Use natural expressions like 'the first quarter opened with', 'X hits', 'the score becomes XX-XX'. At least 5-8 sentences per period.";
