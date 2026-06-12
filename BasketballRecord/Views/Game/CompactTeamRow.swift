@@ -83,7 +83,7 @@ struct CompactTeamRow: View {
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     let isPad = UIDevice.current.userInterfaceIdiom == .pad
-                    let spacing: CGFloat = isPad ? 10 : players.count >= 5 ? 2 : 6
+                    let spacing: CGFloat = isPad ? 10 : players.count >= 5 ? 0 : 6
                     HStack(spacing: spacing) {
                         ForEach(players) { player in
                             let isSelected = selectedPlayerID == player.id && selectedSide == side
