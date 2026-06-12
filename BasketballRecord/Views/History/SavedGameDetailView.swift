@@ -672,7 +672,7 @@ struct SavedGameDetailView: View {
                 } else {
                     context = "cut \(leadChars)"
                 }
-                events.append("[\(playerName) +\(points) \(prevHome)-\(prevAway)->\(homeScore)-\(awayScore) \(context)]")
+                events.append("[\(playerName) +\(points) \(prevHome)：\(prevAway)->\(homeScore)：\(awayScore) \(context)]")
 
                 // Personal scoring run
                 if personalRun?.playerID == pid {
@@ -812,14 +812,15 @@ struct SavedGameDetailView: View {
         for period in 1...periodCount {
             let periodStats = analysis.statsByPlayerID(for: period)
             guard !periodStats.isEmpty else { continue }
-            let homeIDs = Set(game.homePlayerIDs)
+            var homeIDs = Set(game.homePlayerIDs)
+            if game.snapshot.homeTeamStatsMode, let tid = game.snapshot.homeTeamID { homeIDs.insert(tid) }
             let homePeriodPoints = periodStats.filter { homeIDs.contains($0.key) }.values.reduce(0) { $0 + $1.points }
             let awayPeriodPoints = periodStats.filter { !homeIDs.contains($0.key) }.values.reduce(0) { $0 + $1.points }
             runningHome += homePeriodPoints
             runningAway += awayPeriodPoints
             let diff = runningHome - runningAway
             let diffStr = diff > 0 ? "主队领先\(diff)分" : diff < 0 ? "客队领先\(-diff)分" : "平分"
-            periodStatLines.append("- 第\(period)节：主队\(homePeriodPoints)分 vs 客队\(awayPeriodPoints)分 | 累计 \(runningHome)-\(runningAway)（\(diffStr)）")
+            periodStatLines.append("- 第\(period)节：主队\(homePeriodPoints)分 vs 客队\(awayPeriodPoints)分 | 累计 \(runningHome)：\(runningAway)（\(diffStr)）")
             // Per-player stats for this period
             let sortedPlayers = allIDs.filter { periodStats[$0] != nil }.sorted { lhs, rhs in
                 (periodStats[lhs]?.points ?? 0) > (periodStats[rhs]?.points ?? 0)

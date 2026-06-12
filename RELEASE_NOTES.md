@@ -21,11 +21,14 @@
 - **球员英文名 AD 匹配优化**：增加原始字母和空格分隔的拼音变体，修复 ASR 输出 "id" 时无法匹配的问题。
 - **语音识别变体池系统**：`generatePinyinVariants` 生成双向模糊变体，通过 Set 交集匹配，大幅提升球队模式和多音字识别准确率。
 - **VoiceRecognizer 内存泄漏修复**：Task/dispatch 闭包中 `[self]` 改为 `[weak self]`，消除约 10 处循环引用风险。提取 `showSuccessFeedback`/`showErrorWithFlash` 等辅助方法，消除 18 处 `Task.sleep` 重复代码。
+- **AI 每节得分球队模式错位**：`summaryPrompt()` 中 `homeIDs` 未包含球队 UUID，导致球队统计模式的主队每节得分被归入客队。
+- **AI 比分格式优化**：提示词中比分分隔符 `-` 改为 `：`，避免 AI 输出顺序颠倒；同步更新 `ai_prompt_score_label` 至全部 10 种语言。
 
 ### 国际化
 
 - 新增 `button_save_to_photos` 至全部 10 种语言。
 - 同步 AI prompt 翻译（`ai_system_role`、`ai_prompt_req_4~14` 等）至全部 10 种语言。
+- 更新 `ai_prompt_score_label` 比分分隔符为 `：`，全部 10 种语言。
 
 ## 1.20 (2026-06-11)
 
