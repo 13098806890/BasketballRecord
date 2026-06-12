@@ -309,4 +309,80 @@ final class DataCompatibilityTests: XCTestCase {
             : value
         return UUID(uuidString: padded)!
     }
+
+    // MARK: - Team Stats Mode Serialization
+
+    func testTeamStatsModeFlagsRoundTrip() throws {
+        var snapshot = GameSnapshot(homeTeamID: uuid("1001"), awayTeamID: uuid("1002"))
+        snapshot.homeTeamStatsMode = true
+        snapshot.awayTeamStatsMode = true
+
+        let data = try JSONEncoder().encode(snapshot)
+        let decoded = try JSONDecoder().decode(GameSnapshot.self, from: data)
+
+        XCTAssertTrue(decoded.homeTeamStatsMode, "homeTeamStatsMode should persist through encode/decode")
+        XCTAssertTrue(decoded.awayTeamStatsMode, "awayTeamStatsMode should persist through encode/decode")
+    }
+
+    func testTeamStatsByIDRoundTrip() throws {
+        var snapshot = GameSnapshot(homeTeamID: uuid("1001"), awayTeamID: uuid("1002"))
+        var teamStats = PlayerStats()
+        teamStats.twoMade = 5
+        teamStats.twoAttempts = 8
+        teamStats.threeMade = 2
+        teamStats.threeAttempts = 5
+        teamStats.freeThrowMade = 3
+        teamStats.freeThrowAttempts = 4
+        teamStats.rebounds = 10
+        teamStats.assists = 7
+        teamStats.fouls = 4
+        teamStats.blocks = 2
+        teamStats.steals = 3
+        teamStats.turnovers = 5
+        snapshot.teamStatsByID[uuid("1001")] = teamStats
+
+        let data = try JSONEncoder().encode(snapshot)
+        let decoded = try JSONDecoder().decode(GameSnapshot.self, from: data)
+
+        let decodedStats = decoded.teamStatsByID[uuid("1001")]
+        XCTAssertNotNil(decodedStats, "teamStatsByID should persist through encode/decode")
+        XCTAssertEqual(decodedStats?.twoMade, 5)
+        XCTAssertEqual(decodedStats?.threeMade, 2)
+        XCTAssertEqual(decodedStats?.freeThrowMade, 3)
+        XCTAssertEqual(decodedStats?.rebounds, 10)
+        XCTAssertEqual(decodedStats?.assists, 7)
+        XCTAssertEqual(decodedStats?.points, 5*2 + 2*3 + 3)
+    }
+
+    func testSavedGameWithTeamStatsRoundTrip() throws {
+        var snapshot = GameSnapshot(homeTeamID: uuid("1001"), awayTeamID: uuid("1002"))
+        snapshot.homeTeamStatsMode = true
+        snapshot.awayTeamStatsMode = false
+        var teamStats = PlayerStats()
+        teamStats.twoMade = 10
+        teamStats.twoAttempts = 15
+        snapshot.teamStatsByID[uuid("1001")] = teamStats
+
+        let game = SavedGame(
+            id: uuid("3001"),
+            savedAt: Date(),
+            snapshot: snapshot,
+            homeTeamName: "湘北",
+            awayTeamName: "陵南",
+            homePlayerIDs: [],
+            awayPlayerIDs: [],
+            playerNamesByID: [:]
+        )
+
+        let data = try JSONEncoder().encode(game)
+        let decoded = try JSONDecoder().decode(SavedGame.self, from: data)
+
+        XCTAssertTrue(decoded.snapshot.homeTeamStatsMode, "homeTeamStatsMode should survive SavedGame round-trip")
+        XCTAssertFalse(decoded.snapshot.awayTeamStatsMode, "awayTeamStatsMode should survive SavedGame round-trip")
+
+        let decodedStats = decoded.snapshot.teamStatsByID[uuid("1001")]
+        XCTAssertNotNil(decodedStats, "teamStatsByID should survive SavedGame round-trip")
+        XCTAssertEqual(decodedStats?.twoMade, 10)
+        XCTAssertEqual(decoded.score(forTeamID: uuid("1001")), 20, "score(forTeamID:) should return team stats points")
+    }
 }

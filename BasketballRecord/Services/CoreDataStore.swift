@@ -141,7 +141,14 @@ struct CoreDataStore {
         let obj = existing ?? NSEntityDescription.insertNewObject(forEntityName: "CDSavedGame", into: context)
         obj.setValue(game.id, forKey: "id")
         obj.setValue(game.savedAt, forKey: "savedAt")
-        obj.setValue(try? JSONEncoder().encode(game.snapshot), forKey: "snapshotData")
+        let encodedSnap = try? JSONEncoder().encode(game.snapshot)
+        if game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode || !game.snapshot.teamStatsByID.isEmpty {
+            print("[CoreData] Saving snapshot: \(encodedSnap?.count ?? 0) bytes")
+            if let data = encodedSnap, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                print("[CoreData] Snapshot has homeTeamStatsMode=\(json["homeTeamStatsMode"] != nil) teamStatsByID=\(json["teamStatsByID"] != nil)")
+            }
+        }
+        obj.setValue(encodedSnap, forKey: "snapshotData")
         obj.setValue(game.homeTeamName, forKey: "homeTeamName")
         obj.setValue(game.awayTeamName, forKey: "awayTeamName")
         obj.setValue(try? JSONEncoder().encode(game.homePlayerIDs), forKey: "homePlayerIDsData")
