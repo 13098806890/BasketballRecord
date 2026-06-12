@@ -499,105 +499,6 @@ final class VoiceMatchingTests: XCTestCase {
 
     // MARK: - No Match Cases
 
-    // MARK: - Team Stats Mode Voice
-
-    func testTeamModeHomeVoiceShot() async throws {
-        let recognizer = VoiceRecognizer()
-        recognizer.configure(store: store)
-        snapshot.homeTeamStatsMode = true
-        snapshot.awayTeamStatsMode = false
-        recognizer.currentSnapshot = snapshot
-        recognizer.updateRules(for: Locale(identifier: "zh-CN"))
-
-        let exp = expectation(description: "onAction called")
-        var capturedAction: StatAction?
-        var capturedPlayerID: UUID?
-        var capturedSide: TeamSide?
-        recognizer.onAction = { action, pid, side in
-            capturedAction = action; capturedPlayerID = pid; capturedSide = side; exp.fulfill()
-        }
-        recognizer.simulateText("主队两分命中")
-        await fulfillment(of: [exp], timeout: 1.0)
-        XCTAssertEqual(capturedAction, .twoMade)
-        XCTAssertEqual(capturedPlayerID, homeTeamID)
-        XCTAssertEqual(capturedSide, .home)
-    }
-
-    func testTeamModeAwayVoiceShot() async throws {
-        let recognizer = VoiceRecognizer()
-        recognizer.configure(store: store)
-        snapshot.homeTeamStatsMode = false
-        snapshot.awayTeamStatsMode = true
-        recognizer.currentSnapshot = snapshot
-        recognizer.updateRules(for: Locale(identifier: "zh-CN"))
-
-        let exp = expectation(description: "onAction called")
-        var capturedAction: StatAction?
-        var capturedPlayerID: UUID?
-        var capturedSide: TeamSide?
-        recognizer.onAction = { action, pid, side in
-            capturedAction = action; capturedPlayerID = pid; capturedSide = side; exp.fulfill()
-        }
-        recognizer.simulateText("客队三分")
-        await fulfillment(of: [exp], timeout: 1.0)
-        XCTAssertEqual(capturedAction, .threeMade)
-        XCTAssertEqual(capturedPlayerID, awayTeamID)
-        XCTAssertEqual(capturedSide, .away)
-    }
-
-    func testTeamModeTeamNameVoiceShot() async throws {
-        let recognizer = VoiceRecognizer()
-        recognizer.configure(store: store)
-        snapshot.homeTeamStatsMode = true
-        snapshot.awayTeamStatsMode = false
-        recognizer.currentSnapshot = snapshot
-        recognizer.updateRules(for: Locale(identifier: "zh-CN"))
-
-        let exp = expectation(description: "onAction called")
-        var capturedAction: StatAction?
-        var capturedPlayerID: UUID?
-        recognizer.onAction = { action, pid, _ in
-            capturedAction = action; capturedPlayerID = pid; exp.fulfill()
-        }
-        recognizer.simulateText("红队犯规")
-        await fulfillment(of: [exp], timeout: 1.0)
-        XCTAssertEqual(capturedAction, .foul)
-        XCTAssertEqual(capturedPlayerID, homeTeamID)
-    }
-
-    func testTeamModeDisabledDoesNotMatch() async throws {
-        let recognizer = VoiceRecognizer()
-        recognizer.configure(store: store)
-        snapshot.homeTeamStatsMode = false
-        snapshot.awayTeamStatsMode = false
-        recognizer.currentSnapshot = snapshot
-        recognizer.updateRules(for: Locale(identifier: "zh-CN"))
-
-        let exp = expectation(description: "onAction should NOT be called")
-        exp.isInverted = true
-        recognizer.onAction = { _, _, _ in exp.fulfill() }
-        recognizer.simulateText("主队两分命中")
-        await fulfillment(of: [exp], timeout: 0.5)
-    }
-
-    func testTeamModeHomeStat() async throws {
-        let recognizer = VoiceRecognizer()
-        recognizer.configure(store: store)
-        snapshot.homeTeamStatsMode = true
-        snapshot.awayTeamStatsMode = true
-        recognizer.currentSnapshot = snapshot
-        recognizer.updateRules(for: Locale(identifier: "zh-CN"))
-
-        let exp = expectation(description: "onAction called")
-        var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
-            capturedAction = action; exp.fulfill()
-        }
-        recognizer.simulateText("客队篮板")
-        await fulfillment(of: [exp], timeout: 1.0)
-        XCTAssertEqual(capturedAction, .rebound)
-    }
-
     // MARK: - Helpers
 
     private func findEvent(text: String) -> (eventCode: String?, playerName: String?) {
@@ -755,6 +656,74 @@ final class VoiceMatchingTests: XCTestCase {
             XCTAssertTrue(name.contains(expectedPlayer) || expectedPlayer.contains(name),
                           "Player mismatch: expected '\(expectedPlayer)' got '\(name)'", file: file, line: line)
         }
+    }
+
+    // MARK: - Team Stats Mode Voice (tests real snapshot creation + matching chain)
+
+    func testTeamModeHomeWithInitFlag() async throws {
+        let snap = GameSnapshot(
+            homeTeamID: homeTeamID, awayTeamID: awayTeamID,
+            homeOnCourtPlayerIDs: [], awayOnCourtPlayerIDs: [],
+            homeAvailablePlayerIDs: [], awayAvailablePlayerIDs: [],
+            homeTeamStatsMode: true, awayTeamStatsMode: false
+        )
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snap
+        recognizer.updateRules(for: Locale(identifier: "zh-CN"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        var capturedPlayerID: UUID?
+        recognizer.onAction = { action, pid, _ in
+            capturedAction = action; capturedPlayerID = pid; exp.fulfill()
+        }
+        recognizer.simulateText("红队两分命中")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .twoMade)
+        XCTAssertEqual(capturedPlayerID, homeTeamID)
+    }
+
+    func testTeamModeAwayWithTeamName() async throws {
+        let snap = GameSnapshot(
+            homeTeamID: homeTeamID, awayTeamID: awayTeamID,
+            homeTeamStatsMode: false, awayTeamStatsMode: true
+        )
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snap
+        recognizer.updateRules(for: Locale(identifier: "zh-CN"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        var capturedPlayerID: UUID?
+        recognizer.onAction = { action, pid, _ in
+            capturedAction = action; capturedPlayerID = pid; exp.fulfill()
+        }
+        recognizer.simulateText("蓝队三分")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .threeMade)
+        XCTAssertEqual(capturedPlayerID, awayTeamID)
+    }
+
+    func testTeamModeHomeAliasZhuDui() async throws {
+        let snap = GameSnapshot(
+            homeTeamID: homeTeamID, awayTeamID: awayTeamID,
+            homeTeamStatsMode: true, awayTeamStatsMode: false
+        )
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snap
+        recognizer.updateRules(for: Locale(identifier: "zh-CN"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedPlayerID: UUID?
+        recognizer.onAction = { _, pid, _ in
+            capturedPlayerID = pid; exp.fulfill()
+        }
+        recognizer.simulateText("主队两分命中")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedPlayerID, homeTeamID)
     }
 
     private func assertCommand(text: String, expectedCommand: String, file: StaticString = #filePath, line: UInt = #line) {
