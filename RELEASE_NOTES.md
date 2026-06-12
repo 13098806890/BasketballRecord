@@ -19,6 +19,7 @@
 - **球队数据持久化**：`GameSnapshot` 显式 decoder 缺少 `teamStatsByID` 等新字段，导致重启后数据丢失。
 - **球队模式语音不可用**：`@State` struct 属性修改不触发 `onChange`，`currentSnapshot` 始终拿不到球队模式 flag。
 - **球员英文名 AD 匹配优化**：增加原始字母和空格分隔的拼音变体，修复 ASR 输出 "id" 时无法匹配的问题。
+- **语音识别变体池系统**：`generatePinyinVariants` 生成双向模糊变体，通过 Set 交集匹配，大幅提升球队模式和多音字识别准确率。
 
 ### 国际化
 
