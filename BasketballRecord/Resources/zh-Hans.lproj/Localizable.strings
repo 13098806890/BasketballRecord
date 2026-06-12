@@ -788,11 +788,11 @@
 "ai_test_connection_prompt" = "请仅回复：连接成功";
 "ai_prompt_task_description" = "你将基于一场篮球比赛数据生成赛后复盘。请严格用中文输出，并且严格按照以下 Markdown 结构，不要添加其他一级标题：";
 "ai_prompt_section_summary" = "比赛总结";
-"ai_prompt_section_summary_desc" = "（按节次描述比赛过程：每节得分变化、领先交替、关键事件，以及双方球员表现。必须引用事件日志中的具体回合）";
+"ai_prompt_section_summary_desc" = "（详细按节次分析：每节得分变化、领先交替次数、每次得分高潮的起止比分和时间、关键球员表现。每节至少3-5句话。总计10-15段）";
 "ai_prompt_section_mvp" = "MVP";
-"ai_prompt_section_mvp_desc" = "（只评选1人，给出姓名、核心数据与理由）";
+"ai_prompt_section_mvp_desc" = "（只评选1人，给出姓名、全场数据、效率值和详细理由。至少3-5句话，完整论证为什么该球员是MVP）";
 "ai_prompt_section_highlights" = "高亮时刻";
-"ai_prompt_section_highlights_desc" = "1. （关键回合）\n2. （关键回合）\n3. （关键回合）";
+"ai_prompt_section_highlights_desc" = "（至少5个高亮时刻。每个高亮包含：发生节次、比分背景、参与球员、事件描述及其对比赛走势的影响。每个高亮2-4句话）\n格式示例：\n1. 标题\n   描述\n2. 标题\n   描述";
 "ai_prompt_extra_requirements" = "额外要求：";
 "ai_prompt_req_1" = "- 直接输出 Markdown 正文，不要使用 ```markdown 或 ``` 代码块包裹。";
 "ai_prompt_req_2" = "- 不要输出字面量 \\n 或 \\\\n，请使用真实换行。";
@@ -806,7 +806,7 @@
 "ai_prompt_req_10" = "- 禁止使用'可能''大概''或许''倾向于'等不确定措辞。有数据就写确定结论，没数据就不写。";
 "ai_prompt_req_11" = "- 直接写出事实，不要附加'依据日志''根据数据'等引用说明。";
 "ai_prompt_req_12" = "- 高亮时刻中，必须引用【事件日志】中的具体回合。";
-"ai_prompt_req_14" = "- 比赛总结必须按节次描述：每节得分变化、领先交替、关键事件。直接从【事件日志】中引用具体回合。";
+"ai_prompt_req_14" = "- 比赛总结必须按节次详细描述：每节得分变化、领先交替、关键事件。直接从【事件日志】中引用具体回合。每节至少3-5句话，总体至少10-15段。";
 "ai_prompt_req_13" = "- 涉及'最高/最低/最多/最少'等数字表达时，必须与【数值校验】一致，禁止自行改写数值。";
 "ai_prompt_game_info_label" = "【比赛信息】";
 "ai_prompt_date_label" = "日期：%@";
