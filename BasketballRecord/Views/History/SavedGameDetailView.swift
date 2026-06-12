@@ -472,6 +472,14 @@ struct SavedGameDetailView: View {
                             RoundedRectangle(cornerRadius: 14, style: .continuous)
                                 .stroke(aiSummaryAccentColor.opacity(0.14), lineWidth: 1)
                         )
+                        .contextMenu {
+                            Button {
+                                let sectionText = ([section.title] + section.items).joined(separator: "\n")
+                                UIPasteboard.general.string = stripMarkdownDecorations(from: sectionText)
+                            } label: {
+                                Label(LocalizedStringKey("voice_log_copy"), systemImage: "doc.on.doc")
+                            }
+                        }
                     }
                 }
                 .textSelection(.enabled)
