@@ -32,7 +32,6 @@
 "deepseek_test" = "Verbindung testen";
 "deepseek_save_key" = "In Keychain speichern";
 "deepseek_remove_saved_key" = "Gespeicherten Schlüssel entfernen";
-
 /* Neue Alert-/Button-/Nav-Schlüssel */
 "alert_store_sync_offer_title" = "Sync-Angebot erhalten";
 "alert_accept_and_receive" = "Akzeptieren und Empfangen";
@@ -88,7 +87,6 @@
 "section_send_progress" = "Sendestatus";
 "section_status" = "Status";
 "nav_select_sync_content" = "Zu synchronisierende Inhalte auswählen";
-
 /* GameView keys */
 "nav_game" = "Spiel";
 "button_new_game" = "Neues Spiel";
@@ -154,7 +152,6 @@
 "starter_away_title" = "Gast-Starter";
 "nav_new_game" = "Neues Spiel";
 "button_start" = "Start";
-
 /* Added by bulk i18n completion */
 "alert_finish_game_title" = "Spiel beenden?";
 "button_confirm_finish" = "Beenden bestätigen";
@@ -494,17 +491,14 @@
 "search_player_prompt" = "Spieler suchen";
 "section_advanced_stats" = "Erweitert";
 "game_group_selected_filter" = "Filter nach";
-
 /* Common buttons */
 "common_cancel" = "Abbrechen";
 "common_save" = "Speichern";
 "game_group_assigned_label" = "Gruppe";
-
 /* Transfer keywords for cross-device sharing */
 "transfer_keyword_game" = "Basketball Record-Game Export";
 "transfer_keyword_team" = "Basketball Record-Team Export";
 "transfer_keyword_player" = "Basketball Record-Player Export";
-
 /* AI prompt instructions */
 "ai_prompt_req_1" = "- Output Markdown directly without ```markdown or ``` code fence wrapping.";
 "ai_prompt_req_2" = "- Do not output literal \\n or \\\\n; use actual line breaks.";
@@ -553,8 +547,6 @@
 "purchase_error_cancelled" = "Kauf abgebrochen.";
 "label_lock" = "Sperren";
 "label_unlock" = "Entsperren";
-
-
 "pro_feature_groups_1" = "Erstellen und verwalten Sie Spielgruppen zur einfachen Filterung";
 "pro_feature_bluetooth_1" = "Spieldaten zwischen Geräten per Bluetooth synchronisieren";
 "pro_feature_bluetooth_2" = "Echtzeit-Kollaborationserfassung mit anderen Geräten";
@@ -583,19 +575,13 @@
 "settings_doc_help_pro_item2_desc" = "Wählen Sie einen Plan, der zu Ihnen passt, jederzeit kündbar.";
 "cloud_syncing" = "Synchronisiere...";
 "cloud_sync_now" = "Jetzt synchronisieren";
-
-
 "game_group_ungrouped" = "Nicht gruppiert";
 "cloud_unavailable_hint" = "Aktivieren Sie iCloud in den Systemeinstellungen und melden Sie sich an.";
 "section_cloud_only" = "Nur Cloud";
 "label_game_name" = "Spielname";
-
-
 "label_career_summary" = "Karriereübersicht";
 "label_games_count" = "Spiele";
 "stats_total_points" = "Gesamtpunkte";
-
-
 "settings_show_bluetooth_button" = "Bluetooth-Kollaboration anzeigen";
 "settings_show_voice_button" = "Sprachbutton anzeigen";
 "settings_voice_log" = "Sprachprotokoll";
@@ -605,27 +591,19 @@
 "voice_log_delete_all_confirm" = "Alle Sprachnotizen löschen?";
 "settings_voice_shortcuts" = "Sprachkurzbefehle";
 "settings_cloud_storage" = "iCloud-Speicher";
-
-
 "stat_label_2pt" = "2PT";
 "stat_label_3pt" = "3PT";
 "stat_label_free_throw" = "FT";
 "stat_label_starter" = "Starter";
 "stat_label_bench" = "Bank";
-
-
 "stats_points_format_short" = "PTS";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
 "stats_foul_turnover" = "FOUL / TO";
 "stats_minutes" = "MIN";
 "stats_shooting" = "FG";
-
-
 "stats_starter_bench" = "S / B";
 "label_career_stats" = "Karrierestatistiken";
 "stats_pts_min" = "PTS / MIN";
-
-
 "button_collab_games" = "Bluetooth-Spiele";
 "cloud_storage_description" = "Tippen Sie auf ein Spiel, um den Cloud-Speicher zu aktivieren oder zu deaktivieren. In der Cloud gespeicherte Spiele werden auf allen Geräten synchronisiert.";
 "section_cloud_enabled" = "In iCloud";
@@ -864,7 +842,6 @@
 "search_no_results" = "Keine Ergebnisse";
 "section_nearby_devices" = "Geräte in der Nähe";
 "stats_games" = "G";
-
 "settings_voice" = "Sprache";
 "settings_voice_instruction" = "Sprachanleitung";
 "settings_show_voice_button_footer" = "Mikrofontaste auf der Bewertungsseite für Spracheingabe anzeigen.";
@@ -880,7 +857,7 @@
 "voice_shortcuts_action" = "Aktion";
 "voice_shortcuts_add_title" = "Kurzbefehl hinzufügen";
 "voice_shortcuts_edit_title" = "Kurzbefehl bearbeiten";
-
 "link_privacy_policy" = "Datenschutz";
 "link_terms_of_eula" = "Nutzungsbedingungen (EULA)";
 "subscription_auto_renew_info" = "Automatisch verlängerbares Abo. Jederzeit in den App Store-Einstellungen kündbar.";
+"button_save_to_photos" = "";

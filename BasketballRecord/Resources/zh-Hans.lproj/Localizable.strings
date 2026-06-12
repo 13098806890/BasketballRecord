@@ -18,7 +18,6 @@
 "period_button_action_end" = "结束";
 "period_button_action_start" = "开始";
 "period_button_toggle_format" = "第%d节%@";
-/* 简体中文 */
 "app_title" = "篮球生涯";
 "tab_score" = "记分";
 "tab_history" = "比赛记录";
@@ -115,7 +114,6 @@
 "deepseek_test" = "测试连接";
 "deepseek_save_key" = "保存到钥匙串";
 "deepseek_remove_saved_key" = "删除已保存 Key";
-
 /* 新增提示/按钮/导航 关键字 */
 "alert_store_sync_offer_title" = "收到同步请求";
 "alert_accept_and_receive" = "同意并接收";
@@ -171,7 +169,6 @@
 "section_send_progress" = "发送进度";
 "section_status" = "状态";
 "nav_select_sync_content" = "选择同步内容";
-
 /* GameView keys */
 "nav_game" = "比赛";
 "button_new_game" = "新比赛";
@@ -254,7 +251,6 @@
 "text_no_optional_bench" = "当前没有可选替补";
 "badge_starter" = "首发";
 "badge_bench" = "替补";
-
 "button_record" = "记录";
 "nav_substitution" = "换人";
 "nav_late_arrival" = "新增上场";
@@ -269,7 +265,6 @@
 "badge_sub_out" = "换下";
 "badge_sub_in" = "换上";
 "badge_on_court" = "上场";
-
 "label_team_stats" = "球队数据";
 "stats_points_format" = "%d分";
 "stats_field_goal" = "投篮";
@@ -294,7 +289,6 @@
 "stats_block_short_format" = "盖%d";
 "stats_steal_short_format" = "断%d";
 "stats_turnover_short_format" = "失%d";
-
 "event_game_end" = "比赛结束";
 "event_game_saved" = "比赛保存";
 "event_game_paused" = "比赛暂停";
@@ -311,21 +305,17 @@
 "text_not_set" = "未设置";
 "collab_operation_send_failed" = "操作发送失败，请检查连接后重试。";
 "button_start" = "开始";
-
 "stat_game_already_finished" = "比赛已结束";
 "stat_game_paused" = "比赛暂停中";
 "stat_period_not_started" = "第%d节比赛未开始";
 "stat_select_player_first" = "请先选择球员";
-
 "collab_invite_before_new_game" = "请先新建比赛后再发起协同邀请。";
 "collab_invite_complete_lineup" = "请先完成比赛阵容设置后再邀请协同。";
 "collab_no_connected_devices" = "请先在设置 > 蓝牙协同里连接设备。";
 "collab_invite_send_failed" = "邀请发送失败，请检查连接状态。";
 "collab_invite_sent_waiting" = "协同邀请已发送，等待对方同意。";
-
 "simulate_need_two_teams_with_players" = "至少需要两支有球员的球队才能模拟比赛。";
 "game_saved_to_history" = "比赛已保存到历史记录。";
-
 /* Added by i18n/fix-localization */
 "text_selected_count" = "已选 %d/%d";
 "button_select_all" = "全选";
@@ -357,7 +347,6 @@
 "status_sync_in_progress_please_wait" = "已有同步任务进行中，请稍候";
 "update_preparing_store_sync_please_wait" = "正在准备同步数据，请稍候";
 "store_sync_preparing_local_processing" = "正在准备同步数据（本地处理）";
-
 /* BluetoothSyncManager 新增 key */
 "error_sync_data_encoding_failed" = "同步数据编码失败";
 "status_bluetooth_message_encoding_failed" = "蓝牙消息编码失败";
@@ -385,11 +374,9 @@
 "nav_new_player" = "新建球员";
 "nav_edit_player" = "编辑球员";
 "button_save" = "保存";
-
 "processing_waiting_and_receiving" = "正在等待并接收数据…";
 "update_confirmed_waiting_for_peer_start_transfer" = "已确认接收，等待 %@ 开始传输";
 "update_rejected_peer_sync_request" = "已拒绝 %@ 的同步请求";
-
 "update_sync_task_in_progress" = "已有同步任务进行中";
 "update_sync_preparation_cancelled" = "同步准备已取消";
 "update_sync_receive_cancelled" = "接收同步已取消";
@@ -409,7 +396,6 @@
 "permission_hint_checking" = "首次检测可能会触发系统权限提示。";
 "permission_hint_unknown" = "点击“重新检测本地网络权限”进行检查。";
 "search_player_prompt" = "按球员搜索";
-
 /* RosterView i18n additions */
 "alert_auto_detected_title" = "已自动识别";
 "button_choose_games" = "选择比赛";
@@ -567,7 +553,6 @@
 "transfer_open_to_pick_device_progress_hint" = "进入后可选择接收设备并查看传输百分比进度。";
 "transfer_send_current_player_bluetooth" = "蓝牙发送当前球员";
 "transfer_send_current_team_bluetooth" = "蓝牙发送当前球队";
-
 /* ContentView 新增 keys */
 "alert_joined_collab_format" = "已加入 %@ 的协同比赛";
 "alert_confirmation_failed_retry" = "确认失败，请检查连接状态后重试。";
@@ -583,7 +568,6 @@
 "alert_overwrite_any" = "这次导入会覆盖现有比赛记录，是否继续？";
 "alert_new_chunk_title" = "检测到新的分段导入";
 "alert_new_chunk_message_format" = "当前已录入 %d/%d 段，新剪贴板识别到 %d 段，可能不是同一场比赛。继续会清空当前分段内容。";
-
 "button_export" = "导出";
 "button_continue_matching" = "继续匹配";
 "button_got_it" = "知道了";
@@ -592,20 +576,17 @@
 "button_parse_game_record" = "解析比赛记录";
 "button_ai_generate_summary" = "生成比赛总结";
 "button_ai_generating" = "生成中…";
-
 "nav_game_history" = "比赛记录";
 "nav_game_detail" = "比赛详情";
 "nav_delete_games" = "删除比赛";
 "nav_export_game" = "导出比赛";
 "nav_import_game" = "导入比赛";
-
 "status_transferring_format" = "正在传输 %d/%d";
 "status_receiving_format" = "正在接收 %d/%d";
 "status_preparing_sync" = "正在准备同步数据";
 "status_processing_sync" = "正在处理同步数据";
 "status_preparing_sync_hint" = "正在准备数据，完成后会发送请求并等待对方确认。";
 "status_background_processing_hint" = "数据处理已转到后台线程，主界面保持可交互。";
-
 "section_ai_game_summary" = "AI 比赛总结";
 "section_game_share_code" = "比赛分享编码";
 "section_team_match" = "球队匹配";
@@ -613,11 +594,9 @@
 "section_other_stats" = "其他";
 "section_advanced_stats" = "高阶";
 "section_team_players_data_format" = "%@ 球员数据";
-
 "empty_no_team_data" = "还没有球队数据";
 "empty_no_player_data" = "还没有球员数据";
 "empty_no_game_history" = "还没有历史比赛";
-
 "career_tile_games" = "场次";
 "career_tile_win_rate" = "胜率";
 "career_tile_net" = "净胜";
@@ -626,7 +605,6 @@
 "career_tile_total_score" = "总得失";
 "career_points_format" = "%d 分";
 "career_summary_format" = "比赛 %d 场  场均 %@ 分 / %@ 板 / %@ 助  时间 %@ 分";
-
 "stat_label_role" = "身份";
 "stat_label_playing_time_value" = "上场时间";
 "stat_label_fg_rate" = "命中率";
@@ -641,7 +619,6 @@
 "stat_format_full_misc" = "%d / %d / %d / %d / %d / %d";
 "foul_count_format" = "犯规 %d";
 "stats_line_format" = "时间 %@  投篮 %d/%d  罚球 %d/%d  板 %d  助 %d  犯 %d  盖 %d  断 %d  失 %d";
-
 "import_offer_from_format" = "来自 %@";
 "import_offer_counts_format" = "球员 %d 人 · 球队 %d 支 · 比赛 %d 场";
 "import_as_new_team" = "作为新球队导入";
@@ -652,34 +629,28 @@
 "preview_category_players" = "球员";
 "preview_category_teams" = "球队";
 "preview_category_games" = "比赛";
-
 "transfer_receiving_title_format" = "接收中：%@";
 "transfer_sending_title_format" = "发送中：%@";
 "transfer_send_current_game_bluetooth" = "蓝牙发送当前比赛";
 "transfer_total_segments_hint_format" = "当前编码共 %d 段，每段都带有可识别前缀。";
-
 "parse_result_failed_game" = "解析失败\n类型: 比赛\n请确认粘贴的是完整分享编码。";
 "parse_result_failed_chunk_format" = "解析失败\n类型: 比赛分段\n%@";
 "parse_result_incomplete_chunks" = "已识别为分段编码，请补全所有段后再解析。";
 "parse_result_success_format" = "解析成功\n类型: 比赛\n球队数量: %d\n球员数量: %d\n未匹配项会按原 UUID 新建，照片不会导入。";
-
 "text_ai_waiting_key" = "等待 AI API Key 后启用。";
 "text_ai_will_generate" = "将生成：比赛总结、MVP 评选与高亮时刻。";
 "text_clipboard_recognized_game" = "已从剪贴板识别到比赛数据，并自动粘贴解析成功。";
-
 "unmarked_role" = "未标记";
 "unrecorded_role" = "未记录";
 "enum_team" = "球队";
 "enum_player" = "球员";
 "stat_label_efg_ts" = "eFG / TS";
-
 /* TeamEditorView 新增 keys */
 "team_name_placeholder" = "球队名称";
 "team_select_players" = "选择球员";
 "team_no_players_hint" = "先添加球员";
 "nav_new_team" = "新建球队";
 "nav_edit_team" = "编辑球队";
-
 /* BluetoothSyncManager 新增 keys */
 "status_no_invitable_devices" = "暂无可邀请的已连接设备";
 "status_collab_invite_sent" = "协同邀请已发送";
@@ -719,8 +690,6 @@
 "network_error_other_format" = "%@失败：%@";
 "bluetooth_broadcast" = "蓝牙广播";
 "device_search" = "设备搜索";
-
-
 /* Models 新增 keys (统计项标题) */
 "stat_label_starter" = "首发";
 "stat_label_bench" = "替补";
@@ -751,8 +720,6 @@
 "stat_label_avg_3pt_made" = "场均3分命中";
 "stat_label_avg_free_throw_made" = "场均罚球命中";
 "stat_label_free_throw_rate" = "罚球命中率";
-
-
 /* TransferCodec 错误 */
 "transfer_error_paste_complete" = "请先粘贴完整分段编码。";
 "transfer_error_chunk_format_failed_format" = "第%d段格式错误或校验失败，请确认复制完整。";
@@ -782,7 +749,6 @@
 "demo_player_sendoh" = "仙道";
 "demo_player_ayako" = "彩子";
 "demo_player_maki" = "牧绅一";
-
 /* AI Summary Prompt Keys */
 "ai_system_role" = "你是专业篮球解说与数据分析师。用自然的赛事解说风格输出，既不过于书面也不过于随意。严格基于提供的结构化数据，不得使用'可能''大概''或许'等不确定措辞。每条描述必须有数据支撑。数据说明：·[球员 +分 前比分→后比分 类型]表示每次得分事件及比分变化（open=首开纪录, extend=扩大领先, cut=缩小差距, tie=追平）·personal_run=个人连续得分·team_run=球队连续得分·rebound_streak=连续篮板·assist_streak=连续助攻·team_miss_streak=球队连续不中·personal_miss_streak=个人连续不中";
 "ai_test_connection_prompt" = "请仅回复：连接成功";
@@ -827,7 +793,6 @@
 "transfer_keyword_game" = "篮球生涯手账-比赛导出";
 "transfer_keyword_team" = "篮球生涯手账-球队导出";
 "transfer_keyword_player" = "篮球生涯手账-球员导出";
-
 /* 比赛分组 */
 "game_group_nav_title" = "比赛分组";
 "game_group_section_title" = "分组";
@@ -850,10 +815,6 @@
 "game_group_no_games_available" = "没有可用的比赛";
 "search_no_results" = "没有搜索结果";
 "game_group_selected_filter" = "筛选：";
-
-
-
-
 /* 通用按钮 */
 "common_cancel" = "取消";
 "common_save" = "保存";
@@ -894,7 +855,6 @@
 "alert_period_auto_ended_title" = "本节结束";
 "alert_period_auto_ended_time_format" = "第%d节结束（时间到）";
 "alert_period_auto_ended_score_format" = "第%d节结束（比分到达上限）";
-
 "settings_voice" = "语音";
 "settings_voice_instruction" = "语音说明";
 "settings_show_voice_button_footer" = "在记分页显示麦克风按钮，支持语音输入。";
@@ -910,7 +870,7 @@
 "voice_shortcuts_action" = "动作";
 "voice_shortcuts_add_title" = "添加快捷指令";
 "voice_shortcuts_edit_title" = "编辑快捷指令";
-
 "link_privacy_policy" = "隐私政策";
 "link_terms_of_eula" = "使用条款 (EULA)";
 "subscription_auto_renew_info" = "自动续期订阅。可随时在 App Store 设置中取消。";
+"button_save_to_photos" = "Save to Photos";

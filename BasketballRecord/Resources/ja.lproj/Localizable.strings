@@ -39,7 +39,6 @@
 "deepseek_test" = "接続をテスト";
 "deepseek_save_key" = "キーチェーンに保存";
 "deepseek_remove_saved_key" = "保存済みキーを削除";
-
 /* 新しいアラート/ボタン/ナビゲーションキー */
 "alert_store_sync_offer_title" = "同期リクエストを受信";
 "alert_accept_and_receive" = "受け入れて受信";
@@ -95,7 +94,6 @@
 "section_send_progress" = "送信進捗";
 "section_status" = "状態";
 "nav_select_sync_content" = "同期内容を選択";
-
 /* GameView keys */
 "nav_game" = "試合";
 "button_new_game" = "新しい試合";
@@ -161,7 +159,6 @@
 "starter_away_title" = "アウェイ先発";
 "nav_new_game" = "新しい試合";
 "button_start" = "開始";
-
 /* Added by bulk i18n completion */
 "alert_finish_game_title" = "エンドゲーム?";
 "button_confirm_finish" = "終了確認";
@@ -499,7 +496,6 @@
 "transfer_send_current_player_bluetooth" = "Bluetooth経由で現在のプレーヤーを送信します";
 "transfer_send_current_team_bluetooth" = "Bluetooth経由で現在のチームを送信";
 "search_player_prompt" = "プレイヤーを探す";
-
 /* ContentView 新規キー */
 "alert_joined_collab_format" = "%@ の共同試合に参加しました";
 "alert_confirmation_failed_retry" = "確認に失敗しました。接続を確認して再試行してください。";
@@ -592,17 +588,13 @@
 "enum_team" = "チーム";
 "enum_player" = "選手";
 "stat_label_efg_ts" = "eFG / TS";
-
-
 /* TeamEditorView 新規キー */
 "team_name_placeholder" = "チーム名";
 "team_select_players" = "選手を選択";
 "team_no_players_hint" = "まず選手を追加してください";
 "nav_new_team" = "新規チーム";
 "nav_edit_team" = "チームを編集";
-
 /* BluetoothSyncManager 新規キー */
-
 /* BluetoothSyncManager new keys */
 "status_no_invitable_devices" = "招待可能な接続デバイスがありません";
 "status_collab_invite_sent" = "コラボレーション招待を送信しました";
@@ -642,8 +634,6 @@
 "network_error_other_format" = "%@ 失敗: %@";
 "bluetooth_broadcast" = "Bluetoothブロードキャスト";
 "device_search" = "デバイス検索";
-
-
 /* Models 新規キー（統計タイトル） */
 "stat_label_starter" = "スターター";
 "stat_label_bench" = "ベンチ";
@@ -674,8 +664,6 @@
 "stat_label_avg_3pt_made" = "平均3PT成功";
 "stat_label_avg_free_throw_made" = "平均FT成功";
 "stat_label_free_throw_rate" = "FT%";
-
-
 /* AI Summary Prompt Keys - English Fallback */
 "ai_system_role" = "You are a professional basketball analyst and commentator.";
 "ai_test_connection_prompt" = "Please reply only with: Connection successful";
@@ -719,9 +707,7 @@
 "transfer_keyword_game" = "Basketball Record-Game Export";
 "transfer_keyword_team" = "Basketball Record-Team Export";
 "transfer_keyword_player" = "Basketball Record-Player Export";
-
 /* Remaining files: TransferCodec / TransferUI / DeepSeek / AppStore */
-
 /* TransferCodec errors */
 "transfer_error_paste_complete" = "先に完全な共有コードを貼り付けてください。";
 "transfer_error_chunk_format_failed_format" = "チャンク %d にフォーマットまたはチェックサムエラーがあります。完全にコピーしたことを確認してください。";
@@ -751,7 +737,6 @@
 "demo_player_sendoh" = "仙道";
 "demo_player_ayako" = "彩子";
 "demo_player_maki" = "牧紳一";
-
 /* Game Grouping */
 "game_group_nav_title" = "試合グループ";
 "game_group_section_title" = "グループ";
@@ -773,8 +758,6 @@
 "game_group_games_section" = "試合";
 "game_group_no_games_available" = "利用可能な試合がありません";
 "search_no_results" = "結果なし";
-
-
 /* 一般的なボタン */
 "common_cancel" = "キャンセル";
 "common_save" = "保存";
@@ -814,8 +797,6 @@
 "purchase_error_cancelled" = "購入がキャンセルされました。";
 "label_lock" = "ロック";
 "label_unlock" = "アンロック";
-
-
 "pro_feature_groups_1" = "ゲームグループを作成して簡単にフィルタリング";
 "pro_feature_bluetooth_1" = "Bluetoothでデバイス間のゲームデータを同期";
 "pro_feature_bluetooth_2" = "他のデバイスとリアルタイム協同記録";
@@ -844,33 +825,23 @@
 "settings_doc_help_pro_item2_desc" = "自分に合ったプランを選択し、いつでもキャンセルできます。";
 "cloud_syncing" = "同期中...";
 "cloud_sync_now" = "今すぐ同期";
-
-
 "game_group_ungrouped" = "未グループ";
 "cloud_unavailable_hint" = "システム設定でiCloudを有効にしてアカウントにサインインしてください。";
 "section_cloud_only" = "クラウドのみ";
 "label_game_name" = "試合名";
-
-
 "label_career_summary" = "キャリアサマリー";
 "label_games_count" = "試合数";
 "stats_total_points" = "総得点";
-
-
 "settings_show_bluetooth_button" = "Bluetooth協同を表示";
 "settings_cloud_storage" = "iCloudストレージ";
-
-
 "stats_points_format_short" = "PTS";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
 "stats_foul_turnover" = "FOUL / TO";
 "stats_minutes" = "MIN";
 "stats_shooting" = "FG";
-
 "stats_starter_bench" = "S / B";
 "label_career_stats" = "キャリア記録";
 "stats_pts_min" = "PTS / MIN";
-
 "button_collab_games" = "Bluetooth 協同ゲーム";
 "cloud_storage_description" = "試合をタップしてクラウドストレージをオン/オフにします。クラウド保存された試合は全デバイスで同期されます。";
 "section_cloud_enabled" = "iCloud内";
@@ -882,7 +853,6 @@
 "icloud_error_unknown" = "不明なiCloudエラーです。";
 "section_nearby_devices" = "近くのデバイス";
 "stats_games" = "G";
-
 "settings_voice" = "音声";
 "settings_voice_instruction" = "音声の使い方";
 "settings_show_voice_button_footer" = "採点ページにマイクボタンを表示し、音声入力を有効にします。";
@@ -898,7 +868,7 @@
 "voice_shortcuts_action" = "アクション";
 "voice_shortcuts_add_title" = "ショートカットを追加";
 "voice_shortcuts_edit_title" = "ショートカットを編集";
-
 "link_privacy_policy" = "プライバシーポリシー";
 "link_terms_of_eula" = "利用規約 (EULA)";
 "subscription_auto_renew_info" = "自動更新サブスクリプション。App Storeの設定からいつでもキャンセルできます。";
+"button_save_to_photos" = "Save to Photos";

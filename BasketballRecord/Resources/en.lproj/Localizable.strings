@@ -95,7 +95,6 @@
 "deepseek_test" = "Test connection";
 "deepseek_save_key" = "Save to Keychain";
 "deepseek_remove_saved_key" = "Remove saved Key";
-
 /* New alert/button/nav keys */
 "alert_store_sync_offer_title" = "Store Sync Offer";
 "alert_accept_and_receive" = "Accept and Receive";
@@ -150,7 +149,6 @@
 "label_cancel_current_sync" = "Cancel current sync";
 "section_status" = "Status";
 "nav_select_sync_content" = "Select Sync Content";
-
 /* GameView keys */
 "nav_game" = "Game";
 "button_new_game" = "New Game";
@@ -233,7 +231,6 @@
 "text_no_optional_bench" = "No optional bench players";
 "badge_starter" = "Starter";
 "badge_bench" = "Bench";
-
 "button_record" = "Record";
 "nav_substitution" = "Substitution";
 "nav_late_arrival" = "Add On-Court";
@@ -248,7 +245,6 @@
 "badge_sub_out" = "Sub Out";
 "badge_sub_in" = "Sub In";
 "badge_on_court" = "On Court";
-
 "label_team_stats" = "Team Stats";
 "stats_points_format" = "%d pts";
 "stats_field_goal" = "FG";
@@ -273,7 +269,6 @@
 "stats_block_short_format" = "BLK%d";
 "stats_steal_short_format" = "STL%d";
 "stats_turnover_short_format" = "TO%d";
-
 "event_game_end" = "Game ended";
 "event_game_saved" = "Game saved";
 "event_game_paused" = "Game paused";
@@ -289,7 +284,6 @@
 "unknown_player" = "Unknown player";
 "text_not_set" = "Not set";
 "collab_operation_send_failed" = "Failed to send operation. Check connection and retry.";
-
 /* Added by i18n/fix-localization */
 "label_foul_period" = "Fouls (period)";
 "label_foul_total" = "Fouls (total)";
@@ -310,7 +304,6 @@
 "period_button_action_end" = "End";
 "period_button_action_start" = "Start";
 "period_button_toggle_format" = "Period %d %@";
-/* Added by i18n/fix-localization */
 "text_selected_count" = "Selected %d/%d";
 "button_select_all" = "Select All";
 "button_clear" = "Clear";
@@ -364,9 +357,7 @@
 "nav_new_player" = "New Player";
 "nav_edit_player" = "Edit Player";
 "button_save" = "Save";
-
 "permission_status_authorized" = "Local network permission allowed";
-
 /* BluetoothSyncManager new keys */
 "error_sync_data_encoding_failed" = "Sync data encoding failed";
 "status_bluetooth_message_encoding_failed" = "Bluetooth message encoding failed";
@@ -393,21 +384,17 @@
 "permission_hint_checking" = "First-time checks may trigger a system permission prompt.";
 "permission_hint_unknown" = "Tap \"Re-check local network permission\" to check.";
 "button_start" = "Start";
-
 "stat_game_already_finished" = "The game has already finished.";
 "stat_game_paused" = "The game is paused.";
 "stat_period_not_started" = "Period %d has not started";
 "stat_select_player_first" = "Please select a player first.";
-
 "collab_invite_before_new_game" = "Please create a new game before inviting collaborators.";
 "collab_invite_complete_lineup" = "Please complete the lineup before inviting collaborators.";
 "collab_no_connected_devices" = "Please connect devices in Settings → Bluetooth Sync first.";
 "collab_invite_send_failed" = "Failed to send invite, please check your connection.";
 "collab_invite_sent_waiting" = "Invite sent, waiting for the other party to accept.";
-
 "simulate_need_two_teams_with_players" = "At least two teams with players are required to simulate a game.";
 "game_saved_to_history" = "The game has been saved to history.";
-
 /* RosterView i18n additions */
 "alert_auto_detected_title" = "Auto Detected";
 "button_choose_games" = "Choose Games";
@@ -566,7 +553,6 @@
 "transfer_send_current_player_bluetooth" = "Send Current Player via Bluetooth";
 "transfer_send_current_team_bluetooth" = "Send Current Team via Bluetooth";
 "search_player_prompt" = "Search players";
-
 /* ContentView new keys */
 "alert_joined_collab_format" = "Joined %@'s collaborative game";
 "alert_confirmation_failed_retry" = "Confirmation failed. Please check the connection and try again.";
@@ -582,7 +568,6 @@
 "alert_overwrite_any" = "This import will overwrite an existing game. Continue?";
 "alert_new_chunk_title" = "New chunked import detected";
 "alert_new_chunk_message_format" = "Currently %d/%d segments recorded. Clipboard detects %d new segments that may not be from the same game. Continuing will clear current segments.";
-
 "button_export" = "Export";
 "button_continue_matching" = "Continue matching";
 "button_got_it" = "Got it";
@@ -591,20 +576,17 @@
 "button_parse_game_record" = "Parse Game Record";
 "button_ai_generate_summary" = "Generate Summary";
 "button_ai_generating" = "Generating…";
-
 "nav_game_history" = "Game History";
 "nav_game_detail" = "Game Detail";
 "nav_delete_games" = "Delete Games";
 "nav_export_game" = "Export Game";
 "nav_import_game" = "Import Game";
-
 "status_transferring_format" = "Transferring %d/%d";
 "status_receiving_format" = "Receiving %d/%d";
 "status_preparing_sync" = "Preparing sync data";
 "status_processing_sync" = "Processing sync data";
 "status_preparing_sync_hint" = "Preparing data. The request will be sent and will wait for peer confirmation when ready.";
 "status_background_processing_hint" = "Processing moved to background. The main UI remains interactive.";
-
 "section_ai_game_summary" = "AI Game Summary";
 "section_game_share_code" = "Game Share Code";
 "section_team_match" = "Team Match";
@@ -612,11 +594,9 @@
 "section_other_stats" = "Other";
 "section_advanced_stats" = "Advanced";
 "section_team_players_data_format" = "%@ Players";
-
 "empty_no_team_data" = "No team data yet";
 "empty_no_player_data" = "No player data yet";
 "empty_no_game_history" = "No game history yet";
-
 "career_tile_games" = "Games";
 "career_tile_win_rate" = "Win %";
 "career_tile_net" = "Net";
@@ -625,7 +605,6 @@
 "career_tile_total_score" = "Total Score";
 "career_points_format" = "%d pts";
 "career_summary_format" = "%d games · avg %@ pts / %@ reb / %@ ast · %@ min";
-
 "stat_label_role" = "Role";
 "stat_label_playing_time_value" = "Playing time";
 "stat_label_fg_rate" = "FG%";
@@ -640,7 +619,6 @@
 "stat_format_full_misc" = "%d / %d / %d / %d / %d / %d";
 "foul_count_format" = "Fouls %d";
 "stats_line_format" = "Time %@  FG %d/%d  FT %d/%d  REB %d  AST %d  FOUL %d  BLK %d  STL %d  TO %d";
-
 "import_offer_from_format" = "From %@";
 "import_offer_counts_format" = "%d players · %d teams · %d games";
 "import_as_new_team" = "Import as new team";
@@ -651,35 +629,28 @@
 "preview_category_players" = "Players";
 "preview_category_teams" = "Teams";
 "preview_category_games" = "Games";
-
 "transfer_receiving_title_format" = "Receiving: %@";
 "transfer_sending_title_format" = "Sending: %@";
 "transfer_send_current_game_bluetooth" = "Send Current Game via Bluetooth";
 "transfer_total_segments_hint_format" = "Total %d segments, each with a recognizable prefix.";
-
 "parse_result_failed_game" = "Parse failed\nType: Game\nPlease confirm the pasted share code is complete.";
 "parse_result_failed_chunk_format" = "Parse failed\nType: Game chunked\n%@";
 "parse_result_incomplete_chunks" = "Detected chunked code. Fill all segments before parsing.";
 "parse_result_success_format" = "Parse succeeded\nType: Game\nTeams: %d\nPlayers: %d\nUnmatched items will be created with original UUIDs. Photos will not be imported.";
-
 "text_ai_waiting_key" = "Waiting for AI API Key.";
 "text_ai_will_generate" = "Will generate: game summary, MVP pick and highlight moments.";
 "text_clipboard_recognized_game" = "Detected game data from clipboard and auto-pasted successfully.";
-
 "unmarked_role" = "Unmarked";
 "unrecorded_role" = "Unrecorded";
 "enum_team" = "Team";
 "enum_player" = "Player";
 "stat_label_efg_ts" = "eFG / TS";
-
 /* TeamEditorView new keys */
 "team_name_placeholder" = "Team Name";
 "team_select_players" = "Select Players";
 "team_no_players_hint" = "Please add players first";
 "nav_new_team" = "New Team";
 "nav_edit_team" = "Edit Team";
-
-/* BluetoothSyncManager new keys */
 "status_no_invitable_devices" = "No connectable devices to invite";
 "status_collab_invite_sent" = "Collaboration invite sent";
 "status_sending_data" = "Sending data…";
@@ -718,8 +689,6 @@
 "network_error_other_format" = "%@ failed: %@";
 "bluetooth_broadcast" = "Bluetooth broadcast";
 "device_search" = "Device search";
-
-
 /* Models new keys (stat titles) */
 "stat_label_starter" = "Starter";
 "stat_label_bench" = "Bench";
@@ -750,8 +719,6 @@
 "stat_label_avg_3pt_made" = "Avg 3PT Made";
 "stat_label_avg_free_throw_made" = "Avg FT Made";
 "stat_label_free_throw_rate" = "FT%";
-
-
 /* TransferCodec errors */
 "transfer_error_paste_complete" = "Please paste the complete share code first.";
 "transfer_error_chunk_format_failed_format" = "Chunk %d has a format or checksum error. Please make sure you copied it completely.";
@@ -781,7 +748,6 @@
 "demo_player_sendoh" = "Sendoh";
 "demo_player_ayako" = "Ayako";
 "demo_player_maki" = "Shinichi Maki";
-
 /* AI Summary Prompt Keys */
 "ai_system_role" = "You are a professional basketball analyst and commentator.";
 "ai_test_connection_prompt" = "Please reply only with: Connection successful";
@@ -825,7 +791,6 @@
 "transfer_keyword_game" = "Basketball Record-Game Export";
 "transfer_keyword_team" = "Basketball Record-Team Export";
 "transfer_keyword_player" = "Basketball Record-Player Export";
-
 /* Game Grouping */
 "game_group_nav_title" = "Game Groups";
 "game_group_section_title" = "Groups";
@@ -848,10 +813,6 @@
 "game_group_no_games_available" = "No games available";
 "search_no_results" = "No results";
 "game_group_selected_filter" = "Filtering by";
-
-
-
-
 /* Common buttons */
 "common_cancel" = "Cancel";
 "common_save" = "Save";
@@ -892,7 +853,6 @@
 "alert_period_auto_ended_title" = "Period Ended";
 "alert_period_auto_ended_time_format" = "Period %d ended (time limit reached)";
 "alert_period_auto_ended_score_format" = "Period %d ended (score limit reached)";
-
 "settings_voice" = "Voice";
 "settings_voice_instruction" = "Voice Instructions";
 "settings_show_voice_button_footer" = "Show a microphone button on the scoring page for voice input.";
@@ -908,7 +868,7 @@
 "voice_shortcuts_action" = "Action";
 "voice_shortcuts_add_title" = "Add Shortcut";
 "voice_shortcuts_edit_title" = "Edit Shortcut";
-
 "link_privacy_policy" = "Privacy Policy";
 "link_terms_of_eula" = "Terms of Use (EULA)";
 "subscription_auto_renew_info" = "Auto-renewable subscription. Cancel anytime via App Store settings.";
+"button_save_to_photos" = "Save to Photos";
