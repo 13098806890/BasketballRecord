@@ -16,6 +16,7 @@ extension VoiceRules {
             .init(keyword: "內線", eventPrefix: "stat.paint"),
             .init(keyword: "罰球", eventPrefix: "stat.freeThrow"),
             .init(keyword: "罰籃", eventPrefix: "stat.freeThrow"),
+            .init(keyword: "發球", eventPrefix: "stat.freeThrow"),
             .init(keyword: "加罰", eventPrefix: "stat.bonus"),
         ],
         madeStates: ["命中", "進", "得分", "成功"],

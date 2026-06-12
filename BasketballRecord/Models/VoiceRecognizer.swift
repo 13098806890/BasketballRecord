@@ -338,11 +338,13 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     private func showError(_ msg: String) {
         errorMessage = msg
-        let impact = UIImpactFeedbackGenerator(style: .medium)
-        impact.prepare()
-        impact.impactOccurred()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { impact.impactOccurred() }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) { impact.impactOccurred() }
+        DispatchQueue.main.async {
+            let impact = UIImpactFeedbackGenerator(style: .medium)
+            impact.prepare()
+            impact.impactOccurred()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { impact.impactOccurred() }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) { impact.impactOccurred() }
+        }
         Task { [weak self] in
             try? await Task.sleep(for: .seconds(1.5))
             await MainActor.run { [weak self] in

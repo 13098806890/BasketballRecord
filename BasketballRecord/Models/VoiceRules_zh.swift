@@ -16,6 +16,7 @@ extension VoiceRules {
             .init(keyword: "内线", eventPrefix: "stat.paint"),
             .init(keyword: "罚球", eventPrefix: "stat.freeThrow"),
             .init(keyword: "罚篮", eventPrefix: "stat.freeThrow"),
+            .init(keyword: "发球", eventPrefix: "stat.freeThrow"),
             .init(keyword: "加罚", eventPrefix: "stat.bonus"),
             .init(keyword: "山分", eventPrefix: "stat.three"),
             .init(keyword: "散分", eventPrefix: "stat.three"),
