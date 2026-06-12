@@ -547,6 +547,90 @@ struct SavedGameDetailView: View {
         return lines.joined(separator: "\n")
     }
 
+    private func scoringRunData() -> String {
+        let scoringCodes: Set<String> = ["stat.twoMade", "stat.threeMade", "stat.freeThrowMade", "stat.bonusMade"]
+        let pointMap: [String: Int] = ["stat.twoMade": 2, "stat.threeMade": 3, "stat.freeThrowMade": 1, "stat.bonusMade": 1]
+        let homeIDs = Set(game.homePlayerIDs)
+        let allIDs = allPlayerIDsForSummary()
+        let idToName: [UUID: String] = Dictionary(uniqueKeysWithValues: allIDs.compactMap { id in
+            game.playerNamesByID[id].map { (id, $0) }
+        })
+
+        var lines: [String] = []
+        var homeScore = 0, awayScore = 0
+        var lastScoringPlayerID: UUID?
+        var personalRunCount = 0, personalRunPoints = 0
+        var teamRunSide: TeamSide?
+        var teamRunCount = 0, teamRunPoints = 0
+
+        for log in game.snapshot.logs {
+            guard let code = log.eventCode ?? GameLogFormatter.extractEventCode(from: log.message),
+                  scoringCodes.contains(code),
+                  let points = pointMap[code],
+                  let playerID = log.playerID ?? resolvedPlayerID(log: log) else { continue }
+
+            let isHome = homeIDs.contains(playerID)
+            let teamName = isHome ? game.homeTeamName : game.awayTeamName
+            let playerName = idToName[playerID] ?? "?"
+
+            // Update scores
+            if isHome { homeScore += points } else { awayScore += points }
+
+            // Personal run
+            if lastScoringPlayerID == playerID {
+                personalRunCount += 1
+                personalRunPoints += points
+            } else {
+                if personalRunCount >= 2, let lastID = lastScoringPlayerID {
+                    let lastName = idToName[lastID] ?? "?"
+                    lines.append("- 个人连续得分：\(lastName) 连得\(personalRunPoints)分（\(personalRunCount)次进攻）")
+                }
+                personalRunCount = 1
+                personalRunPoints = points
+                lastScoringPlayerID = playerID
+            }
+
+            // Team run
+            let currentSide: TeamSide = isHome ? .home : .away
+            if teamRunSide == currentSide {
+                teamRunCount += 1
+                teamRunPoints += points
+            } else {
+                if (teamRunCount >= 3 || teamRunPoints >= 8), let lastSide = teamRunSide {
+                    let tName = lastSide == .home ? game.homeTeamName : game.awayTeamName
+                    let prevHome = homeScore - (lastSide == .home ? teamRunPoints : 0)
+                    let prevAway = awayScore - (lastSide == .away ? teamRunPoints : 0)
+                    lines.append("- 球队连续得分：\(tName) 连得\(teamRunPoints)分（\(teamRunCount)次进攻），比分从 \(prevHome)-\(prevAway) 扩大到 \(homeScore)-\(awayScore)")
+                }
+                teamRunCount = 1
+                teamRunPoints = points
+                teamRunSide = currentSide
+            }
+        }
+
+        // Flush last runs
+        if personalRunCount >= 2, let lastID = lastScoringPlayerID {
+            let lastName = idToName[lastID] ?? "?"
+            lines.append("- 个人连续得分：\(lastName) 连得\(personalRunPoints)分（\(personalRunCount)次进攻）")
+        }
+        if (teamRunCount >= 3 || teamRunPoints >= 8), let lastSide = teamRunSide {
+            let tName = lastSide == .home ? game.homeTeamName : game.awayTeamName
+            let prevHome = homeScore - (lastSide == .home ? teamRunPoints : 0)
+            let prevAway = awayScore - (lastSide == .away ? teamRunPoints : 0)
+            lines.append("- 球队连续得分：\(tName) 连得\(teamRunPoints)分（\(teamRunCount)次进攻），比分从 \(prevHome)-\(prevAway) 扩大到 \(homeScore)-\(awayScore)")
+        }
+
+        return lines.isEmpty ? "- 无可用连续得分数据" : lines.joined(separator: "\n")
+    }
+
+    private func resolvedPlayerID(log: GameLogEntry) -> UUID? {
+        let normalized = GameLogFormatter.normalizedMessage(log.message)
+        for (id, name) in game.playerNamesByID where normalized.contains(name) {
+            return id
+        }
+        return nil
+    }
+
     private func summaryPrompt() -> String {
         let homeScore = score(for: game.snapshot.homeTeamID)
         let awayScore = score(for: game.snapshot.awayTeamID)
@@ -676,6 +760,9 @@ struct SavedGameDetailView: View {
 
         【每节得分汇总】
         \(periodStatsText)
+
+        【连续得分分析（系统预计算）】
+        \(scoringRunData())
         """
     }
 
