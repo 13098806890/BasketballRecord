@@ -1227,21 +1227,22 @@ struct GameView: View {
             statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: "Period not started message"), snapshot.currentPeriod)
             return
         }
-        guard let player = selectedPlayer else {
+        let isTeamMode = selectedSide == .home ? snapshot.homeTeamStatsMode : snapshot.awayTeamStatsMode
+        guard let pid = selectedPlayerID else {
             statAlertMessage = NSLocalizedString("stat_select_player_first", comment: "Please select a player message")
             return
         }
-        guard isOnCourt(player.id, side: selectedSide) else { return }
+        guard isTeamMode || isOnCourt(pid, side: selectedSide) else { return }
 
         let now = Date()
         let operation = BluetoothLiveOperationPayload.record(
             action: action.liveAction,
-            playerID: player.id,
+            playerID: pid,
             side: selectedSide.liveSide,
             at: now
         )
         let changed = submitLiveOperation(operation) {
-            applyRecordOperation(action: action, playerID: player.id, side: selectedSide, at: now)
+            applyRecordOperation(action: action, playerID: pid, side: selectedSide, at: now)
         }
         if changed {
             showRecordFeedback(action: action, side: selectedSide)
