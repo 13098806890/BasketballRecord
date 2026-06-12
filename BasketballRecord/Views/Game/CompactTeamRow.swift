@@ -57,9 +57,9 @@ struct CompactTeamRow: View {
                     VStack(spacing: 6) {
                         ZStack {
                             Circle()
-                                .fill(GamePalette.surface)
+                                .fill(Color(.systemBackground))
                                 .frame(width: 52, height: 52)
-                                .overlay(Circle().stroke(GamePalette.onCourtBorder, lineWidth: 2))
+                                .overlay(Circle().stroke(selectedPlayerID == team?.id && selectedSide == side ? GamePalette.selectedBorder : Color.primary.opacity(0.3), lineWidth: selectedPlayerID == team?.id && selectedSide == side ? 3 : 1.5))
                             Image(systemName: "chart.bar.fill")
                                 .font(.title3)
                                 .foregroundStyle(GamePalette.text)
