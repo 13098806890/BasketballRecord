@@ -58,6 +58,10 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         if letters.count >= 2 && letters.count <= 4 {
             let letterPinyins = letters.map { Self.letterPinyin($0) }
             variants.append(letterPinyins.joined(separator: " "))
+            // Also add shortened forms: just the raw letters as pinyin
+            variants.append(String(letters))
+            // Add combined form: letters joined as one syllable
+            variants.append(letters.map { String($0) }.joined(separator: " "))
         }
         // Add surname pinyin overrides for polyphonic Chinese surnames
         if !surnameOverrides.isEmpty {
@@ -79,7 +83,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     /// Single-letter Chinese pronunciation approximation
     static func letterPinyin(_ ch: Character) -> String {
         switch ch {
-        case "a": return "ei"; case "b": return "bo"; case "c": return "ci"
+        case "a": return "a"; case "b": return "bo"; case "c": return "ci"
         case "d": return "di"; case "e": return "e"
         case "f": return "efu"; case "g": return "ji"; case "h": return "equ"
         case "i": return "ai"; case "j": return "jie"; case "k": return "ke"
