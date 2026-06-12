@@ -20,10 +20,33 @@
 - **5 个测试用例修复**：更新 `StatAction` 数量、删除无效 VoiceMatching 测试、本地化 LegacyUndo 消息。
 - **订阅页 ProSubscriptionStoreView 改为 internal**：GameView 可直接调用购买页面。
 
+### 新增
+
+- **AI 分析优化**：按节次输出比赛分析，系统预计算个人/球队连续得分、连续篮板、连续助攻、连续投篮不中，直接供 AI 引用，避免 LLM 推算错误。
+- **AI 分析可复制/截图**：每节分析卡片支持长按复制文本或保存为图片到相册。
+- **版本号 1.21**：`main` 分支 1.21，`main_free_pro` 分支 2.21。
+- **App Store 元数据更新**：优化关键词（含语音记分/语音识别），所有语言 desc 标注 Pro 功能，更新 1.21 What's New。
+
+### 修复
+
+- **比赛名称不持久化**：`CoreDataStore.fetchAllSavedGames()` 缺少 `displayName` 字段读取，已补上 `SavedGame.init` 参数。
+- **AI 按钮非 Pro 无反应**：非 Pro 用户点击 AI 总结按钮现在弹出订阅购买页面。
+- **语音录制前 0.5s 延迟**：音频引擎预热（`prepareEngine()`），按下按钮时只需创建 recognitionTask，节省 ~300ms。
+- **音频降噪**：录音模式改为 `.measurement`，排除 `.default` 模式的不兼容格式问题。
+- **语音识别失败震动**：失败时 3 次中等震动反馈。
+
+### 优化
+
+- **AI Prompt 优化**：系统角色加入结构化数据说明，移除不确定措辞，口语化输出。每节至少 5-8 句，MVP 和亮点分析更详尽。
+- **记分页球员名自适应字号**：`minimumScaleFactor` 自动缩放，名字不再换行。
+- **球员标签格式**：`X号` 改为 `NoX`，字号调小。
+
 ### 国际化
 
 - 新增 `settings_voice_log_enable` / `settings_voice_log_enable_footer` 至全部 10 种语言。
 - 新增 `pro_feature_voice_1` / `pro_feature_voice_2` 至全部 10 种语言。
+- 新增 `button_save_to_photos` 至全部 10 种语言。
+- 同步 AI prompt 翻译（`ai_system_role`、`ai_prompt_req_4~14` 等）至全部 10 种语言。
 - 替换 `sample_player_1~4` 为 `demo_player_*` 灌篮高手角色名，全部 10 种语言。
 - Demo 球队 `demo_team_shohoku` / `demo_team_ryonan` 全部 10 种语言。
 
