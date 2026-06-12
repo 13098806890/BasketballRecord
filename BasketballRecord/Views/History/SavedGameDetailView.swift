@@ -545,18 +545,25 @@ struct SavedGameDetailView: View {
         let numericFacts = numericFactsText()
         let eventsByPeriod = periodEventsText()
 
-        // Per-period stats for AI analysis
+        // Per-period team scores for AI analysis
         let analyzer = SavedGameAnalyzer(game: game, resolvePlayerIDByName: { name in
             game.playerNamesByID.first(where: { $0.value == name })?.key
         })
         let analysis = analyzer.analyze()
         let periodCount = game.snapshot.periodCount
         var periodStatLines: [String] = []
+        var runningHome = 0, runningAway = 0
         for period in 1...periodCount {
             let periodStats = analysis.statsByPlayerID(for: period)
             guard !periodStats.isEmpty else { continue }
-            let periodPoints = periodStats.values.reduce(0) { $0 + $1.points }
-            periodStatLines.append("- 第\(period)节总分：\(periodPoints)")
+            let homeIDs = Set(game.homePlayerIDs)
+            let homePeriodPoints = periodStats.filter { homeIDs.contains($0.key) }.values.reduce(0) { $0 + $1.points }
+            let awayPeriodPoints = periodStats.filter { !homeIDs.contains($0.key) }.values.reduce(0) { $0 + $1.points }
+            runningHome += homePeriodPoints
+            runningAway += awayPeriodPoints
+            let diff = runningHome - runningAway
+            let diffStr = diff > 0 ? "主队领先\(diff)分" : diff < 0 ? "客队领先\(-diff)分" : "平分"
+            periodStatLines.append("- 第\(period)节：主队\(homePeriodPoints)分 vs 客队\(awayPeriodPoints)分 | 累计 \(runningHome)-\(runningAway)（\(diffStr)）")
         }
         let periodStatsText = periodStatLines.joined(separator: "\n")
 
