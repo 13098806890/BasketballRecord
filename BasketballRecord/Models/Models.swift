@@ -1117,6 +1117,14 @@ struct SavedGame: Identifiable, Codable, Hashable {
     var isLocked = false
     var displayName: String = ""
 
+    /// Total score for a team, including both player-level and team-level stats.
+    func score(forTeamID teamID: UUID) -> Int {
+        let isHome = teamID == snapshot.homeTeamID
+        let ids = isHome ? homePlayerIDs : awayPlayerIDs
+        let playerPts = ids.reduce(0) { $0 + (snapshot.statsByPlayerID[$1]?.points ?? 0) }
+        return playerPts + (snapshot.teamStatsByID[teamID]?.points ?? 0)
+    }
+
     var displayTitle: String {
         if displayName.isEmpty {
             return "\(homeTeamName) vs \(awayTeamName)"

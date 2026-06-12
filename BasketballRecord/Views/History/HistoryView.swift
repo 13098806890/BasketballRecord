@@ -289,10 +289,8 @@ private struct DeleteSavedGamesView: View {
     }
 
     private func score(for teamID: UUID?, in game: SavedGame) -> Int {
-        let ids = teamID == game.snapshot.homeTeamID ? game.homePlayerIDs : game.awayPlayerIDs
-        return ids.reduce(0) { total, playerID in
-            total + game.snapshot.statsByPlayerID[playerID, default: PlayerStats()].points
-        }
+        guard let teamID else { return 0 }
+        return game.score(forTeamID: teamID)
     }
 
     private static let dateFormatter: DateFormatter = {
@@ -362,9 +360,8 @@ private struct SavedGameRow: View {
     }
 
     private func score(for teamID: UUID?) -> Int {
-        playerIDs(for: teamID).reduce(0) { total, playerID in
-            total + game.snapshot.statsByPlayerID[playerID, default: PlayerStats()].points
-        }
+        guard let teamID else { return 0 }
+        return game.score(forTeamID: teamID)
     }
 
     private func playerIDs(for teamID: UUID?) -> [UUID] {
