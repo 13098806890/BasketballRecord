@@ -556,12 +556,10 @@ struct SavedGameDetailView: View {
             game.playerNamesByID[id].map { (id, $0) }
         })
 
-        var lines: [String] = []
+        var events: [String] = []
         var homeScore = 0, awayScore = 0
-        var lastScoringPlayerID: UUID?
-        var personalRunCount = 0, personalRunPoints = 0
-        var teamRunSide: TeamSide?
-        var teamRunCount = 0, teamRunPoints = 0
+        var personalRun: (playerID: UUID, count: Int, points: Int, startHome: Int, startAway: Int)?
+        var teamRun: (isHome: Bool, count: Int, points: Int)?
 
         for log in game.snapshot.logs {
             guard let code = log.eventCode ?? GameLogFormatter.extractEventCode(from: log.message),
@@ -570,57 +568,63 @@ struct SavedGameDetailView: View {
                   let playerID = log.playerID ?? resolvedPlayerID(log: log) else { continue }
 
             let isHome = homeIDs.contains(playerID)
-            let teamName = isHome ? game.homeTeamName : game.awayTeamName
+            let prevHome = homeScore
+            let prevAway = awayScore
+            if isHome { homeScore += points } else { awayScore += points }
             let playerName = idToName[playerID] ?? "?"
 
-            // Update scores
-            if isHome { homeScore += points } else { awayScore += points }
-
-            // Personal run
-            if lastScoringPlayerID == playerID {
-                personalRunCount += 1
-                personalRunPoints += points
+            // Per-scoring-event line with score context
+            let leadChars = abs(homeScore - awayScore)
+            let diffBefore = prevHome - prevAway
+            let diffAfter = homeScore - awayScore
+            var context = ""
+            if diffBefore == 0 {
+                context = "opening"
+            } else if abs(diffAfter) > abs(diffBefore) {
+                context = "extend \(leadChars)"
+            } else if diffBefore > 0 && diffAfter <= 0 {
+                context = "tie"
+            } else if diffBefore < 0 && diffAfter >= 0 {
+                context = "tie"
             } else {
-                if personalRunCount >= 2, let lastID = lastScoringPlayerID {
-                    let lastName = idToName[lastID] ?? "?"
-                    lines.append("- 个人连续得分：\(lastName) 连得\(personalRunPoints)分（\(personalRunCount)次进攻）")
+                context = "cut \(leadChars)"
+            }
+            events.append("[\(playerName) +\(points) \(prevHome)-\(prevAway)→\(homeScore)-\(awayScore) \(context)]")
+
+            // Personal run tracking
+            if personalRun?.playerID == playerID {
+                personalRun?.count += 1
+                personalRun?.points += points
+            } else {
+                if let run = personalRun, run.count >= 2 {
+                    events.append("  personal_run:\(idToName[run.playerID] ?? "?") +\(run.points) in \(run.count)poss")
                 }
-                personalRunCount = 1
-                personalRunPoints = points
-                lastScoringPlayerID = playerID
+                personalRun = (playerID, 1, points, 0, 0)
             }
 
-            // Team run
-            let currentSide: TeamSide = isHome ? .home : .away
-            if teamRunSide == currentSide {
-                teamRunCount += 1
-                teamRunPoints += points
+            // Team run tracking
+            if teamRun?.isHome == isHome {
+                teamRun?.count += 1
+                teamRun?.points += points
             } else {
-                if (teamRunCount >= 3 || teamRunPoints >= 8), let lastSide = teamRunSide {
-                    let tName = lastSide == .home ? game.homeTeamName : game.awayTeamName
-                    let prevHome = homeScore - (lastSide == .home ? teamRunPoints : 0)
-                    let prevAway = awayScore - (lastSide == .away ? teamRunPoints : 0)
-                    lines.append("- 球队连续得分：\(tName) 连得\(teamRunPoints)分（\(teamRunCount)次进攻），比分从 \(prevHome)-\(prevAway) 扩大到 \(homeScore)-\(awayScore)")
+                if let run = teamRun, run.count >= 2, run.points >= 6 {
+                    let tName = run.isHome ? game.homeTeamName : game.awayTeamName
+                    events.append("  team_run:\(tName) +\(run.points) in \(run.count)poss")
                 }
-                teamRunCount = 1
-                teamRunPoints = points
-                teamRunSide = currentSide
+                teamRun = (isHome, 1, points)
             }
         }
 
-        // Flush last runs
-        if personalRunCount >= 2, let lastID = lastScoringPlayerID {
-            let lastName = idToName[lastID] ?? "?"
-            lines.append("- 个人连续得分：\(lastName) 连得\(personalRunPoints)分（\(personalRunCount)次进攻）")
+        // Flush remaining runs
+        if let run = personalRun, run.count >= 2 {
+            events.append("  personal_run:\(idToName[run.playerID] ?? "?") +\(run.points) in \(run.count)poss")
         }
-        if (teamRunCount >= 3 || teamRunPoints >= 8), let lastSide = teamRunSide {
-            let tName = lastSide == .home ? game.homeTeamName : game.awayTeamName
-            let prevHome = homeScore - (lastSide == .home ? teamRunPoints : 0)
-            let prevAway = awayScore - (lastSide == .away ? teamRunPoints : 0)
-            lines.append("- 球队连续得分：\(tName) 连得\(teamRunPoints)分（\(teamRunCount)次进攻），比分从 \(prevHome)-\(prevAway) 扩大到 \(homeScore)-\(awayScore)")
+        if let run = teamRun, run.count >= 2, run.points >= 6 {
+            let tName = run.isHome ? game.homeTeamName : game.awayTeamName
+            events.append("  team_run:\(tName) +\(run.points) in \(run.count)poss")
         }
 
-        return lines.isEmpty ? "- 无可用连续得分数据" : lines.joined(separator: "\n")
+        return events.isEmpty ? "- No scoring data" : events.joined(separator: "\n")
     }
 
     private func resolvedPlayerID(log: GameLogEntry) -> UUID? {
