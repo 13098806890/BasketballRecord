@@ -589,7 +589,8 @@ struct SavedGameDetailView: View {
     private func scoringRunData() -> String {
         let scoringCodes: Set<String> = ["stat.twoMade", "stat.threeMade", "stat.freeThrowMade", "stat.bonusMade"]
         let pointMap: [String: Int] = ["stat.twoMade": 2, "stat.threeMade": 3, "stat.freeThrowMade": 1, "stat.bonusMade": 1]
-        let homeIDs = Set(game.homePlayerIDs)
+        var homeIDs = Set(game.homePlayerIDs)
+        if game.snapshot.homeTeamStatsMode, let tid = game.snapshot.homeTeamID { homeIDs.insert(tid) }
         let allIDs = allPlayerIDsForSummary()
         let idToName: [UUID: String] = Dictionary(uniqueKeysWithValues: allIDs.compactMap { id in
             game.playerNamesByID[id].map { (id, $0) }
