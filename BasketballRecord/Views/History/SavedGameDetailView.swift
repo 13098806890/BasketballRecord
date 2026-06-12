@@ -17,6 +17,7 @@ struct SavedGameDetailView: View {
     @State private var periodAnalysis = SavedGamePeriodAnalysis()
     @State private var selectedGroupID: UUID?
     @State private var editDisplayName = ""
+    @State private var isShowingPurchase = false
 
     init(game: SavedGame, displayMode: DisplayMode = .history) {
         self.game = game
@@ -100,7 +101,11 @@ struct SavedGameDetailView: View {
             if displayMode == .history {
                 Section(LocalizedStringKey("section_ai_game_summary")) {
                     Button {
-                        generateAISummary()
+                        if !store.isPro {
+                            isShowingPurchase = true
+                        } else {
+                            generateAISummary()
+                        }
                     } label: {
                         HStack(spacing: 8) {
                             if isGeneratingAISummary {
@@ -109,7 +114,7 @@ struct SavedGameDetailView: View {
                             Label(LocalizedStringKey(isGeneratingAISummary ? "button_ai_generating" : "button_ai_generate_summary"), systemImage: "sparkles")
                         }
                     }
-                    .disabled(isGeneratingAISummary || !store.isPro || aiConfig == nil)
+                    .disabled(isGeneratingAISummary || (!store.isPro && aiConfig == nil))
 
                     if let aiSummaryError {
                         Text(aiSummaryError)
@@ -154,7 +159,10 @@ struct SavedGameDetailView: View {
         .onChange(of: store.cloudEnabledGameIDs) { _, _ in
             // UI refreshes automatically via @Published
         }
-        .sheet(isPresented: $isShowingExport) {
+            .sheet(isPresented: $isShowingPurchase) {
+                ProSubscriptionStoreView()
+            }
+            .sheet(isPresented: $isShowingExport) {
             ExportGameView(game: game)
         }
         .onChange(of: selectedGroupID) { _, newValue in

@@ -1133,7 +1133,8 @@ struct SavedGame: Identifiable, Codable, Hashable {
         homePlayerIDs: [UUID],
         awayPlayerIDs: [UUID],
         playerNamesByID: [UUID: String],
-        groupIDs: [UUID] = []
+        groupIDs: [UUID] = [],
+        displayName: String = ""
     ) {
         self.id = id
         self.savedAt = savedAt
@@ -1147,6 +1148,7 @@ struct SavedGame: Identifiable, Codable, Hashable {
         self.awayPlayerIDs = awayPlayerIDs
         self.playerNamesByID = playerNamesByID
         self.groupIDs = groupIDs
+        self.displayName = displayName
     }
 
     init(from decoder: Decoder) throws {
