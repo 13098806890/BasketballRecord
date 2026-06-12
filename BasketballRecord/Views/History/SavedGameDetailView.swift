@@ -550,6 +550,7 @@ struct SavedGameDetailView: View {
     private func scoringRunData() -> String {
         let scoringCodes: Set<String> = ["stat.twoMade", "stat.threeMade", "stat.freeThrowMade", "stat.bonusMade"]
         let pointMap: [String: Int] = ["stat.twoMade": 2, "stat.threeMade": 3, "stat.freeThrowMade": 1, "stat.bonusMade": 1]
+        let streakCodes: Set<String> = ["stat.rebound", "stat.assist"]
         let homeIDs = Set(game.homePlayerIDs)
         let allIDs = allPlayerIDsForSummary()
         let idToName: [UUID: String] = Dictionary(uniqueKeysWithValues: allIDs.compactMap { id in
@@ -558,70 +559,146 @@ struct SavedGameDetailView: View {
 
         var events: [String] = []
         var homeScore = 0, awayScore = 0
-        var personalRun: (playerID: UUID, count: Int, points: Int, startHome: Int, startAway: Int)?
+        var personalRun: (playerID: UUID, count: Int, points: Int)?
         var teamRun: (isHome: Bool, count: Int, points: Int)?
+        var reboundStreak: (playerID: UUID, count: Int)?
+        var assistStreak: (playerID: UUID, count: Int)?
+        var missedShotStreak: (teamIsHome: Bool, count: Int)?
+        var personalMissStreak: (playerID: UUID, count: Int)?
 
         for log in game.snapshot.logs {
-            guard let code = log.eventCode ?? GameLogFormatter.extractEventCode(from: log.message),
-                  scoringCodes.contains(code),
-                  let points = pointMap[code],
-                  let playerID = log.playerID ?? resolvedPlayerID(log: log) else { continue }
+            guard let code = log.eventCode ?? GameLogFormatter.extractEventCode(from: log.message) else { continue }
+            let playerID = log.playerID ?? resolvedPlayerID(log: log)
+            let playerName = playerID.flatMap { idToName[$0] } ?? "?"
 
-            let isHome = homeIDs.contains(playerID)
-            let prevHome = homeScore
-            let prevAway = awayScore
-            if isHome { homeScore += points } else { awayScore += points }
-            let playerName = idToName[playerID] ?? "?"
+            if scoringCodes.contains(code), let points = pointMap[code], let pid = playerID {
+                let isHome = homeIDs.contains(pid)
+                let prevHome = homeScore
+                let prevAway = awayScore
+                if isHome { homeScore += points } else { awayScore += points }
 
-            // Per-scoring-event line with score context
-            let leadChars = abs(homeScore - awayScore)
-            let diffBefore = prevHome - prevAway
-            let diffAfter = homeScore - awayScore
-            var context = ""
-            if diffBefore == 0 {
-                context = "opening"
-            } else if abs(diffAfter) > abs(diffBefore) {
-                context = "extend \(leadChars)"
-            } else if diffBefore > 0 && diffAfter <= 0 {
-                context = "tie"
-            } else if diffBefore < 0 && diffAfter >= 0 {
-                context = "tie"
-            } else {
-                context = "cut \(leadChars)"
-            }
-            events.append("[\(playerName) +\(points) \(prevHome)-\(prevAway)→\(homeScore)-\(awayScore) \(context)]")
-
-            // Personal run tracking
-            if personalRun?.playerID == playerID {
-                personalRun?.count += 1
-                personalRun?.points += points
-            } else {
-                if let run = personalRun, run.count >= 2 {
-                    events.append("  personal_run:\(idToName[run.playerID] ?? "?") +\(run.points) in \(run.count)poss")
+                // Per-scoring-event line with score context
+                let leadChars = abs(homeScore - awayScore)
+                let diffBefore = prevHome - prevAway
+                let diffAfter = homeScore - awayScore
+                var context = ""
+                if diffBefore == 0 {
+                    context = "opening"
+                } else if abs(diffAfter) > abs(diffBefore) {
+                    context = "extend \(leadChars)"
+                } else if diffBefore > 0 && diffAfter <= 0 {
+                    context = "tie"
+                } else if diffBefore < 0 && diffAfter >= 0 {
+                    context = "tie"
+                } else {
+                    context = "cut \(leadChars)"
                 }
-                personalRun = (playerID, 1, points, 0, 0)
+                events.append("[\(playerName) +\(points) \(prevHome)-\(prevAway)->\(homeScore)-\(awayScore) \(context)]")
+
+                // Personal scoring run
+                if personalRun?.playerID == pid {
+                    personalRun?.count += 1
+                    personalRun?.points += points
+                } else {
+                    if let run = personalRun, run.count >= 2 {
+                        events.append("  personal_run:\(idToName[run.playerID] ?? "?") +\(run.points)pt in \(run.count)poss")
+                    }
+                    personalRun = (pid, 1, points)
+                }
+
+                // Team scoring run
+                if teamRun?.isHome == isHome {
+                    teamRun?.count += 1
+                    teamRun?.points += points
+                } else {
+                    if let run = teamRun, run.count >= 2, run.points >= 6 {
+                        let tName = run.isHome ? game.homeTeamName : game.awayTeamName
+                        events.append("  team_run:\(tName) +\(run.points)pt in \(run.count)poss")
+                    }
+                    teamRun = (isHome, 1, points)
+                }
+
+                    // Reset non-scoring streaks on scoring events
+                reboundStreak = nil
+                assistStreak = nil
+                missedShotStreak = nil
+                personalMissStreak = nil
+                continue
             }
 
-            // Team run tracking
-            if teamRun?.isHome == isHome {
-                teamRun?.count += 1
-                teamRun?.points += points
-            } else {
-                if let run = teamRun, run.count >= 2, run.points >= 6 {
-                    let tName = run.isHome ? game.homeTeamName : game.awayTeamName
-                    events.append("  team_run:\(tName) +\(run.points) in \(run.count)poss")
+            // Consecutive rebounds
+            if code == "stat.rebound", let pid = playerID {
+                if reboundStreak?.playerID == pid {
+                    reboundStreak?.count += 1
+                } else {
+                    if let rs = reboundStreak, rs.count >= 3 {
+                        events.append("  rebound_streak:\(idToName[rs.playerID] ?? "?") x\(rs.count)")
+                    }
+                    reboundStreak = (pid, 1)
                 }
-                teamRun = (isHome, 1, points)
+                continue
+            }
+
+            // Consecutive missed shots (personal and team)
+            let missedCodes: Set<String> = ["stat.twoMissed", "stat.threeMissed", "stat.freeThrowMissed", "stat.bonusMissed", "stat.layupMissed", "stat.midRangeMissed", "stat.paintMissed"]
+            if missedCodes.contains(code), let pid = playerID {
+                let isHome = homeIDs.contains(pid)
+                // Team missed streak
+                if missedShotStreak?.teamIsHome == isHome {
+                    missedShotStreak?.count += 1
+                } else {
+                    if let ms = missedShotStreak, ms.count >= 4 {
+                        let tName = ms.teamIsHome ? game.homeTeamName : game.awayTeamName
+                        events.append("  team_miss_streak:\(tName) x\(ms.count)")
+                    }
+                    missedShotStreak = (isHome, 1)
+                }
+                // Personal missed streak
+                if personalMissStreak?.playerID == pid {
+                    personalMissStreak?.count += 1
+                } else {
+                    if let pm = personalMissStreak, pm.count >= 3 {
+                        events.append("  personal_miss_streak:\(idToName[pm.playerID] ?? "?") x\(pm.count)")
+                    }
+                    personalMissStreak = (pid, 1)
+                }
+                continue
+            }
+
+            // Consecutive assists
+            if code == "stat.assist", let pid = playerID {
+                if assistStreak?.playerID == pid {
+                    assistStreak?.count += 1
+                } else {
+                    if let as_ = assistStreak, as_.count >= 3 {
+                        events.append("  assist_streak:\(idToName[as_.playerID] ?? "?") x\(as_.count)")
+                    }
+                    assistStreak = (pid, 1)
+                }
+                continue
             }
         }
 
-        // Flush remaining runs
+        // Flush remaining streaks
         if let run = personalRun, run.count >= 2 {
-            events.append("  personal_run:\(idToName[run.playerID] ?? "?") +\(run.points) in \(run.count)poss")
+            events.append("  personal_run:\(idToName[run.playerID] ?? "?") +\(run.points)pt in \(run.count)poss")
         }
         if let run = teamRun, run.count >= 2, run.points >= 6 {
             let tName = run.isHome ? game.homeTeamName : game.awayTeamName
-            events.append("  team_run:\(tName) +\(run.points) in \(run.count)poss")
+            events.append("  team_run:\(tName) +\(run.points)pt in \(run.count)poss")
+        }
+        if let rs = reboundStreak, rs.count >= 3 {
+            events.append("  rebound_streak:\(idToName[rs.playerID] ?? "?") x\(rs.count)")
+        }
+        if let as_ = assistStreak, as_.count >= 3 {
+            events.append("  assist_streak:\(idToName[as_.playerID] ?? "?") x\(as_.count)")
+        }
+        if let ms = missedShotStreak, ms.count >= 4 {
+            let tName = ms.teamIsHome ? game.homeTeamName : game.awayTeamName
+            events.append("  team_miss_streak:\(tName) x\(ms.count)")
+        }
+        if let pm = personalMissStreak, pm.count >= 3 {
+            events.append("  personal_miss_streak:\(idToName[pm.playerID] ?? "?") x\(pm.count)")
         }
 
         return events.isEmpty ? "- No scoring data" : events.joined(separator: "\n")
