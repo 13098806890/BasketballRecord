@@ -59,7 +59,7 @@ struct CompactTeamRow: View {
                             Circle()
                                 .fill(Color(.systemBackground))
                                 .frame(width: 52, height: 52)
-                                .overlay(Circle().stroke(selectedPlayerID == team?.id && selectedSide == side ? GamePalette.selectedBorder : Color.primary.opacity(0.3), lineWidth: 1.5))
+                                .overlay(Circle().stroke(selectedPlayerID == team?.id && selectedSide == side ? GamePalette.selectedBorder : Color.primary.opacity(0.3), lineWidth: selectedPlayerID == team?.id && selectedSide == side ? 3 : 1.5))
                             Image(systemName: side == .home ? "crown.fill" : "bolt.fill")
                                 .font(.title3)
                                 .foregroundStyle(.primary)
