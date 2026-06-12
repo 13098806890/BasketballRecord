@@ -19,6 +19,7 @@ struct SavedGameDetailView: View {
     @State private var editDisplayName = ""
     @State private var isShowingPurchase = false
     @State private var shareImage: UIImage?
+    @State private var savedToPhotos = false
 
 
     init(game: SavedGame, displayMode: DisplayMode = .history) {
@@ -407,118 +408,88 @@ struct SavedGameDetailView: View {
         return (provider, model, key)
     }
 
-    private var aiSummaryStyledView: some View {
+    private var aiSummaryContent: some View {
         let sections = aiSummarySections
-
-        return Group {
-            if sections.isEmpty {
+        if sections.isEmpty {
+            return AnyView(
                 Text(stripMarkdownDecorations(from: normalizeAISummary(aiSummary)))
                     .font(.subheadline)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .textSelection(.enabled)
-            } else {
-                VStack(alignment: .leading, spacing: 12) {
-                    ForEach(Array(sections.enumerated()), id: \.offset) { _, section in
-                        let isMVP = isMVPSection(section.title)
-                        let mvpID = isMVP ? mvpPlayerID(in: section.items.joined(separator: " ")) : nil
+            )
+        }
+        return AnyView(
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach(Array(sections.enumerated()), id: \.offset) { _, section in
+                    let isMVP = isMVPSection(section.title)
+                    let mvpID = isMVP ? mvpPlayerID(in: section.items.joined(separator: " ")) : nil
 
-                        VStack(alignment: .leading, spacing: 12) {
-                            if isMVP {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "trophy.fill")
-                                        .font(.headline)
-                                        .foregroundStyle(Color.yellow)
-
-                                    Text(stripMarkdownDecorations(from: section.title))
-                                        .font(.headline)
-                                        .foregroundStyle(aiSummaryAccentColor)
-
-                                    Spacer(minLength: 0)
-
-                                    if let mvpID {
-                                        mvpPlayerAvatar(for: mvpID)
-                                    }
-                                }
-                            } else {
-                                Label(stripMarkdownDecorations(from: section.title), systemImage: iconForSummarySection(section.title))
-                                    .font(.headline)
-                                    .foregroundStyle(aiSummaryAccentColor)
+                    VStack(alignment: .leading, spacing: 12) {
+                        if isMVP {
+                            HStack(spacing: 8) {
+                                Image(systemName: "trophy.fill").font(.headline).foregroundStyle(Color.yellow)
+                                Text(stripMarkdownDecorations(from: section.title)).font(.headline).foregroundStyle(aiSummaryAccentColor)
+                                Spacer(minLength: 0)
+                                if let mvpID { mvpPlayerAvatar(for: mvpID) }
                             }
-
-                            VStack(alignment: .leading, spacing: 10) {
-                                ForEach(Array(section.items.enumerated()), id: \.offset) { index, item in
-                                    let cleanedItem = stripMarkdownDecorations(from: item)
-
-                                    HStack(alignment: .top, spacing: 10) {
-                                        Image(systemName: iconForSummaryItem(sectionTitle: section.title, item: item, index: index))
-                                            .font(.caption.weight(.semibold))
-                                            .foregroundStyle(aiSummaryAccentColor)
-                                            .frame(width: 14, height: 14)
-                                            .padding(.top, 2)
-
-                                        Text(cleanedItem)
-                                            .font(.subheadline)
-                                            .foregroundStyle(.primary)
-                                            .fixedSize(horizontal: false, vertical: true)
-                                    }
-                                }
-                            }
+                        } else {
+                            Label(stripMarkdownDecorations(from: section.title), systemImage: iconForSummarySection(section.title))
+                                .font(.headline).foregroundStyle(aiSummaryAccentColor)
                         }
-                        .padding(14)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(Color(uiColor: .secondarySystemBackground))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(aiSummaryAccentColor.opacity(0.14), lineWidth: 1)
-                        )
-                        .contextMenu {
-                            Button {
-                                let sectionText = ([section.title] + section.items).joined(separator: "\n")
-                                UIPasteboard.general.string = stripMarkdownDecorations(from: sectionText)
-                            } label: {
-                                Label(LocalizedStringKey("voice_log_copy"), systemImage: "doc.on.doc")
-                            }
-                            Button {
-                                let title = stripMarkdownDecorations(from: section.title)
-                                let items = section.items.map { stripMarkdownDecorations(from: $0) }
-                                let titleFont = UIFont.boldSystemFont(ofSize: 16)
-                                let bodyFont = UIFont.systemFont(ofSize: 13)
-                                let bulletColor = UIColor(red: 0.22, green: 0.52, blue: 0.90, alpha: 1)
-                                let maxW: CGFloat = 300
-                                let leftMargin: CGFloat = 16
-                                let contentW = maxW - leftMargin - 16
-                                var y: CGFloat = 20
-                                y += (title as NSString).boundingRect(with: CGSize(width: contentW, height: .greatestFiniteMagnitude), options: .usesLineFragmentOrigin, attributes: [.font: titleFont], context: nil).size.height + 12
-                                var lineH: [CGFloat] = []
-                                for item in items {
-                                    let s = (item as NSString).boundingRect(with: CGSize(width: contentW - 20, height: .greatestFiniteMagnitude), options: .usesLineFragmentOrigin, attributes: [.font: bodyFont], context: nil).size
-                                    lineH.append(s.height)
-                                    y += s.height + 8
+
+                        VStack(alignment: .leading, spacing: 10) {
+                            ForEach(Array(section.items.enumerated()), id: \.offset) { index, item in
+                                let cleanedItem = stripMarkdownDecorations(from: item)
+                                HStack(alignment: .top, spacing: 10) {
+                                    Image(systemName: iconForSummaryItem(sectionTitle: section.title, item: item, index: index))
+                                        .font(.caption.weight(.semibold)).foregroundStyle(aiSummaryAccentColor)
+                                        .frame(width: 14, height: 14).padding(.top, 2)
+                                    Text(cleanedItem).font(.subheadline).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
                                 }
-                                let isize = CGSize(width: maxW, height: y + 20)
-                                shareImage = UIGraphicsImageRenderer(size: isize).image { ctx in
-                                    UIColor.white.setFill(); ctx.fill(CGRect(origin: .zero, size: isize))
-                                    (title as NSString).draw(at: CGPoint(x: leftMargin, y: 20), withAttributes: [.font: titleFont, .foregroundColor: UIColor.black])
-                                    var cy: CGFloat = 20 + (title as NSString).boundingRect(with: CGSize(width: contentW, height: .greatestFiniteMagnitude), options: .usesLineFragmentOrigin, attributes: [.font: titleFont], context: nil).size.height + 12
-                                    for (i, item) in items.enumerated() {
-                                        ("● " as NSString).draw(at: CGPoint(x: leftMargin, y: cy), withAttributes: [.font: bodyFont, .foregroundColor: bulletColor])
-                                        (item as NSString).draw(with: CGRect(x: leftMargin + 16, y: cy, width: contentW - 16, height: lineH[i]), options: .usesLineFragmentOrigin, attributes: [.font: bodyFont, .foregroundColor: UIColor.darkGray], context: nil)
-                                        cy += lineH[i] + 8
-                                    }
-                                }
-                                UIImageWriteToSavedPhotosAlbum(shareImage!, nil, nil, nil)
-                            } label: {
-                                Label(LocalizedStringKey("button_save_to_photos"), systemImage: "photo.badge.arrow.down")
                             }
                         }
                     }
+                    .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+                    .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(uiColor: .secondarySystemBackground)))
+                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(aiSummaryAccentColor.opacity(0.14), lineWidth: 1))
+                    .contextMenu {
+                        Button {
+                            UIPasteboard.general.string = stripMarkdownDecorations(from: ([section.title] + section.items).joined(separator: "\n"))
+                        } label: {
+                            Label(LocalizedStringKey("voice_log_copy"), systemImage: "doc.on.doc")
+                        }
+                    }
                 }
-                .textSelection(.enabled)
+
+                Button {
+                    let renderer = ImageRenderer(content: aiSummaryStyledView)
+                    renderer.scale = 2
+                    if let image = renderer.uiImage {
+                        UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+                        savedToPhotos = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { savedToPhotos = false }
+                    }
+                } label: {
+                    Label(LocalizedStringKey("button_save_to_photos"), systemImage: "photo.badge.arrow.down")
+                        .font(.subheadline)
+                        .frame(maxWidth: .infinity)
+                        .padding(12)
+                }
+                .disabled(savedToPhotos)
+                .overlay(alignment: .trailing) {
+                    if savedToPhotos {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                            .padding(.trailing, 8)
+                    }
+                }
             }
-        }
+            .textSelection(.enabled)
+        )
+    }
+
+    private var aiSummaryStyledView: some View {
+        aiSummaryContent
     }
 
     private var aiSummarySections: [AISummarySection] {
