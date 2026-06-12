@@ -57,12 +57,12 @@ struct CompactTeamRow: View {
                     VStack(spacing: 6) {
                         ZStack {
                             Circle()
-                                .fill(side == .home ? Color.blue.opacity(0.08) : Color.red.opacity(0.08))
+                                .fill(Color(.systemBackground))
                                 .frame(width: 52, height: 52)
-                                .overlay(Circle().stroke(selectedPlayerID == team?.id && selectedSide == side ? GamePalette.selectedBorder : (side == .home ? Color.blue.opacity(0.3) : Color.red.opacity(0.3)), lineWidth: selectedPlayerID == team?.id && selectedSide == side ? 3 : 1.5))
-                            Image(systemName: side == .home ? "house.fill" : "mappin.and.ellipse")
+                                .overlay(Circle().stroke(selectedPlayerID == team?.id && selectedSide == side ? GamePalette.selectedBorder : Color.primary.opacity(0.3), lineWidth: 1.5))
+                            Image(systemName: side == .home ? "crown.fill" : "bolt.fill")
                                 .font(.title3)
-                                .foregroundStyle(side == .home ? .blue : .red)
+                                .foregroundStyle(.primary)
                         }
                         Text(team?.name ?? "")
                             .font(.system(size: 9, weight: .medium))
@@ -72,6 +72,7 @@ struct CompactTeamRow: View {
                     }
                 }
                 .buttonStyle(.plain)
+                .opacity(selectedPlayerID == team?.id && selectedSide == side ? 1 : 0.6)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.vertical, 7)
             } else if players.isEmpty {
@@ -93,11 +94,10 @@ struct CompactTeamRow: View {
                                     ZStack(alignment: .bottomTrailing) {
                                         PlayerAvatarView(player: player, size: avatarSize)
                                             .overlay {
-                                                if onCourtPlayerIDs.contains(player.id) {
-                                                    Circle().stroke(GamePalette.onCourtBorder, lineWidth: 2)
-                                                }
                                                 if isSelected {
                                                     Circle().stroke(GamePalette.selectedBorder, lineWidth: 3)
+                                                } else {
+                                                    Circle().stroke(Color.primary.opacity(0.3), lineWidth: 1.5)
                                                 }
                                             }
                                             .animation(.easeInOut(duration: 0.15), value: isSelected)
