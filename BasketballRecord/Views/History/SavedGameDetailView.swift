@@ -18,6 +18,7 @@ struct SavedGameDetailView: View {
     @State private var selectedGroupID: UUID?
     @State private var editDisplayName = ""
     @State private var isShowingPurchase = false
+    @State private var isShowingShare = false
     @State private var shareImage: UIImage?
 
     init(game: SavedGame, displayMode: DisplayMode = .history) {
@@ -163,8 +164,10 @@ struct SavedGameDetailView: View {
             .sheet(isPresented: $isShowingPurchase) {
                 ProSubscriptionStoreView()
             }
-            .sheet(item: $shareImage) { image in
-                ShareSheet(items: [image])
+            .sheet(isPresented: $isShowingShare) {
+                if let image = shareImage {
+                    ShareSheet(items: [image])
+                }
             }
             .sheet(isPresented: $isShowingExport) {
             ExportGameView(game: game)
@@ -531,6 +534,7 @@ struct SavedGameDetailView: View {
                                     let wSize = (watermark as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 9)])
                                     (watermark as NSString).draw(at: CGPoint(x: maxW - wSize.width - 16, y: imageH - wSize.height - 10), withAttributes: [.font: UIFont.systemFont(ofSize: 9), .foregroundColor: UIColor.lightGray])
                                 }
+                                isShowingShare = true
                             } label: {
                                 Label(LocalizedStringKey("button_save_to_photos"), systemImage: "photo.badge.arrow.down")
                             }
@@ -1512,7 +1516,5 @@ private struct ShareSheet: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
-extension UIImage: @retroactive Identifiable {
-    public var id: String { "\(self)" }
-}
+
 
