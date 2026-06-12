@@ -914,6 +914,7 @@ struct SavedGameDetailView: View {
         \(matchupStr)
         \(scoreStr)
         \(periodsStr)
+        - 球队统计模式：主队=\(game.snapshot.homeTeamStatsMode ? "是" : "否") 客队=\(game.snapshot.awayTeamStatsMode ? "是" : "否")
 
         \(playersLabel)
         \(playersText)
