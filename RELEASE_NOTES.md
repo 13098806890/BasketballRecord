@@ -31,10 +31,31 @@
 
 - **语音快捷指令编辑**：指令列表行点按即可打开编辑 Sheet，支持修改短语或动作类型。修改短语时自动移除旧 key。
 - **多音字姓氏语音匹配**：中文语音规则新增多音字姓氏覆盖映射（曾→zeng、单→shan、朴→piao、解→xie、区→ou、仇→qiu、盖→ge、查→zha 等 13 个常见姓氏）。球员名字匹配时自动补充替代拼音形式，提高 ASR 识别准确率。
+- **灌篮高手 Demo 数据**：初始样例数据替换为湘北/陵南 6 名球员，附带头像照片，10 种语言对应翻译。
+- **语音记分加入 Pro 订阅**：记分页麦克风按钮、设置页语音入口现为 Pro 功能。
+- **语音日志开关**：设置页新增「启用语音日志」开关。
+- **订阅页可滚动**：特性说明区域改为 `ScrollView`。
+- **App Store 元数据更新**：关键词、Pro 标注、What's New 全部 10 种语言。
+- **记分页球员名自适应字号**：`minimumScaleFactor` 自动缩放，`X号` 改为 `NoX`。
 
 ### 国际化
 
 - 新增 `voice_shortcuts_edit_title` key 至全部 10 种语言。
+- 新增 `settings_voice_log_enable` / `settings_voice_log_enable_footer` 至全部 10 种语言。
+- 新增 `pro_feature_voice_1` / `pro_feature_voice_2` 至全部 10 种语言。
+- 替换 `sample_player_1~4` 为 `demo_player_*` 灌篮高手角色名，全部 10 种语言。
+- Demo 球队 `demo_team_shohoku` / `demo_team_ryonan` 全部 10 种语言。
+
+### 修复
+
+- **代码审查修复**：修复 `Dictionary(uniqueKeysWithValues:)` 重复 ID 崩溃、`AIService` force-unwrap URL、`VoiceRecognizer` 回调线程安全、`revertLastAction` 中文硬编码解析、CoreData `NSBatchDeleteRequest` 上下文不一致等 20 项问题。
+- **ASR 语音变体补全**：为 10 种语言补充 55 条语音变体匹配规则，ASR 测试 209 全通过。
+- **SettingsDocumentView 语言切换**：添加 `@Environment(\.locale)` 观察，切换语言后自动刷新使用说明内容。
+- **Demo 照片加载路径修复**：`seedSampleData()` 从 Bundle 根目录加载球员头像。
+- **蓝牙协议中文转 English**：4 处 `sendAuthoritativeSnapshot` reason 参数由中文改为英文。
+- **SubstitutionView 切换 side 清空选择**：避免跨队换人。
+- **5 个测试用例修复**：更新 `StatAction` 数量、删除无效 VoiceMatching 测试、本地化 LegacyUndo 消息。
+- **订阅页 ProSubscriptionStoreView 改为 internal**：GameView 可直接调用购买页面。
 
 ## 1.19 (2026-06-10)
 
