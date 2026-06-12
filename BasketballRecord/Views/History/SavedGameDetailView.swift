@@ -18,8 +18,7 @@ struct SavedGameDetailView: View {
     @State private var selectedGroupID: UUID?
     @State private var editDisplayName = ""
     @State private var isShowingPurchase = false
-    @State private var isShowingShare = false
-    @State private var shareImage: UIImage?
+
 
     init(game: SavedGame, displayMode: DisplayMode = .history) {
         self.game = game
@@ -163,11 +162,6 @@ struct SavedGameDetailView: View {
         }
             .sheet(isPresented: $isShowingPurchase) {
                 ProSubscriptionStoreView()
-            }
-            .sheet(isPresented: $isShowingShare) {
-                if let image = shareImage {
-                    ShareSheet(items: [image])
-                }
             }
             .sheet(isPresented: $isShowingExport) {
             ExportGameView(game: game)
@@ -485,58 +479,6 @@ struct SavedGameDetailView: View {
                                 UIPasteboard.general.string = stripMarkdownDecorations(from: sectionText)
                             } label: {
                                 Label(LocalizedStringKey("voice_log_copy"), systemImage: "doc.on.doc")
-                            }
-                            Button {
-                                let title = stripMarkdownDecorations(from: section.title)
-                                let items = section.items.map { stripMarkdownDecorations(from: $0) }
-                                let titleFont = UIFont.boldSystemFont(ofSize: 16)
-                                let bodyFont = UIFont.systemFont(ofSize: 13)
-                                let bulletColor = UIColor(red: 0.22, green: 0.52, blue: 0.90, alpha: 1)
-                                let maxW: CGFloat = 300
-                                let leftMargin: CGFloat = 16
-                                let rightMargin: CGFloat = 16
-                                let contentW = maxW - leftMargin - rightMargin
-
-                                // Calculate layout
-                                var y: CGFloat = 20
-                                let titleSize = (title as NSString).boundingRect(with: CGSize(width: contentW, height: .greatestFiniteMagnitude), options: .usesLineFragmentOrigin, attributes: [.font: titleFont], context: nil).size
-                                y += titleSize.height + 12
-
-                                var lineRects: [(text: String, rect: CGRect, isBullet: Bool)] = []
-                                for item in items {
-                                    let bullet = "● "
-                                    let bulletWidth = (bullet as NSString).size(withAttributes: [.font: bodyFont]).width
-                                    let itemText = item
-                                    let itemSize = (itemText as NSString).boundingRect(with: CGSize(width: contentW - bulletWidth - 4, height: .greatestFiniteMagnitude), options: .usesLineFragmentOrigin, attributes: [.font: bodyFont], context: nil).size
-                                    let lineHeight = max(itemSize.height, 14)
-                                    lineRects.append((bullet, CGRect(x: leftMargin, y: y, width: bulletWidth, height: lineHeight), true))
-                                    lineRects.append((itemText, CGRect(x: leftMargin + bulletWidth + 2, y: y, width: contentW - bulletWidth - 2, height: itemSize.height), false))
-                                    y += itemSize.height + 8
-                                }
-
-                                let imageH = y + 20
-                                let isize = CGSize(width: maxW, height: imageH)
-                                shareImage = UIGraphicsImageRenderer(size: isize).image { ctx in
-                                    UIColor.white.setFill()
-                                    ctx.fill(CGRect(origin: .zero, size: isize))
-                                    // Title
-                                    (title as NSString).draw(at: CGPoint(x: leftMargin, y: 20), withAttributes: [.font: titleFont, .foregroundColor: UIColor.black])
-                                    // Items
-                                    for lr in lineRects {
-                                        if lr.isBullet {
-                                            (lr.text as NSString).draw(at: lr.rect.origin, withAttributes: [.font: bodyFont, .foregroundColor: bulletColor])
-                                        } else {
-                                            (lr.text as NSString).draw(with: lr.rect, options: .usesLineFragmentOrigin, attributes: [.font: bodyFont, .foregroundColor: UIColor.darkGray], context: nil)
-                                        }
-                                    }
-                                    // Small watermark
-                                    let watermark = "Basketball Journey"
-                                    let wSize = (watermark as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 9)])
-                                    (watermark as NSString).draw(at: CGPoint(x: maxW - wSize.width - 16, y: imageH - wSize.height - 10), withAttributes: [.font: UIFont.systemFont(ofSize: 9), .foregroundColor: UIColor.lightGray])
-                                }
-                                isShowingShare = true
-                            } label: {
-                                Label(LocalizedStringKey("button_save_to_photos"), systemImage: "photo.badge.arrow.down")
                             }
                         }
                     }
@@ -1504,16 +1446,6 @@ private struct ExportGameView: View {
             copiedChunkIndex = nil
         }
     }
-}
-
-private struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
-    }
-
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 

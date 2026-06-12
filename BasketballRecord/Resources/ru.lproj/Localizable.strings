@@ -865,5 +865,4 @@ Format:
 "link_privacy_policy" = "Конфиденциальность";
 "link_terms_of_eula" = "Условия использования (EULA)";
 "subscription_auto_renew_info" = "Автоматически продлеваемая подписка. Отменить можно в любое время в настройках App Store.";
-"button_save_to_photos" = "Save to Photos";
 "ai_prompt_req_14" = "- Commentary style between formal and casual: avoid overly written phrases like 'at the commencement of play'. Use natural expressions like 'the first quarter opened with', 'X hits', 'the score becomes XX-XX'. At least 5-8 sentences per period.";

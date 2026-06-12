@@ -876,7 +876,6 @@ Format:
 "link_privacy_policy" = "Privacy Policy";
 "link_terms_of_eula" = "Terms of Use (EULA)";
 "subscription_auto_renew_info" = "Auto-renewable subscription. Cancel anytime via App Store settings.";
-"button_save_to_photos" = "Save to Photos";
 "ai_prompt_section_highlights_desc" = "(Select the 2 most important highlights of the game. Find personal scoring runs or clutch plays from Scoring Run Analysis. For each highlight, clearly state the score at the time, who made the play, and how it changed the game. Conversational tone, not formal)
 Format:
 1. Title
