@@ -611,31 +611,16 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
             }
 
-            // Team stats mode: direct team name match
+            // Player/team matching via variant pool (handles both player names and team names)
             if playerID == nil, !leftText.isEmpty {
-                if let hID = snapshot.homeTeamID, snapshot.homeTeamStatsMode, let team = store.team(for: hID) {
-                    let lower = leftText.lowercased()
-                    if lower.contains("主队") || lower.contains("zhudui") || lower.contains(team.name.lowercased()) || lower.contains("zhu dui") {
-                        playerID = hID; side = .home; dbgPlayer = "球队: \(team.name)"
-                    }
-                }
-                if let aID = snapshot.awayTeamID, snapshot.awayTeamStatsMode, let team = store.team(for: aID) {
-                    let lower = leftText.lowercased()
-                    if playerID == nil, lower.contains("客队") || lower.contains("kedui") || lower.contains(team.name.lowercased()) || lower.contains("ke dui") {
-                        playerID = aID; side = .away; dbgPlayer = "球队: \(team.name)"
-                    }
-                }
-                // Fallback: try pinyin/fuzzy matching via player pool
-                if playerID == nil {
-                    let leftPinyin = Self.toPinyin(leftText)
-                    var matchIDs = allIDs
-                    if snapshot.homeTeamStatsMode, let tid = snapshot.homeTeamID { matchIDs.append(tid) }
-                    if snapshot.awayTeamStatsMode, let tid = snapshot.awayTeamID { matchIDs.append(tid) }
-                    let (matches, dbg) = matchPlayerIDsDebug(text: leftText, textPinyin: leftPinyin, in: matchIDs, context: "左侧球员")
-                    dbgPlayer = dbg
-                    if let m = matches.first {
-                        playerID = m.0; side = m.1
-                    }
+                let leftPinyin = Self.toPinyin(leftText)
+                var matchIDs = allIDs
+                if snapshot.homeTeamStatsMode, let tid = snapshot.homeTeamID { matchIDs.append(tid) }
+                if snapshot.awayTeamStatsMode, let tid = snapshot.awayTeamID { matchIDs.append(tid) }
+                let (matches, dbg) = matchPlayerIDsDebug(text: leftText, textPinyin: leftPinyin, in: matchIDs, context: "左侧球员")
+                dbgPlayer = dbg
+                if let m = matches.first {
+                    playerID = m.0; side = m.1
                 }
             }
             // Determine made/missed for shots
@@ -742,21 +727,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     }
                 }
             }
-            // Team stats mode: direct team name match (pinyin fallback)
-            if playerID == nil, !leftPinyin.isEmpty {
-                let lower = text.lowercased()
-                if let hID = snapshot.homeTeamID, snapshot.homeTeamStatsMode {
-                    if lower.contains("主队") || lower.contains("zhudui") || lower.contains("zhu dui") || (store.team(for: hID).map { lower.contains($0.name.lowercased()) } ?? false) {
-                        playerID = hID; side = .home; dbgPlayer = "球队: 主队"
-                    }
-                }
-                if let aID = snapshot.awayTeamID, snapshot.awayTeamStatsMode, playerID == nil {
-                    if lower.contains("客队") || lower.contains("kedui") || lower.contains("ke dui") || (store.team(for: aID).map { lower.contains($0.name.lowercased()) } ?? false) {
-                        playerID = aID; side = .away; dbgPlayer = "球队: 客队"
-                    }
-                }
-            }
-            // Unified player/team matching (pinyin fallback)
+            // Player/team matching (pinyin fallback)
             if playerID == nil, !leftPinyin.isEmpty {
                 var matchIDs = allIDs
                 if snapshot.homeTeamStatsMode, let tid = snapshot.homeTeamID { matchIDs.append(tid) }
