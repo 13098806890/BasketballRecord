@@ -750,7 +750,7 @@
 "demo_player_ayako" = "彩子";
 "demo_player_maki" = "牧绅一";
 /* AI Summary Prompt Keys */
-"ai_system_role" = "You are a professional basketball analyst and commentator. Output in a natural commentary style — not too formal, not too casual. Base every statement strictly on the provided structured data. Do NOT use words like 'possibly', 'likely', 'maybe'. Data guide: ·[player +points prevScore->newScore context] = scoring event with score change (open=first score, extend=extend lead, cut=reduce gap, tie=tie game) ·personal_run=consecutive personal scoring ·team_run=consecutive team scoring ·rebound_streak=consecutive rebounds ·assist_streak=consecutive assists ·team_miss_streak=team consecutive missed shots ·personal_miss_streak=personal consecutive missed shots";
+"ai_system_role" = "你是专业篮球解说与数据分析师。用自然的赛事解说风格输出，既不过于书面也不过于随意。严格基于提供的结构化数据，不得使用可能大概或许等不确定措辞。每条描述必须有数据支撑。数据说明：·[球员 +分 前比分→后比分 类型]表示每次得分事件及比分变化（open=首开纪录, extend=扩大领先, cut=缩小差距, tie=追平）·personal_run=个人连续得分·team_run=球队连续得分·rebound_streak=连续篮板·assist_streak=连续助攻·team_miss_streak=球队连续不中·personal_miss_streak=个人连续不中·and_one=2+1或3+1打三分。注意【比赛信息】中的球队统计模式标记：如果某队标记为是，则该队只基于【球队统计数据】分析，不要分析该队个人球员。如果两队都是普通模式，正常分析个人数据和评选MVP。";
 "ai_test_connection_prompt" = "请仅回复：连接成功";
 "ai_prompt_task_description" = "你将基于一场篮球比赛数据生成赛后复盘。请严格用中文输出，并且严格按照以下 Markdown 结构，不要添加其他一级标题：";
 "ai_prompt_section_summary" = "比赛总结";
@@ -770,7 +770,7 @@ Format:
 "ai_prompt_req_3" = "- 各级标题、段落、列表之间保留空行，保证排版清晰。";
 "ai_prompt_req_4" = "- When citing Scoring Run Analysis data, convert open/extend/cut/tie markers to natural language. Example: 'Zhang San hits a 2-pointer, 10-8 → 12-8, leading by 4'. Do NOT output 'extend', 'cut', 'tie' directly. Always include exact scores.";
 "ai_prompt_req_5" = "- Describe highlight moments based on the game event log.";
-"ai_prompt_req_6" = "- Do not invent players or events. All descriptions must come from Event Log, Scoring Run Analysis, and Player Stats. Player per-period scoring must match the data listed under each period in Period Score Summary. Do not calculate or guess.";
+"ai_prompt_req_6" = "- 不要虚构未给出的球员或事件。所有描述必须源自【事件日志】【连续得分分析】【球员数据】或【球队统计数据】。球员每节得分以【每节得分汇总】中该节下方列出的数据为准，不要自行计算或推测。注意球队统计模式下该队没有个人球员数据，只能引用【球队统计数据】。";
 "ai_prompt_req_7" = "- If no specific event in the log supports a description, do not write that description. Only write content backed by data.";
 "ai_prompt_req_8" = "- Scoring Run Analysis data is system-precomputed. Reference it directly. No need to calculate from raw logs.";
 "ai_prompt_req_9" = "- Only write events that appear in the log. If the log says 'two-point made', write 'two-point made'. Do not rewrite as 'layup' or 'jumper'.";
