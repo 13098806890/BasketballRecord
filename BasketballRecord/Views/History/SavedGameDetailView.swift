@@ -608,10 +608,28 @@ struct SavedGameDetailView: View {
         var missedShotStreak: (teamIsHome: Bool, count: Int)?
         var personalMissStreak: (playerID: UUID, count: Int)?
 
+        // Helper: resolve team ID from log for team stats mode
+        func resolveTeamID(log: GameLogEntry) -> UUID? {
+            guard game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode else { return nil }
+            let msg = log.message.lowercased()
+            let homeName = game.homeTeamName.lowercased()
+            let awayName = game.awayTeamName.lowercased()
+            if game.snapshot.homeTeamStatsMode, let tid = game.snapshot.homeTeamID,
+               msg.contains(homeName) || msg.contains("主队") { return tid }
+            if game.snapshot.awayTeamStatsMode, let tid = game.snapshot.awayTeamID,
+               msg.contains(awayName) || msg.contains("客队") { return tid }
+            return nil
+        }
+
         for log in game.snapshot.logs {
             guard let code = log.eventCode ?? GameLogFormatter.extractEventCode(from: log.message) else { continue }
-            let playerID = log.playerID ?? resolvedPlayerID(log: log)
-            let playerName = playerID.flatMap { idToName[$0] } ?? "?"
+            let playerID = log.playerID ?? resolvedPlayerID(log: log) ?? resolveTeamID(log: log)
+            let playerName: String
+            if let pid = playerID {
+                playerName = idToName[pid] ?? (pid == game.snapshot.homeTeamID ? game.homeTeamName : pid == game.snapshot.awayTeamID ? game.awayTeamName : "?")
+            } else {
+                playerName = "?"
+            }
 
             if scoringCodes.contains(code), let points = pointMap[code], let pid = playerID {
                 let isHome = homeIDs.contains(pid)

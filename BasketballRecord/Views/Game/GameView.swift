@@ -2021,6 +2021,14 @@ struct GameView: View {
         )
         snapshot.homeTeamStatsMode = config.homeTeamStatsMode
         snapshot.awayTeamStatsMode = config.awayTeamStatsMode
+        if config.homeTeamStatsMode {
+            snapshot.homeOnCourtPlayerIDs = []
+            snapshot.homeAvailablePlayerIDs = []
+        }
+        if config.awayTeamStatsMode {
+            snapshot.awayOnCourtPlayerIDs = []
+            snapshot.awayAvailablePlayerIDs = []
+        }
         selectedPlayerID = nil
         selectedSide = .home
         ensureSelectedPlayer()
