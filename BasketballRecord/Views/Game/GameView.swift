@@ -2005,7 +2005,7 @@ struct GameView: View {
         undoStack.removeAll()
         redoStack.removeAll()
         currentGameRecordID = UUID()
-        var initialSnapshot = GameSnapshot(
+        snapshot = GameSnapshot(
             homeTeamID: config.homeTeamID,
             awayTeamID: config.awayTeamID,
             periodCount: config.periodCount,
@@ -2017,25 +2017,16 @@ struct GameView: View {
             showsBlockButton: config.showsBlockButton,
             showsStealButton: config.showsStealButton,
             showsTurnoverButton: config.showsTurnoverButton,
-            homeOnCourtPlayerIDs: config.homeStarterIDs,
-            awayOnCourtPlayerIDs: config.awayStarterIDs,
-            homeAvailablePlayerIDs: unique(config.homeStarterIDs + config.homeBenchIDs),
-            awayAvailablePlayerIDs: unique(config.awayStarterIDs + config.awayBenchIDs),
+            homeOnCourtPlayerIDs: config.homeTeamStatsMode ? [] : config.homeStarterIDs,
+            awayOnCourtPlayerIDs: config.awayTeamStatsMode ? [] : config.awayStarterIDs,
+            homeAvailablePlayerIDs: config.homeTeamStatsMode ? [] : unique(config.homeStarterIDs + config.homeBenchIDs),
+            awayAvailablePlayerIDs: config.awayTeamStatsMode ? [] : unique(config.awayStarterIDs + config.awayBenchIDs),
             periodEndCondition: config.periodEndCondition,
             periodTimeLimit: config.periodTimeLimit,
-            periodScoreLimit: config.periodScoreLimit
+            periodScoreLimit: config.periodScoreLimit,
+            homeTeamStatsMode: config.homeTeamStatsMode,
+            awayTeamStatsMode: config.awayTeamStatsMode
         )
-        initialSnapshot.homeTeamStatsMode = config.homeTeamStatsMode
-        initialSnapshot.awayTeamStatsMode = config.awayTeamStatsMode
-        if config.homeTeamStatsMode {
-            initialSnapshot.homeOnCourtPlayerIDs = []
-            initialSnapshot.homeAvailablePlayerIDs = []
-        }
-        if config.awayTeamStatsMode {
-            initialSnapshot.awayOnCourtPlayerIDs = []
-            initialSnapshot.awayAvailablePlayerIDs = []
-        }
-        snapshot = initialSnapshot
         selectedPlayerID = nil
         selectedSide = .home
         ensureSelectedPlayer()

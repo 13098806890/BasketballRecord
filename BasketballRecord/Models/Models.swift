@@ -1023,7 +1023,9 @@ struct GameSnapshot: Codable, Hashable {
         periodActiveSince: Date? = nil,
         periodEndCondition: PeriodEndCondition = .byTime,
         periodTimeLimit: Int = 12,
-        periodScoreLimit: Int = 30
+        periodScoreLimit: Int = 30,
+        homeTeamStatsMode: Bool = false,
+        awayTeamStatsMode: Bool = false
     ) {
         self.statsByPlayerID = statsByPlayerID
         self.logs = logs
@@ -1059,6 +1061,8 @@ struct GameSnapshot: Codable, Hashable {
         self.matchActiveSince = matchActiveSince
         self.periodElapsedSeconds = periodElapsedSeconds
         self.periodActiveSince = periodActiveSince
+        self.homeTeamStatsMode = homeTeamStatsMode
+        self.awayTeamStatsMode = awayTeamStatsMode
     }
 
     init(from decoder: Decoder) throws {
