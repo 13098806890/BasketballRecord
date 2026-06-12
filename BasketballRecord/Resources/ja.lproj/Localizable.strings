@@ -881,3 +881,9 @@ Format:
 "button_save_to_photos" = "アルバムに保存";
 
 "button_saved" = "保存済み";
+
+"label_team_stats_mode" = "チーム統計";
+
+"section_team_home" = "ホームチーム";
+
+"section_team_away" = "アウェイチーム";

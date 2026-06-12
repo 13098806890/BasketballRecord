@@ -880,3 +880,9 @@ Format:
 "button_save_to_photos" = "儲存到相簿";
 
 "button_saved" = "已儲存";
+
+"label_team_stats_mode" = "按球隊統計";
+
+"section_team_home" = "主隊";
+
+"section_team_away" = "客隊";

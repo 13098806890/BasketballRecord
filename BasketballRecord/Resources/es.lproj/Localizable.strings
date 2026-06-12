@@ -870,3 +870,9 @@ Format:
 "button_save_to_photos" = "Guardar en Fotos";
 
 "button_saved" = "Guardado";
+
+"label_team_stats_mode" = "Estadísticas de equipo";
+
+"section_team_home" = "Equipo local";
+
+"section_team_away" = "Equipo visitante";

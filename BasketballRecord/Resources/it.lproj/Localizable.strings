@@ -870,3 +870,9 @@ Format:
 "button_save_to_photos" = "Salva in Foto";
 
 "button_saved" = "Salvato";
+
+"label_team_stats_mode" = "Statistiche squadra";
+
+"section_team_home" = "Squadra casa";
+
+"section_team_away" = "Squadra ospite";

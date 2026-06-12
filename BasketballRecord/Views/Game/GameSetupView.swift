@@ -19,6 +19,8 @@ struct GameSetupConfig {
     var periodEndCondition: PeriodEndCondition
     var periodTimeLimit: Int
     var periodScoreLimit: Int
+    var homeTeamStatsMode = false
+    var awayTeamStatsMode = false
 }
 
 struct NewGameSetupView: View {
@@ -35,6 +37,8 @@ struct NewGameSetupView: View {
     @State private var awayStarterIDs: [UUID] = []
     @State private var homeBenchIDs: [UUID] = []
     @State private var awayBenchIDs: [UUID] = []
+    @State private var homeTeamStatsMode = false
+    @State private var awayTeamStatsMode = false
     @AppStorage("setup_period_count") private var periodCount = 4
     @AppStorage("setup_court_player_count") private var courtPlayerCount = 4
     @AppStorage("setup_reset_fouls") private var resetsTeamFoulsEachPeriod = true
@@ -64,19 +68,37 @@ struct NewGameSetupView: View {
                     }
                 }
 
-                starterSection(title: NSLocalizedString("starter_home_title", comment: "Home starters"), players: homePlayers, selectedIDs: $homeStarterIDs, requiredCount: requiredHomeCount)
-                benchSection(
-                    title: NSLocalizedString("starter_home_bench_title", comment: "Home bench title"),
-                    players: homeBenchCandidates,
-                    selectedIDs: $homeBenchIDs
-                )
+                Section(LocalizedStringKey("section_team_home")) {
+                    if homeTeamID != nil {
+                        Toggle(isOn: $homeTeamStatsMode) {
+                            Label(LocalizedStringKey("label_team_stats_mode"), systemImage: "chart.bar.fill")
+                        }
+                        if !homeTeamStatsMode {
+                            starterSection(title: NSLocalizedString("starter_home_title", comment: "Home starters"), players: homePlayers, selectedIDs: $homeStarterIDs, requiredCount: requiredHomeCount)
+                            benchSection(
+                                title: NSLocalizedString("starter_home_bench_title", comment: "Home bench title"),
+                                players: homeBenchCandidates,
+                                selectedIDs: $homeBenchIDs
+                            )
+                        }
+                    }
+                }
 
-                starterSection(title: NSLocalizedString("starter_away_title", comment: "Away starters"), players: awayPlayers, selectedIDs: $awayStarterIDs, requiredCount: requiredAwayCount)
-                benchSection(
-                    title: NSLocalizedString("starter_away_bench_title", comment: "Away bench title"),
-                    players: awayBenchCandidates,
-                    selectedIDs: $awayBenchIDs
-                )
+                Section(LocalizedStringKey("section_team_away")) {
+                    if awayTeamID != nil {
+                        Toggle(isOn: $awayTeamStatsMode) {
+                            Label(LocalizedStringKey("label_team_stats_mode"), systemImage: "chart.bar.fill")
+                        }
+                        if !awayTeamStatsMode {
+                            starterSection(title: NSLocalizedString("starter_away_title", comment: "Away starters"), players: awayPlayers, selectedIDs: $awayStarterIDs, requiredCount: requiredAwayCount)
+                            benchSection(
+                                title: NSLocalizedString("starter_away_bench_title", comment: "Away bench title"),
+                                players: awayBenchCandidates,
+                                selectedIDs: $awayBenchIDs
+                            )
+                        }
+                    }
+                }
 
                 Section(LocalizedStringKey("section_game_settings")) {
                     Stepper(value: $periodCount, in: 1...8) {
@@ -172,7 +194,9 @@ struct NewGameSetupView: View {
                             showsTurnoverButton: showsTurnoverButton,
                             periodEndCondition: periodEndCondition,
                             periodTimeLimit: periodTimeLimit,
-                            periodScoreLimit: periodScoreLimit
+                            periodScoreLimit: periodScoreLimit,
+                            homeTeamStatsMode: homeTeamStatsMode,
+                            awayTeamStatsMode: awayTeamStatsMode
                         ))
                         dismiss()
                     }

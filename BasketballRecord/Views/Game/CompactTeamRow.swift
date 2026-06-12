@@ -12,6 +12,7 @@ struct CompactTeamRow: View {
     var selectedPlayerID: UUID?
     var selectedSide: TeamSide
     var onSelect: (Player, TeamSide) -> Void
+    var teamStatsMode: Bool = false
 
     var body: some View {
         HStack(spacing: 10) {
@@ -47,7 +48,33 @@ struct CompactTeamRow: View {
             }
             .fixedSize(horizontal: true, vertical: false)
 
-            if players.isEmpty {
+            if teamStatsMode {
+                Button {
+                    if let teamID = team?.id {
+                        onSelect(Player(id: teamID, name: team?.name ?? ""), side)
+                    }
+                } label: {
+                    VStack(spacing: 6) {
+                        ZStack {
+                            Circle()
+                                .fill(GamePalette.surface)
+                                .frame(width: 52, height: 52)
+                                .overlay(Circle().stroke(GamePalette.onCourtBorder, lineWidth: 2))
+                            Image(systemName: "chart.bar.fill")
+                                .font(.title3)
+                                .foregroundStyle(GamePalette.text)
+                        }
+                        Text(team?.name ?? "")
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .frame(width: 72)
+                    }
+                }
+                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.vertical, 7)
+            } else if players.isEmpty {
                 Text(LocalizedStringKey("text_no_players"))
                     .font(.caption)
                     .foregroundStyle(.secondary)

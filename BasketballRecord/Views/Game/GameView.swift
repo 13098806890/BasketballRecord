@@ -434,7 +434,8 @@ struct GameView: View {
                         onCourtPlayerIDs: snapshot.homeOnCourtPlayerIDs,
                         selectedPlayerID: selectedPlayerID,
                         selectedSide: selectedSide,
-                        onSelect: selectPlayer
+                        onSelect: selectPlayer,
+                        teamStatsMode: snapshot.homeTeamStatsMode
                     )
 
                     CompactTeamRow(
@@ -448,7 +449,8 @@ struct GameView: View {
                         onCourtPlayerIDs: snapshot.awayOnCourtPlayerIDs,
                         selectedPlayerID: selectedPlayerID,
                         selectedSide: selectedSide,
-                        onSelect: selectPlayer
+                        onSelect: selectPlayer,
+                        teamStatsMode: snapshot.awayTeamStatsMode
                     )
                 }
             } else {
@@ -464,7 +466,8 @@ struct GameView: View {
                         onCourtPlayerIDs: snapshot.homeOnCourtPlayerIDs,
                         selectedPlayerID: selectedPlayerID,
                         selectedSide: selectedSide,
-                        onSelect: selectPlayer
+                        onSelect: selectPlayer,
+                        teamStatsMode: snapshot.homeTeamStatsMode
                     )
 
                     CompactTeamRow(
@@ -478,7 +481,8 @@ struct GameView: View {
                         onCourtPlayerIDs: snapshot.awayOnCourtPlayerIDs,
                         selectedPlayerID: selectedPlayerID,
                         selectedSide: selectedSide,
-                        onSelect: selectPlayer
+                        onSelect: selectPlayer,
+                        teamStatsMode: snapshot.awayTeamStatsMode
                     )
                 }
             }
@@ -1032,7 +1036,10 @@ struct GameView: View {
     }
 
     private func score(for teamID: UUID?) -> Int {
-        guard let side = side(for: teamID) else { return 0 }
+        guard let side = side(for: teamID), let teamID else { return 0 }
+        if (side == .home && snapshot.homeTeamStatsMode) || (side == .away && snapshot.awayTeamStatsMode) {
+            return snapshot.teamStatsByID[teamID, default: PlayerStats()].points
+        }
         return gamePlayerIDs(for: side).reduce(0) { total, playerID in
             total + snapshot.statsByPlayerID[playerID, default: PlayerStats()].points
         }
@@ -1758,19 +1765,29 @@ struct GameView: View {
 
     @discardableResult
     func applyRecordOperation(action: StatAction, playerID: UUID, side: TeamSide, at: Date? = nil) -> Bool {
-        guard isOnCourt(playerID, side: side) else { return false }
+        let isTeamMode = side == .home ? snapshot.homeTeamStatsMode : snapshot.awayTeamStatsMode
+        let teamID = side == .home ? snapshot.homeTeamID : snapshot.awayTeamID
+
+        guard isTeamMode || isOnCourt(playerID, side: side) else { return false }
 
         mutateSnapshot {
-            var stats = snapshot.statsByPlayerID[playerID, default: PlayerStats()]
-            action.apply(to: &stats)
-            snapshot.statsByPlayerID[playerID] = stats
+            if isTeamMode, let teamID {
+                var stats = snapshot.teamStatsByID[teamID, default: PlayerStats()]
+                action.apply(to: &stats)
+                snapshot.teamStatsByID[teamID] = stats
+            } else {
+                var stats = snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+                action.apply(to: &stats)
+                snapshot.statsByPlayerID[playerID] = stats
+            }
             if action == .foul {
                 snapshot.currentPeriodFoulsBySide[side.rawValue, default: 0] += 1
             }
             if action.points > 0 {
                 applyPlusMinus(points: action.points, scoringSide: side)
             }
-            addEvent("\(name(for: playerID)) \(action.message)", playerID: playerID, eventCode: action.eventCode, at: at)
+            let eventName = isTeamMode ? (store.team(for: teamID)?.name ?? "?") : name(for: playerID)
+            addEvent("\(eventName) \(action.message)", playerID: isTeamMode ? nil : playerID, eventCode: action.eventCode, at: at)
         }
         if action.points > 0, snapshot.periodEndCondition == .byScore {
             checkAndAutoEndPeriod()
@@ -2002,6 +2019,8 @@ struct GameView: View {
             periodTimeLimit: config.periodTimeLimit,
             periodScoreLimit: config.periodScoreLimit
         )
+        snapshot.homeTeamStatsMode = config.homeTeamStatsMode
+        snapshot.awayTeamStatsMode = config.awayTeamStatsMode
         selectedPlayerID = nil
         selectedSide = .home
         ensureSelectedPlayer()
