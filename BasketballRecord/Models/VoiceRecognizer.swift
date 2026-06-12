@@ -94,8 +94,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     private var speechRecognizer: SFSpeechRecognizer?
     private let audioEngine = AVAudioEngine()
-    private let recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
+    private var enginePrepared = false
 
     override init() {
         let rules = VoiceRules.forCurrentAppLanguage()
@@ -148,6 +149,27 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     func configure(store: AppStore) {
         self.store = store
+        prepareEngine()
+    }
+
+    private func prepareEngine() {
+        guard !enginePrepared else { return }
+        do {
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
+            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+
+            let inputNode = audioEngine.inputNode
+            let recordingFormat = inputNode.outputFormat(forBus: 0)
+            inputNode.removeTap(onBus: 0)
+            inputNode.installTap(onBus: 0, bufferSize: 512, format: recordingFormat) { [weak self] buffer, _ in
+                self?.recognitionRequest?.append(buffer)
+            }
+            try audioEngine.start()
+            enginePrepared = true
+        } catch {
+            print("[Voice] Engine prepare failed: \(error)")
+        }
     }
 
     func startRecording() {
@@ -171,27 +193,13 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         }
 
         isRecording = true
+        prepareEngine()
 
-        do {
-            let audioSession = AVAudioSession.sharedInstance()
-            try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
-            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+        let request = SFSpeechAudioBufferRecognitionRequest()
+        request.shouldReportPartialResults = false
+        recognitionRequest = request
 
-            let inputNode = audioEngine.inputNode
-            let recordingFormat = inputNode.outputFormat(forBus: 0)
-            inputNode.removeTap(onBus: 0)
-            inputNode.installTap(onBus: 0, bufferSize: 512, format: recordingFormat) { buffer, _ in
-                self.recognitionRequest.append(buffer)
-            }
-
-            try audioEngine.start()
-        } catch {
-            showError("麦克风不可用")
-            isRecording = false
-            return
-        }
-
-        recognitionTask = recognizer.recognitionTask(with: recognitionRequest) { [weak self] result, error in
+        recognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, error in
             guard let self else { return }
             if let result, result.isFinal {
                 processText(result.bestTranscription.formattedString)
@@ -205,11 +213,10 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     func stopRecording() {
         guard isRecording else { return }
         isRecording = false
-        recognitionRequest.endAudio()
+        recognitionRequest?.endAudio()
         recognitionTask?.finish()
-        audioEngine.stop()
-        audioEngine.inputNode.removeTap(onBus: 0)
-        try? AVAudioSession.sharedInstance().setActive(false)
+        recognitionTask = nil
+        recognitionRequest = nil
     }
 
     /// Start buffering log details for a new recognition session.
