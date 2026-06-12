@@ -508,10 +508,42 @@ struct SavedGameDetailView: View {
         }
     }
 
+    private func periodEventsText() -> String {
+        let analyzer = SavedGameAnalyzer(game: game, resolvePlayerIDByName: { name in
+            game.playerNamesByID.first(where: { $0.value == name })?.key
+        })
+        let analysis = analyzer.analyze()
+        let periodCount = game.snapshot.periodCount
+        var lines: [String] = []
+
+        for period in 1...periodCount {
+            let periodLogs = analysis.logs(for: period).filter { log in
+                GameLogFormatter.isScoring(log) || log.entry.eventCode == "stat.foul" || log.entry.eventCode == "stat.assist" || log.entry.eventCode == "stat.rebound" || log.entry.eventCode == "stat.block" || log.entry.eventCode == "stat.steal" || log.entry.eventCode == "stat.turnover"
+            }
+            guard !periodLogs.isEmpty else { continue }
+
+            lines.append("- 第\(period)节事件：")
+            for log in periodLogs.prefix(20) {
+                let msg = GameLogFormatter.normalizedMessage(log.entry.message)
+                    .replacingOccurrences(of: "[event:\\w+\\.\\w+]", with: "", options: .regularExpression)
+                    .trimmingCharacters(in: .whitespaces)
+                if !msg.isEmpty {
+                    lines.append("  - \(msg)")
+                }
+            }
+        }
+
+        if lines.isEmpty {
+            return "- 无可用事件记录"
+        }
+        return lines.joined(separator: "\n")
+    }
+
     private func summaryPrompt() -> String {
         let homeScore = score(for: game.snapshot.homeTeamID)
         let awayScore = score(for: game.snapshot.awayTeamID)
         let numericFacts = numericFactsText()
+        let eventsByPeriod = periodEventsText()
 
         let playerLines = allPlayerIDsForSummary().map { playerID in
             let stats = game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
@@ -553,6 +585,7 @@ struct SavedGameDetailView: View {
         let req11 = NSLocalizedString("ai_prompt_req_11", comment: "Req 11")
         let req12 = NSLocalizedString("ai_prompt_req_12", comment: "Req 12")
         let req13 = NSLocalizedString("ai_prompt_req_13", comment: "Req 13")
+        let req14 = NSLocalizedString("ai_prompt_req_14", comment: "Req 14")
 
         let gameInfoLabel = NSLocalizedString("ai_prompt_game_info_label", comment: "Game info label")
         let dateLabel = NSLocalizedString("ai_prompt_date_label", comment: "Date label")
@@ -594,7 +627,7 @@ struct SavedGameDetailView: View {
         \(req11)
         \(req12)
         \(req13)
-        - Expand the game summary into a detailed, paragraph-by-paragraph analysis of each period's key plays, momentum shifts, and player contributions.
+        \(req14)
 
         \(gameInfoLabel)
         \(dateFormatted)
@@ -607,6 +640,9 @@ struct SavedGameDetailView: View {
 
         \(numericFactsLabel)
         \(numericFacts)
+
+        【事件日志（按节次）】
+        \(eventsByPeriod)
         """
     }
 
