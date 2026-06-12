@@ -355,7 +355,16 @@ final class AppStore: ObservableObject {
     @discardableResult
     func autoSaveGame(_ snapshot: GameSnapshot, gameID: UUID?, undoSnapshots: [GameSnapshot] = []) -> UUID {
         let targetID = gameID ?? UUID()
+        let ts = snapshot.teamStatsByID
+        if !ts.isEmpty || snapshot.homeTeamStatsMode || snapshot.awayTeamStatsMode {
+            print("[AutoSave] snapshot teamStats=\(ts.count) pts=\(ts.values.reduce(0){$0+$1.points}) homeMode=\(snapshot.homeTeamStatsMode) awayMode=\(snapshot.awayTeamStatsMode)")
+        }
         var game = buildSavedGame(id: targetID, snapshot: snapshot, savedAt: Date())
+        let savedTS = game.snapshot.teamStatsByID
+        let savedPts = savedTS.values.reduce(0) { $0 + $1.points }
+        if savedPts > 0 || game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode {
+            print("[AutoSave] builtSavedGame teamStats=\(savedTS.count) pts=\(savedPts) homeMode=\(game.snapshot.homeTeamStatsMode) awayMode=\(game.snapshot.awayTeamStatsMode)")
+        }
         if let existingGame = savedGames.first(where: { $0.id == targetID }) {
             game.aiSummary = existingGame.aiSummary
         }
@@ -776,6 +785,11 @@ final class AppStore: ObservableObject {
         return nil
     }
 
+    func saveIfNeeded() {
+        saveTask?.cancel()
+        save()
+    }
+
     private func save() {
         // Strip photoData and save as separate files
         var strippedPlayers = players
@@ -807,9 +821,16 @@ final class AppStore: ObservableObject {
         let gameIDs = savedGames.map(\.id)
         safeWrite(gameIDs, forKey: gamesIndexKey)
         for game in savedGames {
-            let teamPts = game.snapshot.teamStatsByID.values.reduce(0) { $0 + $1.points }
+            let ts = game.snapshot.teamStatsByID
+            let teamPts = ts.values.reduce(0) { $0 + $1.points }
             if teamPts > 0 || game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode {
-                print("[Storage] Saving game \(game.id): teamStatsPts=\(teamPts) homeMode=\(game.snapshot.homeTeamStatsMode) awayMode=\(game.snapshot.awayTeamStatsMode)")
+                print("[Storage] Saving game \(game.id): teamStats=\(ts.count) keys=\(Array(ts.keys)) pts=\(teamPts) homeMode=\(game.snapshot.homeTeamStatsMode) awayMode=\(game.snapshot.awayTeamStatsMode)")
+                // Verify encoding includes the new fields
+                if let data = try? JSONEncoder().encode(game.snapshot),
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    print("[Storage] Encoded keys: \(Array(json.keys))")
+                    print("[Storage] Has homeTeamStatsMode=\(json["homeTeamStatsMode"] != nil) awayTeamStatsMode=\(json["awayTeamStatsMode"] != nil) teamStatsByID=\(json["teamStatsByID"] != nil)")
+                }
             }
             safeWrite(game, forKey: gameKey(for: game.id))
         }
@@ -853,10 +874,11 @@ final class AppStore: ObservableObject {
                 }
             }
             hasMigratedToCoreData = true
-            for game in savedGames.prefix(3) {
-                let teamPts = game.snapshot.teamStatsByID.values.reduce(0) { $0 + $1.points }
-                if teamPts > 0 || game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode {
-                    print("[Storage] Loaded game \(game.id): teamStatsPts=\(teamPts) homeMode=\(game.snapshot.homeTeamStatsMode) awayMode=\(game.snapshot.awayTeamStatsMode)")
+            for game in savedGames {
+                let ts = game.snapshot.teamStatsByID
+                let teamPts = ts.values.reduce(0) { $0 + $1.points }
+                if teamPts > 0 || game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode || true {
+                    print("[LoadCheck] Game \(game.id): teamStats=\(ts.count) pts=\(teamPts) homeMode=\(game.snapshot.homeTeamStatsMode) awayMode=\(game.snapshot.awayTeamStatsMode)")
                 }
             }
 

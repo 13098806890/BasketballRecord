@@ -2049,6 +2049,7 @@ struct GameView: View {
         closePeriodClock(in: &snapshotForSaving, at: now)
         snapshotForSaving.periodIsRunning = false
         currentGameRecordID = store.autoSaveGame(snapshotForSaving, gameID: currentGameRecordID, undoSnapshots: undoStack)
+        store.saveIfNeeded()
         saveConfirmation = NSLocalizedString("game_saved_to_history", comment: "Saved to history confirmation")
     }
 
