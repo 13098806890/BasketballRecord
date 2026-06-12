@@ -3,6 +3,7 @@ import SwiftUI
 struct PlayerAvatarView: View {
     var player: Player
     var size: CGFloat = 56
+    var isSelected: Bool = false
 
     var body: some View {
         Group {
@@ -12,10 +13,10 @@ struct PlayerAvatarView: View {
                     .scaledToFill()
             } else {
                 ZStack {
-                    Circle().fill(Color.accentColor.opacity(0.16))
+                    Circle().fill(isSelected ? GamePalette.selectedBorder.opacity(0.16) : Color.primary.opacity(0.08))
                     Text(initials)
                         .font(.headline)
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(isSelected ? GamePalette.selectedBorder : .primary)
                 }
             }
         }

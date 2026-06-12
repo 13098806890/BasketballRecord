@@ -92,7 +92,7 @@ struct CompactTeamRow: View {
                             } label: {
                                 VStack(spacing: 3) {
                                     ZStack(alignment: .bottomTrailing) {
-                                        PlayerAvatarView(player: player, size: avatarSize)
+                                        PlayerAvatarView(player: player, size: avatarSize, isSelected: isSelected)
                                             .overlay {
                                                 if isSelected {
                                                     Circle().stroke(GamePalette.selectedBorder, lineWidth: 3)
