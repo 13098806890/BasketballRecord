@@ -415,7 +415,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 let lowerText = text.lowercased()
 
                 // Priority 1: Direct match (including aliases)
-                let aliases: [String] = isHome ? ["主队", "zhudui", "zhu dui"] : ["客队", "kedui", "ke dui"]
+                let aliases: [String] = isHome ? ["主队", "zhudui", "zhu dui", "zudui", "zu dui"] : ["客队", "kedui", "ke dui"]
                 let matchesAlias = aliases.contains { lowerText.contains($0) }
                 if lowerText.contains(nameLower) || nameLower.contains(lowerText) || matchesAlias {
                     let side: TeamSide = isHome ? .home : .away
