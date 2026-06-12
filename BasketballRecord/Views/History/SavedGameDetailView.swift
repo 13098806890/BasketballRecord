@@ -574,14 +574,28 @@ struct SavedGameDetailView: View {
         let hasAway = game.snapshot.awayTeamStatsMode && awayTeamStats.points > 0
         guard hasHome || hasAway else { return "" }
 
-        var lines: [String] = ["【球队统计数据（系统记录，非个人）】"]
+        var lines: [String] = ["【Team Stats (system recorded)】"]
         if hasHome {
             let ts = homeTeamStats
-            lines.append("- \(game.homeTeamName): \(ts.points)分 \(ts.rebounds)板 \(ts.assists)助 \(ts.fouls)犯 \(ts.blocks)帽 \(ts.steals)断 \(ts.turnovers)误")
+            let pts = String(format: NSLocalizedString("stats_points_format", comment: "Points"), ts.points)
+            let reb = String(format: NSLocalizedString("stats_rebound_short_format", comment: "Rebounds"), ts.rebounds)
+            let ast = String(format: NSLocalizedString("stats_assist_short_format", comment: "Assists"), ts.assists)
+            let foul = String(format: NSLocalizedString("stats_foul_short_format", comment: "Fouls"), ts.fouls)
+            let blk = String(format: NSLocalizedString("stats_block_short_format", comment: "Blocks"), ts.blocks)
+            let stl = String(format: NSLocalizedString("stats_steal_short_format", comment: "Steals"), ts.steals)
+            let to = String(format: NSLocalizedString("stats_turnover_short_format", comment: "Turnovers"), ts.turnovers)
+            lines.append("- \(game.homeTeamName): \(pts) \(reb) \(ast) \(foul) \(blk) \(stl) \(to)")
         }
         if hasAway {
             let ts = awayTeamStats
-            lines.append("- \(game.awayTeamName): \(ts.points)分 \(ts.rebounds)板 \(ts.assists)助 \(ts.fouls)犯 \(ts.blocks)帽 \(ts.steals)断 \(ts.turnovers)误")
+            let pts = String(format: NSLocalizedString("stats_points_format", comment: "Points"), ts.points)
+            let reb = String(format: NSLocalizedString("stats_rebound_short_format", comment: "Rebounds"), ts.rebounds)
+            let ast = String(format: NSLocalizedString("stats_assist_short_format", comment: "Assists"), ts.assists)
+            let foul = String(format: NSLocalizedString("stats_foul_short_format", comment: "Fouls"), ts.fouls)
+            let blk = String(format: NSLocalizedString("stats_block_short_format", comment: "Blocks"), ts.blocks)
+            let stl = String(format: NSLocalizedString("stats_steal_short_format", comment: "Steals"), ts.steals)
+            let to = String(format: NSLocalizedString("stats_turnover_short_format", comment: "Turnovers"), ts.turnovers)
+            lines.append("- \(game.awayTeamName): \(pts) \(reb) \(ast) \(foul) \(blk) \(stl) \(to)")
         }
         return lines.joined(separator: "\n")
     }
@@ -609,15 +623,7 @@ struct SavedGameDetailView: View {
 
         // Helper: resolve team ID from log for team stats mode
         func resolveTeamID(log: GameLogEntry) -> UUID? {
-            guard game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode else { return nil }
-            let msg = log.message.lowercased()
-            let homeName = game.homeTeamName.lowercased()
-            let awayName = game.awayTeamName.lowercased()
-            if game.snapshot.homeTeamStatsMode, let tid = game.snapshot.homeTeamID,
-               msg.contains(homeName) || msg.contains("主队") { return tid }
-            if game.snapshot.awayTeamStatsMode, let tid = game.snapshot.awayTeamID,
-               msg.contains(awayName) || msg.contains("客队") { return tid }
-            return nil
+            game.resolvedTeamID(from: log.message)
         }
 
         for log in game.snapshot.logs {

@@ -1120,6 +1120,17 @@ struct SavedGame: Identifiable, Codable, Hashable {
     var isLocked = false
     var displayName: String = ""
 
+    /// Resolve a team UUID from a log message for team stats mode.
+    func resolvedTeamID(from message: String) -> UUID? {
+        guard snapshot.homeTeamStatsMode || snapshot.awayTeamStatsMode else { return nil }
+        let msg = message.lowercased()
+        if snapshot.homeTeamStatsMode, let tid = snapshot.homeTeamID,
+           msg.contains(homeTeamName.lowercased()) || msg.contains("主队") || msg.contains("zhudui") { return tid }
+        if snapshot.awayTeamStatsMode, let tid = snapshot.awayTeamID,
+           msg.contains(awayTeamName.lowercased()) || msg.contains("客队") || msg.contains("kedui") { return tid }
+        return nil
+    }
+
     /// Total score for a team, including both player-level and team-level stats.
     func score(forTeamID teamID: UUID) -> Int {
         let isHome = teamID == snapshot.homeTeamID
