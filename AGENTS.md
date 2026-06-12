@@ -34,6 +34,10 @@
 4. `main_free_pro` 不应合入 `main`，反之亦然。如果需要让双向分支都有某段改动，用户会明确说。
 5. 涉及 `PurchaseManager.swift` 和 `AppIcon.appiconset/AppIcon-1024.png` 的改动，默认只在当前分支生效，不会自动带到另一个分支。
 
+## 自动同步到 pro 分支
+
+每次在 `main` 上提交改动后，自动 cherry-pick 到 `main_free_pro` 分支并推送。
+
 ## 版本号规则
 
 `main_free_pro` 分支的大版本号（major version）始终比 `main` 分支大 1，小版本号保持一致。例如：
