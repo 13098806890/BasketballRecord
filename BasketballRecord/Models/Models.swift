@@ -1098,6 +1098,9 @@ struct GameSnapshot: Codable, Hashable {
         periodTimeLimit = try container.decodeIfPresent(Int.self, forKey: .periodTimeLimit) ?? 12
         periodScoreLimit = try container.decodeIfPresent(Int.self, forKey: .periodScoreLimit) ?? 30
         wasBluetoothCollaborated = try container.decodeIfPresent(Bool.self, forKey: .wasBluetoothCollaborated) ?? false
+        homeTeamStatsMode = try container.decodeIfPresent(Bool.self, forKey: .homeTeamStatsMode) ?? false
+        awayTeamStatsMode = try container.decodeIfPresent(Bool.self, forKey: .awayTeamStatsMode) ?? false
+        teamStatsByID = try container.decodeIfPresent([UUID: PlayerStats].self, forKey: .teamStatsByID) ?? [:]
     }
 }
 
