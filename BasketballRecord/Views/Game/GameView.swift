@@ -2027,6 +2027,7 @@ struct GameView: View {
             homeTeamStatsMode: config.homeTeamStatsMode,
             awayTeamStatsMode: config.awayTeamStatsMode
         )
+        voiceRecognizer.currentSnapshot = snapshot
         selectedPlayerID = nil
         selectedSide = .home
         ensureSelectedPlayer()
