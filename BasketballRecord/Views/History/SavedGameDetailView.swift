@@ -18,6 +18,7 @@ struct SavedGameDetailView: View {
     @State private var selectedGroupID: UUID?
     @State private var editDisplayName = ""
     @State private var isShowingPurchase = false
+    @State private var shareImage: UIImage?
 
     init(game: SavedGame, displayMode: DisplayMode = .history) {
         self.game = game
@@ -161,6 +162,9 @@ struct SavedGameDetailView: View {
         }
             .sheet(isPresented: $isShowingPurchase) {
                 ProSubscriptionStoreView()
+            }
+            .sheet(item: $shareImage) { image in
+                ShareSheet(items: [image])
             }
             .sheet(isPresented: $isShowingExport) {
             ExportGameView(game: game)
@@ -478,6 +482,20 @@ struct SavedGameDetailView: View {
                                 UIPasteboard.general.string = stripMarkdownDecorations(from: sectionText)
                             } label: {
                                 Label(LocalizedStringKey("voice_log_copy"), systemImage: "doc.on.doc")
+                            }
+                            Button {
+                                let text = stripMarkdownDecorations(from: ([section.title] + section.items).joined(separator: "\n"))
+                                let font = UIFont.systemFont(ofSize: 14)
+                                let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: UIColor.black]
+                                let maxW: CGFloat = 300
+                                let ts = (text as NSString).boundingRect(with: CGSize(width: maxW - 32, height: .greatestFiniteMagnitude), options: .usesLineFragmentOrigin, attributes: attrs, context: nil).size
+                                let isize = CGSize(width: maxW, height: ts.height + 40)
+                                shareImage = UIGraphicsImageRenderer(size: isize).image { ctx in
+                                    UIColor.white.setFill(); ctx.fill(CGRect(origin: .zero, size: isize))
+                                    (text as NSString).draw(with: CGRect(x: 16, y: 16, width: maxW - 32, height: ts.height), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
+                                }
+                            } label: {
+                                Label(LocalizedStringKey("button_share"), systemImage: "square.and.arrow.up")
                             }
                         }
                     }
@@ -1432,5 +1450,19 @@ private struct ExportGameView: View {
             copiedChunkIndex = nil
         }
     }
+}
+
+private struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
+extension UIImage: @retroactive Identifiable {
+    public var id: String { "\(self)" }
 }
 
