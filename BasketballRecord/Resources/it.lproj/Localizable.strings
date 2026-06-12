@@ -32,7 +32,6 @@
 "deepseek_test" = "Testa connessione";
 "deepseek_save_key" = "Salva nel Portachiavi";
 "deepseek_remove_saved_key" = "Rimuovi chiave salvata";
-
 /* Nuove chiavi avviso/button/navigazione */
 "alert_store_sync_offer_title" = "Richiesta di sincronizzazione ricevuta";
 "alert_accept_and_receive" = "Accetta e ricevi";
@@ -88,7 +87,6 @@
 "section_send_progress" = "Avanzamento invio";
 "section_status" = "Stato";
 "nav_select_sync_content" = "Seleziona contenuto da sincronizzare";
-
 /* GameView keys */
 "nav_game" = "Partita";
 "button_new_game" = "Nuova partita";
@@ -154,7 +152,6 @@
 "starter_away_title" = "Titolari ospite";
 "nav_new_game" = "Nuova partita";
 "button_start" = "Inizia";
-
 /* Added by bulk i18n completion */
 "alert_finish_game_title" = "Fine della partita?";
 "button_confirm_finish" = "Confermare la fine";
@@ -494,17 +491,14 @@
 "search_player_prompt" = "Giocatori di ricerca";
 "section_advanced_stats" = "Advanced";
 "game_group_selected_filter" = "Filtra per";
-
 /* Common buttons */
 "common_cancel" = "Annulla";
 "common_save" = "Salva";
 "game_group_assigned_label" = "Group";
-
 /* Transfer keywords for cross-device sharing */
 "transfer_keyword_game" = "Basketball Record-Game Export";
 "transfer_keyword_team" = "Basketball Record-Team Export";
 "transfer_keyword_player" = "Basketball Record-Player Export";
-
 /* AI prompt instructions */
 "ai_prompt_req_1" = "- Output Markdown directly without ```markdown or ``` code fence wrapping.";
 "ai_prompt_req_2" = "- Do not output literal \\n or \\\\n; use actual line breaks.";
@@ -553,8 +547,6 @@
 "purchase_error_cancelled" = "Acquisto annullato.";
 "label_lock" = "Blocca";
 "label_unlock" = "Sblocca";
-
-
 "pro_feature_groups_1" = "Crea e gestisci gruppi di partite per filtrare facilmente";
 "pro_feature_bluetooth_1" = "Sincronizza dati partita tra dispositivi via Bluetooth";
 "pro_feature_bluetooth_2" = "Punteggio collaborativo in tempo reale con altri dispositivi";
@@ -583,19 +575,13 @@
 "settings_doc_help_pro_item2_desc" = "Scegli un piano adatto a te, annulla in qualsiasi momento.";
 "cloud_syncing" = "Sincronizzazione...";
 "cloud_sync_now" = "Sincronizza ora";
-
-
 "game_group_ungrouped" = "Non raggruppato";
 "cloud_unavailable_hint" = "Attiva iCloud in Impostazioni di Sistema e accedi al tuo account.";
 "section_cloud_only" = "Solo cloud";
 "label_game_name" = "Nome partita";
-
-
 "label_career_summary" = "Riepilogo carriera";
 "label_games_count" = "Partite";
 "stats_total_points" = "Punti totali";
-
-
 "settings_show_bluetooth_button" = "Mostra collaborazione Bluetooth";
 "settings_show_voice_button" = "Mostra pulsante vocale";
 "settings_voice_log" = "Registro vocale";
@@ -605,27 +591,19 @@
 "voice_log_delete_all_confirm" = "Eliminare tutti i registri vocali?";
 "settings_voice_shortcuts" = "Scorciatoie vocali";
 "settings_cloud_storage" = "Archiviazione iCloud";
-
-
 "stat_label_2pt" = "2PT";
 "stat_label_3pt" = "3PT";
 "stat_label_free_throw" = "TL";
 "stat_label_starter" = "Titolare";
 "stat_label_bench" = "Panchina";
-
-
 "stats_points_format_short" = "PTS";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
 "stats_foul_turnover" = "FALLO / TO";
 "stats_minutes" = "MIN";
 "stats_shooting" = "FG";
-
-
 "stats_starter_bench" = "T / P";
 "label_career_stats" = "Statistiche carriera";
 "stats_pts_min" = "PTS / MIN";
-
-
 "button_collab_games" = "Partite Bluetooth";
 "cloud_storage_description" = "Tocca una partita per attivare o disattivare l'archiviazione cloud. Le partite archiviate nel cloud si sincronizzano su tutti i dispositivi.";
 "section_cloud_enabled" = "In iCloud";
@@ -864,7 +842,6 @@
 "search_no_results" = "Nessun risultato";
 "section_nearby_devices" = "Dispositivi vicini";
 "stats_games" = "G";
-
 "settings_voice" = "Voce";
 "settings_voice_instruction" = "Istruzioni vocali";
 "settings_show_voice_button_footer" = "Mostra un pulsante microfono sulla pagina di punteggio per l'input vocale.";
@@ -880,7 +857,7 @@
 "voice_shortcuts_action" = "Azione";
 "voice_shortcuts_add_title" = "Aggiungi scorciatoia";
 "voice_shortcuts_edit_title" = "Modifica scorciatoia";
-
 "link_privacy_policy" = "Informativa sulla privacy";
 "link_terms_of_eula" = "Termini di utilizzo (EULA)";
 "subscription_auto_renew_info" = "Abbonamento con rinnovo automatico. Annulla in qualsiasi momento nelle impostazioni di App Store.";
+"button_save_to_photos" = "Save to Photos";

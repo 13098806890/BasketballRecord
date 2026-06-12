@@ -97,7 +97,6 @@
 "deepseek_test" = "Проверить подключение";
 "deepseek_save_key" = "Сохранить в связке ключей";
 "deepseek_remove_saved_key" = "Удалить сохранённый ключ";
-
 /* Новые ключи для уведомлений/кнопок/навигации */
 "alert_store_sync_offer_title" = "Получено предложение синхронизации";
 "alert_accept_and_receive" = "Принять и получить";
@@ -153,7 +152,6 @@
 "section_send_progress" = "Прогресс отправки";
 "section_status" = "Статус";
 "nav_select_sync_content" = "Выберите содержимое для синхронизации";
-
 /* Added by bulk i18n completion */
 "alert_finish_game_title" = "Конец игры?";
 "button_confirm_finish" = "Подтвердить конец";
@@ -496,17 +494,14 @@
 "game_group_no_games_available" = "Нет доступных игр";
 "search_no_results" = "Нет результатов";
 "game_group_selected_filter" = "Фильтр по";
-
 /* Common buttons */
 "common_cancel" = "Отмена";
 "common_save" = "Сохранить";
 "game_group_assigned_label" = "Группа";
-
 /* Transfer keywords for cross-device sharing */
 "transfer_keyword_game" = "Basketball Record-Game Export";
 "transfer_keyword_team" = "Basketball Record-Team Export";
 "transfer_keyword_player" = "Basketball Record-Player Export";
-
 /* AI prompt instructions */
 "ai_prompt_req_1" = "- Output Markdown directly without ```markdown or ``` code fence wrapping.";
 "ai_prompt_req_2" = "- Do not output literal \\n or \\\\n; use actual line breaks.";
@@ -555,8 +550,6 @@
 "purchase_error_cancelled" = "Покупка отменена.";
 "label_lock" = "Блокировка";
 "label_unlock" = "Разблокировать";
-
-
 "pro_feature_groups_1" = "Создавайте группы игр для удобной фильтрации";
 "pro_feature_bluetooth_1" = "Синхронизируйте данные матчей между устройствами через Bluetooth";
 "pro_feature_bluetooth_2" = "Совместный подсчёт очков в реальном времени с другими устройствами";
@@ -585,19 +578,13 @@
 "settings_doc_help_pro_item2_desc" = "Выберите подходящий план, отмена в любое время.";
 "cloud_syncing" = "Синхронизация...";
 "cloud_sync_now" = "Синхронизировать";
-
-
 "game_group_ungrouped" = "Без группы";
 "cloud_unavailable_hint" = "Включите iCloud в системных настройках и войдите в учётную запись.";
 "section_cloud_only" = "Только в iCloud";
 "label_game_name" = "Название игры";
-
-
 "label_career_summary" = "Сводка карьеры";
 "label_games_count" = "Игры";
 "stats_total_points" = "Всего очков";
-
-
 "settings_show_bluetooth_button" = "Показывать Bluetooth-совместный доступ";
 "settings_show_voice_button" = "Показать кнопку голоса";
 "settings_voice_log" = "Журнал голоса";
@@ -607,23 +594,19 @@
 "voice_log_delete_all_confirm" = "Удалить все голосовые записи?";
 "settings_voice_shortcuts" = "Голосовые команды";
 "settings_cloud_storage" = "Хранилище iCloud";
-
 "stat_label_2pt" = "2PT";
 "stat_label_3pt" = "3PT";
 "stat_label_free_throw" = "FT";
 "stat_label_starter" = "Старт";
 "stat_label_bench" = "Запас";
-
 "stats_points_format_short" = "PTS";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
 "stats_foul_turnover" = "FOUL / TO";
 "stats_minutes" = "MIN";
 "stats_shooting" = "FG";
-
 "stats_starter_bench" = "S / B";
 "label_career_stats" = "Карьерная статистика";
 "stats_pts_min" = "PTS / MIN";
-
 "button_collab_games" = "Bluetooth-игры";
 "cloud_storage_description" = "Нажмите на игру, чтобы включить или отключить облачное хранилище. Игры в облаке синхронизируются между вашими устройствами.";
 "section_cloud_enabled" = "В iCloud";
@@ -859,7 +842,6 @@
 "game_group_assigned_to" = "Группа: %@";
 "section_nearby_devices" = "Устройства рядом";
 "stats_games" = "G";
-
 "settings_voice" = "Голос";
 "settings_voice_instruction" = "Голосовые инструкции";
 "settings_show_voice_button_footer" = "Показать кнопку микрофона на странице подсчёта для голосового ввода.";
@@ -875,7 +857,7 @@
 "voice_shortcuts_action" = "Действие";
 "voice_shortcuts_add_title" = "Добавить команду";
 "voice_shortcuts_edit_title" = "Редактировать команду";
-
 "link_privacy_policy" = "Конфиденциальность";
 "link_terms_of_eula" = "Условия использования (EULA)";
 "subscription_auto_renew_info" = "Автоматически продлеваемая подписка. Отменить можно в любое время в настройках App Store.";
+"button_save_to_photos" = "Save to Photos";
