@@ -317,20 +317,27 @@ struct SavedGameDetailView: View {
     }
 
     private func score(for teamID: UUID?) -> Int {
-        playerIDs(for: teamID).reduce(0) { total, playerID in
+        guard let teamID else { return 0 }
+        let teamStats = game.snapshot.teamStatsByID[teamID, default: PlayerStats()].points
+        let playerStats = playerIDs(for: teamID).reduce(0) { total, playerID in
             total + displayStatsByPlayerID[playerID, default: PlayerStats()].points
         }
+        return teamStats + playerStats
     }
 
     private func fouls(for teamID: UUID?) -> Int {
-        playerIDs(for: teamID).reduce(0) { total, playerID in
+        guard let teamID else { return 0 }
+        let teamFouls = game.snapshot.teamStatsByID[teamID, default: PlayerStats()].fouls
+        let playerFouls = playerIDs(for: teamID).reduce(0) { total, playerID in
             total + displayStatsByPlayerID[playerID, default: PlayerStats()].fouls
         }
+        return teamFouls + playerFouls
     }
 
     private func aggregateStats(for teamID: UUID?) -> PlayerStats {
-        playerIDs(for: teamID).reduce(PlayerStats()) { partial, playerID in
-            var total = partial
+        guard let teamID else { return PlayerStats() }
+        var total = game.snapshot.teamStatsByID[teamID, default: PlayerStats()]
+        for playerID in playerIDs(for: teamID) {
             let stats = displayStatsByPlayerID[playerID, default: PlayerStats()]
             total.twoMade += stats.twoMade
             total.twoAttempts += stats.twoAttempts
@@ -346,8 +353,8 @@ struct SavedGameDetailView: View {
             total.blocks += stats.blocks
             total.steals += stats.steals
             total.turnovers += stats.turnovers
-            return total
         }
+        return total
     }
 
     private func playerIDs(for teamID: UUID?) -> [UUID] {
@@ -559,6 +566,26 @@ struct SavedGameDetailView: View {
 
         if lines.isEmpty {
             return "- 无可用事件记录"
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    private func teamStatsPromptSection() -> String {
+        guard let homeID = game.snapshot.homeTeamID, let awayID = game.snapshot.awayTeamID else { return "" }
+        let homeTeamStats = game.snapshot.teamStatsByID[homeID, default: PlayerStats()]
+        let awayTeamStats = game.snapshot.teamStatsByID[awayID, default: PlayerStats()]
+        let hasHome = game.snapshot.homeTeamStatsMode && homeTeamStats.points > 0
+        let hasAway = game.snapshot.awayTeamStatsMode && awayTeamStats.points > 0
+        guard hasHome || hasAway else { return "" }
+
+        var lines: [String] = ["【球队统计数据（系统记录，非个人）】"]
+        if hasHome {
+            let ts = homeTeamStats
+            lines.append("- \(game.homeTeamName): \(ts.points)分 \(ts.rebounds)板 \(ts.assists)助 \(ts.fouls)犯 \(ts.blocks)帽 \(ts.steals)断 \(ts.turnovers)误")
+        }
+        if hasAway {
+            let ts = awayTeamStats
+            lines.append("- \(game.awayTeamName): \(ts.points)分 \(ts.rebounds)板 \(ts.assists)助 \(ts.fouls)犯 \(ts.blocks)帽 \(ts.steals)断 \(ts.turnovers)误")
         }
         return lines.joined(separator: "\n")
     }
@@ -860,6 +887,8 @@ struct SavedGameDetailView: View {
 
         \(playersLabel)
         \(playersText)
+
+        \(teamStatsPromptSection())
 
         \(numericFactsLabel)
         \(numericFacts)
@@ -1254,7 +1283,15 @@ struct SavedGameDetailView: View {
     }
 
     private func allPlayerIDsForSummary() -> [UUID] {
+        var excludeIDs = Set<UUID>()
+        if game.snapshot.homeTeamStatsMode {
+            excludeIDs.formUnion(game.homePlayerIDs)
+        }
+        if game.snapshot.awayTeamStatsMode {
+            excludeIDs.formUnion(game.awayPlayerIDs)
+        }
         let allIDs = Array(Set(game.homePlayerIDs + game.awayPlayerIDs + Array(game.snapshot.statsByPlayerID.keys)))
+            .filter { !excludeIDs.contains($0) }
         return allIDs.sorted { lhs, rhs in
             let lhsPoints = game.snapshot.statsByPlayerID[lhs, default: PlayerStats()].points
             let rhsPoints = game.snapshot.statsByPlayerID[rhs, default: PlayerStats()].points
