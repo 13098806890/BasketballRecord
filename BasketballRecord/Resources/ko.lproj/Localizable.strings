@@ -881,7 +881,6 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "link_privacy_policy" = "개인정보 처리방침";
 "link_terms_of_eula" = "이용 약관 (EULA)";
 "subscription_auto_renew_info" = "자동 갱신 구독입니다. App Store 설정에서 언제든지 취소할 수 있습니다.";
-"button_save_to_photos" = "Save to Photos";
 "ai_prompt_req_14" = "- Commentary style between formal and casual: avoid overly written phrases like 'at the commencement of play'. Use natural expressions like 'the first quarter opened with', 'X hits', 'the score becomes XX-XX'. At least 5-8 sentences per period.";
 "ai_prompt_section_highlights_desc" = "(Select the 2 most important highlights of the game. Find personal scoring runs or clutch plays from [Scoring Run Analysis]. For each highlight, clearly state the score at the time, who made the play, and how it changed the game. Conversational tone, not formal)
 Format:
