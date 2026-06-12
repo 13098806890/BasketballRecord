@@ -82,7 +82,8 @@ struct CompactTeamRow: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
+                    let spacing: CGFloat = players.count >= 5 ? 6 : players.count >= 6 ? 4 : 10
+                    HStack(spacing: spacing) {
                         ForEach(players) { player in
                             let isSelected = selectedPlayerID == player.id && selectedSide == side
                             let avatarSize: CGFloat = isSelected ? 52 : 42
