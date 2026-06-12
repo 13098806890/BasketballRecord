@@ -545,6 +545,21 @@ struct SavedGameDetailView: View {
         let numericFacts = numericFactsText()
         let eventsByPeriod = periodEventsText()
 
+        // Per-period stats for AI analysis
+        let analyzer = SavedGameAnalyzer(game: game, resolvePlayerIDByName: { name in
+            game.playerNamesByID.first(where: { $0.value == name })?.key
+        })
+        let analysis = analyzer.analyze()
+        let periodCount = game.snapshot.periodCount
+        var periodStatLines: [String] = []
+        for period in 1...periodCount {
+            let periodStats = analysis.statsByPlayerID(for: period)
+            guard !periodStats.isEmpty else { continue }
+            let periodPoints = periodStats.values.reduce(0) { $0 + $1.points }
+            periodStatLines.append("- 第\(period)节总分：\(periodPoints)")
+        }
+        let periodStatsText = periodStatLines.joined(separator: "\n")
+
         let playerLines = allPlayerIDsForSummary().map { playerID in
             let stats = game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
             let sideKey = game.homePlayerIDs.contains(playerID) ? "ai_prompt_side_home" : "ai_prompt_side_away"
@@ -643,6 +658,9 @@ struct SavedGameDetailView: View {
 
         【事件日志（按节次）】
         \(eventsByPeriod)
+
+        【每节得分汇总】
+        \(periodStatsText)
         """
     }
 
