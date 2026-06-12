@@ -807,6 +807,10 @@ final class AppStore: ObservableObject {
         let gameIDs = savedGames.map(\.id)
         safeWrite(gameIDs, forKey: gamesIndexKey)
         for game in savedGames {
+            let teamPts = game.snapshot.teamStatsByID.values.reduce(0) { $0 + $1.points }
+            if teamPts > 0 || game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode {
+                print("[Storage] Saving game \(game.id): teamStatsPts=\(teamPts) homeMode=\(game.snapshot.homeTeamStatsMode) awayMode=\(game.snapshot.awayTeamStatsMode)")
+            }
             safeWrite(game, forKey: gameKey(for: game.id))
         }
 
@@ -849,6 +853,12 @@ final class AppStore: ObservableObject {
                 }
             }
             hasMigratedToCoreData = true
+            for game in savedGames.prefix(3) {
+                let teamPts = game.snapshot.teamStatsByID.values.reduce(0) { $0 + $1.points }
+                if teamPts > 0 || game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode {
+                    print("[Storage] Loaded game \(game.id): teamStatsPts=\(teamPts) homeMode=\(game.snapshot.homeTeamStatsMode) awayMode=\(game.snapshot.awayTeamStatsMode)")
+                }
+            }
 
             // Voice metadata is stored only in UserDefaults, not Core Data
             if let meta: StoreMeta = safeRead(StoreMeta.self, forKey: metaKey) {
