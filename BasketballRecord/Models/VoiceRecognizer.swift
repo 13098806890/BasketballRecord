@@ -287,18 +287,70 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         if store.voiceLog.count > maxLogCount { store.voiceLog.removeLast() }
     }
 
+    // MARK: - Helper Methods for UI Feedback
+
+    /// Clear flash color after a short delay
+    private func clearFlashAfterDelay() {
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(0.5))
+            await MainActor.run { [weak self] in
+                self?.flashColor = nil
+            }
+        }
+    }
+
+    /// Clear match display after a delay if it matches the given playerID
+    private func clearMatchAfterDelay(playerID: UUID) {
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(1.5))
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                if self.match?.playerID == playerID {
+                    self.match = nil
+                }
+            }
+        }
+    }
+
+    /// Show success feedback with green flash
+    private func showSuccessFeedback(action: StatAction, playerID: UUID, side: TeamSide) {
+        let actCopy = action
+        let pidCopy = playerID
+        let sideCopy = side
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.match = (pidCopy, sideCopy, actCopy)
+            self.flashColor = .green
+            self.onAction?(actCopy, pidCopy, sideCopy)
+        }
+
+        clearFlashAfterDelay()
+        clearMatchAfterDelay(playerID: pidCopy)
+    }
+
+    /// Show error feedback with red flash
+    private func showErrorWithFlash(_ msg: String) {
+        showError(msg)
+        flashColor = .red
+        clearFlashAfterDelay()
+    }
+
     private func showError(_ msg: String) {
         errorMessage = msg
         let impact = UIImpactFeedbackGenerator(style: .medium)
         impact.prepare()
-        Task {
+        Task { [weak self] in
             for _ in 0..<3 {
                 await MainActor.run { impact.impactOccurred() }
                 try? await Task.sleep(for: .seconds(0.08))
             }
             try? await Task.sleep(for: .seconds(1.5))
-            await MainActor.run {
-                if errorMessage == msg { errorMessage = nil }
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                if self.errorMessage == msg {
+                    self.errorMessage = nil
+                }
             }
         }
     }
@@ -453,8 +505,8 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
         guard !subject.isEmpty, !object.isEmpty else {
             addLog(text: text, isSuccess: false, action: "换人", matchDetail: dbgLines.joined(separator: " | "))
-            showError("换人失败: 无主语/宾语"); flashColor = .red
-            Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }; return
+            showErrorWithFlash("换人失败: 无主语/宾语")
+            return
         }
 
         // Convert to pinyin without fuzzy processing (matchPlayerIDsDebug handles variants internally)
@@ -497,8 +549,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         }
 
         addLog(text: text, isSuccess: false, action: "换人", matchDetail: dbgLines.joined(separator: " | "))
-        showError("换人失败"); flashColor = .red
-        Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
+        showErrorWithFlash("换人失败")
     }
 
     func simulateText(_ text: String) {
@@ -540,12 +591,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
                 let pn = store.player(for: playerID)?.name ?? "?"
                 addLog(text: text, isSuccess: true, action: act.message, playerName: pn, matchedPattern: eventCode, matchDetail: "自定义映射: \(phrase)")
-                let actCopy = act; let pidCopy = playerID; let sideCopy = side
-                DispatchQueue.main.async { [self] in
-                    match = (pidCopy, sideCopy, actCopy); flashColor = .green; onAction?(actCopy, pidCopy, sideCopy)
-                }
-                Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
-                Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == pidCopy { match = nil } } }
+                showSuccessFeedback(action: act, playerID: playerID, side: side)
                 return
             }
         }
@@ -650,8 +696,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
             guard let pid = playerID, let sd = side else {
                 addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "❌ 未匹配到球员 | 左侧文本: \(leftText.isEmpty ? "空" : leftText) | 拼音: \(textPinyin)")
-                showError("未识别：\"\(text)\""); flashColor = .red
-                Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
+                showError("未识别：\"\(text)\"")
+                flashColor = .red
+                clearFlashAfterDelay()
                 return false
             }
 
@@ -661,12 +708,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
             let pn = store.player(for: pid)?.name ?? "?"
             addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: finalCode, matchDetail: "球员匹配: \(dbgPlayer)")
-            let actCopy = action; let pidCopy = pid; let sideCopy = sd
-            DispatchQueue.main.async { [self] in
-                match = (pidCopy, sideCopy, actCopy); flashColor = .green; onAction?(actCopy, pidCopy, sideCopy)
-            }
-            Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
-            Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == pidCopy { match = nil } } }
+            showSuccessFeedback(action: action, playerID: pid, side: sd)
             return true
         }
 
@@ -740,24 +782,17 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             }
             guard let pid = playerID, let sd = side else {
                 addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "❌ 拼音回退: 未匹配到球员 | 左侧拼音: \(leftPinyin.isEmpty ? "空" : leftPinyin)")
-                showError("未识别：\"\(text)\""); flashColor = .red
-                Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
+                showErrorWithFlash("未识别：\"\(text)\"")
                 return
             }
             guard let action = StatAction.allCases.first(where: { $0.eventCode == finalCode }) else {
                 addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "❌ 拼音回退: 无对应StatAction: \(finalCode)")
-                showError("未识别：\"\(text)\""); flashColor = .red
-                Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
+                showErrorWithFlash("未识别：\"\(text)\"")
                 return
             }
             let pn = store.player(for: pid)?.name ?? "?"
             addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: finalCode, matchDetail: "拼音回退球员: \(dbgPlayer)")
-            let actCopy = action; let pidCopy = pid; let sideCopy = sd
-            DispatchQueue.main.async { [self] in
-                match = (pidCopy, sideCopy, actCopy); flashColor = .green; onAction?(actCopy, pidCopy, sideCopy)
-            }
-            Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
-            Task { try? await Task.sleep(for: .seconds(1.5)); await MainActor.run { if match?.playerID == pidCopy { match = nil } } }
+            showSuccessFeedback(action: action, playerID: pid, side: sd)
             return
         }
 
@@ -781,15 +816,19 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 else if code == "event.pause" { cmd = .togglePause }
                 else { cmd = .finishGame }
                 let cmdCopy = cmd
-                DispatchQueue.main.async { [self] in onCommand?(cmdCopy); flashColor = .green }
-                Task { try? await Task.sleep(for: .seconds(0.5)); await MainActor.run { flashColor = nil } }
+                DispatchQueue.main.async { [weak self] in
+                    self?.onCommand?(cmdCopy)
+                    self?.flashColor = .green
+                }
+                clearFlashAfterDelay()
                 return
             }
         }
 
         addLog(text: text, isSuccess: false, matchDetail: "❌ 全文无匹配: \(text) | 拼音: \(textPinyin)")
-        showError("未识别：\"\(text)\""); flashColor = .red
-        Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }
+        showError("未识别：\"\(text)\"")
+        flashColor = .red
+        clearFlashAfterDelay()
     }
 
     /// Detect team prefix in text: "主队", "客队" or their pinyin
