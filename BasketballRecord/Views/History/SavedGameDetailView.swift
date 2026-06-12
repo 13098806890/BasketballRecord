@@ -18,6 +18,8 @@ struct SavedGameDetailView: View {
     @State private var selectedGroupID: UUID?
     @State private var editDisplayName = ""
     @State private var isShowingPurchase = false
+    @State private var isShowingShare = false
+    @State private var shareImage: UIImage?
 
 
     init(game: SavedGame, displayMode: DisplayMode = .history) {
@@ -162,6 +164,11 @@ struct SavedGameDetailView: View {
         }
             .sheet(isPresented: $isShowingPurchase) {
                 ProSubscriptionStoreView()
+            }
+            .sheet(isPresented: $isShowingShare) {
+                if let image = shareImage {
+                    ShareSheet(items: [image])
+                }
             }
             .sheet(isPresented: $isShowingExport) {
             ExportGameView(game: game)
@@ -480,6 +487,38 @@ struct SavedGameDetailView: View {
                             } label: {
                                 Label(LocalizedStringKey("voice_log_copy"), systemImage: "doc.on.doc")
                             }
+                            Button {
+                                let title = stripMarkdownDecorations(from: section.title)
+                                let items = section.items.map { stripMarkdownDecorations(from: $0) }
+                                let titleFont = UIFont.boldSystemFont(ofSize: 16)
+                                let bodyFont = UIFont.systemFont(ofSize: 13)
+                                let bulletColor = UIColor(red: 0.22, green: 0.52, blue: 0.90, alpha: 1)
+                                let maxW: CGFloat = 300
+                                let leftMargin: CGFloat = 16
+                                let contentW = maxW - leftMargin - 16
+                                var y: CGFloat = 20
+                                y += (title as NSString).boundingRect(with: CGSize(width: contentW, height: .greatestFiniteMagnitude), options: .usesLineFragmentOrigin, attributes: [.font: titleFont], context: nil).size.height + 12
+                                var lineH: [CGFloat] = []
+                                for item in items {
+                                    let s = (item as NSString).boundingRect(with: CGSize(width: contentW - 20, height: .greatestFiniteMagnitude), options: .usesLineFragmentOrigin, attributes: [.font: bodyFont], context: nil).size
+                                    lineH.append(s.height)
+                                    y += s.height + 8
+                                }
+                                let isize = CGSize(width: maxW, height: y + 20)
+                                shareImage = UIGraphicsImageRenderer(size: isize).image { ctx in
+                                    UIColor.white.setFill(); ctx.fill(CGRect(origin: .zero, size: isize))
+                                    (title as NSString).draw(at: CGPoint(x: leftMargin, y: 20), withAttributes: [.font: titleFont, .foregroundColor: UIColor.black])
+                                    var cy: CGFloat = 20 + (title as NSString).boundingRect(with: CGSize(width: contentW, height: .greatestFiniteMagnitude), options: .usesLineFragmentOrigin, attributes: [.font: titleFont], context: nil).size.height + 12
+                                    for (i, item) in items.enumerated() {
+                                        ("● " as NSString).draw(at: CGPoint(x: leftMargin, y: cy), withAttributes: [.font: bodyFont, .foregroundColor: bulletColor])
+                                        (item as NSString).draw(with: CGRect(x: leftMargin + 16, y: cy, width: contentW - 16, height: lineH[i]), options: .usesLineFragmentOrigin, attributes: [.font: bodyFont, .foregroundColor: UIColor.darkGray], context: nil)
+                                        cy += lineH[i] + 8
+                                    }
+                                }
+                                isShowingShare = true
+                            } label: {
+                                Label(LocalizedStringKey("button_save_to_photos"), systemImage: "photo.badge.arrow.down")
+                            }
                         }
                     }
                 }
@@ -559,7 +598,6 @@ struct SavedGameDetailView: View {
     private func scoringRunData() -> String {
         let scoringCodes: Set<String> = ["stat.twoMade", "stat.threeMade", "stat.freeThrowMade", "stat.bonusMade"]
         let pointMap: [String: Int] = ["stat.twoMade": 2, "stat.threeMade": 3, "stat.freeThrowMade": 1, "stat.bonusMade": 1]
-        let streakCodes: Set<String> = ["stat.rebound", "stat.assist"]
         let homeIDs = Set(game.homePlayerIDs)
         let allIDs = allPlayerIDsForSummary()
         let idToName: [UUID: String] = Dictionary(uniqueKeysWithValues: allIDs.compactMap { id in
@@ -1448,5 +1486,12 @@ private struct ExportGameView: View {
     }
 }
 
+private struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
 
 

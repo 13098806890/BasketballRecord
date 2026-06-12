@@ -866,3 +866,5 @@ Format:
 "link_terms_of_eula" = "Termini di utilizzo (EULA)";
 "subscription_auto_renew_info" = "Abbonamento con rinnovo automatico. Annulla in qualsiasi momento nelle impostazioni di App Store.";
 "ai_prompt_req_14" = "- Commentary style between formal and casual: avoid overly written phrases like 'at the commencement of play'. Use natural expressions like 'the first quarter opened with', 'X hits', 'the score becomes XX-XX'. At least 5-8 sentences per period.";
+
+"button_save_to_photos" = "Salva in Foto";
