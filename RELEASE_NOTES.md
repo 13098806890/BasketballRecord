@@ -20,6 +20,7 @@
 - **球队模式语音不可用**：`@State` struct 属性修改不触发 `onChange`，`currentSnapshot` 始终拿不到球队模式 flag。
 - **球员英文名 AD 匹配优化**：增加原始字母和空格分隔的拼音变体，修复 ASR 输出 "id" 时无法匹配的问题。
 - **语音识别变体池系统**：`generatePinyinVariants` 生成双向模糊变体，通过 Set 交集匹配，大幅提升球队模式和多音字识别准确率。
+- **VoiceRecognizer 内存泄漏修复**：Task/dispatch 闭包中 `[self]` 改为 `[weak self]`，消除约 10 处循环引用风险。提取 `showSuccessFeedback`/`showErrorWithFlash` 等辅助方法，消除 18 处 `Task.sleep` 重复代码。
 
 ### 国际化
 
