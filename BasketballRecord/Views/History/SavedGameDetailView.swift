@@ -98,8 +98,8 @@ struct SavedGameDetailView: View {
                 .listRowSeparator(.hidden)
             }
 
-            homePlayerSection
-            awayPlayerSection
+            if !game.snapshot.homeTeamStatsMode { homePlayerSection }
+            if !game.snapshot.awayTeamStatsMode { awayPlayerSection }
 
             if displayMode == .history {
                 Section(LocalizedStringKey("section_ai_game_summary")) {
@@ -318,11 +318,7 @@ struct SavedGameDetailView: View {
 
     private func score(for teamID: UUID?) -> Int {
         guard let teamID else { return 0 }
-        let teamStats = game.snapshot.teamStatsByID[teamID, default: PlayerStats()].points
-        let playerStats = playerIDs(for: teamID).reduce(0) { total, playerID in
-            total + displayStatsByPlayerID[playerID, default: PlayerStats()].points
-        }
-        return teamStats + playerStats
+        return game.score(forTeamID: teamID)
     }
 
     private func fouls(for teamID: UUID?) -> Int {
