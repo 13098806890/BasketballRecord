@@ -18,7 +18,6 @@ struct SavedGameDetailView: View {
     @State private var selectedGroupID: UUID?
     @State private var editDisplayName = ""
     @State private var isShowingPurchase = false
-    @State private var isShowingShare = false
     @State private var shareImage: UIImage?
 
 
@@ -164,11 +163,6 @@ struct SavedGameDetailView: View {
         }
             .sheet(isPresented: $isShowingPurchase) {
                 ProSubscriptionStoreView()
-            }
-            .sheet(isPresented: $isShowingShare) {
-                if let image = shareImage {
-                    ShareSheet(items: [image])
-                }
             }
             .sheet(isPresented: $isShowingExport) {
             ExportGameView(game: game)
@@ -515,7 +509,7 @@ struct SavedGameDetailView: View {
                                         cy += lineH[i] + 8
                                     }
                                 }
-                                isShowingShare = true
+                                UIImageWriteToSavedPhotosAlbum(shareImage!, nil, nil, nil)
                             } label: {
                                 Label(LocalizedStringKey("button_save_to_photos"), systemImage: "photo.badge.arrow.down")
                             }
@@ -1486,12 +1480,5 @@ private struct ExportGameView: View {
     }
 }
 
-private struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
-    }
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
-}
 
 
