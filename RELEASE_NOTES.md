@@ -4,36 +4,21 @@
 
 ### 新增
 
-- **语音记分加入 Pro 订阅**：记分页麦克风按钮、设置页语音入口现为 Pro 功能，非 Pro 用户点击弹出购买页面。
-- **语音日志开关**：设置页新增「启用语音日志」开关，关闭后不再记录识别详细过程。
-- **灌篮高手 Demo 数据**：初始样例数据替换为湘北/陵南 6 名球员，附带头像照片，10 种语言对应翻译。
-- **订阅页可滚动**：特性说明区域改为 `ScrollView`，确保订阅按钮始终可见。
 - **AI 分析优化**：按节次输出比赛分析，系统预计算个人/球队连续得分、连续篮板、连续助攻、连续投篮不中，直接供 AI 引用。
 - **AI 分析可复制/保存为图片**：长按复制单节文本；「保存到相册」按钮将完整 AI 总结渲染为图片。
-- **App Store 元数据更新**：关键词、Pro 标注、What's New 全部 10 种语言。
 
 ### 修复
 
-- **代码审查修复**：修复 `Dictionary(uniqueKeysWithValues:)` 崩溃、`AIService` force-unwrap、`VoiceRecognizer` 线程安全、`revertLastAction` 中文解析、CoreData 上下文不一致等 20 项。
-- **ASR 语音变体补全**：10 种语言补充 55 条规则，ASR 测试 209 全通过。
 - **比赛名称不持久化**：`CoreDataStore.fetchAllSavedGames()` 缺少 `displayName`。
 - **AI 按钮非 Pro 无反应**：非 Pro 用户点击弹出订阅购买页面。
 - **语音录制前 0.5s 延迟**：音频引擎预热，节省 ~300ms。
 - **音频降噪**：录音模式 `.measurement`，排除格式不兼容问题。
 - **语音识别失败震动**：失败时 3 次震动反馈。
-- **SettingsDocumentView 语言切换**：切换语言后自动刷新内容。
-- **Demo 照片加载路径**：`seedSampleData()` 从 Bundle 根目录加载头像。
-- **蓝牙协议中文转 English**：4 处 reason 参数改为英文。
-- **SubstitutionView 切换 side 清空选择**：避免跨队换人。
-- **5 个测试用例修复**：更新 StatAction 数量、删除无效测试、本地化 LegacyUndo。
-- **订阅页 ProSubscriptionStoreView 改为 internal**：GameView 可直接调用。
-- **记分页球员名自适应字号**：`minimumScaleFactor` 自动缩放，`X号` 改为 `NoX`。
 
 ### 国际化
 
-- 新增 `settings_voice_log_enable`、`pro_feature_voice_*`、`button_save_to_photos` 等至全部 10 种语言。
+- 新增 `button_save_to_photos` 至全部 10 种语言。
 - 同步 AI prompt 翻译（`ai_system_role`、`ai_prompt_req_4~14` 等）至全部 10 种语言。
-- Demo 球员/球队名称全部 10 种语言对应翻译。
 
 ## 1.20 (2026-06-11)
 
