@@ -340,11 +340,10 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         errorMessage = msg
         let impact = UIImpactFeedbackGenerator(style: .medium)
         impact.prepare()
+        impact.impactOccurred()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { impact.impactOccurred() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) { impact.impactOccurred() }
         Task { [weak self] in
-            for _ in 0..<3 {
-                await MainActor.run { impact.impactOccurred() }
-                try? await Task.sleep(for: .seconds(0.08))
-            }
             try? await Task.sleep(for: .seconds(1.5))
             await MainActor.run { [weak self] in
                 guard let self else { return }
@@ -834,11 +833,19 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     /// Detect team prefix in text: "主队", "客队" or their pinyin
     private func detectTeamPrefix(_ text: String) -> TeamSide? {
         let lower = text.lowercased().trimmingCharacters(in: .whitespaces)
-        if lower.hasPrefix("主队") || lower.hasPrefix("zhudui") || lower.hasPrefix("zhu dui") { return .home }
-        if lower.hasPrefix("客队") || lower.hasPrefix("kedui") || lower.hasPrefix("ke dui") { return .away }
-        // English variants
-        if lower.hasPrefix("home") { return .home }
-        if lower.hasPrefix("away") { return .away }
+        // Exact/Fuzzy prefix matching using variant pool
+        let variants = Self.generatePinyinVariants(text)
+        let homeAliases: Set<String> = ["主队", "zhudui", "zhu dui", "home"]
+        let awayAliases: Set<String> = ["客队", "kedui", "ke dui", "away"]
+        // Check if any prefix-related variant matches
+        for variant in variants {
+            let vLower = variant.lowercased()
+            if homeAliases.contains(where: { vLower.hasPrefix($0) }) { return .home }
+            if awayAliases.contains(where: { vLower.hasPrefix($0) }) { return .away }
+        }
+        // Legacy direct prefix check as fallback
+        if lower.hasPrefix("主队") || lower.hasPrefix("zhudui") || lower.hasPrefix("zhu dui") || lower.hasPrefix("home") { return .home }
+        if lower.hasPrefix("客队") || lower.hasPrefix("kedui") || lower.hasPrefix("ke dui") || lower.hasPrefix("away") { return .away }
         return nil
     }
 
