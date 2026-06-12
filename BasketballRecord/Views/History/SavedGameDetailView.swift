@@ -744,12 +744,16 @@ struct SavedGameDetailView: View {
         let numericFacts = numericFactsText()
         let eventsByPeriod = periodEventsText()
 
-        // Per-period team scores for AI analysis
+        // Per-period team & player scores for AI analysis
         let analyzer = SavedGameAnalyzer(game: game, resolvePlayerIDByName: { name in
             game.playerNamesByID.first(where: { $0.value == name })?.key
         })
         let analysis = analyzer.analyze()
         let periodCount = game.snapshot.periodCount
+        let allIDs = allPlayerIDsForSummary()
+        let idToName: [UUID: String] = Dictionary(uniqueKeysWithValues: allIDs.compactMap { id in
+            game.playerNamesByID[id].map { (id, $0) }
+        })
         var periodStatLines: [String] = []
         var runningHome = 0, runningAway = 0
         for period in 1...periodCount {
@@ -763,6 +767,15 @@ struct SavedGameDetailView: View {
             let diff = runningHome - runningAway
             let diffStr = diff > 0 ? "主队领先\(diff)分" : diff < 0 ? "客队领先\(-diff)分" : "平分"
             periodStatLines.append("- 第\(period)节：主队\(homePeriodPoints)分 vs 客队\(awayPeriodPoints)分 | 累计 \(runningHome)-\(runningAway)（\(diffStr)）")
+            // Per-player stats for this period
+            let sortedPlayers = allIDs.filter { periodStats[$0] != nil }.sorted { lhs, rhs in
+                (periodStats[lhs]?.points ?? 0) > (periodStats[rhs]?.points ?? 0)
+            }
+            for pid in sortedPlayers {
+                guard let ps = periodStats[pid], ps.points > 0 else { continue }
+                let name = idToName[pid] ?? "?"
+                periodStatLines.append("  · \(name): \(ps.points)分 \(ps.rebounds)板 \(ps.assists)助")
+            }
         }
         let periodStatsText = periodStatLines.joined(separator: "\n")
 
