@@ -726,6 +726,53 @@ final class VoiceMatchingTests: XCTestCase {
         XCTAssertEqual(capturedPlayerID, homeTeamID)
     }
 
+    // MARK: - Pinyin Variants Generation
+
+    func testGeneratePinyinVariants() {
+        // Test basic variant generation
+        let variants = VoiceRecognizer.generatePinyinVariants("张三")
+        XCTAssertTrue(variants.contains("zhang san"), "应包含原始拼音")
+        XCTAssertTrue(variants.contains("zang san"), "应包含 zh→z 变体")
+
+        // Test team name variants
+        let teamVariants = VoiceRecognizer.generatePinyinVariants("战神队")
+        XCTAssertTrue(teamVariants.contains("zhan shen dui"), "应包含原始拼音")
+        XCTAssertTrue(teamVariants.contains("zan shen dui"), "应包含 zh→z 变体")
+        XCTAssertTrue(teamVariants.contains("zhan sen dui"), "应包含 sh→s 变体")
+
+        // Test nasal variants
+        let nasalVariants = VoiceRecognizer.generatePinyinVariants("英格兰")
+        XCTAssertTrue(nasalVariants.contains("ying ge lan"), "应包含原始拼音")
+        XCTAssertTrue(nasalVariants.contains("yin ge lan"), "应包含 ing→in 变体")
+        XCTAssertTrue(nasalVariants.contains("ying ge lan"), "应包含原始拼音")
+        XCTAssertTrue(nasalVariants.contains("yingen lan") == false, "不应产生空格消失的变体")
+    }
+
+    func testTeamModeWithVariants() async throws {
+        let snap = GameSnapshot(
+            homeTeamID: homeTeamID, awayTeamID: awayTeamID,
+            homeOnCourtPlayerIDs: [], awayOnCourtPlayerIDs: [],
+            homeAvailablePlayerIDs: [], awayAvailablePlayerIDs: [],
+            homeTeamStatsMode: true, awayTeamStatsMode: false
+        )
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snap
+        recognizer.updateRules(for: Locale(identifier: "zh-CN"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        var capturedPlayerID: UUID?
+        recognizer.onAction = { action, pid, _ in
+            capturedAction = action; capturedPlayerID = pid; exp.fulfill()
+        }
+        // Test with fuzzy variant: "洪队" (ASR might recognize "红队" as "洪队")
+        recognizer.simulateText("洪队两分命中")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .twoMade)
+        XCTAssertEqual(capturedPlayerID, homeTeamID)
+    }
+
     private func assertCommand(text: String, expectedCommand: String, file: StaticString = #filePath, line: UInt = #line) {
         let result = findEvent(text: text)
         let commandMap: [String: [String]] = [
