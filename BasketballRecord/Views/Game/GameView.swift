@@ -917,7 +917,10 @@ struct GameView: View {
     }
 
     private var needsNewGameSetup: Bool {
-        snapshot.homeTeamID == nil || snapshot.awayTeamID == nil || snapshot.homeOnCourtPlayerIDs.isEmpty || snapshot.awayOnCourtPlayerIDs.isEmpty
+        guard snapshot.homeTeamID != nil, snapshot.awayTeamID != nil else { return true }
+        if !snapshot.homeTeamStatsMode, snapshot.homeOnCourtPlayerIDs.isEmpty { return true }
+        if !snapshot.awayTeamStatsMode, snapshot.awayOnCourtPlayerIDs.isEmpty { return true }
+        return false
     }
 
     private var hasUnfinishedGameToConfirm: Bool {
@@ -1046,10 +1049,12 @@ struct GameView: View {
     }
 
     private func teamFouls(for teamID: UUID?) -> Int {
-        guard let side = side(for: teamID) else { return 0 }
-        return gamePlayerIDs(for: side).reduce(0) { total, playerID in
+        guard let side = side(for: teamID), let teamID else { return 0 }
+        let teamFouls = snapshot.teamStatsByID[teamID, default: PlayerStats()].fouls
+        let playerFouls = gamePlayerIDs(for: side).reduce(0) { total, playerID in
             total + snapshot.statsByPlayerID[playerID, default: PlayerStats()].fouls
         }
+        return teamFouls + playerFouls
     }
 
     private func displayedTeamFouls(for side: TeamSide) -> Int {
