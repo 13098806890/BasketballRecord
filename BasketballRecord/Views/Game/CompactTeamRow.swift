@@ -57,12 +57,12 @@ struct CompactTeamRow: View {
                     VStack(spacing: 6) {
                         ZStack {
                             Circle()
-                                .fill(Color(.systemBackground))
+                                .fill(side == .home ? Color.blue.opacity(0.08) : Color.red.opacity(0.08))
                                 .frame(width: 52, height: 52)
-                                .overlay(Circle().stroke(selectedPlayerID == team?.id && selectedSide == side ? GamePalette.selectedBorder : Color.primary.opacity(0.3), lineWidth: selectedPlayerID == team?.id && selectedSide == side ? 3 : 1.5))
-                            Image(systemName: "chart.bar.fill")
+                                .overlay(Circle().stroke(selectedPlayerID == team?.id && selectedSide == side ? GamePalette.selectedBorder : (side == .home ? Color.blue.opacity(0.3) : Color.red.opacity(0.3)), lineWidth: selectedPlayerID == team?.id && selectedSide == side ? 3 : 1.5))
+                            Image(systemName: side == .home ? "house.fill" : "mappin.and.ellipse")
                                 .font(.title3)
-                                .foregroundStyle(GamePalette.text)
+                                .foregroundStyle(side == .home ? .blue : .red)
                         }
                         Text(team?.name ?? "")
                             .font(.system(size: 9, weight: .medium))
