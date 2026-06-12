@@ -742,7 +742,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 let s = Self.similarity(rightPinyin, statePinyin)
                 if s > bestStateScore { bestStateScore = s; foundMade = false }
             }
-            guard let isMade = foundMade else { continue }
+            let isMade = foundMade ?? true
             let finalCode = shot.eventPrefix + (isMade ? "Made" : "Missed")
             guard let store, let snapshot = currentSnapshot else { return }
             let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
