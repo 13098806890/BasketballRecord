@@ -882,3 +882,9 @@ Format:
 "button_save_to_photos" = "保存到相册";
 
 "button_saved" = "已保存";
+
+"label_team_stats_mode" = "按球队统计";
+
+"section_team_home" = "主队";
+
+"section_team_away" = "客队";

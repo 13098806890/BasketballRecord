@@ -870,3 +870,9 @@ Format:
 "button_save_to_photos" = "Сохранить в Фото";
 
 "button_saved" = "Сохранено";
+
+"label_team_stats_mode" = "Статистика команды";
+
+"section_team_home" = "Домашняя команда";
+
+"section_team_away" = "Гостевая команда";

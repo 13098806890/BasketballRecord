@@ -38,6 +38,11 @@
 
 每次在 `main` 上提交改动后，自动 cherry-pick 到 `main_free_pro` 分支并推送。
 
+## Release Notes 更新规则
+
+1. **默认行为**：当我说"更新 release note"时，直接将当前版本的修改内容追加到当前版本的 section 中。
+2. **新建版本**：只有当我说"把当前版本设置为 xx，更新 release note"时，才创建新的版本 section，并将新内容放入该版本。
+
 ## 版本号规则
 
 `main_free_pro` 分支的大版本号（major version）始终比 `main` 分支大 1，小版本号保持一致。例如：

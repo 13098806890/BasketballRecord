@@ -898,3 +898,9 @@ Format:
 "button_save_to_photos" = "사진 앨범에 저장";
 
 "button_saved" = "저장됨";
+
+"label_team_stats_mode" = "팀 통계 모드";
+
+"section_team_home" = "홈 팀";
+
+"section_team_away" = "원정 팀";

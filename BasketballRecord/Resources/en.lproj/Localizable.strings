@@ -887,3 +887,9 @@ Format:
 "button_save_to_photos" = "Save to Photos";
 
 "button_saved" = "Saved";
+
+"label_team_stats_mode" = "Team Stats Mode";
+
+"section_team_home" = "Home Team";
+
+"section_team_away" = "Away Team";

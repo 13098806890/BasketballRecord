@@ -985,6 +985,9 @@ struct GameSnapshot: Codable, Hashable {
     var matchActiveSince: Date?
     var periodElapsedSeconds: TimeInterval = 0
     var periodActiveSince: Date?
+    var homeTeamStatsMode = false
+    var awayTeamStatsMode = false
+    var teamStatsByID: [UUID: PlayerStats] = [:]
 
     init(
         statsByPlayerID: [UUID: PlayerStats] = [:],
