@@ -784,20 +784,20 @@
 "demo_player_maki" = "牧绅一";
 
 /* AI Summary Prompt Keys */
-"ai_system_role" = "你是专业篮球解说与数据分析师。严格基于提供的结构化数据输出，不得使用'可能''大概''或许'等不确定措辞。每条描述必须有数据支撑。数据说明：·[球员 +分 前比分→后比分 类型]表示每次得分事件及比分变化（extend=扩大领先, cut=缩小分差, tie=追平, opening=首分）·personal_run=个人连续得分·team_run=球队连续得分·rebound_streak=连续篮板·assist_streak=连续助攻·team_miss_streak=球队连续不中·personal_miss_streak=个人连续不中";
+"ai_system_role" = "你是专业篮球解说与数据分析师。用口语化的方式输出，不要用书面化语言。严格基于提供的结构化数据，不得使用'可能''大概''或许'等不确定措辞。每条描述必须有数据支撑。数据说明：·[球员 +分 前比分→后比分 类型]表示每次得分事件及比分变化（open=首开纪录, extend=扩大领先, cut=缩小差距, tie=追平）·personal_run=个人连续得分·team_run=球队连续得分·rebound_streak=连续篮板·assist_streak=连续助攻·team_miss_streak=球队连续不中·personal_miss_streak=个人连续不中";
 "ai_test_connection_prompt" = "请仅回复：连接成功";
 "ai_prompt_task_description" = "你将基于一场篮球比赛数据生成赛后复盘。请严格用中文输出，并且严格按照以下 Markdown 结构，不要添加其他一级标题：";
 "ai_prompt_section_summary" = "比赛总结";
-"ai_prompt_section_summary_desc" = "（详细按节次分析：·引用【连续得分分析】中的得分事件展示每节走势·每次得分事件列出前比分→后比分·分析个人和球队的连续得分段对比赛的影响·连续篮板和连续助攻说明球员活跃度·连续投篮不中标示得分荒·交替得分时段分析双方拉锯·把高光时刻融入每节分析。每节至少5-8句话，总计15-20段）";
+"ai_prompt_section_summary_desc" = "（详细按节次分析：·引用【连续得分分析】中的事件描述每节走势·每次得分要说清谁得分、得了几分、当时比分是多少（直接引用前比分→后比分）·分析连续得分段、连续不中段的影响·连续篮板/助攻说明谁打得好·交替得分时段说明双方咬得很紧。用口语写，不要书面化。每节至少5-8句话）";
 "ai_prompt_section_mvp" = "MVP";
 "ai_prompt_section_mvp_desc" = "（只评选1人，从【球员数据】和【连续得分分析】中引用关键数据论证：该球员在得分/连续得分/篮板/助攻/防守端的贡献，以及他在关键时段对比赛走势的影响。至少3-5句话）";
 "ai_prompt_section_highlights" = "高亮时刻";
-"ai_prompt_section_highlights_desc" = "（选出全场最重要的2个高亮时刻。从【连续得分分析】中选取个人连续得分段或打破僵局的关键球。每个高亮必须写出当时比分、得分球员、分差变化（extend/cut/tie）。每个高亮3-5句话，包含发生节次、当时比分、参与球员、对比赛走势的影响）\n格式：\n1. 标题\n   描述\n2. 标题\n   描述";
+"ai_prompt_section_highlights_desc" = "（选出全场最重要的2个高亮时刻。从【连续得分分析】的数据中找个人连续得分或打破僵局的关键球。每个高亮写清楚当时比分、谁打的、怎么改变比赛走势。口语化，不要书面语）\n格式：\n1. 标题\n   描述\n2. 标题\n   描述";
 "ai_prompt_extra_requirements" = "额外要求：";
 "ai_prompt_req_1" = "- 直接输出 Markdown 正文，不要使用 ```markdown 或 ``` 代码块包裹。";
 "ai_prompt_req_2" = "- 不要输出字面量 \\n 或 \\\\n，请使用真实换行。";
 "ai_prompt_req_3" = "- 各级标题、段落、列表之间保留空行，保证排版清晰。";
-"ai_prompt_req_4" = "- 引用【连续得分分析】：·[球员 +分 前→后 extend/cut/tie]：用这些事件展示每节比分变化·personal_run：描述个人连续得分段·team_run：描述球队得分高潮·rebound_streak/assist_streak：说明球员活跃度·team_miss_streak/personal_miss_streak：说明得分荒。每次提到比分必须列出具体数字。";
+"ai_prompt_req_4" = "- 引用【连续得分分析】数据时，把open/extend/cut/tie这些标记转成口语。例如'张三命中2分，10-8→12-8，湘北领先4分'。不要直接输出'extend''cut''tie'这些词。每次提到比分必须列出具体数字。";
 "ai_prompt_req_5" = "- 结合比赛事件日志来描述高亮时刻。";
 "ai_prompt_req_6" = "- 不要虚构未给出的球员或事件。所有描述必须源自【事件日志】【连续得分分析】【球员数据】。";
 "ai_prompt_req_7" = "- 如果日志中没有具体事件支撑某段描述，不要写那段描述。只写有数据支撑的内容。";
@@ -806,7 +806,7 @@
 "ai_prompt_req_10" = "- 禁止使用'可能''大概''或许''倾向于'等不确定措辞。有数据就写确定结论，没数据就不写。";
 "ai_prompt_req_11" = "- 直接写出事实，不要附加'依据日志''根据数据'等引用说明。";
 "ai_prompt_req_12" = "- 高亮时刻中，必须引用【事件日志】中的具体回合。";
-"ai_prompt_req_14" = "- 比赛总结必须按节次详细描述：每节双方得分、分差、引用【连续得分分析】中的高潮数据、交替得分时段。每次重要节点列出当前比分。每节至少5-8句话。";
+"ai_prompt_req_14" = "- 整篇分析用口语写，像在和朋友聊比赛。不要用'比赛伊始''首开纪录''战至''XX时刻'等书面化词语。直接说'第一节''XX投进''比分来到XX-XX'。每节至少5-8句话。";
 "ai_prompt_req_13" = "- 涉及'最高/最低/最多/最少'等数字表达时，必须与【数值校验】一致，禁止自行改写数值。";
 "ai_prompt_game_info_label" = "【比赛信息】";
 "ai_prompt_date_label" = "日期：%@";
