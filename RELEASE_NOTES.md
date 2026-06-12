@@ -8,32 +8,26 @@
 - **语音日志开关**：设置页新增「启用语音日志」开关，关闭后不再记录识别详细过程。
 - **灌篮高手 Demo 数据**：初始样例数据替换为湘北/陵南 6 名球员（赤木晴子、樱木花道、流川枫、仙道、彩子、牧绅一），附带头像照片。10 种语言对应角色翻译。
 - **订阅页可滚动**：特性说明区域改为 `ScrollView`，确保订阅按钮始终可见。
+- **AI 分析优化**：按节次输出比赛分析，系统预计算个人/球队连续得分、连续篮板、连续助攻、连续投篮不中，直接供 AI 引用，避免 LLM 推算错误。
+- **AI 分析可复制/保存为图片**：长按复制单节文本；「保存到相册」按钮将完整 AI 总结渲染为图片，尺寸适配屏幕宽度，保留 App 内格式与图标。
+- **版本号 1.21**：`main` 1.21，`main_free_pro` 2.21。
+- **App Store 元数据更新**：优化关键词（含语音记分/语音识别），所有语言 desc 标注 Pro 功能。
 
 ### 修复
 
 - **代码审查修复**：修复 `Dictionary(uniqueKeysWithValues:)` 重复 ID 崩溃、`AIService` force-unwrap URL、`VoiceRecognizer` 回调线程安全、`revertLastAction` 中文硬编码解析、CoreData `NSBatchDeleteRequest` 上下文不一致等 20 项问题。
 - **ASR 语音变体补全**：为 10 种语言补充 55 条语音变体匹配规则，ASR 测试 209 全通过。
-- **SettingsDocumentView 语言切换**：添加 `@Environment(\.locale)` 观察，切换语言后自动刷新使用说明内容。
+- **比赛名称不持久化**：`CoreDataStore.fetchAllSavedGames()` 缺少 `displayName`，已补上。
+- **AI 按钮非 Pro 无反应**：非 Pro 用户点击 AI 总结按钮弹出订阅购买页面。
+- **语音录制前 0.5s 延迟**：音频引擎预热（`prepareEngine()`），节省 ~300ms。
+- **音频降噪**：录音模式改为 `.measurement`，排除 `.default` 模式格式不兼容问题。
+- **语音识别失败震动**：失败时 3 次中等震动反馈。
+- **SettingsDocumentView 语言切换**：添加 `@Environment(\.locale)` 观察，切换语言后自动刷新内容。
 - **Demo 照片加载路径修复**：`seedSampleData()` 从 Bundle 根目录加载球员头像。
 - **蓝牙协议中文转 English**：4 处 `sendAuthoritativeSnapshot` reason 参数由中文改为英文。
 - **SubstitutionView 切换 side 清空选择**：避免跨队换人。
 - **5 个测试用例修复**：更新 `StatAction` 数量、删除无效 VoiceMatching 测试、本地化 LegacyUndo 消息。
 - **订阅页 ProSubscriptionStoreView 改为 internal**：GameView 可直接调用购买页面。
-
-### 新增
-
-- **AI 分析优化**：按节次输出比赛分析，系统预计算个人/球队连续得分、连续篮板、连续助攻、连续投篮不中，直接供 AI 引用，避免 LLM 推算错误。
-- **AI 分析可复制/保存为图片**：长按复制单节文本；底部「保存到相册」按钮将完整 AI 总结（比赛总结+ MVP + 高亮时刻）渲染为图片并保存到相册，图片尺寸适配屏幕宽度，保留 App 内格式与图标。
-- **版本号 1.21**：`main` 分支 1.21，`main_free_pro` 分支 2.21。
-- **App Store 元数据更新**：优化关键词（含语音记分/语音识别），所有语言 desc 标注 Pro 功能，更新 1.21 What's New。
-
-### 修复
-
-- **比赛名称不持久化**：`CoreDataStore.fetchAllSavedGames()` 缺少 `displayName` 字段读取，已补上 `SavedGame.init` 参数。
-- **AI 按钮非 Pro 无反应**：非 Pro 用户点击 AI 总结按钮现在弹出订阅购买页面。
-- **语音录制前 0.5s 延迟**：音频引擎预热（`prepareEngine()`），按下按钮时只需创建 recognitionTask，节省 ~300ms。
-- **音频降噪**：录音模式改为 `.measurement`，排除 `.default` 模式的不兼容格式问题。
-- **语音识别失败震动**：失败时 3 次中等震动反馈。
 
 ### 优化
 
