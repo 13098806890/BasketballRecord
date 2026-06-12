@@ -603,6 +603,8 @@ struct SavedGameDetailView: View {
         var assistStreak: (playerID: UUID, count: Int)?
         var missedShotStreak: (teamIsHome: Bool, count: Int)?
         var personalMissStreak: (playerID: UUID, count: Int)?
+        var lastScoringCode: String?
+        var lastScoringPID: UUID?
 
         // Helper: resolve team ID from log for team stats mode
         func resolveTeamID(log: GameLogEntry) -> UUID? {
@@ -632,6 +634,20 @@ struct SavedGameDetailView: View {
                 let prevHome = homeScore
                 let prevAway = awayScore
                 if isHome { homeScore += points } else { awayScore += points }
+
+                // And-one (2+1 / 3+1) detection
+                if code == "stat.bonusMade", let lastCode = lastScoringCode, let lastPid = lastScoringPID, lastPid == pid {
+                    let basePoints = lastCode == "stat.threeMade" ? 3 : 2
+                    let totalPoints = basePoints + 1
+                    events.append("  and_one:\(playerName) \(basePoints)+1 (\(totalPoints)pt play)")
+                }
+                if code == "stat.twoMade" || code == "stat.threeMade" {
+                    lastScoringCode = code
+                    lastScoringPID = pid
+                } else if code != "stat.bonusMade" {
+                    lastScoringCode = nil
+                    lastScoringPID = nil
+                }
 
                 // Per-scoring-event line with score context
                 let leadChars = abs(homeScore - awayScore)
