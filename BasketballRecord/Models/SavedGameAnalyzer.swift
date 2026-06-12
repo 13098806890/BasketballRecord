@@ -78,16 +78,7 @@ struct SavedGameAnalyzer {
             guard let (playerName, action) = parsedAction else { continue }
 
             let resolvedByName = playerName.isEmpty ? nil : resolvePlayerIDByName(playerName)
-            let teamID: UUID? = {
-                guard game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode else { return nil }
-                let msg = entry.message.lowercased()
-                if game.snapshot.homeTeamStatsMode, let tid = game.snapshot.homeTeamID,
-                   msg.contains(game.homeTeamName.lowercased()) || msg.contains("主队") || msg.contains("zhudui") { return tid }
-                if game.snapshot.awayTeamStatsMode, let tid = game.snapshot.awayTeamID,
-                   msg.contains(game.awayTeamName.lowercased()) || msg.contains("客队") || msg.contains("kedui") { return tid }
-                return nil
-            }()
-            guard let playerID = entry.playerID ?? resolvedByName ?? teamID else {
+            guard let playerID = entry.playerID ?? resolvedByName ?? game.resolvedTeamID(from: entry.message) else {
                 continue
             }
 
@@ -116,13 +107,7 @@ struct SavedGameAnalyzer {
         }
 
         // Team stats mode: match team name
-        if game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode {
-            let msg = normalizedMessage.lowercased()
-            if game.snapshot.homeTeamStatsMode, let tid = game.snapshot.homeTeamID,
-               msg.contains(game.homeTeamName.lowercased()) || msg.contains("主队") { return tid }
-            if game.snapshot.awayTeamStatsMode, let tid = game.snapshot.awayTeamID,
-               msg.contains(game.awayTeamName.lowercased()) || msg.contains("客队") { return tid }
-        }
+        if let tid = game.resolvedTeamID(from: normalizedMessage) { return tid }
 
         return nil
     }
