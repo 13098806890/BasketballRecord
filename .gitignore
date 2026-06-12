@@ -8,3 +8,5 @@ build/
 *.ipa
 *.dSYM.zip
 *.dSYM
+*.p8
+fastlane/report.xml

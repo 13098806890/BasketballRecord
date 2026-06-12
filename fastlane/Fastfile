@@ -6,9 +6,9 @@ platform :ios do
     version = options[:version] || "1.20"
 
     api_key = app_store_connect_api_key(
-      key_id: "TD5N27BDJA",
+      key_id: "JHM8W2D4BX",
       issuer_id: "50853c64-5d54-42f0-85aa-a6e291d5066b",
-      key_filepath: "/Users/xiedongze/Downloads/AuthKey_TD5N27BDJA.p8"
+      key_filepath: "/Users/xiedongze/Downloads/AuthKey_JHM8W2D4BX.p8"
     )
 
     deliver(
@@ -20,7 +20,36 @@ platform :ios do
       submit_for_review: false,
       automatic_release: false,
       metadata_path: "fastlane/metadata/#{version}",
-      api_key: api_key
+      api_key: api_key,
+      precheck_include_in_app_purchases: false
     )
+  end
+
+  desc "Release an approved version to the App Store"
+  lane :release do |options|
+    version = options[:version] || "1.20"
+
+    api_key = app_store_connect_api_key(
+      key_id: "JHM8W2D4BX",
+      issuer_id: "50853c64-5d54-42f0-85aa-a6e291d5066b",
+      key_filepath: "/Users/xiedongze/Downloads/AuthKey_JHM8W2D4BX.p8"
+    )
+
+    app = Spaceship::ConnectAPI::App.find("com.xiedongze.BasketballRecord")
+    app_store_version = app.get_app_store_versions.select { |v| v.version_string == version }.first
+
+    if app_store_version.nil?
+      UI.error("Version #{version} not found")
+      next
+    end
+
+    UI.message("Version #{version} state: #{app_store_version.app_store_state}")
+
+    if app_store_version.app_store_state == "READY_FOR_DISTRIBUTION"
+      app_store_version.release_to_all_users!
+      UI.success("Version #{version} released! ✅")
+    else
+      UI.error("Cannot release - current state: #{app_store_version.app_store_state}")
+    end
   end
 end
