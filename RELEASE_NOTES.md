@@ -15,19 +15,11 @@
 
 ### 修复
 
-- **代码审查修复**：修复 `Dictionary(uniqueKeysWithValues:)` 重复 ID 崩溃、`AIService` force-unwrap URL、`VoiceRecognizer` 回调线程安全、`revertLastAction` 中文硬编码解析、CoreData `NSBatchDeleteRequest` 上下文不一致等 20 项问题。
-- **ASR 语音变体补全**：为 10 种语言补充 55 条语音变体匹配规则，ASR 测试 209 全通过。
 - **比赛名称不持久化**：`CoreDataStore.fetchAllSavedGames()` 缺少 `displayName`，已补上。
 - **AI 按钮非 Pro 无反应**：非 Pro 用户点击 AI 总结按钮弹出订阅购买页面。
 - **语音录制前 0.5s 延迟**：音频引擎预热（`prepareEngine()`），节省 ~300ms。
 - **音频降噪**：录音模式改为 `.measurement`，排除 `.default` 模式格式不兼容问题。
 - **语音识别失败震动**：失败时 3 次中等震动反馈。
-- **SettingsDocumentView 语言切换**：添加 `@Environment(\.locale)` 观察，切换语言后自动刷新内容。
-- **Demo 照片加载路径修复**：`seedSampleData()` 从 Bundle 根目录加载球员头像。
-- **蓝牙协议中文转 English**：4 处 `sendAuthoritativeSnapshot` reason 参数由中文改为英文。
-- **SubstitutionView 切换 side 清空选择**：避免跨队换人。
-- **5 个测试用例修复**：更新 `StatAction` 数量、删除无效 VoiceMatching 测试、本地化 LegacyUndo 消息。
-- **订阅页 ProSubscriptionStoreView 改为 internal**：GameView 可直接调用购买页面。
 
 ### 优化
 
@@ -37,12 +29,8 @@
 
 ### 国际化
 
-- 新增 `settings_voice_log_enable` / `settings_voice_log_enable_footer` 至全部 10 种语言。
-- 新增 `pro_feature_voice_1` / `pro_feature_voice_2` 至全部 10 种语言。
 - 新增 `button_save_to_photos` 至全部 10 种语言。
 - 同步 AI prompt 翻译（`ai_system_role`、`ai_prompt_req_4~14` 等）至全部 10 种语言。
-- 替换 `sample_player_1~4` 为 `demo_player_*` 灌篮高手角色名，全部 10 种语言。
-- Demo 球队 `demo_team_shohoku` / `demo_team_ryonan` 全部 10 种语言。
 
 ## 1.20 (2026-06-11)
 
@@ -50,6 +38,14 @@
 
 - **自定义语音快捷指令不生效修复**：匹配逻辑从精确 `[text]` 字典查询改为 `contains` 遍历 key，先匹配成功则优先使用；球员号码/姓名从短语左侧残留文本提取，与现有投篮事件匹配模式一致。
 - **语音日志不持久化修复**：`AppStore.load()` Core Data 路径下不再提前 `return`，改为同时读取 `StoreMeta` 中的 `voiceLog` 和 `customVoiceMappings` 恢复语音数据。
+- **代码审查修复**：修复 `Dictionary(uniqueKeysWithValues:)` 重复 ID 崩溃、`AIService` force-unwrap URL、`VoiceRecognizer` 回调线程安全、`revertLastAction` 中文硬编码解析、CoreData `NSBatchDeleteRequest` 上下文不一致等 20 项问题。
+- **ASR 语音变体补全**：为 10 种语言补充 55 条语音变体匹配规则，ASR 测试 209 全通过。
+- **SettingsDocumentView 语言切换**：添加 `@Environment(\.locale)` 观察，切换语言后自动刷新使用说明内容。
+- **Demo 照片加载路径修复**：`seedSampleData()` 从 Bundle 根目录加载球员头像。
+- **蓝牙协议中文转 English**：4 处 `sendAuthoritativeSnapshot` reason 参数由中文改为英文。
+- **SubstitutionView 切换 side 清空选择**：避免跨队换人。
+- **5 个测试用例修复**：更新 `StatAction` 数量、删除无效 VoiceMatching 测试、本地化 LegacyUndo 消息。
+- **订阅页 ProSubscriptionStoreView 改为 internal**：GameView 可直接调用购买页面。
 
 ### 新增
 
@@ -59,6 +55,10 @@
 ### 国际化
 
 - 新增 `voice_shortcuts_edit_title` key 至全部 10 种语言。
+- 新增 `settings_voice_log_enable` / `settings_voice_log_enable_footer` 至全部 10 种语言。
+- 新增 `pro_feature_voice_1` / `pro_feature_voice_2` 至全部 10 种语言。
+- 替换 `sample_player_1~4` 为 `demo_player_*` 灌篮高手角色名，全部 10 种语言。
+- Demo 球队 `demo_team_shohoku` / `demo_team_ryonan` 全部 10 种语言。
 
 ## 1.19 (2026-06-10)
 
