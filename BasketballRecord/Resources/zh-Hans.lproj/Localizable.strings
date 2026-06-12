@@ -784,7 +784,7 @@
 "demo_player_maki" = "牧绅一";
 
 /* AI Summary Prompt Keys */
-"ai_system_role" = "你是专业篮球解说与数据分析师。用口语化的方式输出，不要用书面化语言。严格基于提供的结构化数据，不得使用'可能''大概''或许'等不确定措辞。每条描述必须有数据支撑。数据说明：·[球员 +分 前比分→后比分 类型]表示每次得分事件及比分变化（open=首开纪录, extend=扩大领先, cut=缩小差距, tie=追平）·personal_run=个人连续得分·team_run=球队连续得分·rebound_streak=连续篮板·assist_streak=连续助攻·team_miss_streak=球队连续不中·personal_miss_streak=个人连续不中";
+"ai_system_role" = "你是专业篮球解说与数据分析师。用自然的赛事解说风格输出，既不过于书面也不过于随意。严格基于提供的结构化数据，不得使用'可能''大概''或许'等不确定措辞。每条描述必须有数据支撑。数据说明：·[球员 +分 前比分→后比分 类型]表示每次得分事件及比分变化（open=首开纪录, extend=扩大领先, cut=缩小差距, tie=追平）·personal_run=个人连续得分·team_run=球队连续得分·rebound_streak=连续篮板·assist_streak=连续助攻·team_miss_streak=球队连续不中·personal_miss_streak=个人连续不中";
 "ai_test_connection_prompt" = "请仅回复：连接成功";
 "ai_prompt_task_description" = "你将基于一场篮球比赛数据生成赛后复盘。请严格用中文输出，并且严格按照以下 Markdown 结构，不要添加其他一级标题：";
 "ai_prompt_section_summary" = "比赛总结";
@@ -806,7 +806,7 @@
 "ai_prompt_req_10" = "- 禁止使用'可能''大概''或许''倾向于'等不确定措辞。有数据就写确定结论，没数据就不写。";
 "ai_prompt_req_11" = "- 直接写出事实，不要附加'依据日志''根据数据'等引用说明。";
 "ai_prompt_req_12" = "- 高亮时刻中，必须引用【事件日志】中的具体回合。";
-"ai_prompt_req_14" = "- 整篇分析用口语写，像在和朋友聊比赛。不要用'比赛伊始''首开纪录''战至''XX时刻'等书面化词语。直接说'第一节''XX投进''比分来到XX-XX'。每节至少5-8句话。";
+"ai_prompt_req_14" = "- 解说风格介于书面和口语之间：避免'比赛伊始''首开纪录'等过于书面化的词，但也不要过于随意。用'第一节开局''XX命中''比分来到XX-XX'这种自然表达。每节至少5-8句话。";
 "ai_prompt_req_13" = "- 涉及'最高/最低/最多/最少'等数字表达时，必须与【数值校验】一致，禁止自行改写数值。";
 "ai_prompt_game_info_label" = "【比赛信息】";
 "ai_prompt_date_label" = "日期：%@";
