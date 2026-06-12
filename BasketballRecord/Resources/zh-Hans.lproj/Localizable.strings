@@ -782,7 +782,7 @@ Format:
 "ai_prompt_game_info_label" = "【比赛信息】";
 "ai_prompt_date_label" = "日期：%@";
 "ai_prompt_matchup_label" = "对阵：%@ vs %@";
-"ai_prompt_score_label" = "比分：%@ %d - %d %@";
+"ai_prompt_score_label" = "比分：%@ %d ：%d %@";
 "ai_prompt_periods_label" = "节数：%d";
 "ai_prompt_events_label" = "事件数：%d";
 "ai_prompt_players_label" = "【球员数据】";

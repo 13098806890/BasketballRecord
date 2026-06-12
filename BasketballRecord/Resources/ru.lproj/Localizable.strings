@@ -815,7 +815,7 @@ Format:
 "ai_prompt_game_info_label" = "【Game Information】";
 "ai_prompt_date_label" = "Date: %@";
 "ai_prompt_matchup_label" = "Matchup: %@ vs %@";
-"ai_prompt_score_label" = "Score: %@ %d - %d %@";
+"ai_prompt_score_label" = "Score: %@ %d : %d %@";
 "ai_prompt_periods_label" = "Periods: %d";
 "ai_prompt_events_label" = "Events: %d";
 "ai_prompt_players_label" = "【Player Stats】";
