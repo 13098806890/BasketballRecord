@@ -1,0 +1,6 @@
+- Modo estadísticas por equipo: registra datos por equipo sin seleccionar jugadores
+- Mejora del análisis con IA: resumen por periodo, rachas de jugador/equipo en puntos, rebotes, asistencias, fallos
+- Guarda y comparte resúmenes de IA como imagen
+- Control por voz para modo equipo: di "equipo local dos puntos" para anotar al equipo
+- Correcciones: pérdida de datos del equipo al reiniciar, errores de atribución de puntos en IA
+- Rendimiento de voz: corrección de fugas de memoria, mejora de precisión

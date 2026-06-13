@@ -1,0 +1,6 @@
+- Mode statistiques par équipe : enregistrement par équipe sans sélection de joueurs
+- Amélioration de l'analyse IA : résumé par quart-temps, séquences joueur/équipe pour points, rebonds, passes, tirs manqués
+- Sauvegardez et partagez les résumés IA en image
+- Commande vocale pour le mode équipe : dites « équipe locale deux points » pour marquer
+- Correctifs : perte des données d'équipe après redémarrage, erreurs d'attribution des points dans l'IA
+- Performance vocale : correction de fuites mémoire, précision de reconnaissance améliorée

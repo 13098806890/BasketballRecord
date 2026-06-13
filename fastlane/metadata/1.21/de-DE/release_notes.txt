@@ -1,0 +1,6 @@
+- Team-Statistik-Modus: Aufzeichnung pro Team ohne Spielerauswahl
+- KI-Analyse-Upgrade: Viertelweise Zusammenfassung, Spieler-/Team-Serien für Punkte, Rebounds, Assists, Fehlwürfe
+- KI-Zusammenfassungen als Bild speichern und teilen
+- Sprachsteuerung für Team-Modus: Sag „Heimteam zwei Punkte" für Team-Wertung
+- Fehlerbeh hebungen: Teamdaten-Verlust nach Neustart, KI-Punktzuordnung
+- Sprachleistung: Speicherlecks behoben, Erkennungsgenauigkeit verbessert
