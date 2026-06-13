@@ -876,3 +876,9 @@ Format:
 "section_team_home" = "Домашняя команда";
 
 "section_team_away" = "Гостевая команда";
+
+"voice_auth_speech" = "Разрешите распознавание речи в Настройках";
+"voice_auth_microphone" = "Разрешите доступ к микрофону в Настройках";
+"voice_unavailable" = "Распознавание речи недоступно";
+"voice_substitution_failed" = "Замена не удалась";
+"voice_unrecognized_format" = "Не распознано: %@";

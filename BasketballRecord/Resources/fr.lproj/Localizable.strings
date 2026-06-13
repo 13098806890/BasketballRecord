@@ -876,3 +876,9 @@ Format:
 "section_team_home" = "Équipe à domicile";
 
 "section_team_away" = "Équipe visiteuse";
+
+"voice_auth_speech" = "Autorisez la reconnaissance vocale dans les Réglages";
+"voice_auth_microphone" = "Autorisez l'accès au microphone dans les Réglages";
+"voice_unavailable" = "Reconnaissance vocale indisponible";
+"voice_substitution_failed" = "Remplacement échoué";
+"voice_unrecognized_format" = "Non reconnu : %@";

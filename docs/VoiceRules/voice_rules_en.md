@@ -1,81 +1,101 @@
-# English Voice Rules Analysis
+# English Voice Quick Reference
 
-## ASR Locale
-- `en-US` — primary; `en-GB`/`en-AU` would share nearly identical rules
+## Player Recognition Examples
 
-## Shot Keywords
+```
+No3 Jenny    No5 Jordan    Team Sun
+```
 
-| Spoken Phrase | eventCode | Notes |
-|---|---|---|
-| `two` / `two pointer` / `2` / `2 pointer` / `2pt` | stat.two | "two" also matches "two points" naturally |
-| `three` / `three pointer` / `3` / `3 pointer` / `3pt` / `trey` / `triple` | stat.three | |
-| `layup` / `finger roll` | stat.layup | |
-| `mid` / `mid range` / `jumper` / `jump shot` / `pull up` | stat.midRange | |
-| `paint` / `inside` / `post up` / `hook` / `baby hook` | stat.paint | |
-| `free throw` / `foul shot` / `freebie` / `charity` | stat.freeThrow | |
-| `bonus` / `and one` / `and1` | stat.bonus | |
+Any player can be referenced by **name** (`Jordan`), **number** (`23` / `Number 23` / `#23` / `No.23`), or **number + name** (`Number 23 Jordan`).
 
-"downtown" and "from deep" are too vague (could be confused with other keywords) — skip.
+---
 
-## Made / Missed States
+## Game Control
 
-| Spoken | Type |
-|---|---|
-| `made` / `good` / `in` / `score` / `scores` / `swish` | made |
-| `missed` / `miss` / `no` / `not` / `out` / `short` / `blocked` / `airball` / `brick` | missed |
+**Start period / Jump ball**
+`start` / `begin` / `tip off` / `jump ball` / `first quarter`
 
-"got it" is ambiguous between made and rebound — skip.
-"rim" and "front rim" are specific miss descriptions but ASR reliability is low — skip.
+**Pause / Timeout**
+`timeout` / `pause` / `stop`
+
+**Resume**
+`resume` / `continue` / `play` / `go`
+
+**End game**
+`end` / `finish` / `game over`
+
+---
+
+## Shot Events
+
+**三分命中 — Three made**
+`Number 3 got 3` / `Jenny with 3` / `Jenny got three` / `Sun Number 3 for 3`
+
+**三分未中 — Three missed**
+`Jenny no 3` / `Jenny missed 3` / `Number 3 no three`
+
+**两分命中 — Two made**
+`Jordan got 2` / `Number 23 got two` / `#23 two`
+
+**两分未中 — Two missed**
+`Jordan missed 2` / `Number 23 no 2` / `#23 two no good`
+
+**上篮命中 — Layup made**
+`Number 5 got a layup` / `Jenny layup`
+
+**上篮未中 — Layup missed**
+`Number 5 missed layup` / `Jenny no layup`
+
+**中距离命中 — Mid-range made**
+`Number 33 got mid range` / `Number 33 got a jumper` / `33 got pull up`
+
+**油漆区命中 — Paint made**
+`Jordan got paint` / `Jordan got inside` / `Jordan post up`
+
+**罚球命中 — Free throw made**
+`Number 6 got free throw` / `Jordan foul shot` / `#6 free throw`
+
+**罚球未中 — Free throw missed**
+`Jordan missed free throw` / `Number 6 no free throw`
+
+**And-1 / 加罚**
+`Number 23 got and one` / `Number 23 bonus` / `Jordan and one`
+
+---
 
 ## Stat Events
 
-| Spoken Phrase | eventCode | Notes |
-|---|---|---|
-| `foul` / `reach` / `push` / `hold` / `hack` | stat.foul | |
-| `rebound` / `board` / `glass` / `offensive board` / `defensive board` | stat.rebound | Single eventCode for all rebound types |
-| `assist` / `dime` / `helper` | stat.assist | |
-| `block` / `rejection` / `swat` | stat.block | |
-| `steal` / `pick` / `takeaway` / `strip` | stat.steal | |
-| `turnover` / `travel` / `walk` / `violation` / `carry` / `palming` / `double dribble` | stat.turnover | |
+**篮板 — Rebound**
+`Jordan rebound` / `Jordan board` / `#23 glass`
 
-"offensive foul" and "charge" map to foul but might not be reliably recognized by ASR.
+**助攻 — Assist**
+`Number 23 assist` / `23 dime` / `Number 23 helper`
 
-## Commands
+**犯规 — Foul**
+`Jordan foul` / `Jordan four` / `Jordan reach` / `Jordan push` / `Jordan hack`
 
-| Spoken Phrase | eventCode | Notes |
-|---|---|---|
-| `start` / `begin` / `tip off` / `jump ball` / `first quarter` / `second half` | event.period | "next quarter" is useful for manual period advance |
-| `next quarter` / `next period` | event.period | |
-| `timeout` / `pause` / `stop` / `halt` / `freeze` / `hold` | event.pause | |
-| `resume` / `continue` / `unpause` / `play` / `go` | event.pause | |
-| `end` / `finish` / `game over` / `final` | event.game_end | |
+**盖帽 — Block**
+`Number 23 block` / `Number 23 swat` / `23 rejection`
 
-## Substitution Keywords
+**抢断 — Steal**
+`Number 23 steal` / `23 pick` / `Number 23 takeaway` / `23 strip`
 
-`sub` / `substitution` / `replace` / `swap` / `change` / `switch` / `in for`
+**失误 — Turnover**
+`Number 23 turnover` / `23 travel` / `23 walk` / `23 carry` / `23 double dribble`
 
-Number formats supported via `extractNumber`:
-- `#5` / `number 5` / `no.5` / `no 5`
-- `5` alone (standalone digit)
+---
 
-## Fuzzy Map
-English — empty. No pinyin normalization needed.
+## Substitutions
 
-## Conflicts to Watch
-1. `two` vs `timeout` — `findKeyword("two")` does NOT match "timeout" (character sequence differs)
-2. `block` as shot keyword vs `block` as stat event — shot matching runs first; "blocked shot" goes through shot missed state ("blocked" is in missedStates), "block" alone matches stat.block via non-shot path
-3. `in` as made state vs `in` as preposition — "in" in "layup in" or "sub in" could cause false made state match. Mitigation: `in` is a short word, player name matching on left text provides context.
-4. `mid` could match "mid-range" — `findKeyword("mid")` finds "mid" in "mid range" ✅
+**换人 — Substitution**
+`23 sub 5` / `Jordan sub Curry` / `replace 23 with 30` / `Number 23 sub in for number 30`
 
-## Recommendations for VoiceRules_en.swift Updates
+---
 
-1. Add "two pointer", "three pointer", "2 pointer", "3 pointer" as additional shot keywords
-2. Add "trey" for three
-3. Add "jumper", "jump shot", "pull up" for mid-range
-4. Add "and one" for bonus
-5. Add more missed states: "brick", "short"
-6. Keep game_end commands (no confusion issue in English)
-7. Add "jump ball", "next quarter" for period
-8. Add "switch" to substitution keywords
-9. Add "walk", "carry", "palming", "double dribble" to turnover stat events
-10. Keep fuzzyMap empty
+## Team Stats Mode
+
+When a team uses **team stats** (no individual tracking), use the team name or `Home` / `Away`:
+
+`Home got a 3` / `Home rebound` / `Away foul` / `Home team board`
+
+Chinese team names also work: `主队 got a layup` / `客队 missed three`

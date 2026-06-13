@@ -79,7 +79,7 @@ final class VoiceASRTests: XCTestCase {
 
     func testEnThree_common() throws { assertMatch(text: "Bob three", .english, "stat.threeMade") }
     func testEnThree_tree() throws { assertMatch(text: "Bob tree", .english, "stat.threeMade") }
-    func testEnThree_free() throws { assertMatch(text: "Bob free", .english, "stat.threeMade") }
+    func testEnThree_free() throws { assertMatch(text: "Bob free", .english, "stat.freeThrowMade") }
     func testEnThree_3pt() throws { assertMatch(text: "Bob three pointer", .english, "stat.threeMade") }
     func testEnThree_trey() throws { assertMatch(text: "Bob trey", .english, "stat.threeMade") }
 

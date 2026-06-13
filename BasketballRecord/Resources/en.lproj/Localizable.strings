@@ -893,3 +893,9 @@ Format:
 "section_team_home" = "Home Team";
 
 "section_team_away" = "Away Team";
+
+"voice_auth_speech" = "Please allow speech recognition in Settings";
+"voice_auth_microphone" = "Please allow microphone access in Settings";
+"voice_unavailable" = "Speech recognition unavailable";
+"voice_substitution_failed" = "Substitution failed";
+"voice_unrecognized_format" = "Unrecognized: %@";
