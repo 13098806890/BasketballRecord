@@ -1,0 +1,6 @@
+- Modalità statistiche di squadra: registra per squadra senza selezionare giocatori
+- Aggiornamento analisi AI: riepilogo per quarto, serie giocatore/squadra per punti, rimbalzi, assist, tiri sbagliati
+- Salva e condividi i riepiloghi AI come immagini
+- Supporto vocale per modalità squadra: dì "squadra di casa due punti" per segnare
+- Correzioni: perdita dati squadra dopo riavvio, errori di attribuzione punti nell'AI
+- Prestazioni vocali: corretti memory leak, migliorata precisione riconoscimento

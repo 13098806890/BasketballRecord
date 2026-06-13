@@ -1,0 +1,6 @@
+- Team stats mode: record stats per team without selecting individual players
+- AI analysis upgrade: per-period scoring summary, player/team streaks for points, rebounds, assists, missed shots
+- Save AI summaries as images and share
+- Voice support for team mode: say "home team two points" to score for the team
+- Fixed team data loss after restart, AI per-period team attribution errors
+- Voice performance: memory leak fixes, recognition accuracy improvements
