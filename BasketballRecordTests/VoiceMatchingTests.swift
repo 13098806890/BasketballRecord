@@ -498,6 +498,125 @@ final class VoiceMatchingTests: XCTestCase {
         XCTAssertEqual(capturedIncoming, pid2)
     }
 
+    func testEnglishThreeNoThree() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action
+            exp.fulfill()
+        }
+        recognizer.simulateText("3 no 3")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .threeMissed)
+    }
+
+    func testEnglishNumberThreeNoThree() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action
+            exp.fulfill()
+        }
+        recognizer.simulateText("number 3 no 3")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .threeMissed)
+    }
+
+    func testEnglishThreeWordNoThree() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action
+            exp.fulfill()
+        }
+        recognizer.simulateText("three no three")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .threeMissed)
+    }
+
+    func testEnglishNumberThreeWordNoThree() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action
+            exp.fulfill()
+        }
+        recognizer.simulateText("number three no three")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .threeMissed)
+    }
+
+    func testEnglishBlockStat() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action
+            exp.fulfill()
+        }
+        recognizer.simulateText("张三 block")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .block)
+    }
+
+    func testEnglishTurnOver() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action
+            exp.fulfill()
+        }
+        recognizer.simulateText("张三 turn over")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .turnover)
+    }
+
+    func testEnglishBlockCapitalized() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction called")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action
+            exp.fulfill()
+        }
+        recognizer.simulateText("张三 Block")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .block)
+    }
+
     // MARK: - No Match Cases
 
     // MARK: - Helpers

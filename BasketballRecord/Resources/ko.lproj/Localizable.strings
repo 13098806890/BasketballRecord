@@ -904,3 +904,9 @@ Format:
 "section_team_home" = "홈 팀";
 
 "section_team_away" = "원정 팀";
+
+"voice_auth_speech" = "설정에서 음성 인식을 허용해 주세요";
+"voice_auth_microphone" = "설정에서 마이크 권한을 허용해 주세요";
+"voice_unavailable" = "음성 인식을 사용할 수 없습니다";
+"voice_substitution_failed" = "교체 실패";
+"voice_unrecognized_format" = "인식할 수 없습니다: %@";

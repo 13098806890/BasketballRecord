@@ -218,25 +218,31 @@ struct VoiceInstructionView: View {
             section(
                 icon: "basketball.fill",
                 title: "Shot Recording",
-                content: "Say \"player name + shot type + made/missed\".\n\nExamples:\n\"John two made\" \"Mike three missed\"\n\"Player 5 two made\" \"23 free throw\"\n\"Smith and one\" \"8 layup missed\"\n\nShot types: two, three, free throw, layup, mid(range), paint, bonus"
+                content: "Say player name/number, then anchor word (got / missed / miss), then shot type.\n\n\"got\" / \"get\" → made, \"miss\" / \"missed\" → miss.\n\nExamples:\n\"Jordan got a 3\" \"Number 23 got a two\"\n\"#5 missed a layup\" \"8 miss free throw\"\n\"Smith got and one\" \"33 got a mid range\"\n\"Curry got three\" \"LeBron missed a jumper\"\n\nShot types: two, three, layup, mid(range), jumper, paint, inside, free throw, bonus/and one\n\nShort form (no anchor, defaults to made):\n\"Jordan 3\" \"#23 two\" \"8 layup\""
             )
 
             section(
                 icon: "list.clipboard",
                 title: "Stat Events",
-                content: "Say \"player name + stat type\".\n\nExamples:\n\"John foul\" \"Mike rebound\" \"Smith assist\"\n\"Brown block\" \"Jones steal\" \"Wilson turnover\""
+                content: "Say \"player name/number + stat keyword\".\n\nExamples:\n\"Jones foul\" \"Jones reach\"\n\"Smith rebound\" \"Smith board\"\n\"Number 23 assist\" \"23 dime\"\n\"Brown block\" \"Brown swat\"\n\"Williams steal\" \"#10 steal\"\n\"Wilson turnover\" \"Wilson travel\""
             )
 
             section(
                 icon: "arrow.left.arrow.right",
                 title: "Substitution",
-                content: "Say \"outgoing player + substitution keyword + incoming player\".\n\nExamples:\n\"John for Mike\" \"3 for 5\"\n\"Smith sub Jones\" \"Player 8 replace Player 10\""
+                content: "Say \"outgoing player + sub/replace + incoming player\".\n\nExamples:\n\"23 sub 5\" \"Jordan sub Curry\"\n\"Number 23 replace Number 30\""
             )
 
             section(
                 icon: "play.rectangle",
                 title: "Period & Pause",
-                content: "No player name needed.\n\nExamples:\n\"First quarter\" \"Next quarter\"\n\"Timeout\" \"Pause\" \"Resume\"\n\"Game over\" \"Finish\""
+                content: "No player name needed.\n\nExamples:\n\"Start\" \"Begin\" \"Tip off\"\n\"Timeout\" \"Pause\" \"Stop\"\n\"Resume\" \"Continue\" \"Play\"\n\"End\" \"Finish\" \"Game over\""
+            )
+
+            section(
+                icon: "rectangle.2.swap",
+                title: "Team Stats Mode",
+                content: "When a team uses team stats (no individual players), say \"Home\"/\"Away\" or \"主队\"/\"客队\" instead of a player name.\n\nExamples:\n\"Home got a 3\" \"Away missed a two\"\n\"主队 got a layup\" \"客队 foul\""
             )
 
             section(
@@ -248,7 +254,7 @@ struct VoiceInstructionView: View {
             section(
                 icon: "lightbulb.fill",
                 title: "Tips",
-                content: "• Jersey numbers are more reliable than names (e.g. \"23\")\n• Keep player name and command close together without extra words\n• Failed recognitions can be reviewed in the voice log"
+                content: "• Jersey numbers are more reliable than names (e.g. \"23\" instead of \"Jordan\")\n• Use \"got\" / \"missed\" as anchor words for clearest recognition\n• For team stats mode, use \"home\" / \"away\" as the player name\n• Failed recognitions can be reviewed in the voice log"
             )
         }
     }

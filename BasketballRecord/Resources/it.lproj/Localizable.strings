@@ -876,3 +876,9 @@ Format:
 "section_team_home" = "Squadra casa";
 
 "section_team_away" = "Squadra ospite";
+
+"voice_auth_speech" = "Consenti il riconoscimento vocale nelle Impostazioni";
+"voice_auth_microphone" = "Consenti l'accesso al microfono nelle Impostazioni";
+"voice_unavailable" = "Riconoscimento vocale non disponibile";
+"voice_substitution_failed" = "Sostituzione fallita";
+"voice_unrecognized_format" = "Non riconosciuto: %@";

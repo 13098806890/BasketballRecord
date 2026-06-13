@@ -886,3 +886,9 @@ Format:
 "section_team_home" = "主隊";
 
 "section_team_away" = "客隊";
+
+"voice_auth_speech" = "請在設定中允許語音辨識";
+"voice_auth_microphone" = "請在設定中允許麥克風權限";
+"voice_unavailable" = "語音辨識不可用";
+"voice_substitution_failed" = "換人失敗";
+"voice_unrecognized_format" = "未識別：%@";

@@ -1,5 +1,33 @@
 # Release Notes
 
+## 1.22 (2026-06-14)
+
+### 新增
+
+- **英文语音全面优化**：重写英文语音识别流水线，统一球员匹配、进退状态检测、动作执行为单一入口 `resolvePlayer`。
+
+### 修复
+
+- **"number X" 前缀误匹配**：`no X` 不再被当作号码前缀，仅 `number X` 和 `#X` 视为球员号码。
+- **"three" 同时匹配号码 + 投篮类型**：`extractNumber` 改为仅搜索关键词左侧文本，避免 "Three" 既匹配 3PT 又匹配 3 号球员。
+- **"no" 在关键词左侧时未识别为未中**：`resolvePlayer` 在右侧文本为空时自动扫描左侧文本中的 miss/made 指示词。
+- **"free" 误映射为三分**：`("free", "stat.three")` → `("free", "stat.freeThrow")`。
+- **"free through" ASR 变体未识别**：新增 `free through` / `free thru` / `fowl shot` / `faul shot` / `four shot` 等 shot keyword 变体。
+- **"three free throw" 误匹配为 3PT**：新增 `("three free throw", "stat.freeThrow")` 优先于 `"three"` 匹配。
+- **"Period two end" 误匹配为 2PT**：command events 移至 shot keywords 之前，`"end"` 优先匹配。
+- **"know" 未作为 miss 状态**：`"know"` 加入 anchor 正则和 miss states。
+- **"X02/X03" 数字组合未识别**：ASR 将 "no" 听成 "0" 时（如 "503"），预处理重写为 "number 5 no three"。
+- **"X2/X3" 数字组合未识别**：纯数字文本（如 "23"）预处理重写为 "number 2 three"。
+- **`extractNumber` 在拼音回退段未使用 `preferredPlayerNumber`**：拼音回退段优先使用 "number X" 提取的号码。
+
+### 国际化
+
+- 新增 voice_log_* 系列日志字符串至全部 10 种语言。
+
+### 语音
+
+- **rebound 识别增强**：新增 `rebounds` / `rebo` / `rebaund` / `ribaund` / `offensive rebound` / `defensive rebound`。
+
 ## 1.21 (2026-06-12)
 
 ### 新增

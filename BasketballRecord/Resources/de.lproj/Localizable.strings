@@ -876,3 +876,9 @@ Format:
 "section_team_home" = "Heimteam";
 
 "section_team_away" = "Gastteam";
+
+"voice_auth_speech" = "Bitte erlauben Sie die Spracherkennung in den Einstellungen";
+"voice_auth_microphone" = "Bitte erlauben Sie den Mikrofonzugriff in den Einstellungen";
+"voice_unavailable" = "Spracherkennung nicht verfügbar";
+"voice_substitution_failed" = "Auswechslung fehlgeschlagen";
+"voice_unrecognized_format" = "Nicht erkannt: %@";

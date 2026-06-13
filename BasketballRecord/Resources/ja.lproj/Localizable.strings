@@ -887,3 +887,9 @@ Format:
 "section_team_home" = "ホームチーム";
 
 "section_team_away" = "アウェイチーム";
+
+"voice_auth_speech" = "設定で音声認識を許可してください";
+"voice_auth_microphone" = "設定でマイクへのアクセスを許可してください";
+"voice_unavailable" = "音声認識が利用できません";
+"voice_substitution_failed" = "交代に失敗しました";
+"voice_unrecognized_format" = "認識できません: %@";

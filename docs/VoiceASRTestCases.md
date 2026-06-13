@@ -2,7 +2,7 @@
 
 All 209 test cases pass across 10 languages. Each test simulates a common ASR misrecognition (homophone, tone error, s-dropping, consonant devoicing, vowel reduction, etc.) and verifies the correct stat event is matched.
 
-## zh-CN (Simplified Chinese) — 29 tests
+## zh-CN (Simplified Chinese) — 30 tests
 
 | # | Simulated ASR | Expected | Notes |
 |---|--------------|----------|-------|
@@ -47,7 +47,7 @@ All 209 test cases pass across 10 languages. Each test simulates a common ASR mi
 | 4 | 張三犯規 | stat.foul | Traditional |
 | 5 | 張三籃板 | stat.rebound | Traditional |
 
-## en-US (English) — 34 tests
+## en-US (English) — 44 tests
 
 | # | Simulated ASR | Expected | Notes |
 |---|--------------|----------|-------|
@@ -57,41 +57,44 @@ All 209 test cases pass across 10 languages. Each test simulates a common ASR mi
 | 4 | Bob three pointer | stat.threeMade | full form |
 | 5 | Bob trey | stat.threeMade | slang |
 | 6 | Bob three missed | stat.threeMissed | missed state |
-| 7 | Bob two | stat.twoMade | perfect ASR |
-| 8 | Bob too | stat.twoMade | homophone |
-| 9 | Bob two pointer | stat.twoMade | full form |
-| 10 | Bob free throw | stat.freeThrowMade | perfect ASR |
-| 11 | Bob foul shot | stat.freeThrowMade | synonym |
-| 12 | Bob layup | stat.layupMade | perfect ASR |
-| 13 | Bob lay up | stat.layupMade | spaced compound |
-| 14 | Bob mid range | stat.midRangeMade | perfect ASR |
-| 15 | Bob jumper | stat.midRangeMade | synonym |
-| 16 | Bob pull up | stat.midRangeMade | synonym |
-| 17 | Bob paint | stat.paintMade | perfect ASR |
-| 18 | Bob inside | stat.paintMade | synonym |
-| 19 | Bob post up | stat.paintMade | synonym |
-| 20 | Bob foul | stat.foul | perfect ASR |
-| 21 | Bob fowl | stat.foul | homophone |
-| 22 | Bob faul | stat.foul | spelling variant |
-| 23 | Bob rebound | stat.rebound | perfect ASR |
-| 24 | Bob board | stat.rebound | slang |
-| 25 | Bob assist | stat.assist | perfect ASR |
-| 26 | Bob a sister | stat.assist | homophonic phrase |
-| 27 | Bob dime | stat.assist | slang |
-| 28 | Bob block | stat.block | perfect ASR |
-| 29 | Bob bloc | stat.block | homophone |
-| 30 | Bob swat | stat.block | slang |
-| 31 | Bob steal | stat.steal | perfect ASR |
-| 32 | Bob steel | stat.steal | homophone |
-| 33 | Bob takeaway | stat.steal | slang |
-| 34 | Bob turnover | stat.turnover | perfect ASR |
-| 35 | Bob travel | stat.turnover | violation synonym |
-| 36 | Bob walk | stat.turnover | violation synonym |
-| 37 | Bob carry | stat.turnover | violation synonym |
-| 38 | Bob three missed | stat.threeMissed | missed state |
-| 39 | sub Bob for Tom | event.substitution | command |
-| 40 | timeout | event.pause | command |
-| 41 | game over | event.game_end | command |
+| 7 | Bob no 3 | stat.threeMissed | no anchor |
+| 8 | Bob no three | stat.threeMissed | no anchor full word |
+| 9 | Bob two | stat.twoMade | perfect ASR |
+| 10 | Bob too | stat.twoMade | homophone |
+| 11 | Bob two pointer | stat.twoMade | full form |
+| 12 | Bob free throw | stat.freeThrowMade | perfect ASR |
+| 13 | Bob foul shot | stat.freeThrowMade | synonym |
+| 14 | Bob layup | stat.layupMade | perfect ASR |
+| 15 | Bob lay up | stat.layupMade | spaced compound |
+| 16 | Bob mid range | stat.midRangeMade | perfect ASR |
+| 17 | Bob jumper | stat.midRangeMade | synonym |
+| 18 | Bob pull up | stat.midRangeMade | synonym |
+| 19 | Bob paint | stat.paintMade | perfect ASR |
+| 20 | Bob inside | stat.paintMade | synonym |
+| 21 | Bob post up | stat.paintMade | synonym |
+| 22 | Bob foul | stat.foul | perfect ASR |
+| 23 | Bob fowl | stat.foul | homophone |
+| 24 | Bob faul | stat.foul | spelling variant |
+| 25 | Bob four | stat.foul | ASR misrecognition |
+| 26 | Bob rebound | stat.rebound | perfect ASR |
+| 27 | Bob board | stat.rebound | slang |
+| 28 | Bob assist | stat.assist | perfect ASR |
+| 29 | Bob a sister | stat.assist | homophonic phrase |
+| 30 | Bob dime | stat.assist | slang |
+| 31 | Bob block | stat.block | perfect ASR |
+| 32 | Bob bloc | stat.block | homophone |
+| 33 | Bob swat | stat.block | slang |
+| 34 | Bob steal | stat.steal | perfect ASR |
+| 35 | Bob steel | stat.steal | homophone |
+| 36 | Bob takeaway | stat.steal | slang |
+| 37 | Bob turnover | stat.turnover | perfect ASR |
+| 38 | Bob travel | stat.turnover | violation synonym |
+| 39 | Bob walk | stat.turnover | violation synonym |
+| 40 | Bob carry | stat.turnover | violation synonym |
+| 41 | Bob three missed | stat.threeMissed | missed state |
+| 42 | sub Bob for Tom | event.substitution | command |
+| 43 | timeout | event.pause | command |
+| 44 | game over | event.game_end | command |
 
 ## ja-JP (Japanese) — 24 tests
 

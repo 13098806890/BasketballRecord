@@ -876,3 +876,9 @@ Format:
 "section_team_home" = "Equipo local";
 
 "section_team_away" = "Equipo visitante";
+
+"voice_auth_speech" = "Permite el reconocimiento de voz en Ajustes";
+"voice_auth_microphone" = "Permite el acceso al micrófono en Ajustes";
+"voice_unavailable" = "Reconocimiento de voz no disponible";
+"voice_substitution_failed" = "Sustitución fallida";
+"voice_unrecognized_format" = "No reconocido: %@";
