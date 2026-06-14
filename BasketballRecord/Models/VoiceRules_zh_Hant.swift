@@ -75,6 +75,16 @@ extension VoiceRules {
             "覃": ["qin"],
             "芮": ["rui"],
             "逄": ["pang"],
+        ],
+        pinyinVariantRules: [
+            ("zh", "z"), ("z", "zh"),
+            ("ch", "c"), ("c", "ch"),
+            ("sh", "s"), ("s", "sh"),
+            ("r", "l"), ("l", "r"),
+            ("n", "l"), ("l", "n"),
+            ("eng", "en"), ("en", "eng"),
+            ("ing", "in"), ("in", "ing"),
+            ("ang", "an"), ("an", "ang"),
         ]
     )
 }

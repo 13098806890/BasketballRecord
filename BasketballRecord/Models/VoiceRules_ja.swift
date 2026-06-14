@@ -67,6 +67,7 @@ extension VoiceRules {
             ("試合終了", "event.game_end"),
         ],
         fuzzyMap: [],
-        surnamePinyinOverrides: [:]
+        surnamePinyinOverrides: [:],
+        pinyinVariantRules: []
     )
 }

@@ -38,6 +38,87 @@ struct VoiceRules: Sendable {
     /// Only populated for CJK locales; empty for others.
     let surnamePinyinOverrides: [Character: [String]]
 
+    /// Bidirectional pinyin variant rules for generatePinyinVariants.
+    /// Only populated for CJK locales; empty for others.
+    let pinyinVariantRules: [(String, String)]
+
+    func toPinyin(_ s: String) -> String {
+        let mutable = NSMutableString(string: s) as CFMutableString
+        CFStringTransform(mutable, nil, kCFStringTransformToLatin, false)
+        CFStringTransform(mutable, nil, kCFStringTransformStripDiacritics, false)
+        return (mutable as String).lowercased().trimmingCharacters(in: .whitespaces)
+    }
+
+    func fuzzyPinyin(_ s: String) -> String {
+        let syllables = s.split(separator: " ").map { String($0) }
+        return syllables.map { syl in
+            var r = syl
+            for (a, b) in fuzzyMap {
+                r = r.replacingOccurrences(of: a, with: b)
+            }
+            return r
+        }.joined(separator: " ")
+    }
+
+    func generatePinyinVariants(_ text: String) -> Set<String> {
+        let basePinyin = toPinyin(text)
+        var variants = Set<String>()
+        variants.insert(basePinyin)
+        let syllables = basePinyin.split(separator: " ").map(String.init)
+        guard !syllables.isEmpty else { return variants }
+        for (index, syllable) in syllables.enumerated() {
+            for (from, to) in pinyinVariantRules {
+                if syllable.contains(from) {
+                    var modifiedSyllables = syllables
+                    modifiedSyllables[index] = syllable.replacingOccurrences(of: from, with: to)
+                    variants.insert(modifiedSyllables.joined(separator: " "))
+                }
+            }
+        }
+        return variants
+    }
+
+    func letterPinyin(_ ch: Character) -> String {
+        switch ch {
+        case "a": return "a"; case "b": return "bo"; case "c": return "ci"
+        case "d": return "di"; case "e": return "e"
+        case "f": return "efu"; case "g": return "ji"; case "h": return "equ"
+        case "i": return "ai"; case "j": return "jie"; case "k": return "ke"
+        case "l": return "elou"; case "m": return "emu"; case "n": return "en"
+        case "o": return "ou"; case "p": return "pi"; case "q": return "q"
+        case "r": return "aer"; case "s": return "esi"; case "t": return "ti"
+        case "u": return "you"; case "v": return "wei"; case "w": return "dabuliu"
+        case "x": return "eks"; case "y": return "wai"; case "z": return "zei"
+        default: return String(ch)
+        }
+    }
+
+    func namePinyinVariants(_ name: String) -> [String] {
+        let clean = toPinyin(name)
+        var variants = [clean]
+        let letters = name.lowercased().filter { $0.isLetter && $0.isASCII }
+        if letters.count >= 2 && letters.count <= 4 {
+            let letterPinyins = letters.map { letterPinyin($0) }
+            variants.append(letterPinyins.joined(separator: " "))
+            variants.append(String(letters))
+            variants.append(letters.map { String($0) }.joined(separator: " "))
+        }
+        if !surnamePinyinOverrides.isEmpty {
+            let chars = Array(name)
+            let syllables = clean.split(separator: " ").map(String.init)
+            guard syllables.count == chars.count else { return variants }
+            for (i, ch) in chars.enumerated() {
+                guard let alternatives = surnamePinyinOverrides[ch] else { continue }
+                for alt in alternatives {
+                    var altSyllables = syllables
+                    altSyllables[i] = alt
+                    variants.append(altSyllables.joined(separator: " "))
+                }
+            }
+        }
+        return variants
+    }
+
     /// Detect the best rule set for the current app language.
     static func forCurrentAppLanguage() -> VoiceRules {
         let preferredLang = Bundle.main.preferredLocalizations.first ?? "zh-Hans"

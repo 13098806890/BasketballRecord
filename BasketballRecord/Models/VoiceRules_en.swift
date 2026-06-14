@@ -94,6 +94,7 @@ extension VoiceRules {
             ("final", "event.game_end"),
         ],
         fuzzyMap: [],
-        surnamePinyinOverrides: [:]
+        surnamePinyinOverrides: [:],
+        pinyinVariantRules: []
     )
 }
