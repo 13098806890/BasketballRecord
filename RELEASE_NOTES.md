@@ -8,6 +8,9 @@
 
 ### 修复
 
+- **"number X4" 误识别为号码而非 foul**：ASR 将 "number 5 foul" 听成 "number 54" 时，预处理拆分为 number 5 + foul。
+- **意大利语 `"libbero"` 在 statEvents 中导致匹配无声失败**：移入 shotKeywords，恢复 made/missed 状态检测。
+- **语音规则拆分为各语言独立文件**：`toPinyin`/`fuzzyPinyin`/`generatePinyinVariants`/`letterPinyin`/`namePinyinVariants` 从 `VoiceRecognizer` 移至 `VoiceRules` 实例方法，`fuzzyMap` 现在真正被使用。
 - **"number X" 前缀误匹配**：`no X` 不再被当作号码前缀，仅 `number X` 和 `#X` 视为球员号码。
 - **"three" 同时匹配号码 + 投篮类型**：`extractNumber` 改为仅搜索关键词左侧文本，避免 "Three" 既匹配 3PT 又匹配 3 号球员。
 - **"no" 在关键词左侧时未识别为未中**：`resolvePlayer` 在右侧文本为空时自动扫描左侧文本中的 miss/made 指示词。

@@ -20,6 +20,7 @@ extension VoiceRules {
             .init(keyword: "tiro libero", eventPrefix: "stat.freeThrow"),
             .init(keyword: "libero", eventPrefix: "stat.freeThrow"),
             .init(keyword: "bonus", eventPrefix: "stat.bonus"),
+            .init(keyword: "libbero", eventPrefix: "stat.freeThrow"),
             .init(keyword: "e uno", eventPrefix: "stat.bonus"),
         ],
         madeStates: [],
@@ -27,7 +28,6 @@ extension VoiceRules {
         statEvents: [
             ("fallo", "stat.foul"),
             ("rimbalzo", "stat.rebound"),
-            ("libbero", "stat.freeThrow"),
             ("rimbalso", "stat.rebound"),
             ("rimbalzo offensivo", "stat.rebound"),
             ("rimbalzo difensivo", "stat.rebound"),
