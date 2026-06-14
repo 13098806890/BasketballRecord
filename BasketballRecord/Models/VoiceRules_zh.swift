@@ -92,6 +92,16 @@ extension VoiceRules {
             "覃": ["qin"],         // surname: Qín, not Tán
             "芮": ["rui"],         // surname: Ruì
             "逄": ["pang"],        // surname: Páng
+        ],
+        pinyinVariantRules: [
+            ("zh", "z"), ("z", "zh"),
+            ("ch", "c"), ("c", "ch"),
+            ("sh", "s"), ("s", "sh"),
+            ("r", "l"), ("l", "r"),
+            ("n", "l"), ("l", "n"),
+            ("eng", "en"), ("en", "eng"),
+            ("ing", "in"), ("in", "ing"),
+            ("ang", "an"), ("an", "ang"),
         ]
     )
 }

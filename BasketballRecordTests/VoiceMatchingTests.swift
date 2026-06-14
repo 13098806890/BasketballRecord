@@ -44,11 +44,11 @@ final class VoiceMatchingTests: XCTestCase {
     // MARK: - Pinyin Conversion
 
     func testToPinyin() {
-        XCTAssertEqual(VoiceRecognizer.toPinyin("篮板"), "lan ban")
-        XCTAssertEqual(VoiceRecognizer.toPinyin("三分命中"), "san fen ming zhong")
-        XCTAssertEqual(VoiceRecognizer.toPinyin("张三"), "zhang san")
-        XCTAssertEqual(VoiceRecognizer.toPinyin("李四"), "li si")
-        XCTAssertEqual(VoiceRecognizer.toPinyin("bobo"), "bobo")
+        XCTAssertEqual(VoiceRules.chinese.toPinyin("篮板"), "lan ban")
+        XCTAssertEqual(VoiceRules.chinese.toPinyin("三分命中"), "san fen ming zhong")
+        XCTAssertEqual(VoiceRules.chinese.toPinyin("张三"), "zhang san")
+        XCTAssertEqual(VoiceRules.chinese.toPinyin("李四"), "li si")
+        XCTAssertEqual(VoiceRules.chinese.toPinyin("bobo"), "bobo")
     }
 
     // MARK: - Similarity Matching
@@ -622,8 +622,8 @@ final class VoiceMatchingTests: XCTestCase {
     // MARK: - Helpers
 
     private func findEvent(text: String) -> (eventCode: String?, playerName: String?) {
-        let textPinyin = VoiceRecognizer.toPinyin(text)
-        let fuzzyTextPinyin = VoiceRecognizer.fuzzyPinyin(textPinyin)
+        let textPinyin = VoiceRules.chinese.toPinyin(text)
+        let fuzzyTextPinyin = VoiceRules.chinese.fuzzyPinyin(textPinyin)
 
         let threshold = 0.5
         var bestEventScore = threshold
@@ -667,7 +667,7 @@ final class VoiceMatchingTests: XCTestCase {
         ]
 
         for (pinyin, eventCode) in patterns {
-            let fuzzyPinyin = VoiceRecognizer.fuzzyPinyin(pinyin)
+            let fuzzyPinyin = VoiceRules.chinese.fuzzyPinyin(pinyin)
             let (score, pos) = VoiceRecognizer.bestMatch(fuzzyPinyin, fuzzyTextPinyin)
             if score > bestEventScore {
                 bestEventScore = score
@@ -735,7 +735,7 @@ final class VoiceMatchingTests: XCTestCase {
                 if text.lowercased().contains(nameLower) {
                     return (eventCode, player.name)
                 }
-                let nameFuzzy = VoiceRecognizer.fuzzyPinyin(VoiceRecognizer.toPinyin(player.name))
+                let nameFuzzy = VoiceRules.chinese.fuzzyPinyin(VoiceRules.chinese.toPinyin(player.name))
                 let score = VoiceRecognizer.nameSimilarity(nameFuzzy, residualFuzzy)
                 if score >= bestPlayerScore {
                     bestPlayerScore = score
@@ -744,8 +744,8 @@ final class VoiceMatchingTests: XCTestCase {
                 // Also try letter-pinyin variants for English names
                 let letters = player.name.lowercased().filter { $0.isLetter && $0.isASCII }
                 if letters.count >= 2 && letters.count <= 4 {
-                    let letterPinyins = letters.map { VoiceRecognizer.letterPinyin($0) }
-                    let letterFuzzy = VoiceRecognizer.fuzzyPinyin(letterPinyins.joined(separator: " "))
+                    let letterPinyins = letters.map { VoiceRules.chinese.letterPinyin($0) }
+                    let letterFuzzy = VoiceRules.chinese.fuzzyPinyin(letterPinyins.joined(separator: " "))
                     let letterScore = VoiceRecognizer.nameSimilarity(letterFuzzy, residualFuzzy)
                     if letterScore >= bestPlayerScore {
                         bestPlayerScore = letterScore
@@ -843,18 +843,18 @@ final class VoiceMatchingTests: XCTestCase {
 
     func testGeneratePinyinVariants() {
         // Test basic variant generation
-        let variants = VoiceRecognizer.generatePinyinVariants("张三")
+        let variants = VoiceRules.chinese.generatePinyinVariants("张三")
         XCTAssertTrue(variants.contains("zhang san"), "应包含原始拼音")
         XCTAssertTrue(variants.contains("zang san"), "应包含 zh→z 变体")
 
         // Test team name variants
-        let teamVariants = VoiceRecognizer.generatePinyinVariants("战神队")
+        let teamVariants = VoiceRules.chinese.generatePinyinVariants("战神队")
         XCTAssertTrue(teamVariants.contains("zhan shen dui"), "应包含原始拼音")
         XCTAssertTrue(teamVariants.contains("zan shen dui"), "应包含 zh→z 变体")
         XCTAssertTrue(teamVariants.contains("zhan sen dui"), "应包含 sh→s 变体")
 
         // Test nasal variants
-        let nasalVariants = VoiceRecognizer.generatePinyinVariants("英格兰")
+        let nasalVariants = VoiceRules.chinese.generatePinyinVariants("英格兰")
         XCTAssertTrue(nasalVariants.contains("ying ge lan"), "应包含原始拼音")
         XCTAssertTrue(nasalVariants.contains("yin ge lan"), "应包含 ing→in 变体")
         XCTAssertTrue(nasalVariants.contains("ying ge lan"), "应包含原始拼音")

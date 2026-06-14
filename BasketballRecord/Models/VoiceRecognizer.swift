@@ -47,55 +47,6 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     private var logPlayerName: String?
     private var logPattern: String?
 
-    /// Generate pinyin variants for a player name that may contain English letters/abbreviations.
-    /// Only generates variants for multi-letter names (2-4 chars) to avoid short-name false matches.
-    /// If `surnameOverrides` is provided, also generates variants with alternative surname readings.
-    private static func namePinyinVariants(_ name: String, surnameOverrides: [Character: [String]] = [:]) -> [String] {
-        let clean = Self.toPinyin(name)
-        var variants = [clean]
-        // For multi-letter English names, add letter-pinyin approximations
-        let letters = name.lowercased().filter { $0.isLetter && $0.isASCII }
-        if letters.count >= 2 && letters.count <= 4 {
-            let letterPinyins = letters.map { Self.letterPinyin($0) }
-            variants.append(letterPinyins.joined(separator: " "))
-            // Also add shortened forms: just the raw letters as pinyin
-            variants.append(String(letters))
-            // Add combined form: letters joined as one syllable
-            variants.append(letters.map { String($0) }.joined(separator: " "))
-        }
-        // Add surname pinyin overrides for polyphonic Chinese surnames
-        if !surnameOverrides.isEmpty {
-            let chars = Array(name)
-            let syllables = clean.split(separator: " ").map(String.init)
-            guard syllables.count == chars.count else { return variants }
-            for (i, ch) in chars.enumerated() {
-                guard let alternatives = surnameOverrides[ch] else { continue }
-                for alt in alternatives {
-                    var altSyllables = syllables
-                    altSyllables[i] = alt
-                    variants.append(altSyllables.joined(separator: " "))
-                }
-            }
-        }
-        return variants
-    }
-
-    /// Single-letter Chinese pronunciation approximation
-    static func letterPinyin(_ ch: Character) -> String {
-        switch ch {
-        case "a": return "a"; case "b": return "bo"; case "c": return "ci"
-        case "d": return "di"; case "e": return "e"
-        case "f": return "efu"; case "g": return "ji"; case "h": return "equ"
-        case "i": return "ai"; case "j": return "jie"; case "k": return "ke"
-        case "l": return "elou"; case "m": return "emu"; case "n": return "en"
-        case "o": return "ou"; case "p": return "pi"; case "q": return "q"
-        case "r": return "aer"; case "s": return "esi"; case "t": return "ti"
-        case "u": return "you"; case "v": return "wei"; case "w": return "dabuliu"
-        case "x": return "eks"; case "y": return "wai"; case "z": return "zei"
-        default: return String(ch)
-        }
-    }
-
     private var speechRecognizer: SFSpeechRecognizer?
     private let audioEngine = AVAudioEngine()
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
@@ -249,7 +200,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         guard let store, store.voiceLogEnabled else { return }
         let entry = VoiceLogEntry(
             timestamp: Date(), text: logText,
-            textPinyin: Self.toPinyin(logText),
+            textPinyin: currentRules.toPinyin(logText),
             isSuccess: isSuccess, action: action ?? logAction,
             playerName: playerName ?? logPlayerName,
             matchedPattern: matchedPattern ?? logPattern,
@@ -278,7 +229,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         guard let store else { return }
         let entry = VoiceLogEntry(
             timestamp: Date(), text: text,
-            textPinyin: Self.toPinyin(text),
+            textPinyin: currentRules.toPinyin(text),
             isSuccess: isSuccess, action: action,
             playerName: playerName,
             matchedPattern: matchedPattern,
@@ -369,7 +320,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         var details: [String] = []
 
         // Generate user input variants once for all comparisons
-        let userInputVariants = Self.generatePinyinVariants(text)
+        let userInputVariants = currentRules.generatePinyinVariants(text)
 
         for id in allIDs {
             if let player = store.player(for: id) {
@@ -397,7 +348,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
 
                 // Priority 2: Variant pool matching (high confidence, avoids double fuzzy)
-                let playerVariants = Self.generatePinyinVariants(player.name)
+                let playerVariants = currentRules.generatePinyinVariants(player.name)
                 if !userInputVariants.isDisjoint(with: playerVariants) {
                     let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
                     results.append((id, side, 0.95))
@@ -406,11 +357,11 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
 
                 // Priority 3: Fuzzy pinyin match with name variants (fallback for edge cases)
-                let fuzzyTP = Self.fuzzyPinyin(textPinyin)
-                let nameVariants = Self.namePinyinVariants(player.name, surnameOverrides: currentRules.surnamePinyinOverrides)
+                let fuzzyTP = currentRules.fuzzyPinyin(textPinyin)
+                let nameVariants = currentRules.namePinyinVariants(player.name)
                 var matched = false
                 for variant in nameVariants {
-                    let namePinyin = Self.fuzzyPinyin(variant)
+                    let namePinyin = currentRules.fuzzyPinyin(variant)
                     let score = Self.nameSimilarity(namePinyin, fuzzyTP)
                     if score >= threshold {
                         let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
@@ -421,7 +372,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     }
                 }
                 if !matched {
-                    let pinyin = Self.fuzzyPinyin(Self.toPinyin(player.name))
+                    let pinyin = currentRules.fuzzyPinyin(currentRules.toPinyin(player.name))
                     let score = Self.nameSimilarity(pinyin, fuzzyTP)
                     details.append("\(player.name)(拼音=\(pinyin) vs \(fuzzyTP)=\(String(format:"%.2f", score)))")
                 }
@@ -454,7 +405,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
 
                 // Priority 2: Variant pool matching (high confidence for team names)
-                let teamVariants = Self.generatePinyinVariants(team.name)
+                let teamVariants = currentRules.generatePinyinVariants(team.name)
                 if !userInputVariants.isDisjoint(with: teamVariants) {
                     let side: TeamSide = isHome ? .home : .away
                     results.append((id, side, 0.95))
@@ -463,8 +414,8 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
 
                 // Priority 3: Fuzzy pinyin match (fallback)
-                let fuzzyTP = Self.fuzzyPinyin(textPinyin)
-                let teamPinyin = Self.fuzzyPinyin(Self.toPinyin(team.name))
+                let fuzzyTP = currentRules.fuzzyPinyin(textPinyin)
+                let teamPinyin = currentRules.fuzzyPinyin(currentRules.toPinyin(team.name))
                 let score = Self.nameSimilarity(teamPinyin, fuzzyTP)
                 if score >= threshold {
                     let side: TeamSide = isHome ? .home : .away
@@ -489,7 +440,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     private func handleSubstitution(text: String, textPinyin: String) {
-        let _ = Self.fuzzyPinyin(textPinyin)
+        let _ = currentRules.fuzzyPinyin(textPinyin)
         guard let store, let snapshot = currentSnapshot else { return }
 
         var dbgLines: [String] = []
@@ -538,8 +489,8 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         }
 
         // Convert to pinyin without fuzzy processing (matchPlayerIDsDebug handles variants internally)
-        let subPinyin = Self.toPinyin(subject)
-        let objPinyin = Self.toPinyin(object)
+        let subPinyin = currentRules.toPinyin(subject)
+        let objPinyin = currentRules.toPinyin(object)
 
         // Try BOTH orderings since "A 替换 B" could mean A incoming OR A outgoing.
         for (label, courtP, benchP) in [("主语上场", subPinyin, objPinyin), ("主语下场", objPinyin, subPinyin)] {
@@ -648,7 +599,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         }
 
         if playerID == nil, !left.isEmpty {
-            let leftPinyin = Self.toPinyin(left)
+            let leftPinyin = currentRules.toPinyin(left)
             var matchIDs = allIDs
             if snapshot.homeTeamStatsMode, let tid = snapshot.homeTeamID { matchIDs.append(tid) }
             if snapshot.awayTeamStatsMode, let tid = snapshot.awayTeamID { matchIDs.append(tid) }
@@ -684,7 +635,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     private func processText(_ text: String) {
         logStart(text)
-        let textPinyin = Self.toPinyin(text)
+        let textPinyin = currentRules.toPinyin(text)
         logStep("原文: \(text) | 拼音: \(textPinyin)")
 
         // Priority 1: Check custom voice mappings — contains-match, not exact dict lookup
@@ -707,7 +658,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     }
                 }
                 if pid == nil, !leftText.isEmpty {
-                    let leftPinyin = Self.toPinyin(leftText)
+                    let leftPinyin = currentRules.toPinyin(leftText)
                     let (matches, _) = matchPlayerIDsDebug(text: leftText, textPinyin: leftPinyin, in: allIDs, context: "自定义映射")
                     if let m = matches.first { pid = m.0; sd = m.1 }
                 }
@@ -758,6 +709,21 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             let shotType = String(match.2) == "2" ? "two" : "three"
             text = "number \(match.1) \(shotType)"
             logStep("重写数字组合: \(match.1)\(match.2) → \(text)")
+        }
+
+        // Pre-process "X4" — ASR hears "foul" as trailing "4" (e.g. "number 5 foul" → "number 54")
+        if currentRules.locale.identifier.hasPrefix("en") {
+            if let num = preferredPlayerNumber, num % 10 == 4, text.trimmingCharacters(in: .whitespaces).isEmpty {
+                let actualNum = num / 10
+                if actualNum > 0 {
+                    preferredPlayerNumber = actualNum
+                    text = "four"
+                    logStep("X4拆分: 号码\(num)→\(actualNum), 剩余→four")
+                }
+            } else if preferredPlayerNumber == nil, let match = text.wholeMatch(of: /(\d+)(4)/) {
+                text = "number \(match.1) four"
+                logStep("X4重写: \(match.1)4 → \(text)")
+            }
         }
 
         // English anchor-based matching for "got/get/miss/missed" patterns
@@ -843,7 +809,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
             // Player/team matching via variant pool (handles both player names and team names)
             if playerID == nil, !effectiveLeft.isEmpty {
-                let leftPinyin = Self.toPinyin(effectiveLeft)
+                let leftPinyin = currentRules.toPinyin(effectiveLeft)
                 var matchIDs = allIDs
                 if snapshot.homeTeamStatsMode, let tid = snapshot.homeTeamID { matchIDs.append(tid) }
                 if snapshot.awayTeamStatsMode, let tid = snapshot.awayTeamID { matchIDs.append(tid) }
@@ -859,13 +825,13 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 var bestStateScore = 0.0
                 var foundMade: Bool?
                 for state in voiceMadeStates {
-                    let sp = Self.fuzzyPinyin(Self.toPinyin(state))
-                    let s = Self.similarity(sp, Self.fuzzyPinyin(Self.toPinyin(effectiveRight)))
+                    let sp = currentRules.fuzzyPinyin(currentRules.toPinyin(state))
+                    let s = Self.similarity(sp, currentRules.fuzzyPinyin(currentRules.toPinyin(effectiveRight)))
                     if s > bestStateScore { bestStateScore = s; foundMade = true }
                 }
                 for state in voiceMissedStates {
-                    let sp = Self.fuzzyPinyin(Self.toPinyin(state))
-                    let s = Self.similarity(sp, Self.fuzzyPinyin(Self.toPinyin(effectiveRight)))
+                    let sp = currentRules.fuzzyPinyin(currentRules.toPinyin(state))
+                    let s = Self.similarity(sp, currentRules.fuzzyPinyin(currentRules.toPinyin(effectiveRight)))
                     if s > bestStateScore { bestStateScore = s; foundMade = false }
                 }
                 let isMade = foundMade ?? true
@@ -934,10 +900,10 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         }
 
         // 2b) Pinyin fallback for shot events — handles ASR pinyin output or misrecognized characters
-        let textBasePinyin = Self.toPinyin(text)
-        let textFuzzy = Self.fuzzyPinyin(textBasePinyin)
+        let textBasePinyin = currentRules.toPinyin(text)
+        let textFuzzy = currentRules.fuzzyPinyin(textBasePinyin)
         for shot in voiceShotTypes {
-            let shotPinyin = Self.fuzzyPinyin(Self.toPinyin(shot.keyword))
+            let shotPinyin = currentRules.fuzzyPinyin(currentRules.toPinyin(shot.keyword))
             guard let kwRange = textFuzzy.range(of: shotPinyin) else { continue }
             let leftPinyin = String(textFuzzy[textFuzzy.startIndex..<kwRange.lowerBound]).trimmingCharacters(in: .whitespaces)
             let rightPinyin = String(textFuzzy[kwRange.upperBound...]).trimmingCharacters(in: .whitespaces)
@@ -947,7 +913,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             if effectiveRightPinyin.isEmpty && !leftPinyin.isEmpty {
                 let leftWords = leftPinyin.lowercased().split { $0.isWhitespace }.map(String.init)
                 for state in voiceMissedStates where !state.isEmpty {
-                    let sp = Self.toPinyin(state)
+                    let sp = currentRules.toPinyin(state)
                     if leftWords.contains(sp) {
                         effectiveRightPinyin = sp
                         break
@@ -955,7 +921,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
                 if effectiveRightPinyin.isEmpty {
                     for state in voiceMadeStates where !state.isEmpty {
-                        let sp = Self.toPinyin(state)
+                        let sp = currentRules.toPinyin(state)
                         if leftWords.contains(sp) {
                             effectiveRightPinyin = sp
                             break
@@ -966,12 +932,12 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             var bestStateScore = 0.0
             var foundMade: Bool?
             for state in voiceMadeStates {
-                let statePinyin = Self.fuzzyPinyin(Self.toPinyin(state))
+                let statePinyin = currentRules.fuzzyPinyin(currentRules.toPinyin(state))
                 let s = Self.similarity(effectiveRightPinyin, statePinyin)
                 if s > bestStateScore { bestStateScore = s; foundMade = true }
             }
             for state in voiceMissedStates {
-                let statePinyin = Self.fuzzyPinyin(Self.toPinyin(state))
+                let statePinyin = currentRules.fuzzyPinyin(currentRules.toPinyin(state))
                 let s = Self.similarity(effectiveRightPinyin, statePinyin)
                 if s > bestStateScore { bestStateScore = s; foundMade = false }
             }
@@ -1040,7 +1006,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     private func detectTeamPrefix(_ text: String) -> TeamSide? {
         let lower = text.lowercased().trimmingCharacters(in: .whitespaces)
         // Exact/Fuzzy prefix matching using variant pool
-        let variants = Self.generatePinyinVariants(text)
+        let variants = currentRules.generatePinyinVariants(text)
         let homeAliases: Set<String> = ["主队", "zhudui", "zhu dui", "home"]
         let awayAliases: Set<String> = ["客队", "kedui", "ke dui", "away"]
         // Check if any prefix-related variant matches
@@ -1154,73 +1120,6 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             return wordToNum[word]
         } ?? []
         return nums
-    }
-
-    private func containsNumberKeyword(_ text: String) -> Bool {
-        text.contains("号") || text.contains("hao") || text.contains("番") || text.contains("번")
-    }
-
-    static func toPinyin(_ s: String) -> String {
-        let mutable = NSMutableString(string: s) as CFMutableString
-        CFStringTransform(mutable, nil, kCFStringTransformToLatin, false)
-        CFStringTransform(mutable, nil, kCFStringTransformStripDiacritics, false)
-        return (mutable as String).lowercased().trimmingCharacters(in: .whitespaces)
-    }
-
-    /// Apply fuzzy pinyin normalization to handle common Chinese pronunciation confusions.
-    /// Operates on space-separated pinyin syllables to avoid corrupting syllable boundaries.
-    static func fuzzyPinyin(_ s: String) -> String {
-        let syllables = s.split(separator: " ").map { String($0) }
-        let fuzzyMap: [(String, String)] = [
-            ("zh", "z"), ("ch", "c"), ("sh", "s"),
-            ("r", "l"),
-            ("eng", "en"), ("ing", "in"), ("ang", "an"),
-        ]
-        return syllables.map { syl in
-            var r = syl
-            for (a, b) in fuzzyMap {
-                r = r.replacingOccurrences(of: a, with: b)
-            }
-            return r
-        }.joined(separator: " ")
-    }
-
-    /// Generate all pinyin variants for better ASR error tolerance.
-    /// Returns a set containing the original pinyin plus single-substitution fuzzy variants.
-    /// This avoids the need for double fuzzy processing and covers more ASR error patterns.
-    static func generatePinyinVariants(_ text: String) -> Set<String> {
-        let basePinyin = toPinyin(text)
-        var variants = Set<String>()
-        variants.insert(basePinyin)
-
-        // Split into syllables for per-syllable substitution
-        let syllables = basePinyin.split(separator: " ").map(String.init)
-        guard !syllables.isEmpty else { return variants }
-
-        // Bidirectional fuzzy rules: common ASR recognition errors
-        let fuzzyRules: [(String, String)] = [
-            ("zh", "z"), ("z", "zh"),       // 翘舌音 ↔ 平舌音
-            ("ch", "c"), ("c", "ch"),
-            ("sh", "s"), ("s", "sh"),
-            ("r", "l"), ("l", "r"),         // 鼻音/边音混淆
-            ("n", "l"), ("l", "n"),         // 南方方言 n/l 不分
-            ("eng", "en"), ("en", "eng"),   // 后鼻音/前鼻音
-            ("ing", "in"), ("in", "ing"),
-            ("ang", "an"), ("an", "ang"),
-        ]
-
-        // Generate variants by substituting one syllable at a time
-        for (index, syllable) in syllables.enumerated() {
-            for (from, to) in fuzzyRules {
-                if syllable.contains(from) {
-                    var modifiedSyllables = syllables
-                    modifiedSyllables[index] = syllable.replacingOccurrences(of: from, with: to)
-                    variants.insert(modifiedSyllables.joined(separator: " "))
-                }
-            }
-        }
-
-        return variants
     }
 
     /// Slide shorter string across longer string, return best match ratio and its position in b.
