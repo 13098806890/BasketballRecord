@@ -48,32 +48,202 @@ struct TeamStatsDisclosureView: View {
                 .padding(.bottom, 4)
 
                 compareRow(label: localized("stats_field_goal"),
-                           home: "\(homeStats.made)/\(homeStats.attempts)", homePct: percent(homeStats.fieldGoalRate),
-                           away: "\(awayStats.made)/\(awayStats.attempts)", awayPct: percent(awayStats.fieldGoalRate))
+                           home: {
+                               VStack(alignment: .trailing, spacing: 1) {
+                                   HStack(spacing: 0) {
+                                       c("\(homeStats.made)", homeStats.made > awayStats.made)
+                                           .font(.caption.monospacedDigit())
+                                       Text("/\(homeStats.attempts)")
+                                           .font(.caption.monospacedDigit())
+                                           .foregroundStyle(.secondary)
+                                   }
+                                   boldC(percent(homeStats.fieldGoalRate), homeStats.fieldGoalRate > awayStats.fieldGoalRate)
+                               }
+                           },
+                           away: {
+                               VStack(alignment: .leading, spacing: 1) {
+                                   HStack(spacing: 0) {
+                                       c("\(awayStats.made)", awayStats.made > homeStats.made)
+                                           .font(.caption.monospacedDigit())
+                                       Text("/\(awayStats.attempts)")
+                                           .font(.caption.monospacedDigit())
+                                           .foregroundStyle(.secondary)
+                                   }
+                                   boldC(percent(awayStats.fieldGoalRate), awayStats.fieldGoalRate > homeStats.fieldGoalRate)
+                               }
+                           })
                 compareRow(label: localized("stat_label_2pt"),
-                           home: "\(homeStats.twoMade)/\(homeStats.twoAttempts)", homePct: percent(homeStats.twoPointRate),
-                           away: "\(awayStats.twoMade)/\(awayStats.twoAttempts)", awayPct: percent(awayStats.twoPointRate))
+                           home: {
+                               VStack(alignment: .trailing, spacing: 1) {
+                                   HStack(spacing: 0) {
+                                       c("\(homeStats.twoMade)", homeStats.twoMade > awayStats.twoMade)
+                                           .font(.caption.monospacedDigit())
+                                       Text("/\(homeStats.twoAttempts)")
+                                           .font(.caption.monospacedDigit())
+                                           .foregroundStyle(.secondary)
+                                   }
+                                   boldC(percent(homeStats.twoPointRate), homeStats.twoPointRate > awayStats.twoPointRate)
+                               }
+                           },
+                           away: {
+                               VStack(alignment: .leading, spacing: 1) {
+                                   HStack(spacing: 0) {
+                                       c("\(awayStats.twoMade)", awayStats.twoMade > homeStats.twoMade)
+                                           .font(.caption.monospacedDigit())
+                                       Text("/\(awayStats.twoAttempts)")
+                                           .font(.caption.monospacedDigit())
+                                           .foregroundStyle(.secondary)
+                                   }
+                                   boldC(percent(awayStats.twoPointRate), awayStats.twoPointRate > homeStats.twoPointRate)
+                               }
+                           })
                 compareRow(label: localized("stat_label_3pt"),
-                           home: "\(homeStats.threeMade)/\(homeStats.threeAttempts)", homePct: percent(homeStats.threePointRate),
-                           away: "\(awayStats.threeMade)/\(awayStats.threeAttempts)", awayPct: percent(awayStats.threePointRate))
+                           home: {
+                               VStack(alignment: .trailing, spacing: 1) {
+                                   HStack(spacing: 0) {
+                                       c("\(homeStats.threeMade)", homeStats.threeMade > awayStats.threeMade)
+                                           .font(.caption.monospacedDigit())
+                                       Text("/\(homeStats.threeAttempts)")
+                                           .font(.caption.monospacedDigit())
+                                           .foregroundStyle(.secondary)
+                                   }
+                                   boldC(percent(homeStats.threePointRate), homeStats.threePointRate > awayStats.threePointRate)
+                               }
+                           },
+                           away: {
+                               VStack(alignment: .leading, spacing: 1) {
+                                   HStack(spacing: 0) {
+                                       c("\(awayStats.threeMade)", awayStats.threeMade > homeStats.threeMade)
+                                           .font(.caption.monospacedDigit())
+                                       Text("/\(awayStats.threeAttempts)")
+                                           .font(.caption.monospacedDigit())
+                                           .foregroundStyle(.secondary)
+                                   }
+                                   boldC(percent(awayStats.threePointRate), awayStats.threePointRate > homeStats.threePointRate)
+                               }
+                           })
                 compareRow(label: localized("stat_label_free_throw"),
-                           home: "\(homeStats.allFreeThrowMade)/\(homeStats.allFreeThrowAttempts)", homePct: percent(homeStats.freeThrowRate),
-                           away: "\(awayStats.allFreeThrowMade)/\(awayStats.allFreeThrowAttempts)", awayPct: percent(awayStats.freeThrowRate))
-                compareRow(label: "\(localized("stats_rebound_assist_steal_block")) / \(localized("stats_foul_turnover"))",
-                           home: "\(homeStats.rebounds)/\(homeStats.assists)/\(homeStats.steals)/\(homeStats.blocks) · \(homeFouls)/\(homeStats.turnovers)",
-                           homePct: nil,
-                           away: "\(awayStats.rebounds)/\(awayStats.assists)/\(awayStats.steals)/\(awayStats.blocks) · \(awayFouls)/\(awayStats.turnovers)",
-                           awayPct: nil)
+                           home: {
+                               VStack(alignment: .trailing, spacing: 1) {
+                                   HStack(spacing: 0) {
+                                       c("\(homeStats.allFreeThrowMade)", homeStats.allFreeThrowMade > awayStats.allFreeThrowMade)
+                                           .font(.caption.monospacedDigit())
+                                       Text("/\(homeStats.allFreeThrowAttempts)")
+                                           .font(.caption.monospacedDigit())
+                                           .foregroundStyle(.secondary)
+                                   }
+                                   boldC(percent(homeStats.freeThrowRate), homeStats.freeThrowRate > awayStats.freeThrowRate)
+                               }
+                           },
+                           away: {
+                               VStack(alignment: .leading, spacing: 1) {
+                                   HStack(spacing: 0) {
+                                       c("\(awayStats.allFreeThrowMade)", awayStats.allFreeThrowMade > homeStats.allFreeThrowMade)
+                                           .font(.caption.monospacedDigit())
+                                       Text("/\(awayStats.allFreeThrowAttempts)")
+                                           .font(.caption.monospacedDigit())
+                                           .foregroundStyle(.secondary)
+                                   }
+                                   boldC(percent(awayStats.freeThrowRate), awayStats.freeThrowRate > homeStats.freeThrowRate)
+                               }
+                           })
+                compareRow(label: localized("stats_rebound_block"),
+                           home: {
+                               HStack(spacing: 0) {
+                                   c("\(homeStats.rebounds)", homeStats.rebounds > awayStats.rebounds)
+                                       .font(.caption.monospacedDigit())
+                                   Text("/")
+                                       .font(.caption.monospacedDigit())
+                                       .foregroundStyle(.secondary)
+                                   c("\(homeStats.blocks)", homeStats.blocks > awayStats.blocks)
+                                       .font(.caption.monospacedDigit())
+                               }
+                           },
+                           away: {
+                               HStack(spacing: 0) {
+                                   c("\(awayStats.rebounds)", awayStats.rebounds > homeStats.rebounds)
+                                       .font(.caption.monospacedDigit())
+                                   Text("/")
+                                       .font(.caption.monospacedDigit())
+                                       .foregroundStyle(.secondary)
+                                   c("\(awayStats.blocks)", awayStats.blocks > homeStats.blocks)
+                                       .font(.caption.monospacedDigit())
+                               }
+                           })
+                compareRow(label: localized("stats_assist_steal"),
+                           home: {
+                               HStack(spacing: 0) {
+                                   c("\(homeStats.assists)", homeStats.assists > awayStats.assists)
+                                       .font(.caption.monospacedDigit())
+                                   Text("/")
+                                       .font(.caption.monospacedDigit())
+                                       .foregroundStyle(.secondary)
+                                   c("\(homeStats.steals)", homeStats.steals > awayStats.steals)
+                                       .font(.caption.monospacedDigit())
+                               }
+                           },
+                           away: {
+                               HStack(spacing: 0) {
+                                   c("\(awayStats.assists)", awayStats.assists > homeStats.assists)
+                                       .font(.caption.monospacedDigit())
+                                   Text("/")
+                                       .font(.caption.monospacedDigit())
+                                       .foregroundStyle(.secondary)
+                                   c("\(awayStats.steals)", awayStats.steals > homeStats.steals)
+                                       .font(.caption.monospacedDigit())
+                               }
+                           })
+                compareRow(label: localized("stats_foul_turnover"),
+                           home: {
+                               HStack(spacing: 0) {
+                                   c("\(homeFouls)", homeFouls < awayFouls)
+                                       .font(.caption.monospacedDigit())
+                                   Text("/")
+                                       .font(.caption.monospacedDigit())
+                                       .foregroundStyle(.secondary)
+                                   c("\(homeStats.turnovers)", homeStats.turnovers < awayStats.turnovers)
+                                       .font(.caption.monospacedDigit())
+                               }
+                           },
+                           away: {
+                               HStack(spacing: 0) {
+                                   c("\(awayFouls)", awayFouls < homeFouls)
+                                       .font(.caption.monospacedDigit())
+                                   Text("/")
+                                       .font(.caption.monospacedDigit())
+                                       .foregroundStyle(.secondary)
+                                   c("\(awayStats.turnovers)", awayStats.turnovers < homeStats.turnovers)
+                                       .font(.caption.monospacedDigit())
+                               }
+                           })
                 compareRow(label: "eFG / TS",
-                           home: "\(percent(homeStats.effectiveFieldGoalRate)) / \(percent(homeStats.trueShootingRate))",
-                           homePct: nil,
-                           away: "\(percent(awayStats.effectiveFieldGoalRate)) / \(percent(awayStats.trueShootingRate))",
-                           awayPct: nil)
+                           home: {
+                               HStack(spacing: 0) {
+                                   c(percent(homeStats.effectiveFieldGoalRate), homeStats.effectiveFieldGoalRate > awayStats.effectiveFieldGoalRate)
+                                   Text(" / ")
+                                       .foregroundStyle(.secondary)
+                                   c(percent(homeStats.trueShootingRate), homeStats.trueShootingRate > awayStats.trueShootingRate)
+                               }
+                               .font(.caption.monospacedDigit())
+                           },
+                           away: {
+                               HStack(spacing: 0) {
+                                   c(percent(awayStats.effectiveFieldGoalRate), awayStats.effectiveFieldGoalRate > homeStats.effectiveFieldGoalRate)
+                                   Text(" / ")
+                                       .foregroundStyle(.secondary)
+                                   c(percent(awayStats.trueShootingRate), awayStats.trueShootingRate > homeStats.trueShootingRate)
+                               }
+                               .font(.caption.monospacedDigit())
+                           })
                 compareRow(label: localized("stats_points_per_shot"),
-                           home: String(format: "%.2f", homeStats.pointsPerShot),
-                           homePct: nil,
-                           away: String(format: "%.2f", awayStats.pointsPerShot),
-                           awayPct: nil)
+                           home: {
+                               c(String(format: "%.2f", homeStats.pointsPerShot), homeStats.pointsPerShot > awayStats.pointsPerShot)
+                                   .font(.caption.monospacedDigit())
+                           },
+                           away: {
+                               c(String(format: "%.2f", awayStats.pointsPerShot), awayStats.pointsPerShot > homeStats.pointsPerShot)
+                                   .font(.caption.monospacedDigit())
+                           })
             }
             .padding(10)
             .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
@@ -90,20 +260,14 @@ struct TeamStatsDisclosureView: View {
         }
     }
 
-    private func compareRow(label: String, home: String, homePct: String?, away: String, awayPct: String?) -> some View {
+    private func compareRow<Home: View, Away: View>(
+        label: String,
+        @ViewBuilder home: () -> Home,
+        @ViewBuilder away: () -> Away
+    ) -> some View {
         HStack(spacing: 0) {
-            VStack(alignment: .trailing, spacing: 1) {
-                Text(home)
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                if let homePct {
-                    Text(homePct)
-                        .font(.caption2.monospacedDigit().weight(.bold))
-                        .foregroundStyle(.primary)
-                }
-            }
-            .frame(maxWidth: .infinity)
-
+            home()
+                .frame(maxWidth: .infinity, alignment: .trailing)
             Text(label)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
@@ -111,23 +275,21 @@ struct TeamStatsDisclosureView: View {
                 .multilineTextAlignment(.center)
                 .minimumScaleFactor(0.6)
                 .frame(width: 64)
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text(away)
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                if let awayPct {
-                    Text(awayPct)
-                        .font(.caption2.monospacedDigit().weight(.bold))
-                        .foregroundStyle(.primary)
-                }
-            }
-            .frame(maxWidth: .infinity)
+            away()
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
+    private func c(_ text: String, _ isBetter: Bool) -> Text {
+        Text(text).foregroundStyle(isBetter ? .blue : .secondary)
+    }
+
+    private func boldC(_ text: String, _ isBetter: Bool) -> Text {
+        Text(text).font(.caption2.monospacedDigit().weight(.bold)).foregroundStyle(isBetter ? .blue : .primary)
+    }
+
     private func percent(_ value: Double) -> String {
-        "\(Int((value * 100).rounded()))%"
+        String(format: "%.1f%%", value * 100)
     }
 
     private func localized(_ key: String) -> String {
@@ -211,7 +373,7 @@ private struct CollapsibleStatsView: View {
     }
 
     private func percent(_ value: Double) -> String {
-        "\(Int((value * 100).rounded()))%"
+        String(format: "%.1f%%", value * 100)
     }
 
     private var plusMinusText: String {

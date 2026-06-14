@@ -847,6 +847,8 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "settings_cloud_storage" = "iCloud 저장소";
 "stats_points_format_short" = "PTS";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
+"stats_rebound_block" = "리바운드 / 블록";
+"stats_assist_steal" = "어시스트 / 스틸";
 "stats_foul_turnover" = "FOUL / TO";
 "stats_minutes" = "MIN";
 "stats_shooting" = "FG";

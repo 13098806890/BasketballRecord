@@ -46,6 +46,8 @@
 "stats_points_format_short" = "PTS";
 "stats_pts_min" = "PTS / MIN";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
+"stats_rebound_block" = "REB / BLK";
+"stats_assist_steal" = "AST / STL";
 "stats_foul_turnover" = "FOUL / TO";
 "stats_minutes" = "MIN";
 "stats_starter_bench" = "S / B";

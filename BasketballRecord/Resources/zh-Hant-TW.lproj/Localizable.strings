@@ -841,6 +841,8 @@ Format:
 "settings_cloud_storage" = "iCloud 儲存";
 "stats_points_format_short" = "得分";
 "stats_rebound_assist_steal_block" = "籃板 / 助攻 / 抄截 / 火鍋";
+"stats_rebound_block" = "籃板 / 火鍋";
+"stats_assist_steal" = "助攻 / 抄截";
 "stats_foul_turnover" = "犯規 / 失誤";
 "stats_minutes" = "時間";
 "stats_shooting" = "投籃";
