@@ -601,6 +601,8 @@
 "stat_label_bench" = "Запас";
 "stats_points_format_short" = "PTS";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
+"stats_rebound_block" = "ПОДБ / БЛ";
+"stats_assist_steal" = "АСТ / ПЕРЕХВ";
 "stats_foul_turnover" = "FOUL / TO";
 "stats_minutes" = "MIN";
 "stats_shooting" = "FG";

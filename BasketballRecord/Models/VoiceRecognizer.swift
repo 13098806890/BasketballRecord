@@ -80,9 +80,18 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     private func applyRules(_ rules: VoiceRules) {
         currentRules = rules
-        voiceShotTypes = rules.shotKeywords.map { VoiceShotDef(keyword: $0.keyword, eventPrefix: $0.eventPrefix) }
+        voiceShotTypes = rules.shotKeywords
         voiceMadeStates = rules.madeStates
         voiceMissedStates = rules.missedStates
+
+        voiceShotEvents = voiceShotTypes.map { ($0.keyword, $0.keyword, $0.eventPrefix, true) }
+        voiceNonShotEvents = []
+        for (keyword, code) in rules.statEvents {
+            voiceNonShotEvents.append((keyword, code))
+        }
+        for (keyword, code) in rules.commandEvents {
+            voiceNonShotEvents.append((keyword, code))
+        }
     }
 
     private var store: AppStore?
@@ -93,14 +102,11 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     var currentRules: VoiceRules = .chinese
 
-    private struct VoiceShotDef {
-        let keyword: String
-        let eventPrefix: String
-    }
-
-    private var voiceShotTypes: [VoiceShotDef] = []
+    private var voiceShotTypes: [VoiceRules.ShotDef] = []
     private var voiceMadeStates: [String] = []
     private var voiceMissedStates: [String] = []
+    private var voiceShotEvents: [(keyword: String, chinese: String, code: String, isShot: Bool)] = []
+    private var voiceNonShotEvents: [(chinese: String, code: String)] = []
     private var preferredPlayerNumber: Int?
 
     func configure(store: AppStore) {
@@ -195,7 +201,6 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         else { logBuffer += " | \(msg)" }
     }
 
-    /// Finalize and persist the log entry with the accumulated buffer.
     private func logFlush(isSuccess: Bool, action: String? = nil, playerName: String? = nil, matchedPattern: String? = nil) {
         guard let store, store.voiceLogEnabled else { return }
         let entry = VoiceLogEntry(
@@ -206,8 +211,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             matchedPattern: matchedPattern ?? logPattern,
             matchDetail: logBuffer
         )
-        store.voiceLog.insert(entry, at: 0)
-        if store.voiceLog.count > maxLogCount { store.voiceLog.removeLast() }
+        appendToVoiceLog(entry)
     }
 
     private func addLog(text: String, isSuccess: Bool, action: String? = nil, playerName: String? = nil, matchedPattern: String? = nil, matchDetail: String? = nil) {
@@ -235,8 +239,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             matchedPattern: matchedPattern,
             matchDetail: matchDetail
         )
-        store.voiceLog.insert(entry, at: 0)
-        if store.voiceLog.count > maxLogCount { store.voiceLog.removeLast() }
+        appendToVoiceLog(entry)
     }
 
     // MARK: - Helper Methods for UI Feedback
@@ -264,21 +267,16 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         }
     }
 
-    /// Show success feedback with green flash
     private func showSuccessFeedback(action: StatAction, playerID: UUID, side: TeamSide) {
-        let actCopy = action
-        let pidCopy = playerID
-        let sideCopy = side
-
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            self.match = (pidCopy, sideCopy, actCopy)
+            self.match = (playerID, side, action)
             self.flashColor = .green
-            self.onAction?(actCopy, pidCopy, sideCopy)
+            self.onAction?(action, playerID, side)
         }
 
         clearFlashAfterDelay()
-        clearMatchAfterDelay(playerID: pidCopy)
+        clearMatchAfterDelay(playerID: playerID)
     }
 
     /// Show error feedback with red flash
@@ -440,7 +438,6 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     private func handleSubstitution(text: String, textPinyin: String) {
-        let _ = currentRules.fuzzyPinyin(textPinyin)
         guard let store, let snapshot = currentSnapshot else { return }
 
         var dbgLines: [String] = []
@@ -586,23 +583,13 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         var side: TeamSide?
         var dbgPlayer = ""
 
-        let number = extractNumber(from: left)
-        if let number {
-            for id in allIDs {
-                guard let p = store.player(for: id) else { continue }
-                guard p.number == "\(number)" else { continue }
-                playerID = id
-                side = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
-                dbgPlayer = "号码\(number)直配"
-                break
-            }
+        if let res = resolvePlayerNumber(from: left, allIDs: allIDs) {
+            playerID = res.playerID; side = res.side; dbgPlayer = res.debug
         }
 
         if playerID == nil, !left.isEmpty {
             let leftPinyin = currentRules.toPinyin(left)
-            var matchIDs = allIDs
-            if snapshot.homeTeamStatsMode, let tid = snapshot.homeTeamID { matchIDs.append(tid) }
-            if snapshot.awayTeamStatsMode, let tid = snapshot.awayTeamID { matchIDs.append(tid) }
+            let matchIDs = matchableIDs(from: allIDs, snapshot: snapshot)
             let (matches, dbg) = matchPlayerIDsDebug(text: left, textPinyin: leftPinyin, in: matchIDs, context: "锚点左侧球员")
             dbgPlayer = dbg
             if let m = matches.first {
@@ -638,7 +625,6 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let textPinyin = currentRules.toPinyin(text)
         logStep("原文: \(text) | 拼音: \(textPinyin)")
 
-        // Priority 1: Check custom voice mappings — contains-match, not exact dict lookup
         if let mappings = store?.customVoiceMappings {
             for (phrase, eventCode) in mappings {
                 guard let range = text.range(of: phrase, options: [.caseInsensitive]) else { continue }
@@ -649,14 +635,8 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
                 let leftText = String(text[text.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
                 let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
-            let number = preferredPlayerNumber ?? extractNumber(from: leftText)
                 var pid: UUID?; var sd: TeamSide?
-                if let number {
-                    for id in allIDs {
-                        guard let p = store.player(for: id) else { continue }
-                        if p.number == "\(number)" { pid = id; sd = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away; break }
-                    }
-                }
+                if let res = resolvePlayerNumber(from: leftText, allIDs: allIDs) { pid = res.playerID; sd = res.side }
                 if pid == nil, !leftText.isEmpty {
                     let leftPinyin = currentRules.toPinyin(leftText)
                     let (matches, _) = matchPlayerIDsDebug(text: leftText, textPinyin: leftPinyin, in: allIDs, context: "自定义映射")
@@ -673,307 +653,274 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             }
         }
 
-        // Pre-check for substitution
         if currentRules.substitutionKeywords.contains(where: { text.range(of: $0, options: [.caseInsensitive]) != nil }) {
             handleSubstitution(text: text, textPinyin: textPinyin)
             return
         }
 
-        // Pre-process "number X" — treat as player identifier, not action keyword
-        preferredPlayerNumber = nil
-        var text = text
-        if currentRules.locale.identifier.hasPrefix("en") {
-            let numberXPattern = try? NSRegularExpression(pattern: "(?:^|\\s)(number|#)\\s*(one|two|three|four|five|six|seven|eight|nine|ten|\\d+)(?:\\s|$)", options: [.caseInsensitive])
-            if let match = numberXPattern?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
-                let numWordRange = Range(match.range(at: 2), in: text)!
-                let numWord = String(text[numWordRange]).lowercased()
-                let wordToNum = ["one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10]
-                preferredPlayerNumber = Int(numWord) ?? wordToNum[numWord]
-                let fullRange = Range(match.range, in: text)!
-                text = (text[..<fullRange.lowerBound] + text[fullRange.upperBound...]).trimmingCharacters(in: .whitespaces)
-                logStep("提取号码前缀: \(preferredPlayerNumber!) | 剩余文本: \(text)")
+        let processedText = preprocessEnglishText(text)
+
+        if processEnglishAnchorMatch(processedText) { return }
+        if processByDirectTextMatching(text: processedText, textPinyin: textPinyin) { return }
+        if processByPinyinFallback(text: processedText, textPinyin: textPinyin) { return }
+
+        addLog(text: processedText, isSuccess: false, matchDetail: "❌ 全文无匹配: \(processedText) | 拼音: \(textPinyin)")
+        showError(String(format: NSLocalizedString("voice_unrecognized_format", comment: ""), processedText))
+        flashColor = .red
+        clearFlashAfterDelay()
+    }
+
+    private func detectTeamPrefix(_ text: String) -> TeamSide? {
+        let variants = currentRules.generatePinyinVariants(text)
+        let homeAliases: Set<String> = ["主队", "zhudui", "zhu dui", "home"]
+        let awayAliases: Set<String> = ["客队", "kedui", "ke dui", "away"]
+        for variant in variants {
+            let vLower = variant.lowercased()
+            if homeAliases.contains(where: { vLower.hasPrefix($0) }) { return .home }
+            if awayAliases.contains(where: { vLower.hasPrefix($0) }) { return .away }
+        }
+        return nil
+    }
+
+    private func resolvePlayerNumber(from text: String, allIDs: [UUID]) -> (playerID: UUID, side: TeamSide, debug: String)? {
+        guard let store, let snapshot = currentSnapshot else { return nil }
+        let number = preferredPlayerNumber ?? extractNumber(from: text)
+        guard let number else { return nil }
+        let preferredSide = detectTeamPrefix(text)
+        for id in allIDs {
+            guard let p = store.player(for: id) else { continue }
+            guard p.number == "\(number)" else { continue }
+            let pSide: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
+            if let pref = preferredSide, pSide != pref { continue }
+            let dbg = "号码\(number)直配\(preferredSide.map { $0 == .home ? "(主队)" : "(客队)" } ?? "")"
+            return (id, pSide, dbg)
+        }
+        if preferredSide != nil {
+            for id in allIDs {
+                guard let p = store.player(for: id) else { continue }
+                if p.number == "\(number)" {
+                    let pSide: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
+                    return (id, pSide, "号码\(number)直配(跨队)")
+                }
             }
         }
+        return nil
+    }
 
-        // Pre-process "X02"/"X03" — ASR hears "no" as "0" (e.g. "503" → "number 5 no three")
-        if currentRules.locale.identifier.hasPrefix("en"),
-           let match = text.wholeMatch(of: /(\d+)(0[23])/) {
+    private func appendToVoiceLog(_ entry: VoiceLogEntry) {
+        guard let store, store.voiceLogEnabled else { return }
+        store.voiceLog.insert(entry, at: 0)
+        if store.voiceLog.count > maxLogCount { store.voiceLog.removeLast() }
+    }
+
+    private func matchableIDs(from allIDs: [UUID], snapshot: GameSnapshot) -> [UUID] {
+        var ids = allIDs
+        if snapshot.homeTeamStatsMode, let tid = snapshot.homeTeamID { ids.append(tid) }
+        if snapshot.awayTeamStatsMode, let tid = snapshot.awayTeamID { ids.append(tid) }
+        return ids
+    }
+
+    private func extractStateFromLeftText(_ leftText: String) -> (effectiveLeft: String, effectiveRight: String) {
+        guard !leftText.isEmpty else { return (leftText, "") }
+        let leftWords = leftText.lowercased().split { $0.isWhitespace }.map(String.init)
+        for state in voiceMissedStates where !state.isEmpty {
+            if let idx = leftWords.firstIndex(of: state.lowercased()) {
+                let effectiveLeft = leftWords.enumerated().filter { $0.offset != idx }.map { $0.element }.joined(separator: " ")
+                return (effectiveLeft, state)
+            }
+        }
+        for state in voiceMadeStates where !state.isEmpty {
+            if let idx = leftWords.firstIndex(of: state.lowercased()) {
+                let effectiveLeft = leftWords.enumerated().filter { $0.offset != idx }.map { $0.element }.joined(separator: " ")
+                return (effectiveLeft, state)
+            }
+        }
+        return (leftText, "")
+    }
+
+    private func extractStatePinyinFromLeftPinyin(_ leftPinyin: String) -> String {
+        guard !leftPinyin.isEmpty else { return "" }
+        let leftWords = leftPinyin.lowercased().split { $0.isWhitespace }.map(String.init)
+        for state in voiceMissedStates where !state.isEmpty {
+            let sp = currentRules.toPinyin(state)
+            if leftWords.contains(sp) { return sp }
+        }
+        for state in voiceMadeStates where !state.isEmpty {
+            let sp = currentRules.toPinyin(state)
+            if leftWords.contains(sp) { return sp }
+        }
+        return ""
+    }
+
+    private func determineShotState(rightText: String) -> (isMade: Bool, bestScore: Double) {
+        let rightFuzzy = currentRules.fuzzyPinyin(currentRules.toPinyin(rightText))
+        var bestScore = 0.0
+        var foundMade: Bool?
+        for state in voiceMadeStates {
+            let sp = currentRules.fuzzyPinyin(currentRules.toPinyin(state))
+            let s = Self.similarity(sp, rightFuzzy)
+            if s > bestScore { bestScore = s; foundMade = true }
+        }
+        for state in voiceMissedStates {
+            let sp = currentRules.fuzzyPinyin(currentRules.toPinyin(state))
+            let s = Self.similarity(sp, rightFuzzy)
+            if s > bestScore { bestScore = s; foundMade = false }
+        }
+        return (foundMade ?? true, bestScore)
+    }
+
+    private func findKeyword(_ kw: String, in text: String) -> (left: String, right: String)? {
+        guard let range = text.range(of: kw, options: [.caseInsensitive]) else { return nil }
+        let left = String(text[text.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
+        let right = String(text[range.upperBound...]).trimmingCharacters(in: .whitespaces)
+        return (left, right)
+    }
+
+    private func resolvePlayerAndExecute(leftText: String, eventCode: String, isShot: Bool, rightText: String, text: String, textPinyin: String) -> Bool {
+        guard let store, let snapshot = currentSnapshot else { return false }
+        var effectiveLeft = leftText
+        var effectiveRight = rightText
+        if isShot && effectiveRight.isEmpty && !effectiveLeft.isEmpty {
+            let result = extractStateFromLeftText(effectiveLeft)
+            effectiveLeft = result.effectiveLeft
+            effectiveRight = result.effectiveRight
+        }
+        let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
+        var playerID: UUID?; var side: TeamSide?
+        var dbgPlayer = ""
+        if let res = resolvePlayerNumber(from: effectiveLeft, allIDs: allIDs) {
+            playerID = res.playerID; side = res.side; dbgPlayer = res.debug
+        }
+        if playerID == nil, !effectiveLeft.isEmpty {
+            let leftPinyin = currentRules.toPinyin(effectiveLeft)
+                let matchIDs = matchableIDs(from: allIDs, snapshot: snapshot)
+                let (matches, dbg) = matchPlayerIDsDebug(text: effectiveLeft, textPinyin: leftPinyin, in: matchIDs, context: "左侧球员")
+            dbgPlayer = dbg
+            if let m = matches.first {
+                playerID = m.0; side = m.1
+            }
+        }
+        let finalCode: String
+        if isShot {
+            let (isMade, bestStateScore) = determineShotState(rightText: effectiveRight)
+            finalCode = eventCode + (isMade ? "Made" : "Missed")
+            let stateLabel = bestStateScore > 0 ? (isMade ? "命中" : "未中") : "默认命中"
+            addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "🔍 关键词: \(eventCode) | 右侧状态=\(effectiveRight.isEmpty ? "空" : effectiveRight) → \(stateLabel)(得分=\(String(format:"%.2f", bestStateScore)))")
+        } else {
+            finalCode = eventCode
+        }
+        guard let pid = playerID, let sd = side else {
+            addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "❌ 未匹配到球员 | 左侧文本: \(leftText.isEmpty ? "空" : leftText) | 拼音: \(textPinyin)")
+            showError(String(format: NSLocalizedString("voice_unrecognized_format", comment: ""), text))
+            flashColor = .red
+            clearFlashAfterDelay()
+            return false
+        }
+        guard let action = StatAction.allCases.first(where: { $0.eventCode == finalCode }) else {
+            addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "❌ 无对应StatAction: \(finalCode)")
+            return false
+        }
+        let pn = store.player(for: pid)?.name ?? "?"
+        addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: finalCode, matchDetail: "球员匹配: \(dbgPlayer)")
+        showSuccessFeedback(action: action, playerID: pid, side: sd)
+        return true
+    }
+
+    private func preprocessEnglishText(_ rawText: String) -> String {
+        preferredPlayerNumber = nil
+        var text = rawText
+        guard currentRules.locale.identifier.hasPrefix("en") else { return text }
+        let numberXPattern = try? NSRegularExpression(pattern: "(?:^|\\s)(number|#)\\s*(one|two|three|four|five|six|seven|eight|nine|ten|\\d+)(?:\\s|$)", options: [.caseInsensitive])
+        if let match = numberXPattern?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
+            let numWordRange = Range(match.range(at: 2), in: text)!
+            let numWord = String(text[numWordRange]).lowercased()
+            preferredPlayerNumber = Int(numWord) ?? Self.wordToNum[numWord]
+            let fullRange = Range(match.range, in: text)!
+            text = (text[..<fullRange.lowerBound] + text[fullRange.upperBound...]).trimmingCharacters(in: .whitespaces)
+            logStep("提取号码前缀: \(preferredPlayerNumber!) | 剩余文本: \(text)")
+        }
+        if let match = text.wholeMatch(of: /(\d+)(0[23])/) {
             let shotType = String(match.2) == "02" ? "two" : "three"
             text = "number \(match.1) no \(shotType)"
             logStep("重写数字组合: \(match.1)\(match.2) → \(text)")
         }
-
-        // Pre-process "X2"/"X3" — last digit = shot type, preceding = player (e.g. "23" → "number 2 three")
-        if currentRules.locale.identifier.hasPrefix("en"),
-           let match = text.wholeMatch(of: /(\d+)([23])/) {
+        if let match = text.wholeMatch(of: /(\d+)([23])/) {
             let shotType = String(match.2) == "2" ? "two" : "three"
             text = "number \(match.1) \(shotType)"
             logStep("重写数字组合: \(match.1)\(match.2) → \(text)")
         }
-
-        // Pre-process "X4" — ASR hears "foul" as trailing "4" (e.g. "number 5 foul" → "number 54")
-        if currentRules.locale.identifier.hasPrefix("en") {
-            if let num = preferredPlayerNumber, num % 10 == 4, text.trimmingCharacters(in: .whitespaces).isEmpty {
-                let actualNum = num / 10
-                if actualNum > 0 {
-                    preferredPlayerNumber = actualNum
-                    text = "four"
-                    logStep("X4拆分: 号码\(num)→\(actualNum), 剩余→four")
-                }
-            } else if preferredPlayerNumber == nil, let match = text.wholeMatch(of: /(\d+)(4)/) {
-                text = "number \(match.1) four"
-                logStep("X4重写: \(match.1)4 → \(text)")
+        if let num = preferredPlayerNumber, num % 10 == 4, text.trimmingCharacters(in: .whitespaces).isEmpty {
+            let actualNum = num / 10
+            if actualNum > 0 {
+                preferredPlayerNumber = actualNum
+                text = "four"
+                logStep("X4拆分: 号码\(num)→\(actualNum), 剩余→four")
             }
+        } else if preferredPlayerNumber == nil, let match = text.wholeMatch(of: /(\d+)(4)/) {
+            text = "number \(match.1) four"
+            logStep("X4重写: \(match.1)4 → \(text)")
         }
+        return text
+    }
 
-        // English anchor-based matching for "got/get/miss/missed" patterns
-        if processEnglishAnchorMatch(text) { return }
-
-        // Shot events
-        var allEvents: [(keyword: String, chinese: String, code: String, isShot: Bool)] = []
-        for shot in voiceShotTypes {
-            allEvents.append((shot.keyword, shot.keyword, shot.eventPrefix, true))
-        }
-
-        // Non-shot events — from currentRules (no dedup, all variants preserved)
-        var nonShotEvents: [(chinese: String, code: String)] = []
-        for (keyword, code) in currentRules.statEvents {
-            nonShotEvents.append((keyword, code))
-        }
-        for (keyword, code) in currentRules.commandEvents {
-            nonShotEvents.append((keyword, code))
-        }
-
-        // Helper: find keyword in original Chinese text, split into [left, keyword, right]
-        func findKeyword(_ kw: String) -> (left: String, right: String)? {
-            guard let range = text.range(of: kw, options: [.caseInsensitive]) else { return nil }
-            let left = String(text[text.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
-            let right = String(text[range.upperBound...]).trimmingCharacters(in: .whitespaces)
-            return (left, right)
-        }
-
-        // Helper: match player from left text, then execute action
-        func resolvePlayer(leftText: String, eventCode: String, isShot: Bool, rightText: String) -> Bool {
-            guard let store, let snapshot = currentSnapshot else { return false }
-
-            // When right text is empty, check left for miss/made indicators
-            var effectiveLeft = leftText
-            var effectiveRight = rightText
-            if isShot && effectiveRight.isEmpty && !effectiveLeft.isEmpty {
-                let leftWords = effectiveLeft.lowercased().split { $0.isWhitespace }.map(String.init)
-                for state in voiceMissedStates where !state.isEmpty {
-                    if let idx = leftWords.firstIndex(of: state.lowercased()) {
-                        effectiveRight = state
-                        effectiveLeft = leftWords.enumerated().filter { $0.offset != idx }.map { $0.element }.joined(separator: " ")
-                        break
-                    }
-                }
-                if effectiveRight.isEmpty {
-                    for state in voiceMadeStates where !state.isEmpty {
-                        if let idx = leftWords.firstIndex(of: state.lowercased()) {
-                            effectiveRight = state
-                            effectiveLeft = leftWords.enumerated().filter { $0.offset != idx }.map { $0.element }.joined(separator: " ")
-                            break
-                        }
-                    }
-                }
-            }
-
-            let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
-            var playerID: UUID?; var side: TeamSide?
-            var dbgPlayer = ""
-
-            let number = preferredPlayerNumber ?? extractNumber(from: effectiveLeft)
-            if let number {
-                let preferredSide = detectTeamPrefix(effectiveLeft)
-                for id in allIDs {
-                    guard let p = store.player(for: id) else { continue }
-                    guard p.number == "\(number)" else { continue }
-                    let pSide: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
-                    if let pref = preferredSide, pSide != pref { continue }
-                    playerID = id; side = pSide
-                    dbgPlayer = "号码\(number)直配\(preferredSide.map { $0 == .home ? "(主队)" : "(客队)" } ?? "")"
-                    break
-                }
-                if playerID == nil, preferredSide != nil {
-                    for id in allIDs {
-                        guard let p = store.player(for: id) else { continue }
-                        if p.number == "\(number)" {
-                            playerID = id; side = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
-                            dbgPlayer = "号码\(number)直配(跨队)"
-                            break
-                        }
-                    }
-                }
-            }
-
-            // Player/team matching via variant pool (handles both player names and team names)
-            if playerID == nil, !effectiveLeft.isEmpty {
-                let leftPinyin = currentRules.toPinyin(effectiveLeft)
-                var matchIDs = allIDs
-                if snapshot.homeTeamStatsMode, let tid = snapshot.homeTeamID { matchIDs.append(tid) }
-                if snapshot.awayTeamStatsMode, let tid = snapshot.awayTeamID { matchIDs.append(tid) }
-                let (matches, dbg) = matchPlayerIDsDebug(text: effectiveLeft, textPinyin: leftPinyin, in: matchIDs, context: "左侧球员")
-                dbgPlayer = dbg
-                if let m = matches.first {
-                    playerID = m.0; side = m.1
-                }
-            }
-            // Determine made/missed for shots
-            let finalCode: String
-            if isShot {
-                var bestStateScore = 0.0
-                var foundMade: Bool?
-                for state in voiceMadeStates {
-                    let sp = currentRules.fuzzyPinyin(currentRules.toPinyin(state))
-                    let s = Self.similarity(sp, currentRules.fuzzyPinyin(currentRules.toPinyin(effectiveRight)))
-                    if s > bestStateScore { bestStateScore = s; foundMade = true }
-                }
-                for state in voiceMissedStates {
-                    let sp = currentRules.fuzzyPinyin(currentRules.toPinyin(state))
-                    let s = Self.similarity(sp, currentRules.fuzzyPinyin(currentRules.toPinyin(effectiveRight)))
-                    if s > bestStateScore { bestStateScore = s; foundMade = false }
-                }
-                let isMade = foundMade ?? true
-                finalCode = eventCode + (isMade ? "Made" : "Missed")
-
-                // Log state matching
-                let stateLabel = foundMade.map { $0 ? "命中" : "未中" } ?? "默认命中"
-                addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "🔍 关键词: \(eventCode) | 右侧状态=\(effectiveRight.isEmpty ? "空" : effectiveRight) → \(stateLabel)(得分=\(String(format:"%.2f", bestStateScore)))")
-            } else {
-                finalCode = eventCode
-            }
-
-            guard let pid = playerID, let sd = side else {
-                addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "❌ 未匹配到球员 | 左侧文本: \(leftText.isEmpty ? "空" : leftText) | 拼音: \(textPinyin)")
-                showError(String(format: NSLocalizedString("voice_unrecognized_format", comment: ""), text))
-                flashColor = .red
-                clearFlashAfterDelay()
-                return false
-            }
-
-            guard let action = StatAction.allCases.first(where: { $0.eventCode == finalCode }) else {
-                addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "❌ 无对应StatAction: \(finalCode)"); return false
-            }
-
-            let pn = store.player(for: pid)?.name ?? "?"
-            addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: finalCode, matchDetail: "球员匹配: \(dbgPlayer)")
-            showSuccessFeedback(action: action, playerID: pid, side: sd)
-            return true
-        }
-
-        // 1) Try stat events first (no verb needed — direct keyword match)
+    private func processByDirectTextMatching(text: String, textPinyin: String) -> Bool {
+        let nonShotEvents = voiceNonShotEvents
         for (chinese, code) in nonShotEvents {
             guard code.hasPrefix("stat.") else { continue }
-            if let (left, _) = findKeyword(chinese) {
+            if let (left, _) = findKeyword(chinese, in: text) {
                 addLog(text: text, isSuccess: false, action: code, matchDetail: "🔍 找到关键词「\(chinese)」 | 左侧原文: \(left.isEmpty ? "空" : left)")
-                if resolvePlayer(leftText: left, eventCode: code, isShot: false, rightText: "") { return }
+                if resolvePlayerAndExecute(leftText: left, eventCode: code, isShot: false, rightText: "", text: text, textPinyin: textPinyin) { return true }
             }
         }
-
-        // 3) Command events — no player needed (before shots, so "end" beats "two")
         for (chinese, code) in nonShotEvents {
             guard code.hasPrefix("event.") else { continue }
-            if findKeyword(chinese) != nil {
+            if findKeyword(chinese, in: text) != nil {
                 addLog(text: text, isSuccess: true, action: code, matchDetail: "命令: \(chinese)")
                 flashColor = .green
                 let cmd: VoiceCommand
                 if code == "event.period" { cmd = .startPeriod }
                 else if code == "event.pause" { cmd = .togglePause }
                 else { cmd = .finishGame }
-                let cmdCopy = cmd
                 DispatchQueue.main.async { [weak self] in
-                    self?.onCommand?(cmdCopy)
+                    self?.onCommand?(cmd)
                     self?.flashColor = .green
                 }
                 clearFlashAfterDelay()
-                return
+                return true
             }
         }
-
-        // 2) Try shot keywords — fallback for no-verb cases (defaults to made)
-        for evt in allEvents {
-            if let (left, right) = findKeyword(evt.keyword) {
+        for evt in voiceShotEvents {
+            if let (left, right) = findKeyword(evt.keyword, in: text) {
                 addLog(text: text, isSuccess: false, action: evt.code, matchDetail: "🔍 找到关键词「\(evt.keyword)」 | 左侧原文: \(left.isEmpty ? "空" : left) | 右侧原文: \(right.isEmpty ? "空" : right)")
-                if resolvePlayer(leftText: left, eventCode: evt.code, isShot: true, rightText: right) { return }
+                if resolvePlayerAndExecute(leftText: left, eventCode: evt.code, isShot: true, rightText: right, text: text, textPinyin: textPinyin) { return true }
             }
         }
+        return false
+    }
 
-        // 2b) Pinyin fallback for shot events — handles ASR pinyin output or misrecognized characters
-        let textBasePinyin = currentRules.toPinyin(text)
-        let textFuzzy = currentRules.fuzzyPinyin(textBasePinyin)
-        for shot in voiceShotTypes {
-            let shotPinyin = currentRules.fuzzyPinyin(currentRules.toPinyin(shot.keyword))
+    private func processByPinyinFallback(text: String, textPinyin: String) -> Bool {
+        let textFuzzy = currentRules.fuzzyPinyin(currentRules.toPinyin(text))
+        let shotPinyins = voiceShotTypes.map { (shot: $0, fuzzy: currentRules.fuzzyPinyin(currentRules.toPinyin($0.keyword))) }
+        for (shot, shotPinyin) in shotPinyins {
             guard let kwRange = textFuzzy.range(of: shotPinyin) else { continue }
             let leftPinyin = String(textFuzzy[textFuzzy.startIndex..<kwRange.lowerBound]).trimmingCharacters(in: .whitespaces)
             let rightPinyin = String(textFuzzy[kwRange.upperBound...]).trimmingCharacters(in: .whitespaces)
             addLog(text: text, isSuccess: false, action: shot.eventPrefix, matchDetail: "🔍 拼音回退: 关键词pinyin=\(shotPinyin) | 左侧拼音: \(leftPinyin.isEmpty ? "空" : leftPinyin) | 右侧拼音: \(rightPinyin.isEmpty ? "空" : rightPinyin)")
-            // Check left pinyin for miss/made indicators when right is empty
             var effectiveRightPinyin = rightPinyin
             if effectiveRightPinyin.isEmpty && !leftPinyin.isEmpty {
-                let leftWords = leftPinyin.lowercased().split { $0.isWhitespace }.map(String.init)
-                for state in voiceMissedStates where !state.isEmpty {
-                    let sp = currentRules.toPinyin(state)
-                    if leftWords.contains(sp) {
-                        effectiveRightPinyin = sp
-                        break
-                    }
-                }
-                if effectiveRightPinyin.isEmpty {
-                    for state in voiceMadeStates where !state.isEmpty {
-                        let sp = currentRules.toPinyin(state)
-                        if leftWords.contains(sp) {
-                            effectiveRightPinyin = sp
-                            break
-                        }
-                    }
-                }
+                let sp = extractStatePinyinFromLeftPinyin(leftPinyin)
+                if !sp.isEmpty { effectiveRightPinyin = sp }
             }
-            var bestStateScore = 0.0
-            var foundMade: Bool?
-            for state in voiceMadeStates {
-                let statePinyin = currentRules.fuzzyPinyin(currentRules.toPinyin(state))
-                let s = Self.similarity(effectiveRightPinyin, statePinyin)
-                if s > bestStateScore { bestStateScore = s; foundMade = true }
-            }
-            for state in voiceMissedStates {
-                let statePinyin = currentRules.fuzzyPinyin(currentRules.toPinyin(state))
-                let s = Self.similarity(effectiveRightPinyin, statePinyin)
-                if s > bestStateScore { bestStateScore = s; foundMade = false }
-            }
-            let isMade = foundMade ?? true
+            let (isMade, _) = determineShotState(rightText: effectiveRightPinyin)
             let finalCode = shot.eventPrefix + (isMade ? "Made" : "Missed")
-            guard let store, let snapshot = currentSnapshot else { return }
+            guard let store, let snapshot = currentSnapshot else { return false }
             let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
             var playerID: UUID?; var side: TeamSide?; var dbgPlayer = ""
-            let number = preferredPlayerNumber ?? extractNumber(from: text)
-            if let number {
-                let preferredSide = detectTeamPrefix(text)
-                for id in allIDs {
-                    guard let p = store.player(for: id) else { continue }
-                    guard p.number == "\(number)" else { continue }
-                    let pSide: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
-                    if let pref = preferredSide, pSide != pref { continue }
-                    playerID = id; side = pSide
-                    dbgPlayer = "号码\(number)直配\(preferredSide.map { $0 == .home ? "(主队)" : "(客队)" } ?? "")"
-                    break
-                }
-                if playerID == nil, preferredSide != nil {
-                    for id in allIDs {
-                        guard let p = store.player(for: id) else { continue }
-                        if p.number == "\(number)" {
-                            playerID = id; side = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
-                            dbgPlayer = "号码\(number)直配(跨队)"
-                            break
-                        }
-                    }
-                }
+            if let res = resolvePlayerNumber(from: text, allIDs: allIDs) {
+                playerID = res.playerID; side = res.side; dbgPlayer = res.debug
             }
-            // Player/team matching (pinyin fallback)
             if playerID == nil, !leftPinyin.isEmpty {
-                var matchIDs = allIDs
-                if snapshot.homeTeamStatsMode, let tid = snapshot.homeTeamID { matchIDs.append(tid) }
-                if snapshot.awayTeamStatsMode, let tid = snapshot.awayTeamID { matchIDs.append(tid) }
+                let matchIDs = matchableIDs(from: allIDs, snapshot: snapshot)
                 let (matches, dbg) = matchPlayerIDsDebug(text: leftPinyin, textPinyin: leftPinyin, in: matchIDs, context: "拼音回退球员")
                 dbgPlayer = dbg
                 if let m = matches.first {
@@ -983,49 +930,22 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             guard let pid = playerID, let sd = side else {
                 addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "❌ 拼音回退: 未匹配到球员 | 左侧拼音: \(leftPinyin.isEmpty ? "空" : leftPinyin)")
                 showErrorWithFlash(String(format: NSLocalizedString("voice_unrecognized_format", comment: ""), text))
-                return
+                return true
             }
             guard let action = StatAction.allCases.first(where: { $0.eventCode == finalCode }) else {
                 addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "❌ 拼音回退: 无对应StatAction: \(finalCode)")
                 showErrorWithFlash(String(format: NSLocalizedString("voice_unrecognized_format", comment: ""), text))
-                return
+                return true
             }
             let pn = store.player(for: pid)?.name ?? "?"
             addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: finalCode, matchDetail: "拼音回退球员: \(dbgPlayer)")
             showSuccessFeedback(action: action, playerID: pid, side: sd)
-            return
+            return true
         }
-
-        addLog(text: text, isSuccess: false, matchDetail: "❌ 全文无匹配: \(text) | 拼音: \(textPinyin)")
-        showError(String(format: NSLocalizedString("voice_unrecognized_format", comment: ""), text))
-        flashColor = .red
-        clearFlashAfterDelay()
-    }
-
-    /// Detect team prefix in text: "主队", "客队" or their pinyin
-    private func detectTeamPrefix(_ text: String) -> TeamSide? {
-        let lower = text.lowercased().trimmingCharacters(in: .whitespaces)
-        // Exact/Fuzzy prefix matching using variant pool
-        let variants = currentRules.generatePinyinVariants(text)
-        let homeAliases: Set<String> = ["主队", "zhudui", "zhu dui", "home"]
-        let awayAliases: Set<String> = ["客队", "kedui", "ke dui", "away"]
-        // Check if any prefix-related variant matches
-        for variant in variants {
-            let vLower = variant.lowercased()
-            if homeAliases.contains(where: { vLower.hasPrefix($0) }) { return .home }
-            if awayAliases.contains(where: { vLower.hasPrefix($0) }) { return .away }
-        }
-        // Legacy direct prefix check as fallback
-        if lower.hasPrefix("主队") || lower.hasPrefix("zhudui") || lower.hasPrefix("zhu dui") || lower.hasPrefix("home") { return .home }
-        if lower.hasPrefix("客队") || lower.hasPrefix("kedui") || lower.hasPrefix("ke dui") || lower.hasPrefix("away") { return .away }
-        return nil
+        return false
     }
 
     private func extractNumber(from text: String) -> Int? {
-        let wordToNum: [String: Int] = [
-            "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
-            "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
-        ]
         // Try CJK patterns: 号, hao, 番, 번
         let cjk = try? NSRegularExpression(pattern: "(\\d+)\\s*(号|hao|番|번)")
         if let match = cjk?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
@@ -1050,7 +970,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             guard match.numberOfRanges > 1 else { return nil }
             let range = Range(match.range(at: 1), in: text)!
             let word = String(text[range]).lowercased()
-            return wordToNum[word]
+            return Self.wordToNum[word]
         }
         // Try standalone number at word boundary
         let standalone = try? NSRegularExpression(pattern: "(?:^|\\s)(\\d+)(?:\\s|$)")
@@ -1067,7 +987,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             guard match.numberOfRanges > 1 else { return nil }
             let range = Range(match.range(at: 1), in: text)!
             let word = String(text[range]).lowercased()
-            return wordToNum[word]
+            return Self.wordToNum[word]
         }
         return nil
     }
@@ -1100,24 +1020,19 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             guard num >= 1, num <= 99 else { return nil }
             return num
         } ?? []
-        // English number words: "one".."ten"
-        let wordToNum: [String: Int] = [
-            "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
-            "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
-        ]
         let engWordPrefix = try? NSRegularExpression(pattern: "(?:number|no\\.|#)\\s*(one|two|three|four|five|six|seven|eight|nine|ten)", options: [.caseInsensitive])
         nums += engWordPrefix?.matches(in: text, range: NSRange(text.startIndex..., in: text)).compactMap { match -> Int? in
             guard match.numberOfRanges > 1 else { return nil }
             let range = Range(match.range(at: 1), in: text)!
             let word = String(text[range]).lowercased()
-            return wordToNum[word]
+            return Self.wordToNum[word]
         } ?? []
         let standaloneWord = try? NSRegularExpression(pattern: "(?:^|\\s)(one|two|three|four|five|six|seven|eight|nine|ten)(?:\\s|$)", options: [.caseInsensitive])
         nums += standaloneWord?.matches(in: text, range: NSRange(text.startIndex..., in: text)).compactMap { match -> Int? in
             guard match.numberOfRanges > 1 else { return nil }
             let range = Range(match.range(at: 1), in: text)!
             let word = String(text[range]).lowercased()
-            return wordToNum[word]
+            return Self.wordToNum[word]
         } ?? []
         return nums
     }
@@ -1159,6 +1074,11 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     static func similarity(_ a: String, _ b: String) -> Double {
         bestMatch(a, b).score
     }
+
+    private static let wordToNum: [String: Int] = [
+        "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
+        "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+    ]
 
     /// Character-level phonetic similarity for pinyin.
     /// Gives partial credit for commonly confused vowels and consonants.

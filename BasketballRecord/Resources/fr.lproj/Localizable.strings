@@ -598,6 +598,8 @@
 "stat_label_bench" = "Remplaçant";
 "stats_points_format_short" = "PTS";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
+"stats_rebound_block" = "REB / CTR";
+"stats_assist_steal" = "AST / INT";
 "stats_foul_turnover" = "FAUTE / TO";
 "stats_minutes" = "MIN";
 "stats_shooting" = "FG";

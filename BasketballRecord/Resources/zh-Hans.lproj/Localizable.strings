@@ -65,6 +65,8 @@
 "stats_points_format_short" = "得分";
 "stats_pts_min" = "得分 / 时间";
 "stats_rebound_assist_steal_block" = "篮板 / 助攻 / 抢断 / 盖帽";
+"stats_rebound_block" = "篮板 / 盖帽";
+"stats_assist_steal" = "助攻 / 抢断";
 "stats_foul_turnover" = "犯规 / 失误";
 "stats_minutes" = "时间";
 "stats_starter_bench" = "首发 / 替补";

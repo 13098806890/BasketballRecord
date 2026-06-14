@@ -238,6 +238,8 @@ struct SavedGameDetailView: View {
         let playingTime = selectedPeriod == nil
             ? GameView.durationFormatter(game.snapshot.playingSecondsByPlayerID[playerID, default: 0])
             : "--:--"
+        let plusMinus = game.snapshot.plusMinusByPlayerID[playerID, default: 0]
+        let plusMinusText = plusMinus > 0 ? "+\(plusMinus)" : "\(plusMinus)"
 
         return NavigationLink {
             if store.player(for: playerID) != nil {
@@ -265,7 +267,8 @@ struct SavedGameDetailView: View {
                         Text(String(format: NSLocalizedString("career_points_format", comment: "Points format"), stats.points))
                             .font(.subheadline.monospacedDigit().weight(.semibold))
                     }
-                    Text(String(format: NSLocalizedString("stats_line_format", comment: "Stats line"), playingTime, stats.made, stats.attempts, stats.allFreeThrowMade, stats.allFreeThrowAttempts, stats.rebounds, stats.assists, stats.fouls, stats.blocks, stats.steals, stats.turnovers))
+                    (Text(String(format: NSLocalizedString("stats_line_format", comment: "Stats line"), playingTime, stats.made, stats.attempts, stats.allFreeThrowMade, stats.allFreeThrowAttempts, stats.rebounds, stats.assists, stats.fouls, stats.blocks, stats.steals, stats.turnovers))
+                    + Text("  \(NSLocalizedString("stats_plus_minus", comment: "")) \(plusMinusText)  \(NSLocalizedString("stats_points_per_shot", comment: "")) \(String(format: "%.2f", stats.pointsPerShot))"))
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
