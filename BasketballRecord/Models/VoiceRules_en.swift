@@ -95,6 +95,10 @@ extension VoiceRules {
         ],
         fuzzyMap: [],
         surnamePinyinOverrides: [:],
-        pinyinVariantRules: []
+        pinyinVariantRules: [],
+        useLevenshteinMatching: true,
+        levenshteinThreshold: (short: 1, long: 2),
+        useAnchorMatching: true,
+        anchorWords: ["made", "got", "get", "missed", "miss", "no", "not", "know"]
     )
 }
