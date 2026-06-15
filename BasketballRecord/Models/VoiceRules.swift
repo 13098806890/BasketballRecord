@@ -42,6 +42,26 @@ struct VoiceRules: Sendable {
     /// Only populated for CJK locales; empty for others.
     let pinyinVariantRules: [(String, String)]
 
+    // MARK: - Advanced matching features
+
+    /// Whether to enable Levenshtein distance matching for player/team names.
+    /// Provides character-level error tolerance for alphabetic languages.
+    let useLevenshteinMatching: Bool
+
+    /// Levenshtein distance thresholds: (shortNameThreshold, longNameThreshold)
+    /// shortNameThreshold applies to names with < 4 characters
+    /// longNameThreshold applies to names with >= 4 characters
+    let levenshteinThreshold: (short: Int, long: Int)
+
+    /// Whether to enable anchor-based matching (e.g., "James got three").
+    /// Splits text using state words as anchors: left=player, anchor=state, right=action.
+    /// Useful for languages where state words appear in the middle.
+    let useAnchorMatching: Bool
+
+    /// Anchor words for anchor-based matching (e.g., ["got", "get", "made", "missed"]).
+    /// Only used when useAnchorMatching is true.
+    let anchorWords: [String]
+
     func toPinyin(_ s: String) -> String {
         let mutable = NSMutableString(string: s) as CFMutableString
         CFStringTransform(mutable, nil, kCFStringTransformToLatin, false)

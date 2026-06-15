@@ -197,44 +197,77 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     /// Append a step detail to the buffer (does NOT write to store yet).
     private func logStep(_ msg: String) {
-        if logBuffer.isEmpty { logBuffer = msg }
-        else { logBuffer += " | \(msg)" }
+        if logBuffer.isEmpty {
+            logBuffer = msg
+        } else {
+            logBuffer += " | \(msg)"
+        }
     }
 
+    /// Flush the accumulated log buffer to the store.
+    /// Should be called when recognition completes (success or failure).
     private func logFlush(isSuccess: Bool, action: String? = nil, playerName: String? = nil, matchedPattern: String? = nil) {
         guard let store, store.voiceLogEnabled else { return }
         let entry = VoiceLogEntry(
-            timestamp: Date(), text: logText,
+            timestamp: Date(),
+            text: logText,
             textPinyin: currentRules.toPinyin(logText),
-            isSuccess: isSuccess, action: action ?? logAction,
+            isSuccess: isSuccess,
+            action: action ?? logAction,
             playerName: playerName ?? logPlayerName,
             matchedPattern: matchedPattern ?? logPattern,
             matchDetail: logBuffer
         )
         appendToVoiceLog(entry)
+        // Clear buffer after flushing
+        logText = ""
+        logBuffer = ""
     }
 
+    /// Add or accumulate log information during a recognition session.
+    /// Automatically flushes when a terminal state is reached (success with action+player, or failure).
     private func addLog(text: String, isSuccess: Bool, action: String? = nil, playerName: String? = nil, matchedPattern: String? = nil, matchDetail: String? = nil) {
         guard store?.voiceLogEnabled != false else { return }
-        // If a log buffer is active, accumulate into the buffer.
+
+        // If a log buffer is active, accumulate into the buffer
         if !logText.isEmpty {
-            if let detail = matchDetail { logStep(detail) }
-            if action != nil { logAction = action }
-            if playerName != nil { logPlayerName = playerName }
-            logPattern = matchedPattern ?? logPattern
+            // Accumulate step details
+            if let detail = matchDetail {
+                logStep(detail)
+            }
+            // Update action, playerName, and pattern if provided
+            if action != nil {
+                logAction = action
+            }
+            if playerName != nil {
+                logPlayerName = playerName
+            }
+            if matchedPattern != nil {
+                logPattern = matchedPattern
+            }
+            // Update success status (once true, stays true)
             logIsSuccess = logIsSuccess || isSuccess
-            // Auto-flush on final result: success with action+player, or any ❌ failure terminator
-            let isFailure = matchDetail?.hasPrefix("❌") == true || (!isSuccess && (matchDetail != nil || action != nil))
-            if (isSuccess && action != nil && playerName != nil) || isFailure {
+
+            // Auto-flush on terminal states:
+            // 1. Success with both action and playerName
+            // 2. Explicit failure (matchDetail starts with ❌ or isSuccess=false with details)
+            let hasSuccessResult = isSuccess && action != nil && playerName != nil
+            let hasFailureResult = matchDetail?.hasPrefix("❌") == true || (!isSuccess && (matchDetail != nil || action != nil))
+
+            if hasSuccessResult || hasFailureResult {
                 logFlush(isSuccess: isSuccess, action: action, playerName: playerName, matchedPattern: matchedPattern)
             }
             return
         }
+
+        // No active buffer, write directly to store
         guard let store else { return }
         let entry = VoiceLogEntry(
-            timestamp: Date(), text: text,
+            timestamp: Date(),
+            text: text,
             textPinyin: currentRules.toPinyin(text),
-            isSuccess: isSuccess, action: action,
+            isSuccess: isSuccess,
+            action: action,
             playerName: playerName,
             matchedPattern: matchedPattern,
             matchDetail: matchDetail
@@ -333,9 +366,11 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
 
                 // Priority 1.5: Levenshtein distance for Latin-script names
-                if currentRules.locale.identifier.hasPrefix("en") {
+                if currentRules.useLevenshteinMatching {
                     let dist = Self.levenshteinDistance(text, player.name)
-                    let threshold = player.name.count < 4 ? 1 : 2
+                    let threshold = player.name.count < 4
+                        ? currentRules.levenshteinThreshold.short
+                        : currentRules.levenshteinThreshold.long
                     if dist > 0 && dist <= threshold {
                         let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
                         let score = max(0.65, 0.85 - Double(dist) * 0.05)
@@ -390,9 +425,11 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
 
                 // Priority 1.5: Levenshtein distance for team names
-                if currentRules.locale.identifier.hasPrefix("en") {
+                if currentRules.useLevenshteinMatching {
                     let dist = Self.levenshteinDistance(text, team.name)
-                    let threshold = team.name.count < 4 ? 1 : 2
+                    let threshold = team.name.count < 4
+                        ? currentRules.levenshteinThreshold.short
+                        : currentRules.levenshteinThreshold.long
                     if dist > 0 && dist <= threshold {
                         let side: TeamSide = isHome ? .home : .away
                         let score = max(0.65, 0.85 - Double(dist) * 0.05)
@@ -528,14 +565,15 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         showErrorWithFlash(NSLocalizedString("voice_substitution_failed", comment: ""))
     }
 
-    /// English anchor-based matching: split text on "got/get/miss/missed" anchors,
+    /// Anchor-based matching: split text on state word anchors,
     /// determine made/missed from the anchor word, resolve player from left part,
     /// and match shot keyword from right part.
-    private func processEnglishAnchorMatch(_ text: String) -> Bool {
-        guard currentRules.locale.identifier.hasPrefix("en") else { return false }
+    /// Only enabled when currentRules.useAnchorMatching is true.
+    private func processAnchorMatch(_ text: String) -> Bool {
+        guard currentRules.useAnchorMatching else { return false }
         guard let store, let snapshot = currentSnapshot else { return false }
 
-        let pattern = "\\b(made|got|get|missed|miss|no|not|know)\\b"
+        let pattern = "\\b(" + currentRules.anchorWords.joined(separator: "|") + ")\\b"
         guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return false }
         let nsRange = NSRange(text.startIndex..., in: text)
         guard let match = regex.firstMatch(in: text, range: nsRange) else { return false }
@@ -658,9 +696,10 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             return
         }
 
-        let processedText = preprocessEnglishText(text)
+        // Only preprocess English text for English locale
+        let processedText = currentRules.locale.identifier.hasPrefix("en") ? preprocessEnglishText(text) : text
 
-        if processEnglishAnchorMatch(processedText) { return }
+        if processAnchorMatch(processedText) { return }
         if processByDirectTextMatching(text: processedText, textPinyin: textPinyin) { return }
         if processByPinyinFallback(text: processedText, textPinyin: textPinyin) { return }
 
@@ -829,7 +868,6 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     private func preprocessEnglishText(_ rawText: String) -> String {
         preferredPlayerNumber = nil
         var text = rawText
-        guard currentRules.locale.identifier.hasPrefix("en") else { return text }
         let numberXPattern = try? NSRegularExpression(pattern: "(?:^|\\s)(number|#)\\s*(one|two|three|four|five|six|seven|eight|nine|ten|\\d+)(?:\\s|$)", options: [.caseInsensitive])
         if let match = numberXPattern?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
             let numWordRange = Range(match.range(at: 2), in: text)!
@@ -946,50 +984,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     private func extractNumber(from text: String) -> Int? {
-        // Try CJK patterns: 号, hao, 番, 번
-        let cjk = try? NSRegularExpression(pattern: "(\\d+)\\s*(号|hao|番|번)")
-        if let match = cjk?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
-            guard match.numberOfRanges > 1 else { return nil }
-            let range = Range(match.range(at: 1), in: text)!
-            let num = Int(String(text[range]))!
-            guard num >= 0, num <= 99 else { return nil }
-            return num
-        }
-        // Try English patterns: number 5, no.5, #5
-        let eng = try? NSRegularExpression(pattern: "(?:number|no\\.|#)\\s*(\\d+)", options: [.caseInsensitive])
-        if let match = eng?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
-            guard match.numberOfRanges > 1 else { return nil }
-            let range = Range(match.range(at: 1), in: text)!
-            let num = Int(String(text[range]))!
-            guard num >= 0, num <= 99 else { return nil }
-            return num
-        }
-        // Try English number word after prefix: "number three", "no. three", "# three"
-        let engWord = try? NSRegularExpression(pattern: "(?:number|no\\.|#)\\s*(one|two|three|four|five|six|seven|eight|nine|ten)", options: [.caseInsensitive])
-        if let match = engWord?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
-            guard match.numberOfRanges > 1 else { return nil }
-            let range = Range(match.range(at: 1), in: text)!
-            let word = String(text[range]).lowercased()
-            return Self.wordToNum[word]
-        }
-        // Try standalone number at word boundary
-        let standalone = try? NSRegularExpression(pattern: "(?:^|\\s)(\\d+)(?:\\s|$)")
-        if let match = standalone?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
-            guard match.numberOfRanges > 1 else { return nil }
-            let range = Range(match.range(at: 1), in: text)!
-            let num = Int(String(text[range]))!
-            guard num >= 1, num <= 99 else { return nil }
-            return num
-        }
-        // Try standalone number word
-        let standaloneWord = try? NSRegularExpression(pattern: "(?:^|\\s)(one|two|three|four|five|six|seven|eight|nine|ten)(?:\\s|$)", options: [.caseInsensitive])
-        if let match = standaloneWord?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
-            guard match.numberOfRanges > 1 else { return nil }
-            let range = Range(match.range(at: 1), in: text)!
-            let word = String(text[range]).lowercased()
-            return Self.wordToNum[word]
-        }
-        return nil
+        return extractAllNumbers(from: text).first
     }
 
     private func extractAllNumbers(from text: String) -> [Int] {
@@ -1038,8 +1033,8 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     /// Slide shorter string across longer string, return best match ratio and its position in b.
-    /// Uses (a.count + b.count) / 2 as denominator (arithmetic mean of both lengths).
-    /// This biases against short-pattern-high-score while still allowing short names to match.
+    /// Uses max(a.count, b.count) as denominator to prevent short patterns from over-matching.
+    /// This is consistent with nameSimilarity's approach.
     static func bestMatch(_ a: String, _ b: String) -> (score: Double, position: Int) {
         let aClean = a.replacingOccurrences(of: " ", with: "")
         let bClean = b.replacingOccurrences(of: " ", with: "")
@@ -1047,7 +1042,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let bChars = Array(bClean)
         guard !aChars.isEmpty else { return (0, 0) }
 
-        let denom = Double(aChars.count + bChars.count) / 2.0
+        let denom = Double(max(aChars.count, bChars.count))
         if bChars.count < aChars.count {
             let matches = zip(aChars, bChars).filter { $0 == $1 }.count
             return (Double(matches) / denom, 0)

@@ -9,6 +9,14 @@
 - **命中率精度提升**：球队数据和球员数据命中率改为显示小数点后 1 位。
 - **球员摘要信息增强**：比赛记录球员 cell 新增正负值 (+/-) 和每次出手得分 (Points/Shot)。
 
+### 架构
+
+- **`VoiceRules` 新增高级匹配配置**：`useLevenshteinMatching`/`levenshteinThreshold`（编辑距离模糊匹配，英文启用）、`useAnchorMatching`/`anchorWords`（锚点词切分匹配，英文启用），各 10 种语言独立配置。
+- **语音匹配流水线重构**：`processEnglishAnchorMatch` → `processAnchorMatch`，动态从 `anchorWords` 构建正则。
+- **`bestMatch` 分母统一**：从 `(a+b)/2` 改为 `max(a,b)`，与 `nameSimilarity` 一致。
+- **日志缓冲清理**：`logFlush` 后清空 `logText`/`logBuffer`，防会话污染。
+- **`extractNumber` 精简**：直接调用 `extractAllNumbers().first`，消除重复正则。
+
 ### 修复
 
 - **"number X4" 误识别为号码而非 foul**：ASR 将 "number 5 foul" 听成 "number 54" 时，预处理拆分为 number 5 + foul。

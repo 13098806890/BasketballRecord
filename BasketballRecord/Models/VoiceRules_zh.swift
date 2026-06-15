@@ -102,6 +102,10 @@ extension VoiceRules {
             ("eng", "en"), ("en", "eng"),
             ("ing", "in"), ("in", "ing"),
             ("ang", "an"), ("an", "ang"),
-        ]
+        ],
+        useLevenshteinMatching: false,
+        levenshteinThreshold: (short: 1, long: 2),
+        useAnchorMatching: false,
+        anchorWords: []
     )
 }
