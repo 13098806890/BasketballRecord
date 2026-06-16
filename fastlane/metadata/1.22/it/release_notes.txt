@@ -1,0 +1,4 @@
+• Riconoscimento vocale inglese ottimizzato con corrispondenza Levenshtein e ancoraggio
+• Il confronto delle statistiche della squadra evidenzia il leader in blu
+• Il riepilogo del giocatore mostra +/- e rapporto PTS/Tiro
+• Refactoring del codice di riconoscimento vocale per maggiore affidabilità

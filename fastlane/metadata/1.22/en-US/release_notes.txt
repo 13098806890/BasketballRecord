@@ -1,0 +1,4 @@
+• Improved English voice recognition accuracy with Levenshtein and anchor matching
+• Team stats comparison now highlights the leader in blue
+• Player summary shows +/- and Points/Shot ratio
+• Major voice recognition code refactoring for better reliability

@@ -1,0 +1,4 @@
+• Reconocimiento de voz en inglés mejorado con coincidencia Levenshtein y anclaje
+• La comparación de estadísticas del equipo resalta al líder en azul
+• El resumen del jugador muestra +/- y relación PTS/Tiro
+• Refactorización del código de reconocimiento de voz para mayor fiabilidad
