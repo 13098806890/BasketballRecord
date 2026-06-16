@@ -6,9 +6,9 @@ platform :ios do
     version = options[:version] || "1.20"
 
     api_key = app_store_connect_api_key(
-      key_id: "JHM8W2D4BX",
+      key_id: "5S6Z4A6475",
       issuer_id: "50853c64-5d54-42f0-85aa-a6e291d5066b",
-      key_filepath: "/Users/xiedongze/Downloads/AuthKey_JHM8W2D4BX.p8"
+      key_filepath: "/Users/doxie/Downloads/AuthKey_5S6Z4A6475.p8"
     )
 
     deliver(
@@ -30,9 +30,9 @@ platform :ios do
     version = options[:version] || "1.20"
 
     api_key = app_store_connect_api_key(
-      key_id: "JHM8W2D4BX",
+      key_id: "5S6Z4A6475",
       issuer_id: "50853c64-5d54-42f0-85aa-a6e291d5066b",
-      key_filepath: "/Users/xiedongze/Downloads/AuthKey_JHM8W2D4BX.p8"
+      key_filepath: "/Users/doxie/Downloads/AuthKey_5S6Z4A6475.p8"
     )
 
     app = Spaceship::ConnectAPI::App.find("com.xiedongze.BasketballRecord")
