@@ -25,39 +25,6 @@ platform :ios do
     )
   end
 
-  desc "Get app Apple ID from App Store Connect"
-  lane :app_id do |options|
-    api_key = app_store_connect_api_key(
-      key_id: "5S6Z4A6475",
-      issuer_id: "50853c64-5d54-42f0-85aa-a6e291d5066b",
-      key_filepath: "/Users/doxie/Downloads/AuthKey_5S6Z4A6475.p8"
-    )
-    app = Spaceship::ConnectAPI::App.find("com.xiedongze.BasketballRecord")
-    UI.message("Apple ID: #{app.id}")
-    UI.message("Name: #{app.name}")
-  end
-
-  desc "Check version status on App Store Connect"
-  lane :check_version do |options|
-    version = options[:version] || "1.22"
-
-    api_key = app_store_connect_api_key(
-      key_id: "5S6Z4A6475",
-      issuer_id: "50853c64-5d54-42f0-85aa-a6e291d5066b",
-      key_filepath: "/Users/doxie/Downloads/AuthKey_5S6Z4A6475.p8"
-    )
-
-    app = Spaceship::ConnectAPI::App.find("com.xiedongze.BasketballRecord")
-    versions = app.get_app_store_versions
-    versions.each { |v| UI.message("#{v.version_string} -> #{v.app_store_state}") }
-    target = versions.select { |v| v.version_string == version }.first
-    if target.nil?
-      UI.error("Version #{version} not found in ASC")
-    else
-      UI.success("Version #{version} state: #{target.app_store_state}")
-    end
-  end
-
   desc "Release an approved version to the App Store"
   lane :release do |options|
     version = options[:version] || "1.20"
