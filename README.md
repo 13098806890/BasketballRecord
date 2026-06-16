@@ -1,6 +1,6 @@
 # BasketballRecord
 
-`BasketballRecord` 是一个基于 SwiftUI 的 iOS 篮球比赛记录应用，面向日常训练、野球局和队内统计。
+`BasketballRecord` 是一个基于 SwiftUI 的 iOS 篮球比赛记录应用，面向日常训练、野球局和队内统计。已上架 App Store。
 
 ## 平台与环境
 
@@ -10,46 +10,22 @@
 
 ## 核心功能
 
-- 记分页面
-- 支持两队比赛快速选择与记录。
-- 选中球员头像高亮放大，未选中球员以 80% 透明度显示。
-- 快速记录 2 分/3 分命中与不中、罚球、加罚、篮板、助攻、犯规。
-- 支持语音记录：按住麦克风按钮说话，自动识别动作和球员（中文拼音模糊匹配）。
-- 上篮/中投/篮下细分统计（语音专属，不另加按钮）。
-- 命中按钮使用浅绿色风格，犯规按钮使用浅红色风格，强化操作辨识度。
-
-- 存储迁移至 Core Data，支持增量查询，自动兼容旧 UserDefaults 数据。
-- 语音日志：记录每次识别的原文、拼音转换和匹配结果，便于调试。
-- 球队与球员配置
-- 创建、编辑、删除球队与球员。
-- 支持合并球员 UUID、合并球队 UUID。
-- 支持球员头像管理。
-
-- 比赛历史
-- 比赛按年月分组展示。
-- 比赛详情按球队分开展示球员数据。
-- 提供可折叠球队统计区，包含球队总览数据。
-
-- AI 比赛分析
-- 支持配置 DeepSeek API Key（连通性测试 + Keychain 存储）。
-- 生成比赛总结、MVP 与高亮时刻，并保存到比赛记录。
-- AI 分析结果使用图标化卡片展示，支持文本清洗与纯文本渲染。
-
-- 球员卡
-- 支持从比赛历史中选择统计范围。
-- 提供按月分组、全选/全清、按月全选等操作。
-
-- 数据导入导出
-- 支持比赛、球队、球员的压缩编码导入导出。
-- 配置页统一为单入口“导入数据”，并可选择导入类型（球队/球员）。
-- 导入页支持解析结果预览、解析中 loading、解析按钮禁用态。
-- 复制按钮提供“已复制”反馈，导入解析时自动收起键盘。
+- **语音记分**：按住麦克风按钮说话，自动识别球员、动作和得分（10 种语言，含拼音模糊匹配、Levenshtein 纠错、多音字支持）
+- **球队模式**：按球队整体记分（不区分个人），支持语音识别球队名称
+- **AI 比赛分析**：基于 DeepSeek API，生成比赛总结、MVP、高光时刻，支持保存为图片
+- **记分页面**：快速记录 2 分/3 分/罚球、篮板、助攻、犯规；上篮/中投/篮下细分统计
+- **球队与球员配置**：创建、编辑、删除，支持头像管理和 UUID 合并
+- **比赛历史**：按年月分组展示，折叠球队统计
+- **球员卡**：按月份选择统计范围，跨场次汇总
+- **数据导入导出**：比赛/球队/球员的压缩编码导入导出
+- **i18n**：10 种语言本地化
+- **Core Data 存储**，自动兼容旧 UserDefaults 数据
 
 ## 项目结构
 
-- `BasketballRecord/`：应用源代码（视图、状态、模型）。
-- `BasketballRecord.xcodeproj/`：Xcode 工程文件。
-- `BasketballRecordTests/`：单元测试。
+- `BasketballRecord/`：应用源代码（视图、状态、模型）
+- `BasketballRecord.xcodeproj/`：Xcode 工程文件
+- `BasketballRecordTests/`：单元测试（200+ 语音测试用例）
 
 ## 本地运行
 
@@ -57,20 +33,13 @@
 2. 选择 Scheme：`BasketballRecord`
 3. 选择模拟器或真机后运行。
 
-
 ## 版本
 
-- 当前版本：`1.08`
-
-## Release Notes
-
+- 当前版本：`1.22`
 - [版本日志](RELEASE_NOTES.md)
 
-## App Store 上架文档
+## 链接
 
-- 上架说明入口：`docs/appstore/README.md`
-- 隐私政策：`docs/appstore/privacy-policy.md`
-- 支持页面：`docs/appstore/support.md`
-- 使用条款：`docs/appstore/terms-of-use.md`
-- 元数据草案：`docs/appstore/app-store-metadata.md`
-- 审核备注模板：`docs/appstore/review-notes.md`
+- [隐私政策](https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html)
+- [支持页面](https://13098806890.github.io/BasketballRecord/appstore/support.html)
+- [App Store](https://apps.apple.com/app/id6741163776)
