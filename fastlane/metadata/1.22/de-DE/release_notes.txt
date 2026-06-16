@@ -1,0 +1,4 @@
+• Englische Spracherkennung optimiert mit Levenshtein- und Anker-Matching
+• Teamstatistik-Vergleich hebt den Führenden blau hervor
+• Spielerübersicht zeigt +/- und Punkte/Wurf-Verhältnis
+• Spracherkennungs-Code für höhere Zuverlässigkeit überarbeitet
