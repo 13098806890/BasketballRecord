@@ -2,13 +2,24 @@ import SwiftUI
 
 struct VoiceSettingsView: View {
     @ObservedObject var store: AppStore
+    @State private var isShowingPurchase = false
 
     var body: some View {
         List {
             Section {
-                Toggle(isOn: $store.showsVoiceButton) {
-                    Label(LocalizedStringKey("settings_show_voice_button"), systemImage: "mic.fill")
-                        .foregroundStyle(.primary)
+                HStack {
+                    Toggle(isOn: $store.showsVoiceButton) {
+                        Label(LocalizedStringKey("settings_show_voice_button"), systemImage: "mic.fill")
+                            .foregroundStyle(.primary)
+                    }
+                    .disabled(!store.isPro)
+                }
+                .overlay {
+                    if !store.isPro {
+                        Color.clear
+                            .contentShape(Rectangle())
+                            .onTapGesture { isShowingPurchase = true }
+                    }
                 }
             } footer: {
                 Text(LocalizedStringKey("settings_show_voice_button_footer"))
@@ -58,6 +69,9 @@ struct VoiceSettingsView: View {
             }
         }
         .navigationTitle(LocalizedStringKey("settings_voice"))
+        .sheet(isPresented: $isShowingPurchase) {
+            ProSubscriptionStoreView()
+        }
     }
 
     private func settingsRow(title: LocalizedStringKey, systemImage: String, countText: String?) -> some View {

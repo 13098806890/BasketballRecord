@@ -65,14 +65,6 @@ struct RosterView: View {
                             countText: nil
                         )
                     }
-                    .disabled(!store.isPro)
-                    .overlay {
-                        if !store.isPro {
-                            Color.clear
-                                .contentShape(Rectangle())
-                                .onTapGesture { isShowingPurchase = true }
-                        }
-                    }
 
                     NavigationLink {
                         CloudStorageView()
