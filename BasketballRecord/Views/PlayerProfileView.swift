@@ -137,7 +137,7 @@ struct PlayerProfileView: View {
                             .padding(.vertical, 5)
                             .background(ELOTier.tier(for: playerELO).color.opacity(0.2), in: Capsule())
                             .overlay(Capsule().stroke(ELOTier.tier(for: playerELO).color.opacity(0.5), lineWidth: 1))
-                            .onTapGesture { showingELOHistory = true }
+                            .onTapGesture { DispatchQueue.main.async { showingELOHistory = true } }
                         }
                     }
                 }
