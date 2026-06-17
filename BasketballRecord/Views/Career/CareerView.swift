@@ -11,7 +11,7 @@ enum PlayerSortField: String, CaseIterable {
         case .totalPoints: return NSLocalizedString("sort_total_points", comment: "Total Points")
         case .avgPoints: return NSLocalizedString("sort_avg_points", comment: "Avg Points")
         case .plusMinus: return NSLocalizedString("stats_plus_minus", comment: "+/-")
-        case .elo: return "ELO"
+        case .elo: return NSLocalizedString("label_elo", comment: "ELO")
         }
     }
 }
@@ -253,7 +253,7 @@ private struct PlayerCareerBoardView: View {
         case .avgPoints: return summary.avgPointsText
         case .plusMinus:
             return summary.totalPlusMinus > 0 ? "+\(summary.totalPlusMinus)" : "\(summary.totalPlusMinus)"
-        case .elo: return "ELO \(Int(summary.elo))"
+        case .elo: return String(format: NSLocalizedString("elo_format", comment: "ELO value"), Int(summary.elo))
         }
     }
 

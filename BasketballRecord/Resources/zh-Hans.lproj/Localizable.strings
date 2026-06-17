@@ -916,3 +916,6 @@ Format:
 "elo_label_avg_gs" = "场均 Game Score";
 "elo_label_gs_factor" = "GS 系数";
 "elo_computation_title" = "ELO 计算详情";
+"label_elo" = "天梯积分";
+"elo_format" = "天梯积分 %d";
+"elo_title_format" = "天梯积分 – %@";

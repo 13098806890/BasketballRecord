@@ -904,3 +904,6 @@ Format:
 "elo_label_avg_gs" = "Game Score moyen";
 "elo_label_gs_factor" = "Facteur GS";
 "elo_computation_title" = "Calcul ELO";
+"label_elo" = "ELO";
+"elo_format" = "ELO %d";
+"elo_title_format" = "ELO – %@";
