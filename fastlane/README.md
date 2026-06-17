@@ -23,21 +23,13 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 Upload metadata for a specific version to App Store Connect
 
-### ios app_id
+### ios check_metadata
 
 ```sh
-[bundle exec] fastlane ios app_id
+[bundle exec] fastlane ios check_metadata
 ```
 
-Get app Apple ID from App Store Connect
-
-### ios check_version
-
-```sh
-[bundle exec] fastlane ios check_version
-```
-
-Check version status on App Store Connect
+Check live App Store name/subtitle/price per locale
 
 ### ios release
 
