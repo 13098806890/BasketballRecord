@@ -1,16 +1,29 @@
 import Foundation
 
+struct ELOGameEntry: Identifiable {
+    var id: UUID { game.id }
+    let game: SavedGame
+    let preELO: Double
+    let postELO: Double
+    let gameScore: Double
+    let won: Bool
+    let delta: Double
+}
+
 struct ELOEngine {
     static let initialELO: Double = 1500
 
     static func computeELO(for playerID: UUID, from games: [SavedGame]) -> Double {
+        computeELOHistory(for: playerID, from: games).last?.postELO ?? initialELO
+    }
+
+    static func computeELOHistory(for playerID: UUID, from games: [SavedGame]) -> [ELOGameEntry] {
         let sortedGames = games
             .filter { $0.didParticipate(playerID) }
             .sorted { $0.savedAt < $1.savedAt }
 
-        guard !sortedGames.isEmpty else { return initialELO }
-
         var eloByPlayer: [UUID: Double] = [:]
+        var history: [ELOGameEntry] = []
 
         for game in sortedGames {
             let isHome = game.homePlayerIDs.contains(playerID)
@@ -45,8 +58,8 @@ struct ELOEngine {
             let opponentELOs = opponentIDs.compactMap { eloByPlayer[$0] }
             let avgOpponentELO = opponentELOs.isEmpty ? initialELO : opponentELOs.reduce(0, +) / Double(opponentELOs.count)
 
-            var playerELO = eloByPlayer[playerID] ?? initialELO
-            let expected = 1.0 / (1.0 + pow(10, (avgOpponentELO - playerELO) / 400.0))
+            let preELO = eloByPlayer[playerID] ?? initialELO
+            let expected = 1.0 / (1.0 + pow(10, (avgOpponentELO - preELO) / 400.0))
 
             let actual: Double
             if playerWon { actual = 1.0 }
@@ -68,10 +81,19 @@ struct ELOEngine {
             else { K = 16 }
 
             let delta = K * (actual - expected) * gsFactor
-            playerELO += delta
-            eloByPlayer[playerID] = playerELO
+            let postELO = preELO + delta
+            eloByPlayer[playerID] = postELO
+
+            history.append(ELOGameEntry(
+                game: game,
+                preELO: preELO,
+                postELO: postELO,
+                gameScore: playerGS,
+                won: playerWon,
+                delta: delta
+            ))
         }
 
-        return eloByPlayer[playerID] ?? initialELO
+        return history
     }
 }
