@@ -1,5 +1,21 @@
 import Foundation
 
+struct ELOComputationDetail: Identifiable {
+    var id: UUID { UUID() }
+    let preELO: Double
+    let myScore: Int
+    let opponentScore: Int
+    let avgOpponentELO: Double
+    let expected: Double
+    let actual: Double
+    let playerGS: Double
+    let avgGS: Double
+    let gsFactor: Double
+    let K: Double
+    let won: Bool
+    let isDraw: Bool
+}
+
 struct ELOGameEntry: Identifiable {
     var id: UUID { game.id }
     let game: SavedGame
@@ -8,6 +24,7 @@ struct ELOGameEntry: Identifiable {
     let gameScore: Double
     let won: Bool
     let delta: Double
+    let detail: ELOComputationDetail
 }
 
 struct ELOEngine {
@@ -90,7 +107,21 @@ struct ELOEngine {
                 postELO: postELO,
                 gameScore: playerGS,
                 won: playerWon,
-                delta: delta
+                delta: delta,
+                detail: ELOComputationDetail(
+                    preELO: preELO,
+                    myScore: myScore,
+                    opponentScore: opponentScore,
+                    avgOpponentELO: avgOpponentELO,
+                    expected: expected,
+                    actual: actual,
+                    playerGS: playerGS,
+                    avgGS: avgGS,
+                    gsFactor: gsFactor,
+                    K: K,
+                    won: playerWon,
+                    isDraw: isDraw
+                )
             ))
         }
 

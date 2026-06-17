@@ -1008,6 +1008,7 @@ private struct ELOHistoryView: View {
     let games: [SavedGame]
 
     @Environment(\.dismiss) private var dismiss
+    @State private var selectedDetail: ELOComputationDetail?
 
     private var history: [ELOGameEntry] {
         ELOEngine.computeELOHistory(for: playerID, from: games)
@@ -1024,6 +1025,7 @@ private struct ELOHistoryView: View {
                 } else {
                     ForEach(history) { entry in
                         ELOGameRow(entry: entry)
+                            .onTapGesture { selectedDetail = entry.detail }
                     }
                 }
             }
@@ -1033,6 +1035,9 @@ private struct ELOHistoryView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(LocalizedStringKey("button_done")) { dismiss() }
                 }
+            }
+            .sheet(item: $selectedDetail) { detail in
+                ELOComputationView(detail: detail)
             }
         }
     }
@@ -1080,6 +1085,67 @@ private struct ELOGameRow: View {
             }
         }
         .padding(.vertical, 4)
+    }
+}
+
+private struct ELOComputationView: View {
+    let detail: ELOComputationDetail
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section(NSLocalizedString("elo_section_result", comment: "Game Result")) {
+                    row("elo_label_score", "\(detail.myScore) – \(detail.opponentScore)")
+                    row("elo_label_outcome", detail.won
+                        ? NSLocalizedString("elo_outcome_win", comment: "Win")
+                        : (detail.isDraw
+                            ? NSLocalizedString("elo_outcome_draw", comment: "Draw")
+                            : NSLocalizedString("elo_outcome_loss", comment: "Loss")))
+                }
+
+                Section(NSLocalizedString("elo_section_elo", comment: "ELO Parameters")) {
+                    row("elo_label_pre_elo", "\(Int(detail.preELO))")
+                    row("elo_label_avg_opponent_elo", String(format: "%.1f", detail.avgOpponentELO))
+                    row("elo_label_expected", String(format: "%.4f", detail.expected))
+                    row("elo_label_actual", String(format: "%.1f", detail.actual))
+                }
+
+                Section(NSLocalizedString("elo_section_gs", comment: "Game Score Adjustment")) {
+                    row("elo_label_player_gs", String(format: "%.1f", detail.playerGS))
+                    row("elo_label_avg_gs", String(format: "%.1f", detail.avgGS))
+                    row("elo_label_gs_factor", String(format: "%.3f", detail.gsFactor))
+                }
+
+                Section(NSLocalizedString("elo_section_formula", comment: "Formula")) {
+                    Text("ELO = K × (Actual - Expected) × GS_Factor")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text("Δ = \(String(format: "%.0f", detail.K)) × (\(String(format: "%.4f", detail.actual)) - \(String(format: "%.4f", detail.expected))) × \(String(format: "%.3f", detail.gsFactor))")
+                        .font(.caption.monospacedDigit())
+                    Text("= \(String(format: "%.1f", detail.K * (detail.actual - detail.expected) * detail.gsFactor))")
+                        .font(.caption.monospacedDigit().weight(.semibold))
+                }
+            }
+            .navigationTitle(NSLocalizedString("elo_computation_title", comment: "ELO Calculation"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(LocalizedStringKey("button_done")) { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func row(_ key: String, _ value: String) -> some View {
+        HStack {
+            Text(LocalizedStringKey(key))
+                .font(.subheadline)
+            Spacer()
+            Text(value)
+                .font(.subheadline.monospacedDigit().weight(.semibold))
+        }
     }
 }
 
