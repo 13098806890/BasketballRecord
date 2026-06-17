@@ -88,8 +88,16 @@ struct ELOEngine {
 
             let allIDs = game.homePlayerIDs + game.awayPlayerIDs
             let allGS = allIDs.compactMap { game.snapshot.statsByPlayerID[$0]?.gameScore }
-            let avgGS = allGS.isEmpty ? 1.0 : allGS.reduce(0, +) / Double(allGS.count)
-            let gsFactor = avgGS > 0 ? playerGS / avgGS : 1.0
+            let avgGS = allGS.isEmpty ? 5.0 : allGS.reduce(0, +) / Double(allGS.count)
+            let relativeGS = playerGS - avgGS
+            let perf = tanh(relativeGS / 15.0)
+            let gsFactor: Double
+            if playerWon {
+                gsFactor = 1.0 + perf * 0.5
+            } else {
+                gsFactor = 1.0 - perf * 0.5
+            }
+            let clampedFactor = max(0.3, min(2.0, gsFactor))
 
             let gameCount = sortedGames.count
             let K: Double
@@ -97,7 +105,7 @@ struct ELOEngine {
             else if gameCount < 100 { K = 24 }
             else { K = 16 }
 
-            let delta = K * (actual - expected) * gsFactor
+            let delta = K * (actual - expected) * clampedFactor
             let postELO = preELO + delta
             eloByPlayer[playerID] = postELO
 
@@ -117,7 +125,7 @@ struct ELOEngine {
                     actual: actual,
                     playerGS: playerGS,
                     avgGS: avgGS,
-                    gsFactor: gsFactor,
+                    gsFactor: clampedFactor,
                     K: K,
                     won: playerWon,
                     isDraw: isDraw
