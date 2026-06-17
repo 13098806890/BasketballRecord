@@ -915,3 +915,6 @@ Format:
 "elo_label_avg_gs" = "平均 Game Score";
 "elo_label_gs_factor" = "GS 係数";
 "elo_computation_title" = "ELO 計算詳細";
+"label_elo" = "レーティング";
+"elo_format" = "レーティング %d";
+"elo_title_format" = "レーティング – %@";

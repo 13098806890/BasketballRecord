@@ -904,3 +904,6 @@ Format:
 "elo_label_avg_gs" = "Ср. Game Score";
 "elo_label_gs_factor" = "Коэф. GS";
 "elo_computation_title" = "Расчёт ELO";
+"label_elo" = "ELO";
+"elo_format" = "ELO %d";
+"elo_title_format" = "ELO – %@";

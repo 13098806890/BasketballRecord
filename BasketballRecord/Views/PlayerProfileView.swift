@@ -127,7 +127,7 @@ struct PlayerProfileView: View {
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 5)
                                 .background(.ultraThinMaterial, in: Capsule())
-                            Text("ELO \(Int(playerELO))")
+                            Text(String(format: NSLocalizedString("elo_format", comment: "ELO value"), Int(playerELO)))
                                 .font(.caption.monospacedDigit().weight(.semibold))
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 5)
@@ -1029,7 +1029,7 @@ private struct ELOHistoryView: View {
                     }
                 }
             }
-            .navigationTitle("ELO – \(playerName)")
+            .navigationTitle(String(format: NSLocalizedString("elo_title_format", comment: "ELO title"), playerName))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

@@ -914,3 +914,6 @@ Format:
 "elo_label_avg_gs" = "場均 Game Score";
 "elo_label_gs_factor" = "GS 係數";
 "elo_computation_title" = "ELO 計算詳情";
+"label_elo" = "天梯積分";
+"elo_format" = "天梯積分 %d";
+"elo_title_format" = "天梯積分 – %@";
