@@ -931,3 +931,18 @@ Format:
 "elo_tier_diamond" = "Diamond";
 "elo_tier_master" = "Master";
 "elo_tier_king" = "King";
+
+"player_group_nav_title" = "Player Groups";
+"player_group_all_players" = "All Players";
+"player_group_add_button" = "New Player Group";
+"player_group_edit_button" = "Edit Player Group";
+"player_group_name_placeholder" = "Group name";
+"player_group_section_players" = "Players";
+"player_group_delete_confirm_title" = "Delete group?";
+"player_group_delete_confirm_message" = "This will not delete the players, only the group.";
+"player_group_delete_button" = "Delete";
+"player_group_player_count" = "%d players";
+"player_group_no_players_available" = "No players available";
+"player_group_no_groups" = "No groups yet";
+"player_group_selected_filter" = "Filtering by player group";
+"player_group_filter" = "Filter";

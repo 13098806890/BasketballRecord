@@ -14,7 +14,7 @@ struct HistoryView: View {
     var body: some View {
         NavigationStack {
             List {
-                if let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
+                if store.isPro, let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
                     Section {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
@@ -121,13 +121,14 @@ struct HistoryView: View {
             ImportGameView()
         }
         .onAppear {
-            selectedGroupID = FilterDefaults.load(FilterDefaults.historyKey)
+            selectedGroupID = store.isPro ? FilterDefaults.load(FilterDefaults.historyKey) : nil
             loadGamesAsync(showLoading: displayedGames.isEmpty)
         }
         .onChange(of: store.savedGames) { _, _ in
             loadGamesAsync(showLoading: false)
         }
         .onChange(of: selectedGroupID) { _, newValue in
+            guard store.isPro else { return }
             FilterDefaults.save(FilterDefaults.historyKey, newValue)
         }
             .alert(LocalizedStringKey("alert_confirm_delete_game_title"), isPresented: Binding(
@@ -152,8 +153,8 @@ struct HistoryView: View {
     private var filteredGames: [SavedGame] {
         var games = displayedGames
 
-        // Filter by group if selected
-        if let selectedGroupID = selectedGroupID {
+        // Filter by group if selected (Pro only)
+        if store.isPro, let selectedGroupID = selectedGroupID {
             games = games.filter { $0.groupIDs.contains(selectedGroupID) }
         }
 

@@ -54,6 +54,10 @@ struct CoreDataStack {
         gameGroup.name = "CDGameGroup"
         gameGroup.managedObjectClassName = "NSManagedObject"
 
+        let playerGroup = NSEntityDescription()
+        playerGroup.name = "CDPlayerGroup"
+        playerGroup.managedObjectClassName = "NSManagedObject"
+
         let savedGame = NSEntityDescription()
         savedGame.name = "CDSavedGame"
         savedGame.managedObjectClassName = "NSManagedObject"
@@ -89,7 +93,12 @@ struct CoreDataStack {
         playerPhotoPath.attributeType = .stringAttributeType
         playerPhotoPath.isOptional = true
 
-        player.properties = [playerID, playerName, playerHeight, playerWeight, playerNumber, playerPhotoPath]
+        let playerGroupIDsData = NSAttributeDescription()
+        playerGroupIDsData.name = "playerGroupIDsData"
+        playerGroupIDsData.attributeType = .binaryDataAttributeType
+        playerGroupIDsData.isOptional = true
+
+        player.properties = [playerID, playerName, playerHeight, playerWeight, playerNumber, playerPhotoPath, playerGroupIDsData]
 
         // Team attributes
         let teamID = NSAttributeDescription()
@@ -136,6 +145,24 @@ struct CoreDataStack {
         groupCreatedAt.isOptional = false
 
         gameGroup.properties = [groupID, groupName, groupDesc, groupColorValue, groupCreatedAt]
+
+        // PlayerGroup attributes
+        let pgID = NSAttributeDescription()
+        pgID.name = "id"
+        pgID.attributeType = .UUIDAttributeType
+        pgID.isOptional = false
+
+        let pgName = NSAttributeDescription()
+        pgName.name = "name"
+        pgName.attributeType = .stringAttributeType
+        pgName.isOptional = false
+
+        let pgPlayerIDs = NSAttributeDescription()
+        pgPlayerIDs.name = "playerIDsData"
+        pgPlayerIDs.attributeType = .binaryDataAttributeType
+        pgPlayerIDs.isOptional = true
+
+        playerGroup.properties = [pgID, pgName, pgPlayerIDs]
 
         // SavedGame attributes
         let gameID = NSAttributeDescription()
@@ -218,7 +245,7 @@ struct CoreDataStack {
             gameAISummary, gameCloudEnabled, gameUndoData
         ]
 
-        model.entities = [player, team, gameGroup, savedGame]
+        model.entities = [player, team, gameGroup, playerGroup, savedGame]
         return model
     }()
 }

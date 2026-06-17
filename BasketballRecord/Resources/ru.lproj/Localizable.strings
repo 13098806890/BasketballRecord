@@ -914,3 +914,18 @@ Format:
 "elo_tier_diamond" = "Алмаз";
 "elo_tier_master" = "Мастер";
 "elo_tier_king" = "Король";
+
+"player_group_nav_title" = "Группы игроков";
+"player_group_all_players" = "Все игроки";
+"player_group_add_button" = "Новая группа игроков";
+"player_group_edit_button" = "Редактировать группу игроков";
+"player_group_name_placeholder" = "Название группы";
+"player_group_section_players" = "Игроки";
+"player_group_delete_confirm_title" = "Удалить группу?";
+"player_group_delete_confirm_message" = "Игроки не будут удалены, только группа.";
+"player_group_delete_button" = "Удалить";
+"player_group_player_count" = "%d игроков";
+"player_group_no_players_available" = "Нет доступных игроков";
+"player_group_no_groups" = "Групп пока нет";
+"player_group_selected_filter" = "Фильтр по группе игроков";
+"player_group_filter" = "Фильтр";

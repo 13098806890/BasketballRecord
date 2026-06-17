@@ -130,15 +130,12 @@ struct PlayerProfileView: View {
                                 .padding(.vertical, 5)
                                 .background(.ultraThinMaterial, in: Capsule())
                             HStack(spacing: 4) {
-                                Text(ELOTier.tier(for: playerELO).localizedName)
-                                    .font(.caption.weight(.semibold))
                                 Text(String(format: NSLocalizedString("elo_format", comment: "ELO value"), Int(playerELO)))
                                     .font(.caption.monospacedDigit().weight(.semibold))
                             }
                             .padding(.horizontal, 10)
                             .padding(.vertical, 5)
-                            .background(ELOTier.tier(for: playerELO).color.opacity(0.2), in: Capsule())
-                            .overlay(Capsule().stroke(ELOTier.tier(for: playerELO).color.opacity(0.5), lineWidth: 1))
+                            .background(.ultraThinMaterial, in: Capsule())
                             .onTapGesture { DispatchQueue.main.async { showingELOHistory = true } }
                         }
                     }
@@ -1032,6 +1029,7 @@ private struct ELOHistoryView: View {
                 } else {
                     ForEach(history) { entry in
                         ELOGameRow(entry: entry)
+                            .contentShape(Rectangle())
                             .onTapGesture { selectedDetail = entry.detail }
                     }
                 }
@@ -1074,10 +1072,13 @@ private struct ELOGameRow: View {
                     .foregroundStyle(entry.won ? .yellow : .secondary)
             }
 
-            HStack(spacing: 12) {
-                Label("\(Int(entry.preELO))", systemImage: "arrow.right")
+            HStack(spacing: 8) {
+                Text("\(Int(entry.preELO))")
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
+                Image(systemName: "arrow.forward.circle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
                 Text("\(Int(entry.postELO))")
                     .font(.headline.monospacedDigit().weight(.bold))
                 Text(entry.delta >= 0 ? "+\(String(format: "%.1f", entry.delta))" : "\(String(format: "%.1f", entry.delta))")
@@ -1120,6 +1121,9 @@ private struct ELOComputationView: View {
                 }
 
                 Section(NSLocalizedString("elo_section_gs", comment: "Game Score Adjustment")) {
+                    Text("GS = PTS + 0.4\u{00d7}FGM \u{2212} 0.7\u{00d7}FGA \u{2212} 0.4\u{00d7}(FTA\u{2212}FTM) + 0.5\u{00d7}REB + STL + 0.7\u{00d7}AST + 0.7\u{00d7}BLK \u{2212} 0.4\u{00d7}PF \u{2212} TOV")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                     row("elo_label_player_gs", String(format: "%.1f", detail.playerGS))
                     row("elo_label_avg_gs", String(format: "%.1f", detail.avgGS))
                     Text("Relative = \(String(format: "%.1f", detail.playerGS)) - \(String(format: "%.1f", detail.avgGS)) = \(String(format: "%.1f", detail.relativeGS))")

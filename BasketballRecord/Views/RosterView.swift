@@ -128,6 +128,24 @@ struct RosterView: View {
                     }
 
                     NavigationLink {
+                        PlayerGroupManagementView(store: store)
+                    } label: {
+                        settingsRow(
+                            title: LocalizedStringKey("player_group_nav_title"),
+                            systemImage: "person.2.fill",
+                            countText: "\(store.playerGroups.count)"
+                        )
+                    }
+                    .disabled(!store.isPro)
+                    .overlay {
+                        if !store.isPro {
+                            Color.clear
+                                .contentShape(Rectangle())
+                                .onTapGesture { isShowingPurchase = true }
+                        }
+                    }
+
+                    NavigationLink {
                         TeamManagementView()
                     } label: {
                         settingsRow(
@@ -1053,6 +1071,12 @@ private struct PlayerManagementView: View {
     @EnvironmentObject private var store: AppStore
     @State private var exportingPlayer: Player?
     @State private var editingPlayer: Player?
+    @State private var selectedPlayerGroupID: UUID?
+
+    private var filteredPlayers: [Player] {
+        guard store.isPro, let groupID = selectedPlayerGroupID else { return store.players }
+        return store.players.filter { $0.playerGroupIDs.contains(groupID) }
+    }
 
     var body: some View {
         List {
@@ -1060,7 +1084,7 @@ private struct PlayerManagementView: View {
                 ContentUnavailableView(LocalizedStringKey("empty_no_players"), systemImage: "person.crop.circle.badge.plus")
             }
 
-            ForEach(store.players) { player in
+            ForEach(filteredPlayers) { player in
                 HStack(spacing: 12) {
                     PlayerAvatarView(player: player, size: 44)
                     VStack(alignment: .leading, spacing: 4) {
@@ -1088,6 +1112,13 @@ private struct PlayerManagementView: View {
             .onDelete(perform: store.deletePlayers)
         }
         .navigationTitle(LocalizedStringKey("settings_players"))
+        .toolbar {
+            if store.isPro {
+                ToolbarItem(placement: .topBarTrailing) {
+                    PlayerGroupPicker(store: store, selectedGroupID: $selectedPlayerGroupID)
+                }
+            }
+        }
         .sheet(item: $editingPlayer) { player in
             PlayerEditorView(player: player)
         }
