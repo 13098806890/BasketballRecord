@@ -117,11 +117,18 @@ struct PlayerProfileView: View {
                             .padding(.vertical, 5)
                             .background(.ultraThinMaterial, in: Capsule())
                     } else {
-                        Text(localizedFormat("count_games_format", filteredGames.count))
-                            .font(.caption.monospacedDigit().weight(.semibold))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(.ultraThinMaterial, in: Capsule())
+                        HStack(spacing: 6) {
+                            Text(localizedFormat("count_games_format", filteredGames.count))
+                                .font(.caption.monospacedDigit().weight(.semibold))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(.ultraThinMaterial, in: Capsule())
+                            Text("ELO \(Int(playerELO))")
+                                .font(.caption.monospacedDigit().weight(.semibold))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(.ultraThinMaterial, in: Capsule())
+                        }
                     }
                 }
                 Spacer()
@@ -144,6 +151,10 @@ struct PlayerProfileView: View {
             in: RoundedRectangle(cornerRadius: 8)
         )
         .padding(.horizontal)
+    }
+
+    private var playerELO: Double {
+        ELOEngine.computeELO(for: playerID, from: filteredGames)
     }
 
     private struct StatCell: Identifiable {
