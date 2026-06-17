@@ -268,7 +268,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.22;
+				MARKETING_VERSION = 2.23;
 				PRODUCT_BUNDLE_IDENTIFIER = com.xiedongze.BasketballRecord;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -425,7 +425,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.22;
+				MARKETING_VERSION = 2.23;
 				PRODUCT_BUNDLE_IDENTIFIER = com.xiedongze.BasketballRecord;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
