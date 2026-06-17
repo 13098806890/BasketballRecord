@@ -10,6 +10,7 @@ struct PlayerProfileView: View {
     @State private var hasInitializedGameSelection = false
     @State private var selectedPeriod: Int? = nil
     @State private var fixedGameAnalysis = SavedGamePeriodAnalysis()
+    @State private var showingELOHistory = false
 
     private var player: Player? { store.player(for: playerID) }
 
@@ -98,6 +99,9 @@ struct PlayerProfileView: View {
             syncSelectedGamesIfNeeded()
             rebuildFixedGameAnalysisIfNeeded()
         }
+        .sheet(isPresented: $showingELOHistory) {
+            ELOHistoryView(playerID: playerID, playerName: player?.name ?? "", games: filteredGames)
+        }
     }
 
     private var header: some View {
@@ -128,6 +132,7 @@ struct PlayerProfileView: View {
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 5)
                                 .background(.ultraThinMaterial, in: Capsule())
+                                .onTapGesture { showingELOHistory = true }
                         }
                     }
                 }
@@ -155,6 +160,10 @@ struct PlayerProfileView: View {
 
     private var playerELO: Double {
         ELOEngine.computeELO(for: playerID, from: filteredGames)
+    }
+
+    private var eloHistory: [ELOGameEntry] {
+        ELOEngine.computeELOHistory(for: playerID, from: filteredGames)
     }
 
     private struct StatCell: Identifiable {
@@ -991,6 +1000,87 @@ struct CloudStorageView: View {
         f.dateFormat = "yyyy-MM-dd HH:mm"
         return f
     }()
+}
+
+private struct ELOHistoryView: View {
+    let playerID: UUID
+    let playerName: String
+    let games: [SavedGame]
+
+    @Environment(\.dismiss) private var dismiss
+
+    private var history: [ELOGameEntry] {
+        ELOEngine.computeELOHistory(for: playerID, from: games)
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if history.isEmpty {
+                    ContentUnavailableView(
+                        LocalizedStringKey("text_no_data"),
+                        systemImage: "chart.line.downtrend.xyaxis"
+                    )
+                } else {
+                    ForEach(history) { entry in
+                        ELOGameRow(entry: entry)
+                    }
+                }
+            }
+            .navigationTitle("ELO – \(playerName)")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(LocalizedStringKey("button_done")) { dismiss() }
+                }
+            }
+        }
+    }
+}
+
+private struct ELOGameRow: View {
+    let entry: ELOGameEntry
+
+    private let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(entry.game.homeTeamName) vs \(entry.game.awayTeamName)")
+                        .font(.subheadline.weight(.semibold))
+                    Text(dateFormatter.string(from: entry.game.savedAt))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: entry.won ? "trophy.fill" : "hand.thumbsdown.fill")
+                    .foregroundStyle(entry.won ? .yellow : .secondary)
+            }
+
+            HStack(spacing: 12) {
+                Label("\(Int(entry.preELO))", systemImage: "arrow.right")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                Text("\(Int(entry.postELO))")
+                    .font(.headline.monospacedDigit().weight(.bold))
+                Text(entry.delta >= 0 ? "+\(String(format: "%.1f", entry.delta))" : "\(String(format: "%.1f", entry.delta))")
+                    .font(.caption.monospacedDigit().weight(.semibold))
+                    .foregroundStyle(entry.delta >= 0 ? .green : .red)
+            }
+
+            HStack {
+                Text("GS: \(String(format: "%.1f", entry.gameScore))")
+                    .font(.caption2.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 4)
+    }
 }
 
 struct SafariWebView: UIViewRepresentable {
