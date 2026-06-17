@@ -919,3 +919,10 @@ Format:
 "label_elo" = "天梯积分";
 "elo_format" = "天梯积分 %d";
 "elo_title_format" = "天梯积分 – %@";
+"elo_tier_bronze" = "青铜";
+"elo_tier_silver" = "白银";
+"elo_tier_gold" = "黄金";
+"elo_tier_platinum" = "铂金";
+"elo_tier_diamond" = "钻石";
+"elo_tier_master" = "大师";
+"elo_tier_king" = "最强王者";

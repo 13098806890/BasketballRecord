@@ -907,3 +907,10 @@ Format:
 "label_elo" = "ELO";
 "elo_format" = "ELO %d";
 "elo_title_format" = "ELO – %@";
+"elo_tier_bronze" = "Bronzo";
+"elo_tier_silver" = "Argento";
+"elo_tier_gold" = "Oro";
+"elo_tier_platinum" = "Platino";
+"elo_tier_diamond" = "Diamante";
+"elo_tier_master" = "Maestro";
+"elo_tier_king" = "Re";

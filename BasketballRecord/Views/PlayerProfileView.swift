@@ -127,12 +127,17 @@ struct PlayerProfileView: View {
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 5)
                                 .background(.ultraThinMaterial, in: Capsule())
-                            Text(String(format: NSLocalizedString("elo_format", comment: "ELO value"), Int(playerELO)))
-                                .font(.caption.monospacedDigit().weight(.semibold))
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
-                                .background(.ultraThinMaterial, in: Capsule())
-                                .onTapGesture { showingELOHistory = true }
+                            HStack(spacing: 4) {
+                                Text(ELOTier.tier(for: playerELO).localizedName)
+                                    .font(.caption.weight(.semibold))
+                                Text(String(format: NSLocalizedString("elo_format", comment: "ELO value"), Int(playerELO)))
+                                    .font(.caption.monospacedDigit().weight(.semibold))
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(ELOTier.tier(for: playerELO).color.opacity(0.2), in: Capsule())
+                            .overlay(Capsule().stroke(ELOTier.tier(for: playerELO).color.opacity(0.5), lineWidth: 1))
+                            .onTapGesture { showingELOHistory = true }
                         }
                     }
                 }

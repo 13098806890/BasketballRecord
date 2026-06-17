@@ -233,7 +233,7 @@ private struct PlayerCareerBoardView: View {
                                 Spacer()
                                 Text(sortValueText(for: summary))
                                     .font(.subheadline.monospacedDigit().weight(.semibold))
-                                    .foregroundStyle(sortField == .elo ? .orange : .primary)
+                                    .foregroundStyle(sortField == .elo ? ELOTier.tier(for: summary.elo).color : .primary)
                             }
                             Text(String(format: NSLocalizedString("career_summary_format", comment: "Career summary"), summary.games, summary.avgPointsText, summary.avgReboundsText, summary.avgAssistsText, summary.avgMinutesText))
                                 .font(.caption.monospacedDigit())
@@ -253,7 +253,7 @@ private struct PlayerCareerBoardView: View {
         case .avgPoints: return summary.avgPointsText
         case .plusMinus:
             return summary.totalPlusMinus > 0 ? "+\(summary.totalPlusMinus)" : "\(summary.totalPlusMinus)"
-        case .elo: return String(format: NSLocalizedString("elo_format", comment: "ELO value"), Int(summary.elo))
+        case .elo: return "\(ELOTier.tier(for: summary.elo).localizedName) \(Int(summary.elo))"
         }
     }
 

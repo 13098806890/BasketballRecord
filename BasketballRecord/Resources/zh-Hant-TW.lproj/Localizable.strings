@@ -917,3 +917,10 @@ Format:
 "label_elo" = "天梯積分";
 "elo_format" = "天梯積分 %d";
 "elo_title_format" = "天梯積分 – %@";
+"elo_tier_bronze" = "青銅";
+"elo_tier_silver" = "白銀";
+"elo_tier_gold" = "黃金";
+"elo_tier_platinum" = "鉑金";
+"elo_tier_diamond" = "鑽石";
+"elo_tier_master" = "大師";
+"elo_tier_king" = "最強王者";

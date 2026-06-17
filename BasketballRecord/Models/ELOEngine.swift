@@ -1,4 +1,46 @@
-import Foundation
+import SwiftUI
+
+enum ELOTier: CaseIterable {
+    case bronze, silver, gold, platinum, diamond, master, king
+
+    static func tier(for elo: Double) -> ELOTier {
+        switch elo {
+        case ..<1200: return .bronze
+        case ..<1400: return .silver
+        case ..<1600: return .gold
+        case ..<1800: return .platinum
+        case ..<2000: return .diamond
+        case ..<2200: return .master
+        default: return .king
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .bronze: return .brown
+        case .silver: return .gray
+        case .gold: return .yellow
+        case .platinum: return .teal
+        case .diamond: return .blue
+        case .master: return .purple
+        case .king: return .orange
+        }
+    }
+
+    var localizedName: String {
+        let key: String
+        switch self {
+        case .bronze: key = "elo_tier_bronze"
+        case .silver: key = "elo_tier_silver"
+        case .gold: key = "elo_tier_gold"
+        case .platinum: key = "elo_tier_platinum"
+        case .diamond: key = "elo_tier_diamond"
+        case .master: key = "elo_tier_master"
+        case .king: key = "elo_tier_king"
+        }
+        return NSLocalizedString(key, comment: "ELO tier")
+    }
+}
 
 struct ELOComputationDetail: Identifiable {
     var id: UUID { UUID() }
