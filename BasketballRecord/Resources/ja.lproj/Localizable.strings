@@ -918,3 +918,10 @@ Format:
 "label_elo" = "レーティング";
 "elo_format" = "レーティング %d";
 "elo_title_format" = "レーティング – %@";
+"elo_tier_bronze" = "ブロンズ";
+"elo_tier_silver" = "シルバー";
+"elo_tier_gold" = "ゴールド";
+"elo_tier_platinum" = "プラチナ";
+"elo_tier_diamond" = "ダイヤモンド";
+"elo_tier_master" = "マスター";
+"elo_tier_king" = "キング";
