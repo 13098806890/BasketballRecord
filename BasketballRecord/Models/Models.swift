@@ -729,6 +729,22 @@ struct PlayerStats: Codable, Hashable {
         return Double(points) / Double(attempts)
     }
 
+    var gameScore: Double {
+        let fgm = twoMade + threeMade
+        let fga = twoAttempts + threeAttempts
+        let ftm = allFreeThrowMade
+        let fta = allFreeThrowAttempts
+        return Double(points)
+            + 0.4 * Double(fgm) - 0.7 * Double(fga)
+            - 0.4 * Double(fta - ftm)
+            + 0.5 * Double(rebounds)
+            + Double(steals)
+            + 0.7 * Double(assists)
+            + 0.7 * Double(blocks)
+            - 0.4 * Double(fouls)
+            - Double(turnovers)
+    }
+
     private func rate(_ made: Int, _ attempts: Int) -> Double {
         guard attempts > 0 else { return 0 }
         return Double(made) / Double(attempts)
