@@ -894,3 +894,6 @@ Format:
 "voice_unavailable" = "語音辨識不可用";
 "voice_substitution_failed" = "換人失敗";
 "voice_unrecognized_format" = "未識別：%@";
+"sort_avg_points" = "場均得分";
+"sort_total_points" = "總得分";
+"label_sort_by" = "排序";

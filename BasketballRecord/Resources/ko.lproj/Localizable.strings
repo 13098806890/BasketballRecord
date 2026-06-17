@@ -912,3 +912,6 @@ Format:
 "voice_unavailable" = "음성 인식을 사용할 수 없습니다";
 "voice_substitution_failed" = "교체 실패";
 "voice_unrecognized_format" = "인식할 수 없습니다: %@";
+"sort_avg_points" = "평균 득점";
+"sort_total_points" = "총 득점";
+"label_sort_by" = "정렬 기준";

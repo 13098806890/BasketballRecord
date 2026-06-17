@@ -895,3 +895,6 @@ Format:
 "voice_unavailable" = "音声認識が利用できません";
 "voice_substitution_failed" = "交代に失敗しました";
 "voice_unrecognized_format" = "認識できません: %@";
+"sort_avg_points" = "平均得点";
+"sort_total_points" = "総得点";
+"label_sort_by" = "並び替え";

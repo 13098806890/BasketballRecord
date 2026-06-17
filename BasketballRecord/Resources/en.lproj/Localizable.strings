@@ -901,3 +901,6 @@ Format:
 "voice_unavailable" = "Speech recognition unavailable";
 "voice_substitution_failed" = "Substitution failed";
 "voice_unrecognized_format" = "Unrecognized: %@";
+"sort_avg_points" = "Avg Points";
+"sort_total_points" = "Total Points";
+"label_sort_by" = "Sort by";

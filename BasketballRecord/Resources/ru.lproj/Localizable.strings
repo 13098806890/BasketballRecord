@@ -884,3 +884,6 @@ Format:
 "voice_unavailable" = "Распознавание речи недоступно";
 "voice_substitution_failed" = "Замена не удалась";
 "voice_unrecognized_format" = "Не распознано: %@";
+"sort_avg_points" = "Ср. очки";
+"sort_total_points" = "Всего очков";
+"label_sort_by" = "Сортировать по";

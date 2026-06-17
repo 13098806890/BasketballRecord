@@ -884,3 +884,6 @@ Format:
 "voice_unavailable" = "Reconnaissance vocale indisponible";
 "voice_substitution_failed" = "Remplacement échoué";
 "voice_unrecognized_format" = "Non reconnu : %@";
+"sort_avg_points" = "Moy pts";
+"sort_total_points" = "Pts total";
+"label_sort_by" = "Trier par";
