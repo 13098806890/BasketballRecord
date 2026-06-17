@@ -20,6 +20,7 @@ struct CareerView: View {
     @EnvironmentObject private var store: AppStore
     @State private var boardKind: CareerBoardKind = .team
     @State private var selectedGroupID: UUID?
+    @State private var selectedPlayerGroupID: UUID?
     @State private var playerSortField: PlayerSortField = .avgPoints
     @State private var playerSortAscending = false
 
@@ -35,7 +36,7 @@ struct CareerView: View {
                 .padding(.horizontal)
                 .padding(.top, 8)
 
-                if let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
+                if store.isPro, let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(NSLocalizedString("game_group_selected_filter", comment: "Filtering by"))
@@ -54,11 +55,31 @@ struct CareerView: View {
                     .padding(.top, 4)
                 }
 
+                if store.isPro, let groupID = selectedPlayerGroupID, let group = store.playerGroups.first(where: { $0.id == groupID }) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(NSLocalizedString("player_group_selected_filter", comment: "Filtering by player group"))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(group.name)
+                                .font(.headline)
+                        }
+                        Spacer()
+                        Button(action: { selectedPlayerGroupID = nil }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 4)
+                }
+
                 if boardKind == .team {
                     TeamCareerBoardView(selectedGroupID: $selectedGroupID)
                 } else {
                     PlayerCareerBoardView(
                         selectedGroupID: $selectedGroupID,
+                        selectedPlayerGroupID: $selectedPlayerGroupID,
                         sortField: $playerSortField,
                         sortAscending: $playerSortAscending
                     )
@@ -68,15 +89,19 @@ struct CareerView: View {
             .toolbar {
                 if store.isPro {
                     ToolbarItem(placement: .topBarTrailing) {
-                        GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
+                        HStack(spacing: 8) {
+                            PlayerGroupPicker(store: store, selectedGroupID: $selectedPlayerGroupID)
+                            GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
+                        }
                     }
                 }
             }
         }
         .onAppear {
-            selectedGroupID = FilterDefaults.load(FilterDefaults.careerKey)
+            selectedGroupID = store.isPro ? FilterDefaults.load(FilterDefaults.careerKey) : nil
         }
         .onChange(of: selectedGroupID) { _, newValue in
+            guard store.isPro else { return }
             FilterDefaults.save(FilterDefaults.careerKey, newValue)
         }
     }
@@ -129,14 +154,14 @@ private struct TeamCareerBoardView: View {
     }
 
     private var summaries: [TeamCareerSummary] {
-        store.teams.map { team in
+        store.teams.compactMap { team in
             var games = 0
             var wins = 0
             var losses = 0
             var pointsFor = 0
             var pointsAgainst = 0
 
-            let relevantGames = selectedGroupID.map { store.gamesInGroup($0) } ?? store.savedGames
+            let relevantGames = (store.isPro ? selectedGroupID.map { store.gamesInGroup($0) } : nil) ?? store.savedGames
 
             for game in relevantGames {
                 if game.snapshot.homeTeamID == team.id {
@@ -155,6 +180,8 @@ private struct TeamCareerBoardView: View {
                     if away > home { wins += 1 } else if away < home { losses += 1 }
                 }
             }
+
+            guard games > 0 else { return nil }
 
             return TeamCareerSummary(
                 id: team.id,
@@ -204,6 +231,7 @@ private struct TeamCareerBoardView: View {
 private struct PlayerCareerBoardView: View {
     @EnvironmentObject private var store: AppStore
     @Binding var selectedGroupID: UUID?
+    @Binding var selectedPlayerGroupID: UUID?
     @Binding var sortField: PlayerSortField
     @Binding var sortAscending: Bool
 
@@ -233,7 +261,7 @@ private struct PlayerCareerBoardView: View {
                                 Spacer()
                                 Text(sortValueText(for: summary))
                                     .font(.subheadline.monospacedDigit().weight(.semibold))
-                                    .foregroundStyle(sortField == .elo ? ELOTier.tier(for: summary.elo).color : .primary)
+                                    .foregroundStyle(.primary)
                             }
                             Text(String(format: NSLocalizedString("career_summary_format", comment: "Career summary"), summary.games, summary.avgPointsText, summary.avgReboundsText, summary.avgAssistsText, summary.avgMinutesText))
                                 .font(.caption.monospacedDigit())
@@ -253,7 +281,7 @@ private struct PlayerCareerBoardView: View {
         case .avgPoints: return summary.avgPointsText
         case .plusMinus:
             return summary.totalPlusMinus > 0 ? "+\(summary.totalPlusMinus)" : "\(summary.totalPlusMinus)"
-        case .elo: return "\(ELOTier.tier(for: summary.elo).localizedName) \(Int(summary.elo))"
+        case .elo: return "\(Int(summary.elo))"
         }
     }
 
@@ -296,9 +324,9 @@ private struct PlayerCareerBoardView: View {
     }
 
     private var summaries: [PlayerCareerSummary] {
-        let relevantGames = selectedGroupID.map { store.gamesInGroup($0) } ?? store.savedGames
+        let relevantGames = (store.isPro ? selectedGroupID.map { store.gamesInGroup($0) } : nil) ?? store.savedGames
         let rosteredIDs: Set<UUID>?
-        if selectedGroupID != nil {
+        if store.isPro, selectedGroupID != nil {
             rosteredIDs = Set(relevantGames.flatMap { $0.homePlayerIDs + $0.awayPlayerIDs })
         } else {
             rosteredIDs = nil
@@ -306,7 +334,9 @@ private struct PlayerCareerBoardView: View {
 
         let candidates = rosteredIDs.map { ids in store.players.filter { ids.contains($0.id) } } ?? store.players
 
-        var result = candidates.compactMap { player -> PlayerCareerSummary? in
+        let filtered = (store.isPro ? selectedPlayerGroupID.map { groupID in candidates.filter { $0.playerGroupIDs.contains(groupID) } } : nil) ?? candidates
+
+        var result = filtered.compactMap { player -> PlayerCareerSummary? in
             var games = 0
             var total = PlayerStats()
             var totalSeconds: TimeInterval = 0

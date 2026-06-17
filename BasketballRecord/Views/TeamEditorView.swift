@@ -8,11 +8,17 @@ struct TeamEditorView: View {
 
     @State private var name: String
     @State private var selectedPlayerIDs: Set<UUID>
+    @State private var selectedPlayerGroupID: UUID?
 
     init(team: Team?) {
         self.team = team
         _name = State(initialValue: team?.name ?? "")
         _selectedPlayerIDs = State(initialValue: Set(team?.playerIDs ?? []))
+    }
+
+    private var filteredPlayers: [Player] {
+        guard store.isPro, let groupID = selectedPlayerGroupID else { return store.players }
+        return store.players.filter { $0.playerGroupIDs.contains(groupID) }
     }
 
     var body: some View {
@@ -27,7 +33,7 @@ struct TeamEditorView: View {
                         ContentUnavailableView(LocalizedStringKey("team_no_players_hint"), systemImage: "person.crop.circle.badge.plus")
                     }
 
-                    ForEach(store.players) { player in
+                    ForEach(filteredPlayers) { player in
                         Button {
                             toggle(player.id)
                         } label: {
@@ -46,6 +52,11 @@ struct TeamEditorView: View {
             }
             .navigationTitle(LocalizedStringKey(team == nil ? "nav_new_team" : "nav_edit_team"))
             .toolbar {
+                if store.isPro {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        PlayerGroupPicker(store: store, selectedGroupID: $selectedPlayerGroupID)
+                    }
+                }
                 ToolbarItem(placement: .cancellationAction) {
                     Button(LocalizedStringKey("button_cancel")) { dismiss() }
                 }

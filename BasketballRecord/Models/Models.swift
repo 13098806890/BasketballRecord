@@ -7,6 +7,7 @@ struct Player: Identifiable, Codable, Hashable {
     var weight: String = ""
     var number: String = ""
     var photoData: Data?
+    var playerGroupIDs: [UUID] = []
 
     init(
         id: UUID = UUID(),
@@ -14,7 +15,8 @@ struct Player: Identifiable, Codable, Hashable {
         height: String = "",
         weight: String = "",
         number: String = "",
-        photoData: Data? = nil
+        photoData: Data? = nil,
+        playerGroupIDs: [UUID] = []
     ) {
         self.id = id
         self.name = name
@@ -22,6 +24,7 @@ struct Player: Identifiable, Codable, Hashable {
         self.weight = weight
         self.number = number
         self.photoData = photoData
+        self.playerGroupIDs = playerGroupIDs
     }
 
     init(from decoder: Decoder) throws {
@@ -32,6 +35,26 @@ struct Player: Identifiable, Codable, Hashable {
         weight = try container.decodeIfPresent(String.self, forKey: .weight) ?? ""
         number = try container.decodeIfPresent(String.self, forKey: .number) ?? ""
         photoData = try container.decodeIfPresent(Data.self, forKey: .photoData)
+        playerGroupIDs = try container.decodeIfPresent([UUID].self, forKey: .playerGroupIDs) ?? []
+    }
+}
+
+struct PlayerGroup: Identifiable, Codable, Hashable {
+    var id = UUID()
+    var name: String
+    var playerIDs: [UUID] = []
+
+    init(id: UUID = UUID(), name: String, playerIDs: [UUID] = []) {
+        self.id = id
+        self.name = name
+        self.playerIDs = playerIDs
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        name = try container.decode(String.self, forKey: .name)
+        playerIDs = try container.decodeIfPresent([UUID].self, forKey: .playerIDs) ?? []
     }
 }
 

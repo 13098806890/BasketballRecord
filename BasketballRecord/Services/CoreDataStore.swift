@@ -19,13 +19,16 @@ struct CoreDataStore {
         return results.compactMap { obj -> Player? in
             guard let id = obj.value(forKey: "id") as? UUID,
                   let name = obj.value(forKey: "name") as? String else { return nil }
+            let groupIDsData = obj.value(forKey: "playerGroupIDsData") as? Data
+            let playerGroupIDs = groupIDsData.flatMap { try? JSONDecoder().decode([UUID].self, from: $0) } ?? []
             return Player(
                 id: id,
                 name: name,
                 height: obj.value(forKey: "height") as? String ?? "",
                 weight: obj.value(forKey: "weight") as? String ?? "",
                 number: obj.value(forKey: "number") as? String ?? "",
-                photoData: nil
+                photoData: nil,
+                playerGroupIDs: playerGroupIDs
             )
         }
     }
@@ -39,6 +42,7 @@ struct CoreDataStore {
             obj.setValue(player.height, forKey: "height")
             obj.setValue(player.weight, forKey: "weight")
             obj.setValue(player.number, forKey: "number")
+            obj.setValue(try? JSONEncoder().encode(player.playerGroupIDs), forKey: "playerGroupIDsData")
         }
         stack.save()
     }
@@ -96,6 +100,31 @@ struct CoreDataStore {
             obj.setValue(group.description, forKey: "desc")
             obj.setValue(group.color, forKey: "colorValue")
             obj.setValue(group.createdAt, forKey: "createdAt")
+        }
+        stack.save()
+    }
+
+    // MARK: - PlayerGroup
+
+    func fetchAllPlayerGroups() -> [PlayerGroup] {
+        let request = NSFetchRequest<NSManagedObject>(entityName: "CDPlayerGroup")
+        guard let results = try? context.fetch(request) else { return [] }
+        return results.compactMap { obj -> PlayerGroup? in
+            guard let id = obj.value(forKey: "id") as? UUID,
+                  let name = obj.value(forKey: "name") as? String else { return nil }
+            let idsData = obj.value(forKey: "playerIDsData") as? Data
+            let playerIDs = idsData.flatMap { try? JSONDecoder().decode([UUID].self, from: $0) } ?? []
+            return PlayerGroup(id: id, name: name, playerIDs: playerIDs)
+        }
+    }
+
+    func savePlayerGroups(_ groups: [PlayerGroup]) {
+        deleteAll("CDPlayerGroup")
+        for group in groups {
+            let obj = NSEntityDescription.insertNewObject(forEntityName: "CDPlayerGroup", into: context)
+            obj.setValue(group.id, forKey: "id")
+            obj.setValue(group.name, forKey: "name")
+            obj.setValue(try? JSONEncoder().encode(group.playerIDs), forKey: "playerIDsData")
         }
         stack.save()
     }
@@ -195,6 +224,7 @@ struct CoreDataStore {
         deleteAll("CDPlayer")
         deleteAll("CDTeam")
         deleteAll("CDGameGroup")
+        deleteAll("CDPlayerGroup")
         deleteAll("CDSavedGame")
     }
 

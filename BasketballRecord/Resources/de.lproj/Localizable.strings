@@ -914,3 +914,18 @@ Format:
 "elo_tier_diamond" = "Diamant";
 "elo_tier_master" = "Meister";
 "elo_tier_king" = "König";
+
+"player_group_nav_title" = "Spielergruppen";
+"player_group_all_players" = "Alle Spieler";
+"player_group_add_button" = "Neue Spielergruppe";
+"player_group_edit_button" = "Spielergruppe bearbeiten";
+"player_group_name_placeholder" = "Gruppenname";
+"player_group_section_players" = "Spieler";
+"player_group_delete_confirm_title" = "Gruppe löschen?";
+"player_group_delete_confirm_message" = "Die Spieler werden nicht gelöscht, nur die Gruppe.";
+"player_group_delete_button" = "Löschen";
+"player_group_player_count" = "%d Spieler";
+"player_group_no_players_available" = "Keine Spieler verfügbar";
+"player_group_no_groups" = "Noch keine Gruppen";
+"player_group_selected_filter" = "Nach Spielergruppe filtern";
+"player_group_filter" = "Filter";

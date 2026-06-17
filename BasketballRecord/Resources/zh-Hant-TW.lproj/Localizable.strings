@@ -924,3 +924,18 @@ Format:
 "elo_tier_diamond" = "鑽石";
 "elo_tier_master" = "大師";
 "elo_tier_king" = "最強王者";
+
+"player_group_nav_title" = "球員分組";
+"player_group_all_players" = "所有球員";
+"player_group_add_button" = "新增球員分組";
+"player_group_edit_button" = "編輯球員分組";
+"player_group_name_placeholder" = "分組名稱";
+"player_group_section_players" = "球員";
+"player_group_delete_confirm_title" = "刪除分組？";
+"player_group_delete_confirm_message" = "此操作不會刪除球員，只會刪除分組。";
+"player_group_delete_button" = "刪除";
+"player_group_player_count" = "%d 名球員";
+"player_group_no_players_available" = "沒有可用的球員";
+"player_group_no_groups" = "暫無分組";
+"player_group_selected_filter" = "按球員分組篩選";
+"player_group_filter" = "篩選";

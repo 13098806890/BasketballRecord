@@ -942,3 +942,18 @@ Format:
 "elo_tier_diamond" = "다이아몬드";
 "elo_tier_master" = "마스터";
 "elo_tier_king" = "킹";
+
+"player_group_nav_title" = "선수 그룹";
+"player_group_all_players" = "모든 선수";
+"player_group_add_button" = "새 선수 그룹";
+"player_group_edit_button" = "선수 그룹 편집";
+"player_group_name_placeholder" = "그룹 이름";
+"player_group_section_players" = "선수";
+"player_group_delete_confirm_title" = "그룹을 삭제하시겠습니까？";
+"player_group_delete_confirm_message" = "선수는 삭제되지 않으며, 그룹만 삭제됩니다。";
+"player_group_delete_button" = "삭제";
+"player_group_player_count" = "선수 %d명";
+"player_group_no_players_available" = "사용 가능한 선수가 없습니다";
+"player_group_no_groups" = "아직 그룹이 없습니다";
+"player_group_selected_filter" = "선수 그룹별 필터링";
+"player_group_filter" = "필터";

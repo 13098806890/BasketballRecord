@@ -925,3 +925,18 @@ Format:
 "elo_tier_diamond" = "ダイヤモンド";
 "elo_tier_master" = "マスター";
 "elo_tier_king" = "キング";
+
+"player_group_nav_title" = "選手グループ";
+"player_group_all_players" = "すべての選手";
+"player_group_add_button" = "新規選手グループ";
+"player_group_edit_button" = "選手グループを編集";
+"player_group_name_placeholder" = "グループ名";
+"player_group_section_players" = "選手";
+"player_group_delete_confirm_title" = "グループを削除しますか？";
+"player_group_delete_confirm_message" = "選手は削除されず、グループのみが削除されます。";
+"player_group_delete_button" = "削除";
+"player_group_player_count" = "%d人の選手";
+"player_group_no_players_available" = "利用可能な選手がいません";
+"player_group_no_groups" = "グループはまだありません";
+"player_group_selected_filter" = "選手グループでフィルタリング";
+"player_group_filter" = "フィルタ";

@@ -90,6 +90,10 @@ final class AppStore: ObservableObject {
         didSet { scheduleSave() }
     }
 
+    @Published var playerGroups: [PlayerGroup] = [] {
+        didSet { scheduleSave() }
+    }
+
     @Published var hiddenCareerStatItems: Set<CareerStatItem> = [] {
         didSet { scheduleSave() }
     }
@@ -185,6 +189,7 @@ final class AppStore: ObservableObject {
         var players: [Player]
         var teams: [Team]
         var gameGroups: [GameGroup]
+        var playerGroups: [PlayerGroup]
         var hiddenCareerStatItems: Set<CareerStatItem>
         var keepsScreenAwake: Bool
         var showsBluetoothGamesButton: Bool
@@ -634,6 +639,53 @@ final class AppStore: ObservableObject {
         return gameGroups.filter { game.groupIDs.contains($0.id) }
     }
 
+    // MARK: - Player Groups
+
+    func addPlayerGroup(_ name: String) -> PlayerGroup {
+        let group = PlayerGroup(name: name)
+        playerGroups.append(group)
+        return group
+    }
+
+    func updatePlayerGroup(_ group: PlayerGroup) {
+        guard let index = playerGroups.firstIndex(where: { $0.id == group.id }) else { return }
+        playerGroups[index] = group
+    }
+
+    func deletePlayerGroup(_ groupID: UUID) {
+        playerGroups.removeAll { $0.id == groupID }
+    }
+
+    func syncPlayerGroupMembership(groupID: UUID, playerIDs: [UUID]) {
+        guard let groupIndex = playerGroups.firstIndex(where: { $0.id == groupID }) else { return }
+        let oldPlayerIDs = Set(playerGroups[groupIndex].playerIDs)
+        let newPlayerIDs = Set(playerIDs)
+        let added = newPlayerIDs.subtracting(oldPlayerIDs)
+        let removed = oldPlayerIDs.subtracting(newPlayerIDs)
+
+        var playerGroupsCopy = playerGroups
+        var playersCopy = players
+
+        playerGroupsCopy[groupIndex].playerIDs = playerIDs
+
+        for playerID in removed {
+            if let playerIndex = playersCopy.firstIndex(where: { $0.id == playerID }) {
+                playersCopy[playerIndex].playerGroupIDs.removeAll { $0 == groupID }
+            }
+        }
+        for playerID in added {
+            if let playerIndex = playersCopy.firstIndex(where: { $0.id == playerID }) {
+                if !playersCopy[playerIndex].playerGroupIDs.contains(groupID) {
+                    playersCopy[playerIndex].playerGroupIDs.append(groupID)
+                }
+            }
+        }
+
+        playerGroups = playerGroupsCopy
+        players = playersCopy
+        scheduleSave()
+    }
+
     func syncGameGroupMembership(groupID: UUID, gameIDs: [UUID]) {
         guard let groupIndex = gameGroups.firstIndex(where: { $0.id == groupID }) else { return }
         let oldGameIDs = Set(gameGroups[groupIndex].gameIDs)
@@ -807,6 +859,7 @@ final class AppStore: ObservableObject {
             players: strippedPlayers,
             teams: teams,
             gameGroups: gameGroups,
+            playerGroups: playerGroups,
             hiddenCareerStatItems: hiddenCareerStatItems,
             keepsScreenAwake: keepsScreenAwake,
             showsBluetoothGamesButton: showsBluetoothGamesButton,
@@ -839,6 +892,7 @@ final class AppStore: ObservableObject {
         coreDataStore.savePlayers(players)
         coreDataStore.saveTeams(teams)
         coreDataStore.saveGameGroups(gameGroups)
+        coreDataStore.savePlayerGroups(playerGroups)
         coreDataStore.deleteAllSavedGames()
         for game in savedGames {
             coreDataStore.upsertSavedGame(game)
@@ -865,6 +919,7 @@ final class AppStore: ObservableObject {
             players = coreDataStore.fetchAllPlayers()
             teams = coreDataStore.fetchAllTeams()
             gameGroups = coreDataStore.fetchAllGameGroups()
+            playerGroups = coreDataStore.fetchAllPlayerGroups()
             savedGames = coreDataStore.fetchAllSavedGames()
             // Restore photo data from files
             for i in players.indices {
@@ -917,6 +972,7 @@ final class AppStore: ObservableObject {
             players = restoredPlayers
             teams = meta.teams
             gameGroups = meta.gameGroups
+            playerGroups = meta.playerGroups
             hiddenCareerStatItems = meta.hiddenCareerStatItems
             keepsScreenAwake = meta.keepsScreenAwake
             showsBluetoothGamesButton = meta.showsBluetoothGamesButton
@@ -992,6 +1048,7 @@ final class AppStore: ObservableObject {
             players: restoredPlayers,
             teams: payload.teams,
             gameGroups: payload.gameGroups,
+            playerGroups: [],
             hiddenCareerStatItems: payload.hiddenCareerStatItems,
             keepsScreenAwake: payload.keepsScreenAwake,
             showsBluetoothGamesButton: payload.showsBluetoothGamesButton

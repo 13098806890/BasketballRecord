@@ -914,3 +914,18 @@ Format:
 "elo_tier_diamond" = "Diamante";
 "elo_tier_master" = "Maestro";
 "elo_tier_king" = "Re";
+
+"player_group_nav_title" = "Gruppi giocatori";
+"player_group_all_players" = "Tutti i giocatori";
+"player_group_add_button" = "Nuovo gruppo giocatori";
+"player_group_edit_button" = "Modifica gruppo giocatori";
+"player_group_name_placeholder" = "Nome gruppo";
+"player_group_section_players" = "Giocatori";
+"player_group_delete_confirm_title" = "Eliminare il gruppo?";
+"player_group_delete_confirm_message" = "I giocatori non verranno eliminati, solo il gruppo.";
+"player_group_delete_button" = "Elimina";
+"player_group_player_count" = "%d giocatori";
+"player_group_no_players_available" = "Nessun giocatore disponibile";
+"player_group_no_groups" = "Ancora nessun gruppo";
+"player_group_selected_filter" = "Filtra per gruppo giocatori";
+"player_group_filter" = "Filtro";
