@@ -1115,16 +1115,32 @@ private struct ELOComputationView: View {
                 Section(NSLocalizedString("elo_section_gs", comment: "Game Score Adjustment")) {
                     row("elo_label_player_gs", String(format: "%.1f", detail.playerGS))
                     row("elo_label_avg_gs", String(format: "%.1f", detail.avgGS))
-                    row("elo_label_gs_factor", String(format: "%.3f", detail.gsFactor))
+                    Text("Relative = \(String(format: "%.1f", detail.playerGS)) - \(String(format: "%.1f", detail.avgGS)) = \(String(format: "%.1f", detail.relativeGS))")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                    Text("perf = tanh(\(String(format: "%.1f", detail.relativeGS)) / 15) = \(String(format: "%.3f", detail.perf))")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                    Text(detail.won
+                         ? "GS_Factor = 1 + \(String(format: "%.3f", detail.perf)) \u{00d7} 0.5 = \(String(format: "%.3f", detail.gsFactorRaw))"
+                         : "GS_Factor = 1 - \(String(format: "%.3f", detail.perf)) \u{00d7} 0.5 = \(String(format: "%.3f", detail.gsFactorRaw))")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                    if detail.gsFactorClamped != detail.gsFactorRaw {
+                        Text("clamped to [0.3, 2.0] \u{2192} \(String(format: "%.3f", detail.gsFactorClamped))")
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                    row("elo_label_gs_factor", String(format: "%.3f", detail.gsFactorClamped))
                 }
 
                 Section(NSLocalizedString("elo_section_formula", comment: "Formula")) {
-                    Text("ELO = K × (Actual - Expected) × GS_Factor")
+                    Text("ELO = K \u{00d7} (Actual - Expected) \u{00d7} GS_Factor")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text("Δ = \(String(format: "%.0f", detail.K)) × (\(String(format: "%.4f", detail.actual)) - \(String(format: "%.4f", detail.expected))) × \(String(format: "%.3f", detail.gsFactor))")
+                    Text("\u{0394} = \(String(format: "%.0f", detail.K)) \u{00d7} (\(String(format: "%.4f", detail.actual)) - \(String(format: "%.4f", detail.expected))) \u{00d7} \(String(format: "%.3f", detail.gsFactorClamped))")
                         .font(.caption.monospacedDigit())
-                    Text("= \(String(format: "%.1f", detail.K * (detail.actual - detail.expected) * detail.gsFactor))")
+                    Text("= \(String(format: "%.1f", detail.K * (detail.actual - detail.expected) * detail.gsFactorClamped))")
                         .font(.caption.monospacedDigit().weight(.semibold))
                 }
             }
