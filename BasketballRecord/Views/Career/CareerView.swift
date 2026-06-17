@@ -1,9 +1,27 @@
 import SwiftUI
 
+enum PlayerSortField: String, CaseIterable {
+    case totalPoints
+    case avgPoints
+    case plusMinus
+    case elo
+
+    var title: String {
+        switch self {
+        case .totalPoints: return NSLocalizedString("sort_total_points", comment: "Total Points")
+        case .avgPoints: return NSLocalizedString("sort_avg_points", comment: "Avg Points")
+        case .plusMinus: return NSLocalizedString("stats_plus_minus", comment: "+/-")
+        case .elo: return "ELO"
+        }
+    }
+}
+
 struct CareerView: View {
     @EnvironmentObject private var store: AppStore
     @State private var boardKind: CareerBoardKind = .team
     @State private var selectedGroupID: UUID?
+    @State private var playerSortField: PlayerSortField = .avgPoints
+    @State private var playerSortAscending = false
 
     var body: some View {
         NavigationStack {
@@ -39,7 +57,11 @@ struct CareerView: View {
                 if boardKind == .team {
                     TeamCareerBoardView(selectedGroupID: $selectedGroupID)
                 } else {
-                    PlayerCareerBoardView(selectedGroupID: $selectedGroupID)
+                    PlayerCareerBoardView(
+                        selectedGroupID: $selectedGroupID,
+                        sortField: $playerSortField,
+                        sortAscending: $playerSortAscending
+                    )
                 }
             }
             .navigationTitle(LocalizedStringKey("tab_career"))
@@ -58,6 +80,7 @@ struct CareerView: View {
             FilterDefaults.save(FilterDefaults.careerKey, newValue)
         }
     }
+
 }
 
 private struct TeamCareerBoardView: View {
@@ -181,9 +204,15 @@ private struct TeamCareerBoardView: View {
 private struct PlayerCareerBoardView: View {
     @EnvironmentObject private var store: AppStore
     @Binding var selectedGroupID: UUID?
+    @Binding var sortField: PlayerSortField
+    @Binding var sortAscending: Bool
 
     var body: some View {
         List {
+            Section {
+                sortRow
+            }
+
             if summaries.isEmpty {
                 ContentUnavailableView(LocalizedStringKey("empty_no_player_data"), systemImage: "person.crop.circle.badge.questionmark")
             }
@@ -217,13 +246,60 @@ private struct PlayerCareerBoardView: View {
         .listStyle(.plain)
     }
 
+    private var sortRow: some View {
+        HStack {
+            Text(NSLocalizedString("label_sort_by", comment: "Sort by"))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Menu {
+                ForEach(PlayerSortField.allCases, id: \.self) { field in
+                    Button {
+                        if sortField == field {
+                            sortAscending.toggle()
+                        } else {
+                            sortField = field
+                            sortAscending = false
+                        }
+                    } label: {
+                        HStack {
+                            Text(field.title)
+                            if sortField == field {
+                                Image(systemName: sortAscending ? "chevron.up" : "chevron.down")
+                            }
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text(sortField.title)
+                        .font(.caption.weight(.semibold))
+                    Image(systemName: sortAscending ? "chevron.up" : "chevron.down")
+                        .font(.caption2.weight(.semibold))
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(.ultraThinMaterial, in: Capsule())
+            }
+        }
+    }
+
     private var summaries: [PlayerCareerSummary] {
-        store.players.map { player in
+        let relevantGames = selectedGroupID.map { store.gamesInGroup($0) } ?? store.savedGames
+        let rosteredIDs: Set<UUID>?
+        if selectedGroupID != nil {
+            rosteredIDs = Set(relevantGames.flatMap { $0.homePlayerIDs + $0.awayPlayerIDs })
+        } else {
+            rosteredIDs = nil
+        }
+
+        let candidates = rosteredIDs.map { ids in store.players.filter { ids.contains($0.id) } } ?? store.players
+
+        var result = candidates.compactMap { player -> PlayerCareerSummary? in
             var games = 0
             var total = PlayerStats()
             var totalSeconds: TimeInterval = 0
-
-            let relevantGames = selectedGroupID.map { store.gamesInGroup($0) } ?? store.savedGames
+            var totalPlusMinus = 0
 
             for game in relevantGames {
                 guard game.didParticipate(player.id) else { continue }
@@ -245,7 +321,12 @@ private struct PlayerCareerBoardView: View {
                 total.steals += stats.steals
                 total.turnovers += stats.turnovers
                 totalSeconds += game.snapshot.playingSecondsByPlayerID[player.id, default: 0]
+                totalPlusMinus += game.snapshot.plusMinusByPlayerID[player.id, default: 0]
             }
+
+            guard games > 0 else { return nil }
+
+            let elo = ELOEngine.computeELO(for: player.id, from: relevantGames)
 
             return PlayerCareerSummary(
                 id: player.id,
@@ -254,15 +335,32 @@ private struct PlayerCareerBoardView: View {
                 totalPoints: total.points,
                 totalRebounds: total.rebounds,
                 totalAssists: total.assists,
-                totalSeconds: totalSeconds
+                totalSeconds: totalSeconds,
+                totalPlusMinus: totalPlusMinus,
+                elo: elo
             )
         }
-        .sorted {
-            if $0.games == 0 && $1.games > 0 { return false }
-            if $1.games == 0 && $0.games > 0 { return true }
-            if $0.avgPoints == $1.avgPoints { return $0.totalPoints > $1.totalPoints }
-            return $0.avgPoints > $1.avgPoints
+
+        result.sort {
+            let ascending = sortAscending
+            let descending = !ascending
+
+            switch sortField {
+            case .totalPoints:
+                return ascending ? $0.totalPoints < $1.totalPoints : $0.totalPoints > $1.totalPoints
+            case .avgPoints:
+                if $0.avgPoints == $1.avgPoints { return $0.totalPoints > $1.totalPoints }
+                return ascending ? $0.avgPoints < $1.avgPoints : $0.avgPoints > $1.avgPoints
+            case .plusMinus:
+                if $0.totalPlusMinus == $1.totalPlusMinus { return $0.totalPoints > $1.totalPoints }
+                return ascending ? $0.totalPlusMinus < $1.totalPlusMinus : $0.totalPlusMinus > $1.totalPlusMinus
+            case .elo:
+                if $0.elo == $1.elo { return $0.totalPoints > $1.totalPoints }
+                return ascending ? $0.elo < $1.elo : $0.elo > $1.elo
+            }
         }
+
+        return result
     }
 }
 
@@ -305,6 +403,8 @@ private struct PlayerCareerSummary: Identifiable {
     var totalRebounds: Int
     var totalAssists: Int
     var totalSeconds: TimeInterval
+    var totalPlusMinus: Int = 0
+    var elo: Double = 1500
 
     var avgPoints: Double { games > 0 ? Double(totalPoints) / Double(games) : 0 }
     var avgPointsText: String { String(format: "%.1f", avgPoints) }
@@ -312,4 +412,3 @@ private struct PlayerCareerSummary: Identifiable {
     var avgAssistsText: String { String(format: "%.1f", games > 0 ? Double(totalAssists) / Double(games) : 0) }
     var avgMinutesText: String { String(format: "%.1f", games > 0 ? totalSeconds / 60 / Double(games) : 0) }
 }
-

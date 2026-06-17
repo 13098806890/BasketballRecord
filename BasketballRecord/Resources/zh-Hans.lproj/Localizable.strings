@@ -896,3 +896,6 @@ Format:
 "voice_unavailable" = "语音识别不可用";
 "voice_substitution_failed" = "换人失败";
 "voice_unrecognized_format" = "未识别：%@";
+"sort_avg_points" = "场均得分";
+"sort_total_points" = "总得分";
+"label_sort_by" = "排序";
