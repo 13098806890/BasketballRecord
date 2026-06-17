@@ -231,8 +231,9 @@ private struct PlayerCareerBoardView: View {
                                 Text(summary.name)
                                     .font(.subheadline.weight(.semibold))
                                 Spacer()
-                                Text(String(format: NSLocalizedString("career_points_format", comment: "Points format"), summary.totalPoints))
+                                Text(sortValueText(for: summary))
                                     .font(.subheadline.monospacedDigit().weight(.semibold))
+                                    .foregroundStyle(sortField == .elo ? .orange : .primary)
                             }
                             Text(String(format: NSLocalizedString("career_summary_format", comment: "Career summary"), summary.games, summary.avgPointsText, summary.avgReboundsText, summary.avgAssistsText, summary.avgMinutesText))
                                 .font(.caption.monospacedDigit())
@@ -244,6 +245,16 @@ private struct PlayerCareerBoardView: View {
             }
         }
         .listStyle(.plain)
+    }
+
+    private func sortValueText(for summary: PlayerCareerSummary) -> String {
+        switch sortField {
+        case .totalPoints: return "\(summary.totalPoints)"
+        case .avgPoints: return summary.avgPointsText
+        case .plusMinus:
+            return summary.totalPlusMinus > 0 ? "+\(summary.totalPlusMinus)" : "\(summary.totalPlusMinus)"
+        case .elo: return "ELO \(Int(summary.elo))"
+        }
     }
 
     private var sortRow: some View {
