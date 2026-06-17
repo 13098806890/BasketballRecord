@@ -15,80 +15,82 @@ struct PlayerProfileView: View {
     private var player: Player? { store.player(for: playerID) }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                header
+        ZStack {
+            ScrollView {
+                VStack(spacing: 16) {
+                    header
 
-                if fixedGame == nil {
-                    NavigationLink {
-                        PlayerGameSelectionView(games: allPlayerGames, selectedIDs: $selectedGameIDs)
-                    } label: {
-                        HStack {
-                            Label(LocalizedStringKey("button_choose_games"), systemImage: "list.bullet.rectangle")
-                                .font(.subheadline.weight(.semibold))
-                            Spacer()
-                            Text(selectionSummaryText)
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
+                    if fixedGame == nil {
+                        NavigationLink {
+                            PlayerGameSelectionView(games: allPlayerGames, selectedIDs: $selectedGameIDs)
+                        } label: {
+                            HStack {
+                                Label(LocalizedStringKey("button_choose_games"), systemImage: "list.bullet.rectangle")
+                                    .font(.subheadline.weight(.semibold))
+                                Spacer()
+                                Text(selectionSummaryText)
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(12)
+                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
                         }
-                        .padding(12)
-                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                        .buttonStyle(.plain)
+                            .padding(.horizontal)
+
+                        if store.isPro, let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(NSLocalizedString("game_group_selected_filter", comment: "Filtering by"))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text(group.name)
+                                        .font(.headline)
+                                }
+                                Spacer()
+                                Button(action: { selectedGroupID = nil }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+
                     }
-                    .buttonStyle(.plain)
+
+                    if let fixedGame, fixedGame.snapshot.periodCount > 1 {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(LocalizedStringKey("label_data_range"))
+                                .font(.headline)
+                            Picker(LocalizedStringKey("picker_period"), selection: $selectedPeriod) {
+                                Text(LocalizedStringKey("label_full_game")).tag(Optional<Int>.none)
+                                ForEach(1...fixedGame.snapshot.periodCount, id: \.self) { period in
+                                    Text(localizedFormat("label_period_number_format", period)).tag(Optional(period))
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                        }
                         .padding(.horizontal)
-
-                    if store.isPro, let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(NSLocalizedString("game_group_selected_filter", comment: "Filtering by"))
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Text(group.name)
-                                    .font(.headline)
-                            }
-                            Spacer()
-                            Button(action: { selectedGroupID = nil }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.gray)
-                            }
-                        }
-                        .padding(.horizontal)
                     }
 
-                }
 
-                if let fixedGame, fixedGame.snapshot.periodCount > 1 {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(LocalizedStringKey("label_data_range"))
-                            .font(.headline)
-                        Picker(LocalizedStringKey("picker_period"), selection: $selectedPeriod) {
-                            Text(LocalizedStringKey("label_full_game")).tag(Optional<Int>.none)
-                            ForEach(1...fixedGame.snapshot.periodCount, id: \.self) { period in
-                                Text(localizedFormat("label_period_number_format", period)).tag(Optional(period))
-                            }
-                        }
-                        .pickerStyle(.segmented)
+                    if fixedGame != nil {
+                        statSection(localized("label_this_game_stats"), rows: buildGameStatRows())
+                    } else {
+                        statSection(localized("label_career_stats"), rows: buildCareerStatRows())
+                        statSection(localized("label_average_stats"), rows: buildAverageStatRows())
                     }
-                    .padding(.horizontal)
-                }
 
-
-                if fixedGame != nil {
-                    statSection(localized("label_this_game_stats"), rows: buildGameStatRows())
-                } else {
-                    statSection(localized("label_career_stats"), rows: buildCareerStatRows())
-                    statSection(localized("label_average_stats"), rows: buildAverageStatRows())
+                    if fixedGame != nil {
+                        eventSection
+                    }
                 }
-
-                if fixedGame != nil {
-                    eventSection
-                }
+                .padding(.vertical)
             }
-            .padding(.vertical)
+            .background(Color(uiColor: UIColor { tc in
+                tc.userInterfaceStyle == .dark ? UIColor(red: 0.11, green: 0.12, blue: 0.14, alpha: 1) : UIColor(red: 0.97, green: 0.96, blue: 0.93, alpha: 1)
+            }))
         }
-        .background(Color(uiColor: UIColor { tc in
-            tc.userInterfaceStyle == .dark ? UIColor(red: 0.11, green: 0.12, blue: 0.14, alpha: 1) : UIColor(red: 0.97, green: 0.96, blue: 0.93, alpha: 1)
-        }))
         .navigationTitle(player?.name ?? localized("label_player"))
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
