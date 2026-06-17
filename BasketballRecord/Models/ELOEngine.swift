@@ -10,7 +10,10 @@ struct ELOComputationDetail: Identifiable {
     let actual: Double
     let playerGS: Double
     let avgGS: Double
-    let gsFactor: Double
+    let relativeGS: Double
+    let perf: Double
+    let gsFactorRaw: Double
+    let gsFactorClamped: Double
     let K: Double
     let won: Bool
     let isDraw: Bool
@@ -125,7 +128,10 @@ struct ELOEngine {
                     actual: actual,
                     playerGS: playerGS,
                     avgGS: avgGS,
-                    gsFactor: clampedFactor,
+                    relativeGS: relativeGS,
+                    perf: perf,
+                    gsFactorRaw: gsFactor,
+                    gsFactorClamped: clampedFactor,
                     K: K,
                     won: playerWon,
                     isDraw: isDraw
