@@ -36,7 +36,7 @@ struct CareerView: View {
                 .padding(.horizontal)
                 .padding(.top, 8)
 
-                if store.isPro, let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
+                if boardKind != .history, store.isPro, let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(NSLocalizedString("game_group_selected_filter", comment: "Filtering by"))
@@ -55,7 +55,7 @@ struct CareerView: View {
                     .padding(.top, 4)
                 }
 
-                if store.isPro, let groupID = selectedPlayerGroupID, let group = store.playerGroups.first(where: { $0.id == groupID }) {
+                if boardKind != .history, store.isPro, let groupID = selectedPlayerGroupID, let group = store.playerGroups.first(where: { $0.id == groupID }) {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(NSLocalizedString("player_group_selected_filter", comment: "Filtering by player group"))
@@ -74,9 +74,11 @@ struct CareerView: View {
                     .padding(.top, 4)
                 }
 
-                if boardKind == .team {
+                if boardKind == .history {
+                    HistoryView(embedInNavigation: false)
+                } else if boardKind == .team {
                     TeamCareerBoardView(selectedGroupID: $selectedGroupID)
-                } else {
+                } else if boardKind == .player {
                     PlayerCareerBoardView(
                         selectedGroupID: $selectedGroupID,
                         selectedPlayerGroupID: $selectedPlayerGroupID,
@@ -85,9 +87,9 @@ struct CareerView: View {
                     )
                 }
             }
-            .navigationTitle(LocalizedStringKey("tab_career"))
+            .navigationTitle(boardKind == .history ? LocalizedStringKey("nav_game_history") : LocalizedStringKey("tab_career"))
             .toolbar {
-                if store.isPro {
+                if boardKind != .history, store.isPro {
                     ToolbarItem(placement: .topBarTrailing) {
                         HStack(spacing: 8) {
                             PlayerGroupPicker(store: store, selectedGroupID: $selectedPlayerGroupID)
@@ -99,10 +101,15 @@ struct CareerView: View {
         }
         .onAppear {
             selectedGroupID = store.isPro ? FilterDefaults.load(FilterDefaults.careerKey) : nil
+            selectedPlayerGroupID = store.isPro ? FilterDefaults.load(FilterDefaults.careerPlayerGroupKey) : nil
         }
         .onChange(of: selectedGroupID) { _, newValue in
             guard store.isPro else { return }
             FilterDefaults.save(FilterDefaults.careerKey, newValue)
+        }
+        .onChange(of: selectedPlayerGroupID) { _, newValue in
+            guard store.isPro else { return }
+            FilterDefaults.save(FilterDefaults.careerPlayerGroupKey, newValue)
         }
     }
 
@@ -165,15 +172,17 @@ private struct TeamCareerBoardView: View {
 
             for game in relevantGames {
                 if game.snapshot.homeTeamID == team.id {
-                    let home = score(for: .home, in: game)
-                    let away = score(for: .away, in: game)
+                    let home = game.score(forTeamID: team.id)
+                    let awayID = game.snapshot.awayTeamID
+                    let away = awayID.map { game.score(forTeamID: $0) } ?? 0
                     games += 1
                     pointsFor += home
                     pointsAgainst += away
                     if home > away { wins += 1 } else if home < away { losses += 1 }
                 } else if game.snapshot.awayTeamID == team.id {
-                    let home = score(for: .home, in: game)
-                    let away = score(for: .away, in: game)
+                    let away = game.score(forTeamID: team.id)
+                    let homeID = game.snapshot.homeTeamID
+                    let home = homeID.map { game.score(forTeamID: $0) } ?? 0
                     games += 1
                     pointsFor += away
                     pointsAgainst += home
@@ -201,12 +210,6 @@ private struct TeamCareerBoardView: View {
         }
     }
 
-    private func score(for side: TeamSide, in game: SavedGame) -> Int {
-        let ids = side == .home ? game.homePlayerIDs : game.awayPlayerIDs
-        return ids.reduce(0) { total, playerID in
-            total + game.snapshot.statsByPlayerID[playerID, default: PlayerStats()].points
-        }
-    }
 
     private func teamCard(title: LocalizedStringKey, value: String) -> some View {
         VStack(spacing: 4) {

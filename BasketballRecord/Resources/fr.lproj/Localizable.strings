@@ -2,6 +2,7 @@
 "app_title" = "Enregistrement Basket";
 "tab_score" = "Score";
 "tab_history" = "Historique";
+"tab_management" = "Gérer";
 "tab_career" = "Carrière";
 "tab_settings" = "Réglages";
 "settings_nav_title" = "Réglages";

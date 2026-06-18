@@ -4,6 +4,7 @@ import UIKit
 enum FilterDefaults {
     static let historyKey = "historyFilterGroupID"
     static let careerKey = "careerFilterGroupID"
+    static let careerPlayerGroupKey = "careerPlayerGroupFilterID"
 
     static func load(_ key: String) -> UUID? {
         UserDefaults.standard.string(forKey: key).flatMap { UUID(uuidString: $0) }
@@ -26,14 +27,14 @@ struct ContentView: View {
 
     var body: some View {
         TabView {
+            TeamManagementHomeView()
+                .tabItem {
+                    Label(LocalizedStringKey("tab_management"), systemImage: "folder.fill")
+                }
+
             GameView()
                 .tabItem {
                     Label(LocalizedStringKey("tab_score"), systemImage: "sportscourt")
-                }
-
-            HistoryView()
-                .tabItem {
-                    Label(LocalizedStringKey("tab_history"), systemImage: "clock.arrow.circlepath")
                 }
 
             CareerView()
@@ -488,6 +489,7 @@ private enum GlobalBluetoothAlert: Identifiable {
 }
 
 enum CareerBoardKind: String, CaseIterable, Identifiable {
+    case history = "nav_game_history"
     case team = "enum_team"
     case player = "enum_player"
 

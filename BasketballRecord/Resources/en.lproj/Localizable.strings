@@ -2,6 +2,7 @@
 "app_title" = "Basketball Record";
 "tab_score" = "Score";
 "tab_history" = "History";
+"tab_management" = "Roster";
 "tab_career" = "Career";
 "tab_settings" = "Settings";
 "settings_nav_title" = "Settings";

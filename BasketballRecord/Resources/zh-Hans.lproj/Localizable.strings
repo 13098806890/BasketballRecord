@@ -21,6 +21,7 @@
 "app_title" = "篮球生涯";
 "tab_score" = "记分";
 "tab_history" = "比赛记录";
+"tab_management" = "管理";
 "tab_career" = "生涯";
 "tab_settings" = "设置";
 "settings_nav_title" = "设置";
