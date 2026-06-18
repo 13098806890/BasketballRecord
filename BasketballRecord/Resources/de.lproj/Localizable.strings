@@ -2,6 +2,7 @@
 "app_title" = "Basketball-Statistik";
 "tab_score" = "Punkte";
 "tab_history" = "Verlauf";
+"tab_management" = "Verwalten";
 "tab_career" = "Karriere";
 "tab_settings" = "Einstellungen";
 "settings_nav_title" = "Einstellungen";

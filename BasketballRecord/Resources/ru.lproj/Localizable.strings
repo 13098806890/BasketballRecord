@@ -67,6 +67,7 @@
 "app_title" = "Баскетбольный учёт";
 "tab_score" = "Счёт";
 "tab_history" = "История";
+"tab_management" = "Управление";
 "tab_career" = "Карьера";
 "tab_settings" = "Настройки";
 "settings_nav_title" = "Настройки";

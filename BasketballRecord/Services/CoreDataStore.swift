@@ -34,9 +34,13 @@ struct CoreDataStore {
     }
 
     func savePlayers(_ players: [Player]) {
-        deleteAll("CDPlayer")
+        let existingIDs = Set((try? context.fetch(NSFetchRequest<NSManagedObject>(entityName: "CDPlayer")))?.compactMap { $0.value(forKey: "id") as? UUID } ?? [])
+        let newIDs = Set(players.map(\.id))
+        let toDelete = existingIDs.subtracting(newIDs)
         for player in players {
-            let obj = NSEntityDescription.insertNewObject(forEntityName: "CDPlayer", into: context)
+            let request = NSFetchRequest<NSManagedObject>(entityName: "CDPlayer")
+            request.predicate = NSPredicate(format: "id == %@", player.id as CVarArg)
+            let obj = (try? context.fetch(request).first) ?? NSEntityDescription.insertNewObject(forEntityName: "CDPlayer", into: context)
             obj.setValue(player.id, forKey: "id")
             obj.setValue(player.name, forKey: "name")
             obj.setValue(player.height, forKey: "height")
@@ -44,7 +48,13 @@ struct CoreDataStore {
             obj.setValue(player.number, forKey: "number")
             obj.setValue(try? JSONEncoder().encode(player.playerGroupIDs), forKey: "playerGroupIDsData")
         }
-        stack.save()
+        for id in toDelete {
+            let request = NSFetchRequest<NSManagedObject>(entityName: "CDPlayer")
+            request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+            if let obj = try? context.fetch(request).first {
+                context.delete(obj)
+            }
+        }
     }
 
     // MARK: - Team
@@ -62,14 +72,24 @@ struct CoreDataStore {
     }
 
     func saveTeams(_ teams: [Team]) {
-        deleteAll("CDTeam")
+        let existingIDs = Set((try? context.fetch(NSFetchRequest<NSManagedObject>(entityName: "CDTeam")))?.compactMap { $0.value(forKey: "id") as? UUID } ?? [])
+        let newIDs = Set(teams.map(\.id))
+        let toDelete = existingIDs.subtracting(newIDs)
         for team in teams {
-            let obj = NSEntityDescription.insertNewObject(forEntityName: "CDTeam", into: context)
+            let request = NSFetchRequest<NSManagedObject>(entityName: "CDTeam")
+            request.predicate = NSPredicate(format: "id == %@", team.id as CVarArg)
+            let obj = (try? context.fetch(request).first) ?? NSEntityDescription.insertNewObject(forEntityName: "CDTeam", into: context)
             obj.setValue(team.id, forKey: "id")
             obj.setValue(team.name, forKey: "name")
             obj.setValue(try? JSONEncoder().encode(team.playerIDs), forKey: "playerIDsData")
         }
-        stack.save()
+        for id in toDelete {
+            let request = NSFetchRequest<NSManagedObject>(entityName: "CDTeam")
+            request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+            if let obj = try? context.fetch(request).first {
+                context.delete(obj)
+            }
+        }
     }
 
     // MARK: - GameGroup
@@ -92,16 +112,26 @@ struct CoreDataStore {
     }
 
     func saveGameGroups(_ groups: [GameGroup]) {
-        deleteAll("CDGameGroup")
+        let existingIDs = Set((try? context.fetch(NSFetchRequest<NSManagedObject>(entityName: "CDGameGroup")))?.compactMap { $0.value(forKey: "id") as? UUID } ?? [])
+        let newIDs = Set(groups.map(\.id))
+        let toDelete = existingIDs.subtracting(newIDs)
         for group in groups {
-            let obj = NSEntityDescription.insertNewObject(forEntityName: "CDGameGroup", into: context)
+            let request = NSFetchRequest<NSManagedObject>(entityName: "CDGameGroup")
+            request.predicate = NSPredicate(format: "id == %@", group.id as CVarArg)
+            let obj = (try? context.fetch(request).first) ?? NSEntityDescription.insertNewObject(forEntityName: "CDGameGroup", into: context)
             obj.setValue(group.id, forKey: "id")
             obj.setValue(group.name, forKey: "name")
             obj.setValue(group.description, forKey: "desc")
             obj.setValue(group.color, forKey: "colorValue")
             obj.setValue(group.createdAt, forKey: "createdAt")
         }
-        stack.save()
+        for id in toDelete {
+            let request = NSFetchRequest<NSManagedObject>(entityName: "CDGameGroup")
+            request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+            if let obj = try? context.fetch(request).first {
+                context.delete(obj)
+            }
+        }
     }
 
     // MARK: - PlayerGroup
@@ -119,14 +149,24 @@ struct CoreDataStore {
     }
 
     func savePlayerGroups(_ groups: [PlayerGroup]) {
-        deleteAll("CDPlayerGroup")
+        let existingIDs = Set((try? context.fetch(NSFetchRequest<NSManagedObject>(entityName: "CDPlayerGroup")))?.compactMap { $0.value(forKey: "id") as? UUID } ?? [])
+        let newIDs = Set(groups.map(\.id))
+        let toDelete = existingIDs.subtracting(newIDs)
         for group in groups {
-            let obj = NSEntityDescription.insertNewObject(forEntityName: "CDPlayerGroup", into: context)
+            let request = NSFetchRequest<NSManagedObject>(entityName: "CDPlayerGroup")
+            request.predicate = NSPredicate(format: "id == %@", group.id as CVarArg)
+            let obj = (try? context.fetch(request).first) ?? NSEntityDescription.insertNewObject(forEntityName: "CDPlayerGroup", into: context)
             obj.setValue(group.id, forKey: "id")
             obj.setValue(group.name, forKey: "name")
             obj.setValue(try? JSONEncoder().encode(group.playerIDs), forKey: "playerIDsData")
         }
-        stack.save()
+        for id in toDelete {
+            let request = NSFetchRequest<NSManagedObject>(entityName: "CDPlayerGroup")
+            request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+            if let obj = try? context.fetch(request).first {
+                context.delete(obj)
+            }
+        }
     }
 
     // MARK: - SavedGame
@@ -188,7 +228,6 @@ struct CoreDataStore {
         obj.setValue(game.displayName.isEmpty ? nil : game.displayName, forKey: "displayName")
         obj.setValue(game.aiSummary, forKey: "aiSummary")
         obj.setValue(try? JSONEncoder().encode(game.undoSnapshots), forKey: "undoSnapshotsData")
-        stack.save()
     }
 
     func deleteSavedGame(id: UUID) {
@@ -226,6 +265,10 @@ struct CoreDataStore {
         deleteAll("CDGameGroup")
         deleteAll("CDPlayerGroup")
         deleteAll("CDSavedGame")
+    }
+
+    func flush() {
+        stack.save()
     }
 
     // MARK: - Private

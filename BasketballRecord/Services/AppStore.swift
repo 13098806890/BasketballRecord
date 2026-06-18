@@ -75,31 +75,31 @@ final class AppStore: ObservableObject {
     }
 
     @Published var players: [Player] = [] {
-        didSet { scheduleSave() }
+        didSet { if !suppressSave { dirtyKeys.insert(.players); scheduleSave() } }
     }
 
     @Published var teams: [Team] = [] {
-        didSet { scheduleSave() }
+        didSet { if !suppressSave { dirtyKeys.insert(.teams); scheduleSave() } }
     }
 
     @Published var savedGames: [SavedGame] = [] {
-        didSet { scheduleSave() }
+        didSet { if !suppressSave { dirtyKeys.insert(.savedGames); scheduleSave() } }
     }
 
     @Published var gameGroups: [GameGroup] = [] {
-        didSet { scheduleSave() }
+        didSet { if !suppressSave { dirtyKeys.insert(.gameGroups); scheduleSave() } }
     }
 
     @Published var playerGroups: [PlayerGroup] = [] {
-        didSet { scheduleSave() }
+        didSet { if !suppressSave { dirtyKeys.insert(.playerGroups); scheduleSave() } }
     }
 
     @Published var hiddenCareerStatItems: Set<CareerStatItem> = [] {
-        didSet { scheduleSave() }
+        didSet { if !suppressSave { scheduleSave() } }
     }
 
     @Published var keepsScreenAwake = true {
-        didSet { scheduleSave() }
+        didSet { if !suppressSave { scheduleSave() } }
     }
 
     var isPro: Bool {
@@ -107,26 +107,29 @@ final class AppStore: ObservableObject {
     }
 
     @Published var showsBluetoothGamesButton = false {
-        didSet { scheduleSave() }
+        didSet { if !suppressSave { scheduleSave() } }
     }
 
     @Published var showsVoiceButton = false {
-        didSet { scheduleSave() }
+        didSet { if !suppressSave { scheduleSave() } }
     }
 
     @Published var voiceLogEnabled = true {
-        didSet { scheduleSave() }
+        didSet { if !suppressSave { scheduleSave() } }
     }
 
     @Published var customVoiceMappings: [String: String] = [:] {
-        didSet { scheduleSave() }
+        didSet { if !suppressSave { scheduleSave() } }
     }
 
     @Published var voiceLog: [VoiceLogEntry] = [] {
-        didSet { scheduleSave() }
+        didSet { if !suppressSave { scheduleSave() } }
     }
 
     @Published var cloudEnabledGameIDs: Set<UUID> = []
+    private var deletedCloudGameIDs: Set<UUID> = []
+
+    private static let deletedCloudGameIDsKey = "deleted_cloud_game_ids"
 
     func downloadFromCloud(_ game: SavedGame) {
         if !savedGames.contains(where: { $0.id == game.id }) {
@@ -136,6 +139,8 @@ final class AppStore: ObservableObject {
         if !cloudEnabledGameIDs.contains(game.id) {
             cloudEnabledGameIDs.insert(game.id)
         }
+        deletedCloudGameIDs.remove(game.id)
+        saveDeletedCloudGameIDs()
         saveCloudEnabledGameIDs()
     }
 
@@ -145,6 +150,8 @@ final class AppStore: ObservableObject {
             Task { await CloudKitManager.shared.deleteGame(gameID) }
         } else {
             cloudEnabledGameIDs.insert(gameID)
+            deletedCloudGameIDs.remove(gameID)
+            saveDeletedCloudGameIDs()
             if let game = savedGames.first(where: { $0.id == gameID }) {
                 Task { await CloudKitManager.shared.uploadGame(game) }
             }
@@ -162,6 +169,16 @@ final class AppStore: ObservableObject {
         if let ids = NSUbiquitousKeyValueStore.default.array(forKey: "cloud_enabled_game_ids") as? [String] {
             cloudEnabledGameIDs = Set(ids.compactMap(UUID.init))
         }
+        if let data = UserDefaults.standard.data(forKey: Self.deletedCloudGameIDsKey),
+           let ids = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
+            deletedCloudGameIDs = ids
+        }
+    }
+
+    private func saveDeletedCloudGameIDs() {
+        if let data = try? JSONEncoder().encode(deletedCloudGameIDs) {
+            UserDefaults.standard.set(data, forKey: Self.deletedCloudGameIDsKey)
+        }
     }
 
     private let storageKey = "basketball-record-store-v1"
@@ -170,6 +187,12 @@ final class AppStore: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     let coreDataStore = CoreDataStore()
     private var hasMigratedToCoreData = false
+    private var suppressSave = false
+
+    private enum DirtyKey: Hashable {
+        case players, teams, gameGroups, playerGroups, savedGames
+    }
+    private var dirtyKeys: Set<DirtyKey> = []
 
     // MARK: - Storage keys
     private let metaKey = "store_meta"
@@ -213,7 +236,8 @@ final class AppStore: ObservableObject {
     }
 
     func syncCloudGames() async {
-        let newGames = await CloudKitManager.shared.sync(cloudEnabledIDs: cloudEnabledGameIDs, localGames: savedGames)
+        let cloudIDs = cloudEnabledGameIDs.subtracting(deletedCloudGameIDs)
+        let newGames = await CloudKitManager.shared.sync(cloudEnabledIDs: cloudIDs, localGames: savedGames)
         guard !newGames.isEmpty else { return }
         savedGames.append(contentsOf: newGames)
         savedGames.sort { $0.savedAt > $1.savedAt }
@@ -580,9 +604,11 @@ final class AppStore: ObservableObject {
     func deleteSavedGames(ids: Set<UUID>) {
         guard !ids.isEmpty else { return }
         for id in ids {
-            cloudEnabledGameIDs.remove(id)
+            if cloudEnabledGameIDs.contains(id) {
+                deletedCloudGameIDs.insert(id)
+            }
         }
-        saveCloudEnabledGameIDs()
+        saveDeletedCloudGameIDs()
         savedGames.removeAll { ids.contains($0.id) }
     }
 
@@ -706,7 +732,7 @@ final class AppStore: ObservableObject {
         for gameID in added {
             if let gameIndex = savedGamesCopy.firstIndex(where: { $0.id == gameID }) {
                 if !savedGamesCopy[gameIndex].groupIDs.contains(groupID) {
-                    savedGamesCopy[gameIndex].groupIDs.append(gameID)
+                    savedGamesCopy[gameIndex].groupIDs.append(groupID)
                 }
             }
         }
@@ -843,18 +869,25 @@ final class AppStore: ObservableObject {
     }
 
     private func save() {
-        // Strip photoData and save as separate files
+        // Strip photoData and save as separate files (only if changed)
         var strippedPlayers = players
-        try? FileManager.default.createDirectory(at: photosDir, withIntermediateDirectories: true)
-        for i in strippedPlayers.indices {
-            if let data = strippedPlayers[i].photoData {
-                print("[Storage] Photo for \(strippedPlayers[i].name): \(data.count) bytes")
-                try? data.write(to: photoFile(for: strippedPlayers[i].id), options: .atomic)
-                strippedPlayers[i].photoData = nil
+        if dirtyKeys.contains(.players) {
+            try? FileManager.default.createDirectory(at: photosDir, withIntermediateDirectories: true)
+            for i in strippedPlayers.indices {
+                if let data = strippedPlayers[i].photoData {
+                    let fileURL = photoFile(for: strippedPlayers[i].id)
+                    let existingData = try? Data(contentsOf: fileURL)
+                    if data != existingData {
+                        try? data.write(to: fileURL, options: .atomic)
+                    }
+                }
             }
         }
+        for i in strippedPlayers.indices {
+            strippedPlayers[i].photoData = nil
+        }
 
-        // Save meta (players, teams, settings)
+        // Save meta (players, teams, settings) — always write as single blob
         let meta = StoreMeta(
             players: strippedPlayers,
             teams: teams,
@@ -869,34 +902,43 @@ final class AppStore: ObservableObject {
             voiceLogEnabled: voiceLogEnabled
         )
         safeWrite(meta, forKey: metaKey)
+        print("[SaveCheck] UserDefaults → players=\(players.count) teams=\(teams.count) gameGroups=\(gameGroups.count) playerGroups=\(playerGroups.count)")
 
-        // Save each game individually (legacy UserDefaults)
-        let gameIDs = savedGames.map(\.id)
-        safeWrite(gameIDs, forKey: gamesIndexKey)
-        for game in savedGames {
-            let ts = game.snapshot.teamStatsByID
-            let teamPts = ts.values.reduce(0) { $0 + $1.points }
-            if teamPts > 0 || game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode {
-                print("[Storage] Saving game \(game.id): teamStats=\(ts.count) keys=\(Array(ts.keys)) pts=\(teamPts) homeMode=\(game.snapshot.homeTeamStatsMode) awayMode=\(game.snapshot.awayTeamStatsMode)")
-                // Verify encoding includes the new fields
-                if let data = try? JSONEncoder().encode(game.snapshot),
-                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                    print("[Storage] Encoded keys: \(Array(json.keys))")
-                    print("[Storage] Has homeTeamStatsMode=\(json["homeTeamStatsMode"] != nil) awayTeamStatsMode=\(json["awayTeamStatsMode"] != nil) teamStatsByID=\(json["teamStatsByID"] != nil)")
+        // Save each game individually (only if games changed)
+        if dirtyKeys.contains(.savedGames) {
+            let gameIDs = savedGames.map(\.id)
+            safeWrite(gameIDs, forKey: gamesIndexKey)
+            for game in savedGames {
+                let ts = game.snapshot.teamStatsByID
+                let teamPts = ts.values.reduce(0) { $0 + $1.points }
+                if teamPts > 0 || game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode {
+                    print("[Storage] Saving game \(game.id): teamStats=\(ts.count) keys=\(Array(ts.keys)) pts=\(teamPts) homeMode=\(game.snapshot.homeTeamStatsMode) awayMode=\(game.snapshot.awayTeamStatsMode)")
+                    // Verify encoding includes the new fields
+                    if let data = try? JSONEncoder().encode(game.snapshot),
+                       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                        print("[Storage] Encoded keys: \(Array(json.keys))")
+                        print("[Storage] Has homeTeamStatsMode=\(json["homeTeamStatsMode"] != nil) awayTeamStatsMode=\(json["awayTeamStatsMode"] != nil) teamStatsByID=\(json["teamStatsByID"] != nil)")
+                    }
                 }
+                safeWrite(game, forKey: gameKey(for: game.id))
             }
-            safeWrite(game, forKey: gameKey(for: game.id))
         }
 
-        // Core Data persistence — delete stale records first to avoid zombie data
-        coreDataStore.savePlayers(players)
-        coreDataStore.saveTeams(teams)
-        coreDataStore.saveGameGroups(gameGroups)
-        coreDataStore.savePlayerGroups(playerGroups)
-        coreDataStore.deleteAllSavedGames()
-        for game in savedGames {
-            coreDataStore.upsertSavedGame(game)
+        // Core Data persistence — write only dirty entities
+        if dirtyKeys.contains(.players) { coreDataStore.savePlayers(players) }
+        if dirtyKeys.contains(.teams) { coreDataStore.saveTeams(teams) }
+        if dirtyKeys.contains(.gameGroups) { coreDataStore.saveGameGroups(gameGroups) }
+        if dirtyKeys.contains(.playerGroups) { coreDataStore.savePlayerGroups(playerGroups) }
+        print("[SaveCheck] CoreData → players=\(players.count) teams=\(teams.count) gameGroups=\(gameGroups.count) playerGroups=\(playerGroups.count)")
+        if dirtyKeys.contains(.savedGames) {
+            coreDataStore.deleteAllSavedGames()
+            for game in savedGames {
+                coreDataStore.upsertSavedGame(game)
+            }
         }
+        coreDataStore.flush()
+
+        dirtyKeys = []
     }
 
     private func scheduleSave() {
@@ -914,21 +956,25 @@ final class AppStore: ObservableObject {
     }
 
     private func load() {
+        suppressSave = true
+        defer { suppressSave = false }
         // Try loading from Core Data first
         if coreDataStore.hasData() {
-            players = coreDataStore.fetchAllPlayers()
+            var restoredPlayers = coreDataStore.fetchAllPlayers()
             teams = coreDataStore.fetchAllTeams()
             gameGroups = coreDataStore.fetchAllGameGroups()
             playerGroups = coreDataStore.fetchAllPlayerGroups()
             savedGames = coreDataStore.fetchAllSavedGames()
-            // Restore photo data from files
-            for i in players.indices {
-                let fileURL = photoFile(for: players[i].id)
+            // Restore photo data from files before final assignment
+            for i in restoredPlayers.indices {
+                let fileURL = photoFile(for: restoredPlayers[i].id)
                 if let photoData = try? Data(contentsOf: fileURL), !photoData.isEmpty {
-                    players[i].photoData = photoData
+                    restoredPlayers[i].photoData = photoData
                 }
             }
+            players = restoredPlayers
             hasMigratedToCoreData = true
+            print("[LoadCheck] CoreData → players=\(players.count) teams=\(teams.count) gameGroups=\(gameGroups.count) playerGroups=\(playerGroups.count) savedGames=\(savedGames.count)")
             for game in savedGames {
                 let ts = game.snapshot.teamStatsByID
                 let teamPts = ts.values.reduce(0) { $0 + $1.points }
@@ -937,26 +983,24 @@ final class AppStore: ObservableObject {
                 }
             }
 
-            // Voice metadata is stored only in UserDefaults, not Core Data
+            // Voice and group metadata is stored in UserDefaults as well
             if let meta: StoreMeta = safeRead(StoreMeta.self, forKey: metaKey) {
                 if let cm = meta.customVoiceMappings { customVoiceMappings = cm }
                 if let vl = meta.voiceLog { voiceLog = vl }
                 showsVoiceButton = meta.showsVoiceButton ?? false
                 voiceLogEnabled = meta.voiceLogEnabled ?? true
+                if playerGroups.isEmpty, !meta.playerGroups.isEmpty {
+                    playerGroups = meta.playerGroups
+                    print("[LoadCheck] Fallback UserDefaults → playerGroups=\(meta.playerGroups.count)")
+                }
+                if gameGroups.isEmpty, !meta.gameGroups.isEmpty {
+                    gameGroups = meta.gameGroups
+                    print("[LoadCheck] Fallback UserDefaults → gameGroups=\(meta.gameGroups.count)")
+                }
             }
             return
         }
 
-        // Try loading from the old monolithic format first (migration)
-        if UserDefaults.standard.data(forKey: metaKey) == nil, migrateFromLegacyStorage() {
-            // Safe to clean up old storage only after migration fully succeeded
-            UserDefaults.standard.removeObject(forKey: storageKey)
-            let oldFile = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-                .appendingPathComponent("appstore_v2.json")
-            try? FileManager.default.removeItem(at: oldFile)
-            migrateToCoreData()
-            return
-        }
 
         // Load meta (players, teams, settings)
         if let meta: StoreMeta = safeRead(StoreMeta.self, forKey: metaKey) {
@@ -1007,84 +1051,8 @@ final class AppStore: ObservableObject {
     private func migrateToCoreData() {
         guard !hasMigratedToCoreData else { return }
         hasMigratedToCoreData = true
+        dirtyKeys = [.players, .teams, .gameGroups, .playerGroups, .savedGames]
         save()
-    }
-
-    /// Migrate from old monolithic UserDefaults or file storage to split keys
-    private func migrateFromLegacyStorage() -> Bool {
-        // Check for old file-based storage first
-        let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            .appendingPathComponent("appstore_v2.json")
-        var data = try? Data(contentsOf: fileURL)
-        var source = "file"
-        if data == nil {
-            data = UserDefaults.standard.data(forKey: storageKey)
-            source = "userdefaults"
-        }
-        guard let storeData = data else {
-            print("[Migration] No legacy data found")
-            return false
-        }
-
-        print("[Migration] Found \(source) data: \(storeData.count) bytes")
-        guard let payload = try? JSONDecoder().decode(StorePayload.self, from: storeData) else {
-            print("[Migration] Failed to decode legacy data (may be corrupted)")
-            // Keep old data around for debugging, but don't use it
-            return false
-        }
-        print("[Migration] Decoded \(payload.savedGames.count) games, \(payload.players.count) players")
-
-        // Migrate to new split format
-        var restoredPlayers = payload.players
-        try? FileManager.default.createDirectory(at: photosDir, withIntermediateDirectories: true)
-        for i in restoredPlayers.indices {
-            if let photoData = restoredPlayers[i].photoData {
-                try? photoData.write(to: photoFile(for: restoredPlayers[i].id), options: .atomic)
-                restoredPlayers[i].photoData = nil
-            }
-        }
-
-        let meta = StoreMeta(
-            players: restoredPlayers,
-            teams: payload.teams,
-            gameGroups: payload.gameGroups,
-            playerGroups: [],
-            hiddenCareerStatItems: payload.hiddenCareerStatItems,
-            keepsScreenAwake: payload.keepsScreenAwake,
-            showsBluetoothGamesButton: payload.showsBluetoothGamesButton
-        )
-        if let data = try? JSONEncoder().encode(meta) {
-            UserDefaults.standard.set(data, forKey: metaKey)
-        }
-
-        let gameIDs = payload.savedGames.map(\.id)
-        if let data = try? JSONEncoder().encode(gameIDs) {
-            UserDefaults.standard.set(data, forKey: gamesIndexKey)
-        }
-        for game in payload.savedGames {
-            if let data = try? JSONEncoder().encode(game) {
-                UserDefaults.standard.set(data, forKey: gameKey(for: game.id))
-            }
-        }
-
-        print("[Migration] Migration complete: \(payload.savedGames.count) games, \(payload.players.count) players")
-
-        // Set loaded data
-        players = restoredPlayers
-        teams = payload.teams
-        savedGames = payload.savedGames
-        gameGroups = payload.gameGroups
-        hiddenCareerStatItems = payload.hiddenCareerStatItems
-        keepsScreenAwake = payload.keepsScreenAwake
-        showsBluetoothGamesButton = payload.showsBluetoothGamesButton
-
-        // Clean up old storage
-        if source == "file" {
-            try? FileManager.default.removeItem(at: fileURL)
-        }
-        UserDefaults.standard.removeObject(forKey: storageKey)
-
-        return true
     }
 
     private func seedSampleData() {
@@ -1462,44 +1430,4 @@ final class AppStore: ObservableObject {
     }
 }
 
-private struct StorePayload: Codable {
-    var players: [Player]
-    var teams: [Team]
-    var savedGames: [SavedGame]
-    var gameGroups: [GameGroup]
-    var hiddenCareerStatItems: Set<CareerStatItem>
-    var keepsScreenAwake: Bool
-    var showsBluetoothGamesButton: Bool
 
-    init(
-        players: [Player],
-        teams: [Team],
-        savedGames: [SavedGame] = [],
-        gameGroups: [GameGroup] = [],
-        hiddenCareerStatItems: Set<CareerStatItem> = [],
-        keepsScreenAwake: Bool = true,
-        showsBluetoothGamesButton: Bool = false
-    ) {
-        self.players = players
-        self.teams = teams
-        self.savedGames = savedGames
-        self.gameGroups = gameGroups
-        self.hiddenCareerStatItems = hiddenCareerStatItems
-        self.keepsScreenAwake = keepsScreenAwake
-        self.showsBluetoothGamesButton = showsBluetoothGamesButton
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        players = try container.decode([Player].self, forKey: .players)
-        teams = try container.decode([Team].self, forKey: .teams)
-        savedGames = try container.decodeIfPresent([SavedGame].self, forKey: .savedGames) ?? []
-        gameGroups = try container.decodeIfPresent([GameGroup].self, forKey: .gameGroups) ?? []
-        hiddenCareerStatItems = try container.decodeIfPresent(Set<CareerStatItem>.self, forKey: .hiddenCareerStatItems) ?? []
-        keepsScreenAwake = try container.decodeIfPresent(Bool.self, forKey: .keepsScreenAwake) ?? true
-        showsBluetoothGamesButton = try container.decodeIfPresent(Bool.self, forKey: .showsBluetoothGamesButton) ?? false
-        // Backward compat: ignore legacy showsSimulationButton
-        let legacyContainer = try decoder.container(keyedBy: AnyCodingKey.self)
-        _ = try? legacyContainer.decodeIfPresent(Bool.self, forKey: AnyCodingKey(stringValue: "showsSimulationButton"))
-    }
-}

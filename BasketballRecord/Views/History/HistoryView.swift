@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HistoryView: View {
     @EnvironmentObject private var store: AppStore
+    var embedInNavigation: Bool = true
     @State private var searchText = ""
     @State private var selectedGroupID: UUID?
     @State private var isShowingImport = false
@@ -10,107 +11,226 @@ struct HistoryView: View {
     @State private var isLoadingGames = true
     @State private var loadTask: Task<Void, Never>?
     @State private var pendingSwipeDeleteGame: SavedGame?
+    @State private var expandedSections: Set<String> = []
 
     var body: some View {
-        NavigationStack {
-            List {
-                if store.isPro, let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
-                    Section {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(NSLocalizedString("game_group_selected_filter", comment: "Filtering by"))
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Text(group.name)
+        Group {
+            if embedInNavigation {
+                NavigationStack {
+                    List {
+                        if store.isPro, let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
+                            Section {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(NSLocalizedString("game_group_selected_filter", comment: "Filtering by"))
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                        Text(group.name)
+                                            .font(.headline)
+                                    }
+                                    Spacer()
+                                    Button(action: { selectedGroupID = nil }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundColor(.gray)
+                                    }
+                                }
+                            }
+                        }
+
+                        if !isLoadingGames, filteredGames.isEmpty {
+                            ContentUnavailableView(LocalizedStringKey("empty_no_game_history"), systemImage: "clock.badge.questionmark")
+                        }
+
+                        ForEach(monthGroups) { group in
+                            DisclosureGroup(isExpanded: Binding(
+                                get: { expandedSections.contains(group.id) },
+                                set: { expanded in
+                                    if expanded { expandedSections.insert(group.id) }
+                                    else { expandedSections.remove(group.id) }
+                                }
+                            )) {
+                                ForEach(group.games) { game in
+                                    NavigationLink {
+                                        SavedGameDetailView(game: game)
+                                    } label: {
+                                        SavedGameRow(game: game)
+                                    }
+                                    .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                                        if store.isPro {
+                                            Button {
+                                                store.toggleCloudStorage(for: game.id)
+                                            } label: {
+                                                Label("iCloud", systemImage: store.cloudEnabledGameIDs.contains(game.id) ? "icloud.slash" : "icloud")
+                                            }
+                                            .tint(.blue)
+                                        }
+                                        Button {
+                                            if let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) {
+                                                store.savedGames[idx].isLocked.toggle()
+                                            }
+                                        } label: {
+                                            Label(LocalizedStringKey(game.isLocked ? "label_unlock" : "label_lock"), systemImage: game.isLocked ? "lock.open" : "lock")
+                                        }
+                                        .tint(.orange)
+                                    }
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                        if !game.isLocked {
+                                            Button {
+                                                pendingSwipeDeleteGame = game
+                                            } label: {
+                                                Label(LocalizedStringKey("label_delete"), systemImage: "trash")
+                                            }
+                                            .tint(.red)
+                                        }
+                                    }
+                                }
+                            } label: {
+                                Text(group.title)
                                     .font(.headline)
                             }
-                            Spacer()
-                            Button(action: { selectedGroupID = nil }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.gray)
-                            }
                         }
                     }
-                }
+                    .navigationTitle(LocalizedStringKey("nav_game_history"))
+                    .overlay {
+                        if isLoadingGames {
+                            VStack(spacing: 10) {
+                                ProgressView()
+                                Text(LocalizedStringKey("loading_games"))
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        }
+                    }
+                    .searchable(text: $searchText, prompt: LocalizedStringKey("search_player_prompt"))
+                    .toolbar {
+                        ToolbarItemGroup(placement: .topBarTrailing) {
+                            if store.isPro {
+                                GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
+                            }
 
-                if !isLoadingGames, filteredGames.isEmpty {
-                    ContentUnavailableView(LocalizedStringKey("empty_no_game_history"), systemImage: "clock.badge.questionmark")
-                }
-
-                ForEach(monthGroups) { group in
-                    DisclosureGroup {
-                        ForEach(group.games) { game in
-                            NavigationLink {
-                                SavedGameDetailView(game: game)
+                            Button {
+                                isShowingDelete = true
                             } label: {
-                                SavedGameRow(game: game)
+                                Label(LocalizedStringKey("label_delete"), systemImage: "trash")
                             }
-                            .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                                if store.isPro {
-                                    Button {
-                                        store.toggleCloudStorage(for: game.id)
-                                    } label: {
-                                        Label("iCloud", systemImage: store.cloudEnabledGameIDs.contains(game.id) ? "icloud.slash" : "icloud")
-                                    }
-                                    .tint(.blue)
-                                }
-                                Button {
-                                    if let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) {
-                                        store.savedGames[idx].isLocked.toggle()
-                                    }
-                                } label: {
-                                    Label(LocalizedStringKey(game.isLocked ? "label_unlock" : "label_lock"), systemImage: game.isLocked ? "lock.open" : "lock")
-                                }
-                                .tint(.orange)
+
+                            Button {
+                                isShowingImport = true
+                            } label: {
+                                Label(LocalizedStringKey("label_import"), systemImage: TransferSymbol.importData)
                             }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                if !game.isLocked {
-                                    Button {
-                                        pendingSwipeDeleteGame = game
-                                    } label: {
-                                        Label(LocalizedStringKey("label_delete"), systemImage: "trash")
-                                    }
-                                    .tint(.red)
+                        }
+                    }
+                }
+            } else {
+                List {
+                    if store.isPro, let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
+                        Section {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(NSLocalizedString("game_group_selected_filter", comment: "Filtering by"))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text(group.name)
+                                        .font(.headline)
+                                }
+                                Spacer()
+                                Button(action: { selectedGroupID = nil }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.gray)
                                 }
                             }
                         }
-                    } label: {
-                        Text(group.title)
-                            .font(.headline)
+                    }
+
+                    if !isLoadingGames, filteredGames.isEmpty {
+                        ContentUnavailableView(LocalizedStringKey("empty_no_game_history"), systemImage: "clock.badge.questionmark")
+                    }
+
+                    ForEach(monthGroups) { group in
+                        DisclosureGroup(isExpanded: Binding(
+                            get: { expandedSections.contains(group.id) },
+                            set: { expanded in
+                                if expanded { expandedSections.insert(group.id) }
+                                else { expandedSections.remove(group.id) }
+                            }
+                        )) {
+                            ForEach(group.games) { game in
+                                NavigationLink {
+                                    SavedGameDetailView(game: game)
+                                } label: {
+                                    SavedGameRow(game: game)
+                                }
+                                .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                                    if store.isPro {
+                                        Button {
+                                            store.toggleCloudStorage(for: game.id)
+                                        } label: {
+                                            Label("iCloud", systemImage: store.cloudEnabledGameIDs.contains(game.id) ? "icloud.slash" : "icloud")
+                                        }
+                                        .tint(.blue)
+                                    }
+                                    Button {
+                                        if let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) {
+                                            store.savedGames[idx].isLocked.toggle()
+                                        }
+                                    } label: {
+                                        Label(LocalizedStringKey(game.isLocked ? "label_unlock" : "label_lock"), systemImage: game.isLocked ? "lock.open" : "lock")
+                                    }
+                                    .tint(.orange)
+                                }
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    if !game.isLocked {
+                                        Button {
+                                            pendingSwipeDeleteGame = game
+                                        } label: {
+                                            Label(LocalizedStringKey("label_delete"), systemImage: "trash")
+                                        }
+                                        .tint(.red)
+                                    }
+                                }
+                            }
+                        } label: {
+                            Text(group.title)
+                                .font(.headline)
+                        }
                     }
                 }
-        }
-        .navigationTitle(LocalizedStringKey("nav_game_history"))
-        .overlay {
-            if isLoadingGames {
-                VStack(spacing: 10) {
-                    ProgressView()
-                    Text(LocalizedStringKey("loading_games"))
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                .overlay {
+                    if isLoadingGames {
+                        VStack(spacing: 10) {
+                            ProgressView()
+                            Text(LocalizedStringKey("loading_games"))
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-            }
-        }
-        .searchable(text: $searchText, prompt: LocalizedStringKey("search_player_prompt"))
-        .toolbar {
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                if store.isPro {
-                    GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
-                }
+                .searchable(text: $searchText, prompt: LocalizedStringKey("search_player_prompt"))
+                .toolbar {
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        if store.isPro {
+                            GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
+                        }
 
-                Button {
-                    isShowingDelete = true
-                } label: {
-                    Label(LocalizedStringKey("label_delete"), systemImage: "trash")
-                }
+                        Button {
+                            isShowingDelete = true
+                        } label: {
+                            Label(LocalizedStringKey("label_delete"), systemImage: "trash")
+                        }
 
-                Button {
-                    isShowingImport = true
-                } label: {
-                    Label(LocalizedStringKey("label_import"), systemImage: TransferSymbol.importData)
+                        Button {
+                            isShowingImport = true
+                        } label: {
+                            Label(LocalizedStringKey("label_import"), systemImage: TransferSymbol.importData)
+                        }
+                    }
                 }
             }
         }
@@ -126,10 +246,23 @@ struct HistoryView: View {
         }
         .onChange(of: store.savedGames) { _, _ in
             loadGamesAsync(showLoading: false)
+            let validIDs = Set(monthGroups.map(\.id))
+            if expandedSections != expandedSections.intersection(validIDs) {
+                expandedSections = expandedSections.intersection(validIDs)
+            }
         }
         .onChange(of: selectedGroupID) { _, newValue in
             guard store.isPro else { return }
             FilterDefaults.save(FilterDefaults.historyKey, newValue)
+            let validIDs = Set(monthGroups.map(\.id))
+            if expandedSections != expandedSections.intersection(validIDs) {
+                expandedSections = expandedSections.intersection(validIDs)
+            }
+        }
+        .onChange(of: expandedSections) { _, newValue in
+            if let data = try? JSONEncoder().encode(newValue) {
+                UserDefaults.standard.set(data, forKey: "expanded_sections")
+            }
         }
             .alert(LocalizedStringKey("alert_confirm_delete_game_title"), isPresented: Binding(
                 get: { pendingSwipeDeleteGame != nil },
@@ -147,7 +280,6 @@ struct HistoryView: View {
             } message: {
                 Text(LocalizedStringKey("text_irreversible_deletion"))
             }
-        }
     }
 
     private var filteredGames: [SavedGame] {
@@ -199,11 +331,14 @@ struct HistoryView: View {
             await MainActor.run {
                 displayedGames = sortedGames
                 isLoadingGames = false
+                if let data = UserDefaults.standard.data(forKey: "expanded_sections"),
+                   let ids = try? JSONDecoder().decode(Set<String>.self, from: data) {
+                    let validIDs = Set(sortedGames.map { "\(Calendar.current.component(.year, from: $0.savedAt))-\(Calendar.current.component(.month, from: $0.savedAt))" })
+                    expandedSections = ids.intersection(validIDs)
+                }
             }
         }
     }
-}
-
 private struct DeleteSavedGamesView: View {
     @EnvironmentObject private var store: AppStore
     @Environment(\.dismiss) private var dismiss
@@ -374,5 +509,6 @@ private struct SavedGameRow: View {
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
         return formatter
     }()
+}
 }
 

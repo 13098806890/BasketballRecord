@@ -13,7 +13,6 @@ func localizedFormat(_ key: String, _ args: CVarArg...) -> String {
 
 struct RosterView: View {
     @EnvironmentObject private var store: AppStore
-    @State private var showingCreateEntry = false
     @State private var showingRosterImport = false
     @State private var showingMergeEntry = false
     @State private var showingDeepSeekConfig = false
@@ -93,76 +92,6 @@ struct RosterView: View {
                         settingsRow(
                             title: LocalizedStringKey("section_pro"),
                             systemImage: "crown.fill",
-                            countText: nil,
-                            showsDisclosure: true
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                Section(LocalizedStringKey("settings_section_data_management")) {
-                    NavigationLink {
-                        GameGroupManagementView(store: store)
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("game_group_nav_title"),
-                            systemImage: "folder.fill",
-                            countText: "\(store.gameGroups.count)"
-                        )
-                    }
-                    .disabled(!store.isPro)
-                    .overlay {
-                        if !store.isPro {
-                            Color.clear
-                                .contentShape(Rectangle())
-                                .onTapGesture { isShowingPurchase = true }
-                        }
-                    }
-
-                    NavigationLink {
-                        PlayerGroupManagementView(store: store)
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("player_group_nav_title"),
-                            systemImage: "person.2.fill",
-                            countText: "\(store.playerGroups.count)"
-                        )
-                    }
-                    .disabled(!store.isPro)
-                    .overlay {
-                        if !store.isPro {
-                            Color.clear
-                                .contentShape(Rectangle())
-                                .onTapGesture { isShowingPurchase = true }
-                        }
-                    }
-
-                    NavigationLink {
-                        TeamManagementView()
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("settings_teams"),
-                            systemImage: "person.3.fill",
-                            countText: "\(store.teams.count)"
-                        )
-                    }
-
-                    NavigationLink {
-                        PlayerManagementView()
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("settings_players"),
-                            systemImage: "person.crop.circle.fill",
-                            countText: "\(store.players.count)"
-                        )
-                    }
-
-                    Button {
-                        showingCreateEntry = true
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("settings_new"),
-                            systemImage: "plus.circle.fill",
                             countText: nil,
                             showsDisclosure: true
                         )
@@ -269,9 +198,6 @@ struct RosterView: View {
                 }
             }
             .navigationTitle(LocalizedStringKey("settings_nav_title"))
-            .sheet(isPresented: $showingCreateEntry) {
-                CreateRosterItemView()
-            }
             .sheet(isPresented: $showingRosterImport) {
                 ImportRosterPackageView()
             }
@@ -1009,7 +935,7 @@ private struct SettingsFeatureItem: Identifiable {
     }
 }
 
-private struct TeamManagementView: View {
+struct TeamManagementView: View {
     @EnvironmentObject private var store: AppStore
     @State private var exportingTeam: Team?
     @State private var editingTeam: Team?
@@ -1059,7 +985,7 @@ private struct TeamManagementView: View {
     }
 }
 
-private struct PlayerManagementView: View {
+struct PlayerManagementView: View {
     @EnvironmentObject private var store: AppStore
     @State private var exportingPlayer: Player?
     @State private var editingPlayer: Player?
@@ -1140,7 +1066,7 @@ private func rosterPlayerSubtitle(_ player: Player) -> String {
     return parts.isEmpty ? NSLocalizedString("player_profile_missing_basic", comment: "Missing player basics") : parts.joined(separator: " · ")
 }
 
-private struct CreateRosterItemView: View {
+struct CreateRosterItemView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var kind: RosterImportKind = .player
     @State private var showingPlayerEditor = false

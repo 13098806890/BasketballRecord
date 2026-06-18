@@ -2,6 +2,7 @@
 "app_title" = "농구 기록";
 "tab_score" = "점수";
 "tab_history" = "기록";
+"tab_management" = "관리";
 "tab_career" = "커리어";
 "tab_settings" = "설정";
 "settings_nav_title" = "설정";

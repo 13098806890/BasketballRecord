@@ -2,6 +2,7 @@
 "app_title" = "Registro de Baloncesto";
 "tab_score" = "Puntuación";
 "tab_history" = "Historial";
+"tab_management" = "Administrar";
 "tab_career" = "Carrera";
 "tab_settings" = "Configuración";
 "settings_nav_title" = "Configuración";

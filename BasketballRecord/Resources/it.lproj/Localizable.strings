@@ -2,6 +2,7 @@
 "app_title" = "Registro Basket";
 "tab_score" = "Punteggio";
 "tab_history" = "Storico";
+"tab_management" = "Gestisci";
 "tab_career" = "Carriera";
 "tab_settings" = "Impostazioni";
 "settings_nav_title" = "Impostazioni";
