@@ -47,21 +47,19 @@ struct PlayerEditorView: View {
                     TextField(LocalizedStringKey("placeholder_name_required"), text: $name)
                     TextField(LocalizedStringKey("placeholder_number"), text: $number)
                         .keyboardType(.numberPad)
-                    LabeledContent(LocalizedStringKey("placeholder_height_cm")) {
-                        TextField("", text: $height)
+                    HStack(spacing: 0) {
+                        TextField(LocalizedStringKey("placeholder_height_cm"), text: $height)
                             .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
                         Text(UnitSettings.editorHeightUnitLabel())
                             .foregroundStyle(.secondary)
-                            .padding(.leading, 2)
+                            .padding(.leading, 4)
                     }
-                    LabeledContent(LocalizedStringKey("placeholder_weight_kg")) {
-                        TextField("", text: $weight)
+                    HStack(spacing: 0) {
+                        TextField(LocalizedStringKey("placeholder_weight_kg"), text: $weight)
                             .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
                         Text(UnitSettings.editorWeightUnitLabel())
                             .foregroundStyle(.secondary)
-                            .padding(.leading, 2)
+                            .padding(.leading, 4)
                     }
                 }
 
