@@ -4,8 +4,8 @@ def resolve_api_key
   candidates = [
     { id: "5S6Z4A6475", path: "/Users/doxie/Downloads/AuthKey_5S6Z4A6475.p8" },
     { id: "5S6Z4A6475", path: "/Users/xiedongze/Downloads/AuthKey_5S6Z4A6475.p8" },
-    { id: "TD5N27BDJA", path: "/Users/xiedongze/Downloads/AuthKey_TD5N27BDJA.p8" },
     { id: "JHM8W2D4BX", path: "/Users/xiedongze/Downloads/AuthKey_JHM8W2D4BX.p8" },
+    { id: "TD5N27BDJA", path: "/Users/xiedongze/Downloads/AuthKey_TD5N27BDJA.p8" },
   ]
   candidates.each do |c|
     if File.exist?(c[:path])
