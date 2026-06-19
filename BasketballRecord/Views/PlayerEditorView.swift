@@ -47,20 +47,20 @@ struct PlayerEditorView: View {
                     TextField(LocalizedStringKey("placeholder_name_required"), text: $name)
                     TextField(LocalizedStringKey("placeholder_number"), text: $number)
                         .keyboardType(.numberPad)
-                    HStack {
+                    HStack(spacing: 0) {
                         TextField(LocalizedStringKey("placeholder_height_cm"), text: $height)
                             .keyboardType(.decimalPad)
                         Text(UnitSettings.editorHeightUnitLabel())
                             .foregroundStyle(.secondary)
+                            .padding(.leading, 4)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    HStack {
+                    HStack(spacing: 0) {
                         TextField(LocalizedStringKey("placeholder_weight_kg"), text: $weight)
                             .keyboardType(.decimalPad)
                         Text(UnitSettings.editorWeightUnitLabel())
                             .foregroundStyle(.secondary)
+                            .padding(.leading, 4)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
                 Section(LocalizedStringKey("section_uuid")) {
