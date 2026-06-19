@@ -1,5 +1,16 @@
 # Release Notes
 
+## 1.26 (2026-06-19)
+
+### 修复
+
+- **Form 单元格分隔线缺失**：「球员编辑」页面身高/体重行因 HStack 包裹 TextField 导致分隔线消失，改用 padding+overlay 方案保留原始 Form 层级结构。
+
+### 改进
+
+- **Fastfile API Key 解析优化**：新增 `resolve_api_key` 方法，按历史活跃顺序尝试多个已知 key_id/key_path，兜底扫描 `~/Downloads/AuthKey_*.p8`，适配不同开发环境。
+- **清理过时文档**：移除 fastlane README 中已不存在的 `check_metadata` lane 说明。
+
 ## 1.25 (2026-06-19)
 
 ### 新增
