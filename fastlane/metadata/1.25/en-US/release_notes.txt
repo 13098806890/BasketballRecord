@@ -1,0 +1,9 @@
+• Voice scoring is now FREE for everyone – no subscription required
+• Choose voice recognition language independently from app language (10 languages)
+• New voice tutorial with 19 interactive tasks to master voice commands
+• Height/weight unit settings now support cm/ft-in and kg/lbs
+• New "Manage" tab to organize teams, players, and game groups
+• ELO rating system added to player career pages
+• Player list sorting by total points, average points, +/-, and ELO
+• Improved English voice recognition with Levenshtein and anchor matching
+• Team stats comparison now highlights the leader

@@ -1,0 +1,9 @@
+• Sprachsteuerung jetzt für alle kostenlos – kein Abo erforderlich
+• Sprache für Spracherkennung unabhängig von App-Sprache wählbar (10 Sprachen)
+• Neues Sprach-Tutorial mit 19 interaktiven Aufgaben
+• Einheiten für Größe/Gewicht (cm/ft-in, kg/lbs) einstellbar
+• Neuer „Verwalten“-Tab für Teams, Spieler und Gruppen
+• ELO-Rating-System für Spielerkarrieren hinzugefügt
+• Spielerliste sortierbar nach Gesamtpunkten, Durchschnitt, +/- und ELO
+• Englische Spracherkennung optimiert mit Levenshtein- und Anker-Matching
+• Teamstatistik-Vergleich hebt den Führenden hervor
