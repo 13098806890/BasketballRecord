@@ -1,14 +1,42 @@
 default_platform(:ios)
 
+def resolve_api_key
+  candidates = [
+    { id: "5S6Z4A6475", path: "/Users/doxie/Downloads/AuthKey_5S6Z4A6475.p8" },
+    { id: "5S6Z4A6475", path: "/Users/xiedongze/Downloads/AuthKey_5S6Z4A6475.p8" },
+    { id: "TD5N27BDJA", path: "/Users/xiedongze/Downloads/AuthKey_TD5N27BDJA.p8" },
+    { id: "JHM8W2D4BX", path: "/Users/xiedongze/Downloads/AuthKey_JHM8W2D4BX.p8" },
+  ]
+  candidates.each do |c|
+    if File.exist?(c[:path])
+      UI.message("Using API key: #{c[:id]} (#{c[:path]})")
+      return c[:id], c[:path]
+    end
+  end
+
+  # fallback: scan ~/Downloads for any AuthKey_*.p8
+  Dir["#{Dir.home}/Downloads/AuthKey_*.p8"].each do |f|
+    m = f.match(/AuthKey_(\w+)\.p8$/)
+    if m
+      UI.message("Falling back to API key: #{m[1]} (#{f})")
+      return m[1], f
+    end
+  end
+
+  UI.user_error!("Could not find App Store Connect API key (.p8) in any known location")
+end
+
 platform :ios do
   desc "Upload metadata for a specific version to App Store Connect"
   lane :upload_metadata do |options|
     version = options[:version] || "1.20"
 
+    key_id, key_filepath = resolve_api_key
+
     api_key = app_store_connect_api_key(
-      key_id: "5S6Z4A6475",
+      key_id: key_id,
       issuer_id: "50853c64-5d54-42f0-85aa-a6e291d5066b",
-      key_filepath: "/Users/doxie/Downloads/AuthKey_5S6Z4A6475.p8"
+      key_filepath: key_filepath
     )
 
     deliver(
@@ -29,10 +57,12 @@ platform :ios do
   lane :release do |options|
     version = options[:version] || "1.20"
 
+    key_id, key_filepath = resolve_api_key
+
     api_key = app_store_connect_api_key(
-      key_id: "5S6Z4A6475",
+      key_id: key_id,
       issuer_id: "50853c64-5d54-42f0-85aa-a6e291d5066b",
-      key_filepath: "/Users/doxie/Downloads/AuthKey_5S6Z4A6475.p8"
+      key_filepath: key_filepath
     )
 
     app = Spaceship::ConnectAPI::App.find("com.xiedongze.BasketballRecord")
