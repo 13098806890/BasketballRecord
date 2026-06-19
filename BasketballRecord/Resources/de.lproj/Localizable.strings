@@ -14,6 +14,7 @@
 "settings_teams" = "Teams";
 "settings_players" = "Spieler";
 "settings_new" = "Neu";
+"settings_section_units" = "Einheiten";
 "settings_section_sync_import" = "Synchronisierung & Import";
 "settings_bluetooth_sync" = "Bluetooth-Synchronisierung";
 "nav_bluetooth_sync" = "Bluetooth-Synchronisierung";
@@ -851,7 +852,17 @@ Format:
 "section_nearby_devices" = "Geräte in der Nähe";
 "stats_games" = "G";
 "settings_voice" = "Sprache";
+"settings_voice_locale" = "Sprache für Spracheingabe";
+"settings_voice_locale_follow_app" = "App-Sprache verwenden";
+"settings_voice_locale_footer" = "Wählen Sie die Sprache für die Spracherkennung. Dies betrifft sowohl die Spielseite als auch das Tutorial.";
+
 "settings_voice_instruction" = "Sprachanleitung";
+"voice_instruction_shots" = "Wurf";
+"voice_instruction_stats" = "Statistiken";
+"voice_instruction_substitution" = "Auswechslung";
+"voice_instruction_period" = "Spielabschnitt & Pause";
+"voice_instruction_shortcuts" = "Sprachkürzel";
+"voice_instruction_tips" = "Tipps";
 "settings_show_voice_button_footer" = "Mikrofontaste auf der Bewertungsseite für Spracheingabe anzeigen.";
 "settings_voice_log_enable" = "Sprachprotokoll aktivieren";
 "settings_voice_log_enable_footer" = "Zeichnet Erkennungsdetails zum Debuggen und Überprüfen auf.";
@@ -885,6 +896,20 @@ Format:
 "voice_unavailable" = "Spracherkennung nicht verfügbar";
 "voice_substitution_failed" = "Auswechslung fehlgeschlagen";
 "voice_unrecognized_format" = "Nicht erkannt: %@";
+"settings_voice_tutorial" = "Sprach-Tutorial";
+"voice_tutorial_current_task" = "Aktuelle Aufgabe";
+"voice_tutorial_stop" = "Stopp";
+"voice_tutorial_record" = "Aufnehmen";
+"voice_tutorial_simulate" = "Simulieren";
+"voice_tutorial_simulate_placeholder" = "Text zum Simulieren eingeben…";
+"voice_tutorial_send" = "Senden";
+"voice_tutorial_complete_all" = "Alle abschließen";
+"voice_tutorial_complete_done" = "Abschließen & Fertig";
+"voice_tutorial_score" = "%d/%d Aufgaben bestanden";
+"voice_tutorial_restart" = "Neustart";
+"voice_tutorial_result_success" = "Erfolg";
+"voice_tutorial_result_fail" = "Fehlschlag";
+
 "sort_avg_points" = "Schnitt Punkte";
 "sort_total_points" = "Gesamtpunkte";
 "label_sort_by" = "Sortieren nach";

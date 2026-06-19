@@ -21,6 +21,7 @@
 "settings_teams" = "チーム";
 "settings_players" = "選手";
 "settings_new" = "新規作成";
+"settings_section_units" = "単位";
 "settings_section_sync_import" = "同期とインポート";
 "settings_bluetooth_sync" = "Bluetooth 同期";
 "nav_bluetooth_sync" = "Bluetooth 同期";
@@ -862,7 +863,17 @@ Format:
 "section_nearby_devices" = "近くのデバイス";
 "stats_games" = "G";
 "settings_voice" = "音声";
+"settings_voice_locale" = "音声言語";
+"settings_voice_locale_follow_app" = "アプリ言語に従う";
+"settings_voice_locale_footer" = "音声認識に使用する言語を選択します。スコアリングページとチュートリアルの両方に影響します。";
+
 "settings_voice_instruction" = "音声の使い方";
+"voice_instruction_shots" = "シュート記録";
+"voice_instruction_stats" = "統計記録";
+"voice_instruction_substitution" = "選手交代";
+"voice_instruction_period" = "ピリオド・一時停止";
+"voice_instruction_shortcuts" = "ショートカット";
+"voice_instruction_tips" = "ヒント";
 "settings_show_voice_button_footer" = "採点ページにマイクボタンを表示し、音声入力を有効にします。";
 "settings_voice_log_enable" = "音声ログを有効にする";
 "settings_voice_log_enable_footer" = "音声認識の詳細なマッチング過程を記録し、デバッグや確認に役立てます。";
@@ -896,6 +907,20 @@ Format:
 "voice_unavailable" = "音声認識が利用できません";
 "voice_substitution_failed" = "交代に失敗しました";
 "voice_unrecognized_format" = "認識できません: %@";
+"settings_voice_tutorial" = "音声チュートリアル";
+"voice_tutorial_current_task" = "現在のタスク";
+"voice_tutorial_stop" = "停止";
+"voice_tutorial_record" = "録音";
+"voice_tutorial_simulate" = "シミュレート";
+"voice_tutorial_simulate_placeholder" = "シミュレートするテキストを入力…";
+"voice_tutorial_send" = "送信";
+"voice_tutorial_complete_all" = "すべて完了";
+"voice_tutorial_complete_done" = "完了して終了";
+"voice_tutorial_score" = "%d/%d タスククリア";
+"voice_tutorial_restart" = "再開";
+"voice_tutorial_result_success" = "成功";
+"voice_tutorial_result_fail" = "失敗";
+
 "sort_avg_points" = "平均得点";
 "sort_total_points" = "総得点";
 "label_sort_by" = "並び替え";

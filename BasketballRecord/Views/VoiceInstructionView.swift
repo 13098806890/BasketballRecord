@@ -1,37 +1,46 @@
 import SwiftUI
 
 struct VoiceInstructionView: View {
-    @Environment(\.locale) private var locale
+    @AppStorage("voice_locale") private var voiceLocale: String = ""
 
     private var languageCode: String {
-        let code = locale.language.languageCode?.identifier ?? "en"
-        if code == "zh" {
-            let script = locale.language.script?.identifier
-            return script == "Hant" ? "zh-Hant" : "zh-Hans"
+        guard !voiceLocale.isEmpty else {
+            let locale = Bundle.main.preferredLocalizations.first ?? "en"
+            if locale == "zh-Hans" || locale == "zh-Hant" || locale == "zh-Hant-TW" || locale == "zh-Hant-HK" {
+                return locale.hasPrefix("zh-Hant") ? "zh-Hant" : "zh-Hans"
+            }
+            return String(locale.prefix(2))
         }
-        return code
+        if voiceLocale.hasPrefix("zh-Hant") {
+            return "zh-Hant"
+        }
+        if voiceLocale == "zh-Hans" {
+            return "zh-Hans"
+        }
+        return String(voiceLocale.prefix(2))
+    }
+
+    private var t: VoiceCommandExamples.Templates {
+        VoiceCommandExamples.templates(for: languageCode)
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                switch languageCode {
-                case "zh-Hans", "zh-Hant":
-                    chineseContent
-                case "ja":
-                    japaneseContent
-                case "ko":
-                    koreanContent
-                default:
-                    englishContent
-                }
+                header
+                shotSection
+                statSection
+                substitutionSection
+                periodPauseSection
+                shortcutsSection
+                tipsSection
             }
             .padding()
         }
         .navigationTitle(LocalizedStringKey("settings_voice_instruction"))
     }
 
-    private func section(icon: String, title: LocalizedStringKey, content: LocalizedStringKey) -> some View {
+    private func section(icon: String, title: LocalizedStringKey, content: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 10) {
                 Image(systemName: icon)
@@ -49,213 +58,350 @@ struct VoiceInstructionView: View {
         }
     }
 
-    // MARK: - Chinese
-    private var chineseContent: some View {
-        Group {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 10) {
-                    Image(systemName: "mic.fill")
-                        .font(.largeTitle.weight(.semibold))
-                        .foregroundStyle(.blue)
-                    Text("语音控制")
-                        .font(.largeTitle.weight(.bold))
-                }
-                Text("按住麦克风说出指令，松开后自动识别")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 10) {
+                Image(systemName: "mic.fill")
+                    .font(.largeTitle.weight(.semibold))
+                    .foregroundStyle(.blue)
+                Text(headerTitle)
+                    .font(.largeTitle.weight(.bold))
             }
-
-            section(
-                icon: "basketball.fill",
-                title: "投篮记录",
-                content: "说出「球员名 + 投篮类型 + 命中/未中」。\n\n示例：\n「张三两分命中」「李四三分未中」\n「3号两分命中」「8号罚球命中」\n「王五加罚命中」「7号上篮未中」\n\n投篮类型：两分、三分、罚球、加罚、上篮、中投、篮下"
-            )
-
-            section(
-                icon: "list.clipboard",
-                title: "统计记录",
-                content: "说出「球员名 + 统计类型」。\n\n示例：\n「张三犯规」「李四篮板」「王五助攻」\n「赵六盖帽」「陈七抢断」「周八失误」\n\n统计类型：犯规、篮板、助攻、盖帽、抢断、失误"
-            )
-
-            section(
-                icon: "arrow.left.arrow.right",
-                title: "换人",
-                content: "说出「场上球员 + 换 + 替补球员」。\n\n示例：\n「张三换李四」「3号换5号」\n「王五替换赵六」"
-            )
-
-            section(
-                icon: "play.rectangle",
-                title: "节次与暂停",
-                content: "直接说出指令，无需球员名。\n\n示例：\n「第一节开始」「第二节开始」\n「暂停」「停表」「继续」「结束」"
-            )
-
-            section(
-                icon: "waveform.and.mic",
-                title: "快捷指令",
-                content: "在「语音快捷指令」中自定义短语，实现更快捷的记录。\n\n例如设置「好球」→「两分命中」后，说「张三好球」即可记录张三两分命中。自定义指令优先于系统匹配。"
-            )
-
-            section(
-                icon: "lightbulb.fill",
-                title: "小技巧",
-                content: "• 说球员号码比说姓名更准确（如「3号」）\n• 球员名和指令之间不要加多余的字\n• 识别失败的记录可以在语音日志中查看详情"
-            )
+            Text(headerSubtitle)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
     }
 
-    // MARK: - Japanese
-    private var japaneseContent: some View {
-        Group {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 10) {
-                    Image(systemName: "mic.fill")
-                        .font(.largeTitle.weight(.semibold))
-                        .foregroundStyle(.blue)
-                    Text("音声コントロール")
-                        .font(.largeTitle.weight(.bold))
-                }
-                Text("マイクを押しながら話し、離して認識")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            section(
-                icon: "basketball.fill",
-                title: "シュート記録",
-                content: "「選手名 + シュート種類 + 成功/失敗」で記録します。\n\n例：\n「张三ツーポイント成功」「李四スリーポイント失敗」\n「3番ツーポイント失敗」「8番フリースロー成功」\n\nシュート種類：ツーポイント、スリーポイント、フリースロー、レイアップ、ミドル、ペイント"
-            )
-
-            section(
-                icon: "list.clipboard",
-                title: "統計記録",
-                content: "「選手名 + 統計種類」で記録します。\n\n例：\n「张三ファウル」「李四リバウンド」「王五アシスト」"
-            )
-
-            section(
-                icon: "arrow.left.arrow.right",
-                title: "選手交代",
-                content: "「コート上の選手 + 交代キーワード + 控え選手」で交代します。\n\n例：\n「张三と李四を交代」「3番と5番を交代」"
-            )
-
-            section(
-                icon: "play.rectangle",
-                title: "ピリオド・一時停止",
-                content: "選手名なしで直接コマンドを話します。\n\n例：\n「第1クオーター開始」「タイムアウト」「一時停止」「再開」「試合終了」"
-            )
-
-            section(
-                icon: "waveform.and.mic",
-                title: "ショートカットコマンド",
-                content: "「音声ショートカット」でフレーズとアクションをカスタム設定できます。「ナイス」→「ツーポイント成功」と設定すれば、「张三ナイス」で素早く記録できます。"
-            )
+    private var headerTitle: String {
+        switch languageCode {
+        case "zh-Hans": return "语音控制"
+        case "zh-Hant": return "語音控制"
+        case "ja": return "音声コントロール"
+        case "ko": return "음성 제어"
+        case "de": return "Sprachsteuerung"
+        case "es": return "Control por Voz"
+        case "fr": return "Commande Vocale"
+        case "it": return "Controllo Vocale"
+        case "ru": return "Голосовое управление"
+        default: return "Voice Control"
         }
     }
 
-    // MARK: - Korean
-    private var koreanContent: some View {
-        Group {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 10) {
-                    Image(systemName: "mic.fill")
-                        .font(.largeTitle.weight(.semibold))
-                        .foregroundStyle(.blue)
-                    Text("음성 제어")
-                        .font(.largeTitle.weight(.bold))
-                }
-                Text("마이크를 누르고 말한 후 손을 떼면 인식")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            section(
-                icon: "basketball.fill",
-                title: "슛 기록",
-                content: "「선수명 + 슛 종류 + 성공/실패」로 기록합니다.\n\n예시：\n「张三 투포인트 성공」「李四 쓰리포인트 실패」\n「3번 투포인트 실패」「8번 자유투 성공」\n\n슛 종류：투포인트、쓰리포인트、자유투、레이업、미드、페인트"
-            )
-
-            section(
-                icon: "list.clipboard",
-                title: "통계 기록",
-                content: "「선수명 + 통계 종류」로 기록합니다.\n\n예시：\n「张三 파울」「李四 리바운드」「王五 어시스트」"
-            )
-
-            section(
-                icon: "arrow.left.arrow.right",
-                title: "선수 교체",
-                content: "「코트 선수 + 교체 키워드 + 대기 선수」로 교체합니다.\n\n예시：\n「张三 교체 李四」「3번 교체 5번」"
-            )
-
-            section(
-                icon: "play.rectangle",
-                title: "쿼터・일시정지",
-                content: "선수명 없이 직접 명령어를 말합니다.\n\n예시：\n「첫 쿼터 시작」「타임아웃」「일시정지」「재개」「경기종료」"
-            )
-
-            section(
-                icon: "waveform.and.mic",
-                title: "음성 단축키",
-                content: "「음성 단축키」에서 구문과 동작을 직접 매핑할 수 있습니다. 「굿」→「투포인트 성공」으로 설정하면「张三 굿」으로 빠르게 기록합니다."
-            )
+    private var headerSubtitle: String {
+        switch languageCode {
+        case "zh-Hans": return "按住麦克风说出指令，松开后自动识别"
+        case "zh-Hant": return "按住麥克風說出指令，鬆開後自動識別"
+        case "ja": return "マイクを押しながら話し、離して認識"
+        case "ko": return "마이크를 누르고 말한 후 손을 떼면 인식"
+        case "de": return "Mikrofon gedrückt halten, sprechen, dann loslassen"
+        case "es": return "Manten presionado el microfono, habla y suelta"
+        case "fr": return "Maintenez le micro enfonce, parlez, puis relachez"
+        case "it": return "Tieni premuto il microfono, parla, poi rilascia"
+        case "ru": return "Зажмите микрофон, говорите команду, затем отпустите"
+        default: return "Hold the mic button, speak a command, then release"
         }
     }
 
-    // MARK: - English
-    private var englishContent: some View {
-        Group {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 10) {
-                    Image(systemName: "mic.fill")
-                        .font(.largeTitle.weight(.semibold))
-                        .foregroundStyle(.blue)
-                    Text("Voice Control")
-                        .font(.largeTitle.weight(.bold))
+    private var shotSection: some View {
+        section(
+            icon: "basketball.fill",
+            title: LocalizedStringKey("voice_instruction_shots"),
+            content: shotContent
+        )
+    }
+
+    private var shotContent: String {
+        var lines: [String]
+        switch languageCode {
+        case "zh-Hans":
+            lines = ["说出「球员名 + 投篮类型 + 命中/未中」。",
+                     "",
+                     "示例："]
+            let exs: [String] = [.twoMade, .threeMissed, .freeThrowMade, .layupMade, .midRangeMade, .paintMade, .bonusMade]
+                .compactMap { a in t.actionTemplates[a]?.first }
+                .map { tpl in
+                    "「\(VoiceCommandExamples.fill(tpl, name: "张三", number: "3"))」"
                 }
-                Text("Hold the mic button, speak a command, then release")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
+            lines.append(contentsOf: exs)
+            lines += ["", "投篮类型：\(t.shotTypeNames.joined(separator: "、"))"]
+        case "zh-Hant":
+            lines = ["說出「球員名 + 投籃類型 + 命中/未中」。", "", "示例："]
+            let exs: [String] = [.twoMade, .threeMissed, .freeThrowMade, .layupMade, .midRangeMade, .paintMade, .bonusMade]
+                .compactMap { a in t.actionTemplates[a]?.first }
+                .map { tpl in
+                    "「\(VoiceCommandExamples.fill(tpl, name: "張三", number: "3"))」"
+                }
+            lines.append(contentsOf: exs)
+            lines += ["", "投籃類型：\(t.shotTypeNames.joined(separator: "、"))"]
+        case "ja":
+            lines = ["「選手名 + シュート種類 + 成功/失敗」で記録します。", "", "例："]
+            let exs = t.actionTemplates[.twoMade]?.prefix(2).enumerated().map { (i, tpl) in
+                "「\(VoiceCommandExamples.fill(tpl, name: i == 0 ? "田中" : "田中", number: "3"))」"
+            } ?? []
+            lines.append(contentsOf: exs)
+            lines += ["", "シュート種類：\(t.shotTypeNames.joined(separator: "、"))"]
+        case "ko":
+            lines = ["「선수명 + 슛 종류 + 성공/실패」로 기록합니다.", "", "예시："]
+            let exs = t.actionTemplates[.twoMade]?.prefix(2).enumerated().map { (i, tpl) in
+                "「\(VoiceCommandExamples.fill(tpl, name: "김철수", number: "3"))」"
+            } ?? []
+            lines.append(contentsOf: exs)
+            lines += ["", "슛 종류：\(t.shotTypeNames.joined(separator: "、"))"]
+        case "de":
+            lines = [
+                "Sprich 'Spielername + Wurfart + getroffen/verfehlt'.",
+                "",
+                "Beispiele:",
+                "'\(VoiceCommandExamples.fill(t.actionTemplates[.twoMade]?.first ?? "", name: "Hans", number: "7"))'",
+                "'\(VoiceCommandExamples.fill(t.actionTemplates[.threeMissed]?.first ?? "", name: "Fritz", number: "10"))'",
+                "",
+                "Wurfarten: \(t.shotTypeNames.joined(separator: ", "))"
+            ]
+        case "es":
+            lines = [
+                "Di 'nombre del jugador + tipo de tiro + canasta/fallo'.",
+                "",
+                "Ejemplos:",
+                "'\(VoiceCommandExamples.fill(t.actionTemplates[.twoMade]?.first ?? "", name: "Carlos", number: "7"))'",
+                "'\(VoiceCommandExamples.fill(t.actionTemplates[.threeMissed]?.first ?? "", name: "Luis", number: "10"))'",
+                "",
+                "Tipos: \(t.shotTypeNames.joined(separator: ", "))"
+            ]
+        case "fr":
+            lines = [
+                "Dites 'nom du joueur + type de tir + bon/non'.",
+                "",
+                "Exemples :",
+                "'\(VoiceCommandExamples.fill(t.actionTemplates[.twoMade]?.first ?? "", name: "Pierre", number: "7"))'",
+                "'\(VoiceCommandExamples.fill(t.actionTemplates[.threeMissed]?.first ?? "", name: "Paul", number: "10"))'",
+                "",
+                "Types : \(t.shotTypeNames.joined(separator: ", "))"
+            ]
+        case "it":
+            lines = [
+                "Di 'nome giocatore + tipo di tiro + segnato/sbagliato'.",
+                "",
+                "Esempi:",
+                "'\(VoiceCommandExamples.fill(t.actionTemplates[.twoMade]?.first ?? "", name: "Marco", number: "7"))'",
+                "'\(VoiceCommandExamples.fill(t.actionTemplates[.threeMissed]?.first ?? "", name: "Luca", number: "10"))'",
+                "",
+                "Tipi: \(t.shotTypeNames.joined(separator: ", "))"
+            ]
+        case "ru":
+            lines = [
+                "Скажите «имя игрока + тип броска + попал/промах».",
+                "",
+                "Примеры:",
+                "«\(VoiceCommandExamples.fill(t.actionTemplates[.twoMade]?.first ?? "", name: "Иван", number: "7"))»",
+                "«\(VoiceCommandExamples.fill(t.actionTemplates[.threeMissed]?.first ?? "", name: "Пётр", number: "10"))»",
+                "",
+                "Типы: \(t.shotTypeNames.joined(separator: ", "))"
+            ]
+        default:
+            lines = [
+                "Say player name/number, then anchor word (got / missed / miss), then shot type.",
+                "",
+                "\"got\" / \"get\" \u{2192} made, \"miss\" / \"missed\" \u{2192} miss.",
+                "",
+                "Examples:",
+                "\"Jordan got a 3\"",
+                "\"Number 23 got a two\"",
+                "\"#5 missed a layup\"",
+                "",
+                "Shot types: \(t.shotTypeNames.joined(separator: ", "))",
+                "",
+                "Short form (no anchor, defaults to made):",
+                "\"Jordan 3\" \"#23 two\" \"8 layup\""
+            ]
+        }
+        return lines.joined(separator: "\n")
+    }
 
-            section(
-                icon: "basketball.fill",
-                title: "Shot Recording",
-                content: "Say player name/number, then anchor word (got / missed / miss), then shot type.\n\n\"got\" / \"get\" → made, \"miss\" / \"missed\" → miss.\n\nExamples:\n\"Jordan got a 3\" \"Number 23 got a two\"\n\"#5 missed a layup\" \"8 miss free throw\"\n\"Smith got and one\" \"33 got a mid range\"\n\"Curry got three\" \"LeBron missed a jumper\"\n\nShot types: two, three, layup, mid(range), jumper, paint, inside, free throw, bonus/and one\n\nShort form (no anchor, defaults to made):\n\"Jordan 3\" \"#23 two\" \"8 layup\""
-            )
+    private var statSection: some View {
+        section(
+            icon: "list.clipboard",
+            title: LocalizedStringKey("voice_instruction_stats"),
+            content: statContent
+        )
+    }
 
-            section(
-                icon: "list.clipboard",
-                title: "Stat Events",
-                content: "Say \"player name/number + stat keyword\".\n\nExamples:\n\"Jones foul\" \"Jones reach\"\n\"Smith rebound\" \"Smith board\"\n\"Number 23 assist\" \"23 dime\"\n\"Brown block\" \"Brown swat\"\n\"Williams steal\" \"#10 steal\"\n\"Wilson turnover\" \"Wilson travel\""
-            )
+    private var statContent: String {
+        let names = t.statTypeNames.map(\.1).joined(separator: "、")
+        switch languageCode {
+        case "zh-Hans":
+            let exs = t.statExamples.prefix(6).map { "「\($0.1)」" }.joined()
+            return "说出「球员名 + 统计类型」。\n\n示例：\n\(exs)\n\n统计类型：\(names)"
+        case "zh-Hant":
+            let exs = t.statExamples.prefix(6).map { "「\($0.1)」" }.joined()
+            return "說出「球員名 + 統計類型」。\n\n示例：\n\(exs)\n\n統計類型：\(names)"
+        case "ja":
+            return "「選手名 + 統計種類」で記録します。\n\n例：\n「田中ファウル」「李四リバウンド」「王五アシスト」"
+        case "ko":
+            return "「선수명 + 통계 종류」로 기록합니다.\n\n예시：\n「张三 파울」「李四 리바운드」「王五 어시스트」"
+        case "de":
+            let exs = t.statExamples.prefix(6).map { "'\($0.1)'" }.joined(separator: " · ")
+            return "Sprich 'Spielername + Statistik'.\n\nBeispiele:\n\(exs)"
+        case "es":
+            let exs = t.statExamples.prefix(6).map { "'\($0.1)'" }.joined(separator: " · ")
+            return "Di 'nombre del jugador + estadistica'.\n\nEjemplos:\n\(exs)"
+        case "fr":
+            let exs = t.statExamples.prefix(6).map { "'\($0.1)'" }.joined(separator: " · ")
+            return "Dites 'nom du joueur + statistique'.\n\nExemples :\n\(exs)"
+        case "it":
+            let exs = t.statExamples.prefix(6).map { "'\($0.1)'" }.joined(separator: " · ")
+            return "Di 'nome giocatore + statistica'.\n\nEsempi:\n\(exs)"
+        case "ru":
+            let exs = t.statExamples.prefix(6).map { "«\($0.1)»" }.joined(separator: " · ")
+            return "Скажите «имя игрока + тип статистики».\n\nПримеры:\n\(exs)"
+        default:
+            let exs = t.statExamples.prefix(6).map { "\"\($0.1)\"" }.joined(separator: " ")
+            return "Say \"player name/number + stat keyword\".\n\nExamples:\n\(exs)"
+        }
+    }
 
-            section(
-                icon: "arrow.left.arrow.right",
-                title: "Substitution",
-                content: "Say \"outgoing player + sub/replace + incoming player\".\n\nExamples:\n\"23 sub 5\" \"Jordan sub Curry\"\n\"Number 23 replace Number 30\""
-            )
+    private var substitutionSection: some View {
+        section(
+            icon: "arrow.left.arrow.right",
+            title: LocalizedStringKey("voice_instruction_substitution"),
+            content: substitutionContent
+        )
+    }
 
-            section(
-                icon: "play.rectangle",
-                title: "Period & Pause",
-                content: "No player name needed.\n\nExamples:\n\"Start\" \"Begin\" \"Tip off\"\n\"Timeout\" \"Pause\" \"Stop\"\n\"Resume\" \"Continue\" \"Play\"\n\"End\" \"Finish\" \"Game over\""
-            )
+    private var substitutionContent: String {
+        let cb = "」「"
+        switch languageCode {
+        case "zh-Hans":
+            return "说出「场上球员 + 换 + 替补球员」。\n\n示例：\n「\(t.substitutionExamples.joined(separator: cb))」"
+        case "zh-Hant":
+            return "說出「場上球員 + 換 + 替補球員」。\n\n示例：\n「\(t.substitutionExamples.joined(separator: cb))」"
+        case "ja":
+            return "「コート上の選手 + 交代キーワード + 控え選手」で交代します。\n\n例：\n「\(t.substitutionExamples.joined(separator: cb))」"
+        case "ko":
+            return "「코트 선수 + 교체 키워드 + 대기 선수」로 교체합니다.\n\n예시：\n「\(t.substitutionExamples.joined(separator: cb))」"
+        default:
+            let exs = t.substitutionExamples.map { "'\($0)'" }.joined(separator: " · ")
+            return "Say 'outgoing player + sub/replace + incoming player'.\n\nExamples:\n\(exs)"
+        }
+    }
 
-            section(
-                icon: "rectangle.2.swap",
-                title: "Team Stats Mode",
-                content: "When a team uses team stats (no individual players), say \"Home\"/\"Away\" or \"主队\"/\"客队\" instead of a player name.\n\nExamples:\n\"Home got a 3\" \"Away missed a two\"\n\"主队 got a layup\" \"客队 foul\""
-            )
+    private var periodPauseSection: some View {
+        section(
+            icon: "play.rectangle",
+            title: LocalizedStringKey("voice_instruction_period"),
+            content: periodPauseContent
+        )
+    }
 
-            section(
-                icon: "waveform.and.mic",
-                title: "Voice Shortcuts",
-                content: "Create custom phrase-to-action mappings in \"Voice Shortcuts\".\n\nFor example, map \"Nice\" → \"Two Made\", then saying \"John nice\" records a two-point make for John instantly."
-            )
+    private var periodPauseContent: String {
+        let cb = "」「"
+        let sdot = "' · '"
+        let gm = "» · «"
+        let dq = "\" \""
+        let end = t.gameEndCommands
+        switch languageCode {
+        case "zh-Hans":
+            return "直接说出指令，无需球员名。\n\n示例：\n「\(t.periodPauseCommands.joined(separator: cb))」"
+        case "zh-Hant":
+            return "直接說出指令，無需球員名。\n\n示例：\n「\(t.periodPauseCommands.joined(separator: cb))」"
+        case "ja":
+            let cmds = t.periodPauseCommands.joined(separator: cb)
+            let e = end.isEmpty ? "" : "「\(end.joined(separator: cb))」"
+            return "選手名なしで直接コマンドを話します。\n\n例：\n「\(cmds)」\(e)"
+        case "ko":
+            let cmds = t.periodPauseCommands.joined(separator: cb)
+            let e = end.isEmpty ? "" : "「\(end.joined(separator: cb))」"
+            return "선수명 없이 직접 명령어를 말합니다.\n\n예시：\n「\(cmds)」\(e)"
+        case "de":
+            let cmds = t.periodPauseCommands.joined(separator: sdot)
+            let e = end.isEmpty ? "" : "\n'\(end.joined(separator: sdot))'"
+            return "Kein Spielername nötig.\n\nBeispiele:\n'\(cmds)'\(e)"
+        case "es":
+            let cmds = t.periodPauseCommands.joined(separator: sdot)
+            let e = end.isEmpty ? "" : "\n'\(end.joined(separator: sdot))'"
+            return "Sin nombre de jugador.\n\nEjemplos:\n'\(cmds)'\(e)"
+        case "fr":
+            let cmds = t.periodPauseCommands.joined(separator: sdot)
+            let e = end.isEmpty ? "" : "\n'\(end.joined(separator: sdot))'"
+            return "Pas de nom de joueur necessaire.\n\nExemples :\n'\(cmds)'\(e)"
+        case "it":
+            let cmds = t.periodPauseCommands.joined(separator: sdot)
+            let e = end.isEmpty ? "" : "\n'\(end.joined(separator: sdot))'"
+            return "Nessun nome giocatore necessario.\n\nEsempi:\n'\(cmds)'\(e)"
+        case "ru":
+            let cmds = t.periodPauseCommands.joined(separator: gm)
+            let e = end.isEmpty ? "" : "\n«\(end.joined(separator: gm))»"
+            return "Имя игрока не требуется.\n\nПримеры:\n«\(cmds)»\(e)"
+        default:
+            let cmds = t.periodPauseCommands.joined(separator: dq)
+            let e = end.isEmpty ? "" : "\n\"\(end.joined(separator: dq))\""
+            return "No player name needed.\n\nExamples:\n\"\(cmds)\"\(e)"
+        }
+    }
 
-            section(
-                icon: "lightbulb.fill",
-                title: "Tips",
-                content: "• Jersey numbers are more reliable than names (e.g. \"23\" instead of \"Jordan\")\n• Use \"got\" / \"missed\" as anchor words for clearest recognition\n• For team stats mode, use \"home\" / \"away\" as the player name\n• Failed recognitions can be reviewed in the voice log"
-            )
+    private var shortcutsSection: some View {
+        section(
+            icon: "waveform.and.mic",
+            title: LocalizedStringKey("voice_instruction_shortcuts"),
+            content: shortcutsContent
+        )
+    }
+
+    private var shortcutsContent: String {
+        switch languageCode {
+        case "zh-Hans":
+            return "在「语音快捷指令」中自定义短语，实现更快捷的记录。\n\n例如设置「好球」→「两分命中」后，说「张三好球」即可记录张三两分命中。自定义指令优先于系统匹配。"
+        case "zh-Hant":
+            return "在「語音快捷指令」中自訂短語，實現更快捷的記錄。\n\n例如設定「好球」→「兩分命中」後，說「張三好球」即可記錄張三兩分命中。自訂指令優先於系統匹配。"
+        case "ja":
+            return "「音声ショートカット」でフレーズとアクションをカスタム設定できます。「ナイス」→「ツーポイント成功」と設定すれば、「田中ナイス」で素早く記録できます。"
+        case "ko":
+            return "「음성 단축키」에서 구문과 동작을 직접 매핑할 수 있습니다. 「굿」→「투포인트 성공」으로 설정하면「김철수 굿」으로 빠르게 기록합니다."
+        case "de":
+            return "Erstelle eigene Befehle in 'Sprachkürzel'. Z.B. 'Gut' -> 'Zwei getroffen', dann sagt man 'Hans gut' fuer eine schnelle Aufzeichnung."
+        case "es":
+            return "Crea comandos personalizados en 'Atajos de Voz'. Por ejemplo, asigna 'Bueno' -> 'Dos canasta', luego di 'Carlos bueno' para registrar rapido."
+        case "fr":
+            return "Creez vos propres commandes dans 'Raccourcis Vocaux'. Par exemple, associez 'Bon' -> 'Deux bon', puis dites 'Pierre bon' pour enregistrer rapidement."
+        case "it":
+            return "Crea comandi personalizzati in 'Scorciatoie Vocali'. Ad esempio, mappa 'Bravo' -> 'Due segnato', poi di 'Marco bravo' per registrare velocemente."
+        case "ru":
+            return "Создайте свои команды в «Голосовых сокращениях». Например, настройте «Отлично» \u{2192} «Два попал», затем скажите «Иван отлично» для быстрой записи."
+        default:
+            return "Create custom phrase-to-action mappings in \"Voice Shortcuts\".\n\nFor example, map \"Nice\" \u{2192} \"Two Made\", then saying \"John nice\" records a two-point make for John instantly."
+        }
+    }
+
+    private var tipsSection: some View {
+        section(
+            icon: "lightbulb.fill",
+            title: LocalizedStringKey("voice_instruction_tips"),
+            content: tipsContent
+        )
+    }
+
+    private var tipsContent: String {
+        switch languageCode {
+        case "zh-Hans":
+            return "• 说球员号码比说姓名更准确（如「3号」）\n• 球员名和指令之间不要加多余的字\n• 主客队有相同号码时，只说号码默认匹配主队队员，匹配客队需加主队/客队前缀\n• 识别失败的记录可以在语音日志中查看详情"
+        case "zh-Hant":
+            return "• 說球員號碼比說姓名更準確（如「3號」）\n• 球員名和指令之間不要加多餘的字\n• 主客隊有相同號碼時，只說號碼默認匹配主隊隊員，匹配客隊需加主隊/客隊前綴\n• 識別失敗的記錄可以在語音日誌中查看詳情"
+        case "ja":
+            return "• 選手名より背番号の方が正確です（例：「3番」）\n• 選手名とコマンドの間に余分な文字を入れないでください\n• ホームとアウェイに同じ番号がある場合、番号のみだとホームが優先されます。アウェイを指定するには「アウェイ」を付けてください\n• 認識に失敗した記録は音声ログで確認できます"
+        case "ko":
+            return "• 선수 이름보다 번호가 더 정확합니다 (예: 「3번」)\n• 선수명과 명령어 사이에 불필요한 글자를 넣지 마세요\n• 홈과 어웨이에 같은 번호가 있으면 번호만으로는 홈이 우선 매칭됩니다. 어웨이를 지정하려면 「어웨이」를 붙이세요\n• 인식 실패 기록은 음성 로그에서 확인할 수 있습니다"
+        case "de":
+            return "• Trikotnummern sind zuverlässiger als Namen (z.B. \u{201E}23\u{201C} statt \u{201E}Jordan\u{201C})\n• Keine überflüssigen Wörter zwischen Name/Nummer und Befehl\n• Bei gleicher Nummer in beiden Teams wird ohne Präfix das Heimteam bevorzugt. Für das Auswärtsteam \u{201E}Auswärts\u{201C} voranstellen\n• Fehlerkennungen können im Sprachprotokoll überprüft werden"
+        case "es":
+            return "• Los números de camiseta son más fiables que los nombres (ej. \"23\" en vez de \"Jordan\")\n• No añadas palabras extra entre el nombre/número y el comando\n• Si ambos equipos tienen el mismo número, sin prefijo se empareja con el equipo local. Para el visitante, añade \"Visitante\"\n• Los fallos de reconocimiento se pueden revisar en el registro de voz"
+        case "fr":
+            return "• Les numéros de maillot sont plus fiables que les noms (ex. \"23\" au lieu de \"Jordan\")\n• N'ajoutez pas de mots inutiles entre le nom/numéro et la commande\n• Si les deux équipes ont le même numéro, sans préfixe, le joueur local est prioritaire. Pour l'équipe visiteuse, ajoutez \"Extérieur\"\n• Les échecs de reconnaissance sont consultables dans le journal vocal"
+        case "it":
+            return "• I numeri di maglia sono più affidabili dei nomi (es. \"23\" invece di \"Jordan\")\n• Non inserire parole extra tra nome/numero e comando\n• Se entrambe le squadre hanno lo stesso numero, senza prefisso viene abbinato il giocatore di casa. Per l'ospite, aggiungi \"Ospite\"\n• I riconoscimenti falliti possono essere rivisti nel registro vocale"
+        case "ru":
+            return "• Номера игроков надёжнее имён (например, «23» вместо «Джордан»)\n• Не добавляйте лишних слов между именем/номером и командой\n• Если одинаковый номер есть в обеих командах, без префикса будет выбран игрок хозяев. Для гостей добавьте «Гости»\n• Неудачные распознавания можно проверить в журнале голосовых команд"
+        default:
+            return "• Jersey numbers are more reliable than names (e.g. \"23\" instead of \"Jordan\")\n• Use \"got\" / \"missed\" as anchor words for clearest recognition\n• When both teams share the same number, saying just the number matches the home player; add \"away\" to match the away player\n• For team stats mode, use \"home\" / \"away\" as the player name\n• Failed recognitions can be reviewed in the voice log"
         }
     }
 }

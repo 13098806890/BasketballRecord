@@ -261,7 +261,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         }
 
         // No active buffer, write directly to store
-        guard let store else { return }
+        guard store != nil else { return }
         let entry = VoiceLogEntry(
             timestamp: Date(),
             text: text,
@@ -887,18 +887,36 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             text = "number \(match.1) \(shotType)"
             logStep("重写数字组合: \(match.1)\(match.2) → \(text)")
         }
-        if let num = preferredPlayerNumber, num % 10 == 4, text.trimmingCharacters(in: .whitespaces).isEmpty {
-            let actualNum = num / 10
-            if actualNum > 0 {
-                preferredPlayerNumber = actualNum
-                text = "four"
-                logStep("X4拆分: 号码\(num)→\(actualNum), 剩余→four")
+        if let num = preferredPlayerNumber, num >= 10 {
+            let lastDigit = num % 10
+            if (lastDigit == 2 || lastDigit == 3), text.trimmingCharacters(in: .whitespaces).isEmpty {
+                let shotType = lastDigit == 3 ? "three" : "two"
+                preferredPlayerNumber = num / 10
+                text = (text + " " + shotType).trimmingCharacters(in: .whitespaces)
+                logStep("拆分号码+投篮: \(num)→\(preferredPlayerNumber!)号 \(shotType)")
+            } else if lastDigit == 4, text.trimmingCharacters(in: .whitespaces).isEmpty {
+                let actualNum = num / 10
+                if actualNum > 0 {
+                    preferredPlayerNumber = actualNum
+                    text = "four"
+                    logStep("X4拆分: 号码\(num)→\(actualNum), 剩余→four")
+                }
             }
         } else if preferredPlayerNumber == nil, let match = text.wholeMatch(of: /(\d+)(4)/) {
             text = "number \(match.1) four"
             logStep("X4重写: \(match.1)4 → \(text)")
         }
+        text = Self.replaceWordBoundary(text, target: "to", replacement: "2")
+        text = Self.replaceWordBoundary(text, target: "know", replacement: "no")
+        text = Self.replaceWordBoundary(text, target: "mr", replacement: "miss")
         return text
+    }
+
+    private static func replaceWordBoundary(_ text: String, target: String, replacement: String) -> String {
+        let pattern = "(?i)(?<![a-z])\(NSRegularExpression.escapedPattern(for: target))(?![a-z])"
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return text }
+        let range = NSRange(text.startIndex..., in: text)
+        return regex.stringByReplacingMatches(in: text, range: range, withTemplate: replacement)
     }
 
     private func processByDirectTextMatching(text: String, textPinyin: String) -> Bool {
@@ -1081,6 +1099,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         guard c1 != c2 else { return 1.0 }
         switch (c1, c2) {
         // Vowel confusions
+        case ("a", "i"), ("i", "a"): return 0.3
         case ("a", "o"), ("o", "a"): return 0.5
         case ("a", "e"), ("e", "a"): return 0.4
         case ("a", "u"), ("u", "a"): return 0.2

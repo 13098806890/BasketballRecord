@@ -33,6 +33,7 @@
 "settings_teams" = "球队";
 "settings_players" = "球员";
 "settings_new" = "新建";
+"settings_section_units" = "单位";
 "settings_section_sync_import" = "同步与导入";
 "settings_bluetooth_sync" = "蓝牙协同";
 "nav_bluetooth_sync" = "蓝牙协同";
@@ -864,7 +865,17 @@ Format:
 "alert_period_auto_ended_time_format" = "第%d节结束（时间到）";
 "alert_period_auto_ended_score_format" = "第%d节结束（比分到达上限）";
 "settings_voice" = "语音";
+"settings_voice_locale" = "语音语言";
+"settings_voice_locale_follow_app" = "跟随 App 语言";
+"settings_voice_locale_footer" = "选择语音识别使用的语言。同时影响记分页面和教程。";
+
 "settings_voice_instruction" = "语音说明";
+"voice_instruction_shots" = "投篮记录";
+"voice_instruction_stats" = "统计记录";
+"voice_instruction_substitution" = "换人";
+"voice_instruction_period" = "节次与暂停";
+"voice_instruction_shortcuts" = "快捷指令";
+"voice_instruction_tips" = "小技巧";
 "settings_show_voice_button_footer" = "在记分页显示麦克风按钮，支持语音输入。";
 "settings_voice_log_enable" = "启用语音日志";
 "settings_voice_log_enable_footer" = "记录语音识别的详细匹配过程，便于调试和回顾。";
@@ -897,6 +908,20 @@ Format:
 "voice_unavailable" = "语音识别不可用";
 "voice_substitution_failed" = "换人失败";
 "voice_unrecognized_format" = "未识别：%@";
+"settings_voice_tutorial" = "语音教程";
+"voice_tutorial_current_task" = "当前任务";
+"voice_tutorial_stop" = "停止";
+"voice_tutorial_record" = "录制";
+"voice_tutorial_simulate" = "模拟";
+"voice_tutorial_simulate_placeholder" = "输入模拟文本…";
+"voice_tutorial_send" = "发送";
+"voice_tutorial_complete_all" = "全部完成";
+"voice_tutorial_complete_done" = "完成并结束";
+"voice_tutorial_score" = "已完成 %d/%d 个任务";
+"voice_tutorial_restart" = "重新开始";
+"voice_tutorial_result_success" = "成功";
+"voice_tutorial_result_fail" = "失败";
+
 "sort_avg_points" = "场均得分";
 "sort_total_points" = "总得分";
 "label_sort_by" = "排序";

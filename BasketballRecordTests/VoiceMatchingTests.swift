@@ -710,6 +710,156 @@ final class VoiceMatchingTests: XCTestCase {
         XCTAssertEqual(capturedPlayerID, homeTeamID)
     }
 
+    // MARK: - Duplicate Number Across Teams
+
+    func testDuplicateNumber7HomeAndAway() async throws {
+        let away7ID = UUID(uuidString: "20000000-0000-0000-0000-000000000099")!
+        store.players.append(Player(id: away7ID, name: "刘七", number: "7"))
+        store.teams[1].playerIDs.append(away7ID)
+        snapshot.awayOnCourtPlayerIDs.append(away7ID)
+        snapshot.awayAvailablePlayerIDs.append(away7ID)
+
+        let home7ID = homePlayer2ID
+
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "zh-CN"))
+
+        // Test 1: no team prefix → should match home #7 (home comes first in allIDs)
+        do {
+            let exp = expectation(description: "onAction 7号两分")
+            var capturedPID: UUID?
+            recognizer.onAction = { _, pid, _ in capturedPID = pid; exp.fulfill() }
+            recognizer.simulateText("7号两分")
+            await fulfillment(of: [exp], timeout: 1.0)
+            XCTAssertEqual(capturedPID, home7ID, "无前缀应匹配主队7号（allIDs中主队优先）")
+        }
+
+        // Test 2: 主队 prefix → should match home #7
+        do {
+            let exp = expectation(description: "onAction 主队7号两分")
+            var capturedPID: UUID?
+            recognizer.onAction = { _, pid, _ in capturedPID = pid; exp.fulfill() }
+            recognizer.simulateText("主队7号两分")
+            await fulfillment(of: [exp], timeout: 1.0)
+            XCTAssertEqual(capturedPID, home7ID, "主队前缀应匹配主队7号")
+        }
+
+        // Test 3: 客队 prefix → should match away #7
+        do {
+            let exp = expectation(description: "onAction 客队7号两分")
+            var capturedPID: UUID?
+            recognizer.onAction = { _, pid, _ in capturedPID = pid; exp.fulfill() }
+            recognizer.simulateText("客队7号两分")
+            await fulfillment(of: [exp], timeout: 1.0)
+            XCTAssertEqual(capturedPID, away7ID, "客队前缀应匹配客队7号")
+        }
+    }
+
+    // MARK: - English Anchor Matching
+
+    func testEnglishAnchorGotNumberTwo() async throws {
+        let johnID = UUID(uuidString: "10000000-0000-0000-0000-000000000099")!
+        store.players.append(Player(id: johnID, name: "John", number: "7"))
+        snapshot.homeOnCourtPlayerIDs.append(johnID)
+        snapshot.homeAvailablePlayerIDs.append(johnID)
+
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction for John got 2")
+        var capturedAction: StatAction?
+        var capturedPID: UUID?
+        recognizer.onAction = { action, pid, _ in
+            capturedAction = action; capturedPID = pid; exp.fulfill()
+        }
+        recognizer.simulateText("John got 2")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .twoMade)
+        XCTAssertEqual(capturedPID, johnID)
+    }
+
+    func testEnglishAnchorGotNumberTwoWithName() async throws {
+        let johnID = UUID(uuidString: "10000000-0000-0000-0000-000000000098")!
+        store.players.append(Player(id: johnID, name: "John", number: "7"))
+        snapshot.homeOnCourtPlayerIDs.append(johnID)
+        snapshot.homeAvailablePlayerIDs.append(johnID)
+
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction for John got two")
+        var capturedAction: StatAction?
+        var capturedPID: UUID?
+        recognizer.onAction = { action, pid, _ in
+            capturedAction = action; capturedPID = pid; exp.fulfill()
+        }
+        recognizer.simulateText("John got two")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .twoMade)
+        XCTAssertEqual(capturedPID, johnID)
+    }
+
+    func testMacFreeThroughMatchesMike() async throws {
+        let mikeID = UUID(uuidString: "10000000-0000-0000-0000-000000000097")!
+        store.players.append(Player(id: mikeID, name: "Mike", number: "10"))
+        snapshot.homeOnCourtPlayerIDs.append(mikeID)
+        snapshot.homeAvailablePlayerIDs.append(mikeID)
+
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction for Mac free through")
+        var capturedAction: StatAction?
+        var capturedPID: UUID?
+        recognizer.onAction = { action, pid, _ in
+            capturedAction = action; capturedPID = pid; exp.fulfill()
+        }
+        recognizer.simulateText("Mac free through")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .freeThrowMade)
+        XCTAssertEqual(capturedPID, mikeID)
+    }
+
+    func testEnglishToKnowAsTwoMissed() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction for ... to know")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action; exp.fulfill()
+        }
+        recognizer.simulateText("张三 to know")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .twoMissed)
+    }
+
+    func testEnglishMrAsMiss() async throws {
+        let recognizer = VoiceRecognizer()
+        recognizer.configure(store: store)
+        recognizer.currentSnapshot = snapshot
+        recognizer.updateRules(for: Locale(identifier: "en-US"))
+
+        let exp = expectation(description: "onAction for AD 2 Mr")
+        var capturedAction: StatAction?
+        recognizer.onAction = { action, _, _ in
+            capturedAction = action; exp.fulfill()
+        }
+        recognizer.simulateText("AD 2 Mr")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertEqual(capturedAction, .twoMissed)
+    }
+
     private func assertCommand(text: String, expectedCommand: String, file: StaticString = #filePath, line: UInt = #line) {
         let result = findEvent(text: text)
         let commandMap: [String: [String]] = [

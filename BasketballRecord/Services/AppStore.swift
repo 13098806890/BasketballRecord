@@ -110,7 +110,7 @@ final class AppStore: ObservableObject {
         didSet { if !suppressSave { scheduleSave() } }
     }
 
-    @Published var showsVoiceButton = false {
+    @Published var showsVoiceButton = true {
         didSet { if !suppressSave { scheduleSave() } }
     }
 

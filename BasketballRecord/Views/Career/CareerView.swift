@@ -387,7 +387,6 @@ private struct PlayerCareerBoardView: View {
 
         result.sort {
             let ascending = sortAscending
-            let descending = !ascending
 
             switch sortField {
             case .totalPoints:
