@@ -1,0 +1,9 @@
+• El control por voz ahora es GRATUITO para todos – sin suscripción
+• Idioma de voz seleccionable independientemente del idioma de la app (10 idiomas)
+• Nuevo tutorial de voz con 19 tareas interactivas
+• Unidades de altura/peso ajustables (cm/ft-in, kg/lbs)
+• Nueva pestaña "Gestión" para equipos, jugadores y grupos
+• Sistema de puntuación ELO añadido a las carreras de los jugadores
+• Lista de jugadores ordenable por total, promedio, +/- y ELO
+• Reconocimiento de voz en inglés mejorado con coincidencia Levenshtein y anclaje
+• La comparación de estadísticas del equipo resalta al líder

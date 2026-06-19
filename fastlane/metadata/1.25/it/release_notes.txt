@@ -1,0 +1,9 @@
+• Il comando vocale è ora GRATUITO per tutti – senza abbonamento
+• Lingua vocale selezionabile indipendentemente dalla lingua dell'app (10 lingue)
+• Nuovo tutorial vocale con 19 attività interattive
+• Unità di altezza/peso regolabili (cm/ft-in, kg/lbs)
+• Nuova scheda "Gestione" per squadre, giocatori e gruppi
+• Sistema di punteggio ELO aggiunto alle carriere dei giocatori
+• Elenco giocatori ordinabile per totale, media, +/- e ELO
+• Riconoscimento vocale inglese ottimizzato con corrispondenza Levenshtein e ancoraggio
+• Il confronto delle statistiche della squadra evidenzia il leader
