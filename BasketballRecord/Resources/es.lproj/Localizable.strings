@@ -14,6 +14,7 @@
 "settings_teams" = "Equipos";
 "settings_players" = "Jugadores";
 "settings_new" = "Nuevo";
+"settings_section_units" = "Unidades";
 "settings_section_sync_import" = "Sincronizar e importar";
 "settings_bluetooth_sync" = "Sincronización Bluetooth";
 "nav_bluetooth_sync" = "Sincronización Bluetooth";
@@ -851,7 +852,17 @@ Format:
 "section_nearby_devices" = "Dispositivos cercanos";
 "stats_games" = "G";
 "settings_voice" = "Voz";
+"settings_voice_locale" = "Idioma de voz";
+"settings_voice_locale_follow_app" = "Seguir idioma de la app";
+"settings_voice_locale_footer" = "Seleccione el idioma utilizado para el reconocimiento de voz. Afecta tanto a la página de puntuación como al tutorial.";
+
 "settings_voice_instruction" = "Instrucciones de voz";
+"voice_instruction_shots" = "Tiros";
+"voice_instruction_stats" = "Estadísticas";
+"voice_instruction_substitution" = "Sustitución";
+"voice_instruction_period" = "Período & Pausa";
+"voice_instruction_shortcuts" = "Atajos de Voz";
+"voice_instruction_tips" = "Consejos";
 "settings_show_voice_button_footer" = "Mostrar un botón de micrófono en la página de puntuación para entrada de voz.";
 "settings_voice_log_enable" = "Activar registro de voz";
 "settings_voice_log_enable_footer" = "Registra los detalles de reconocimiento para depuración y revisión.";
@@ -885,6 +896,20 @@ Format:
 "voice_unavailable" = "Reconocimiento de voz no disponible";
 "voice_substitution_failed" = "Sustitución fallida";
 "voice_unrecognized_format" = "No reconocido: %@";
+"settings_voice_tutorial" = "Tutorial de voz";
+"voice_tutorial_current_task" = "Tarea actual";
+"voice_tutorial_stop" = "Detener";
+"voice_tutorial_record" = "Grabar";
+"voice_tutorial_simulate" = "Simular";
+"voice_tutorial_simulate_placeholder" = "Ingrese texto para simular…";
+"voice_tutorial_send" = "Enviar";
+"voice_tutorial_complete_all" = "Completar todo";
+"voice_tutorial_complete_done" = "Completar y finalizar";
+"voice_tutorial_score" = "%d/%d tareas superadas";
+"voice_tutorial_restart" = "Reiniciar";
+"voice_tutorial_result_success" = "Éxito";
+"voice_tutorial_result_fail" = "Fallo";
+
 "sort_avg_points" = "Pts promedio";
 "sort_total_points" = "Pts totales";
 "label_sort_by" = "Ordenar por";

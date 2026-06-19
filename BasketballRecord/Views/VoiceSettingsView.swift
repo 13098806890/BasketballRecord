@@ -1,25 +1,71 @@
 import SwiftUI
 
+let kVoiceLocaleKey = "voice_locale"
+
+private let voiceLanguages: [(id: String, name: String)] = [
+    ("zh-Hans", "简体中文"),
+    ("zh-Hant-TW", "繁體中文"),
+    ("en", "English"),
+    ("ja", "日本語"),
+    ("ko", "한국어"),
+    ("de", "Deutsch"),
+    ("es", "Español"),
+    ("fr", "Français"),
+    ("it", "Italiano"),
+    ("ru", "Русский"),
+]
+
 struct VoiceSettingsView: View {
     @ObservedObject var store: AppStore
-    @State private var isShowingPurchase = false
+    @AppStorage(kVoiceLocaleKey) private var voiceLocale: String = ""
+
+    private var effectiveLocale: String {
+        voiceLocale.isEmpty ? (Bundle.main.preferredLocalizations.first ?? "en") : voiceLocale
+    }
 
     var body: some View {
         List {
             Section {
-                HStack {
-                    Toggle(isOn: $store.showsVoiceButton) {
-                        Label(LocalizedStringKey("settings_show_voice_button"), systemImage: "mic.fill")
-                            .foregroundStyle(.primary)
+                Picker(selection: $voiceLocale) {
+                    Text(LocalizedStringKey("settings_voice_locale_follow_app"))
+                        .tag("")
+                    ForEach(voiceLanguages, id: \.id) { lang in
+                        Text(lang.name).tag(lang.id)
                     }
-                    .disabled(!store.isPro)
+                } label: {
+                    Label(LocalizedStringKey("settings_voice_locale"), systemImage: "globe")
+                        .foregroundStyle(.primary)
                 }
-                .overlay {
-                    if !store.isPro {
-                        Color.clear
-                            .contentShape(Rectangle())
-                            .onTapGesture { isShowingPurchase = true }
-                    }
+            } footer: {
+                Text(LocalizedStringKey("settings_voice_locale_footer"))
+            }
+
+            Section {
+                NavigationLink {
+                    VoiceInstructionView()
+                } label: {
+                    settingsRow(
+                        title: LocalizedStringKey("settings_voice_instruction"),
+                        systemImage: "questionmark.circle",
+                        countText: nil
+                    )
+                }
+
+                NavigationLink {
+                    VoiceTutorialView(store: store, voiceLocale: effectiveLocale)
+                } label: {
+                    settingsRow(
+                        title: LocalizedStringKey("settings_voice_tutorial"),
+                        systemImage: "graduationcap.fill",
+                        countText: nil
+                    )
+                }
+            }
+
+            Section {
+                Toggle(isOn: $store.showsVoiceButton) {
+                    Label(LocalizedStringKey("settings_show_voice_button"), systemImage: "mic.fill")
+                        .foregroundStyle(.primary)
                 }
             } footer: {
                 Text(LocalizedStringKey("settings_show_voice_button_footer"))
@@ -55,23 +101,8 @@ struct VoiceSettingsView: View {
                     )
                 }
             }
-
-            Section {
-                NavigationLink {
-                    VoiceInstructionView()
-                } label: {
-                    settingsRow(
-                        title: LocalizedStringKey("settings_voice_instruction"),
-                        systemImage: "questionmark.circle",
-                        countText: nil
-                    )
-                }
-            }
         }
         .navigationTitle(LocalizedStringKey("settings_voice"))
-        .sheet(isPresented: $isShowingPurchase) {
-            ProSubscriptionStoreView()
-        }
     }
 
     private func settingsRow(title: LocalizedStringKey, systemImage: String, countText: String?) -> some View {

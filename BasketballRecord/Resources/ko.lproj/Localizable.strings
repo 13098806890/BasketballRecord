@@ -14,6 +14,7 @@
 "settings_teams" = "팀";
 "settings_players" = "선수";
 "settings_new" = "새로 만들기";
+"settings_section_units" = "단위";
 "settings_section_sync_import" = "동기화 및 가져오기";
 "settings_bluetooth_sync" = "블루투스 동기화";
 "nav_bluetooth_sync" = "블루투스 동기화";
@@ -867,7 +868,17 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "icloud_error_unknown" = "알 수 없는 iCloud 오류입니다.";
 "stats_games" = "G";
 "settings_voice" = "음성";
+"settings_voice_locale" = "음성 언어";
+"settings_voice_locale_follow_app" = "앱 언어 따르기";
+"settings_voice_locale_footer" = "음성 인식에 사용할 언어를 선택하세요. 점수 기록 페이지와 튜토리얼에 모두 영향을 줍니다.";
+
 "settings_voice_instruction" = "음성 사용 설명";
+"voice_instruction_shots" = "슛 기록";
+"voice_instruction_stats" = "통계 기록";
+"voice_instruction_substitution" = "선수 교체";
+"voice_instruction_period" = "쿼터・일시정지";
+"voice_instruction_shortcuts" = "음성 단축키";
+"voice_instruction_tips" = "팁";
 "settings_show_voice_button_footer" = "득점 페이지에 마이크 버튼을 표시하여 음성 입력을 지원합니다.";
 "settings_voice_log_enable" = "음성 로그 활성화";
 "settings_voice_log_enable_footer" = "음성 인식의 상세 매칭 과정을 기록하여 디버깅 및 검토에 활용합니다.";
@@ -881,6 +892,20 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "voice_shortcuts_action" = "작업";
 "voice_shortcuts_add_title" = "단축키 추가";
 "voice_shortcuts_edit_title" = "단축키 편집";
+"settings_voice_tutorial" = "음성 튜토리얼";
+"voice_tutorial_current_task" = "현재 작업";
+"voice_tutorial_stop" = "중지";
+"voice_tutorial_record" = "녹음";
+"voice_tutorial_simulate" = "시뮬레이션";
+"voice_tutorial_simulate_placeholder" = "시뮬레이션할 텍스트 입력…";
+"voice_tutorial_send" = "보내기";
+"voice_tutorial_complete_all" = "모두 완료";
+"voice_tutorial_complete_done" = "완료 및 종료";
+"voice_tutorial_score" = "%d/%d 작업 완료";
+"voice_tutorial_restart" = "다시 시작";
+"voice_tutorial_result_success" = "성공";
+"voice_tutorial_result_fail" = "실패";
+
 "link_privacy_policy" = "개인정보 처리방침";
 "link_terms_of_eula" = "이용 약관 (EULA)";
 "subscription_auto_renew_info" = "자동 갱신 구독입니다. App Store 설정에서 언제든지 취소할 수 있습니다.";

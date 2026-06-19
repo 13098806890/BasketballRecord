@@ -71,7 +71,12 @@ struct NewGameSetupView: View {
                 Section(LocalizedStringKey("section_team_home")) {
                     if homeTeamID != nil {
                         Toggle(isOn: $homeTeamStatsMode) {
-                            Label(LocalizedStringKey("label_team_stats_mode"), systemImage: "chart.bar.fill")
+                            HStack(spacing: 10) {
+                                Image(systemName: "person.3.fill")
+                                    .foregroundColor(.primary)
+                                    .frame(width: 28)
+                                Text(LocalizedStringKey("label_team_stats_mode"))
+                            }
                         }
                         if !homeTeamStatsMode {
                             starterSection(title: NSLocalizedString("starter_home_title", comment: "Home starters"), players: homePlayers, selectedIDs: $homeStarterIDs, requiredCount: requiredHomeCount)
@@ -87,7 +92,12 @@ struct NewGameSetupView: View {
                 Section(LocalizedStringKey("section_team_away")) {
                     if awayTeamID != nil {
                         Toggle(isOn: $awayTeamStatsMode) {
-                            Label(LocalizedStringKey("label_team_stats_mode"), systemImage: "chart.bar.fill")
+                            HStack(spacing: 10) {
+                                Image(systemName: "person.3.fill")
+                                    .foregroundColor(.primary)
+                                    .frame(width: 28)
+                                Text(LocalizedStringKey("label_team_stats_mode"))
+                            }
                         }
                         if !awayTeamStatsMode {
                             starterSection(title: NSLocalizedString("starter_away_title", comment: "Away starters"), players: awayPlayers, selectedIDs: $awayStarterIDs, requiredCount: requiredAwayCount)

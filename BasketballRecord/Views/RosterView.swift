@@ -19,6 +19,9 @@ struct RosterView: View {
     @State private var showingSettingsDocument: SettingsDocument?
     @State private var isShowingPurchase = false
 
+    @AppStorage(UnitSettings.heightUnitKey) private var heightRaw: String = ""
+    @AppStorage(UnitSettings.weightUnitKey) private var weightRaw: String = ""
+
     var body: some View {
         NavigationStack {
             List {
@@ -81,8 +84,36 @@ struct RosterView: View {
                                 .contentShape(Rectangle())
                                 .onTapGesture { isShowingPurchase = true }
                         }
+                }
+                }
+
+                Section(LocalizedStringKey("settings_section_units")) {
+                    let heightBinding = Binding(
+                        get: { HeightUnit(rawValue: heightRaw) ?? UnitSettings.defaultHeightUnit },
+                        set: { heightRaw = $0.rawValue }
+                    )
+                    let weightBinding = Binding(
+                        get: { WeightUnit(rawValue: weightRaw) ?? UnitSettings.defaultWeightUnit },
+                        set: { weightRaw = $0.rawValue }
+                    )
+
+                    Picker(selection: heightBinding) {
+                        ForEach(HeightUnit.allCases, id: \.rawValue) { unit in
+                            Text(unit.displayName).tag(unit)
+                        }
+                    } label: {
+                        Label(LocalizedStringKey("label_height"), systemImage: "ruler")
+                            .foregroundStyle(.primary)
                     }
 
+                    Picker(selection: weightBinding) {
+                        ForEach(WeightUnit.allCases, id: \.rawValue) { unit in
+                            Text(unit.displayName).tag(unit)
+                        }
+                    } label: {
+                        Label(LocalizedStringKey("label_weight"), systemImage: "scalemass")
+                            .foregroundStyle(.primary)
+                    }
                 }
 
                 Section {
@@ -278,10 +309,6 @@ struct ProSubscriptionStoreView: View {
         SettingsFeatureSection(icon: "sparkles", title: LocalizedStringKey("settings_ai"), items: [
             SettingsFeatureItem(LocalizedStringKey("pro_feature_ai_1"), LocalizedStringKey("")),
             SettingsFeatureItem(LocalizedStringKey("pro_feature_ai_2"), LocalizedStringKey("")),
-        ]),
-        SettingsFeatureSection(icon: "waveform.circle.fill", title: LocalizedStringKey("settings_voice"), items: [
-            SettingsFeatureItem(LocalizedStringKey("pro_feature_voice_1"), LocalizedStringKey("")),
-            SettingsFeatureItem(LocalizedStringKey("pro_feature_voice_2"), LocalizedStringKey("")),
         ]),
     ]
 
@@ -1061,8 +1088,8 @@ private struct RosterActionIcon: View {
 private func rosterPlayerSubtitle(_ player: Player) -> String {
     var parts: [String] = []
     if !player.number.isEmpty { parts.append("No. \(player.number)") }
-    if !player.height.isEmpty { parts.append("\(player.height)cm") }
-    if !player.weight.isEmpty { parts.append("\(player.weight)kg") }
+    if !player.height.isEmpty { parts.append(UnitSettings.displayHeight(player.height)) }
+    if !player.weight.isEmpty { parts.append(UnitSettings.displayWeight(player.weight)) }
     return parts.isEmpty ? NSLocalizedString("player_profile_missing_basic", comment: "Missing player basics") : parts.joined(separator: " · ")
 }
 
@@ -1493,8 +1520,8 @@ private struct ImportRosterPackageView: View {
                     Section(LocalizedStringKey("section_import_preview")) {
                         LabeledContent(localized("label_player"), value: playerPackage.player.name)
                         LabeledContent(localized("label_number"), value: playerPackage.player.number.isEmpty ? localized("text_not_set") : playerPackage.player.number)
-                        LabeledContent(localized("label_height"), value: playerPackage.player.height.isEmpty ? localized("text_not_set") : "\(playerPackage.player.height)cm")
-                        LabeledContent(localized("label_weight"), value: playerPackage.player.weight.isEmpty ? localized("text_not_set") : "\(playerPackage.player.weight)kg")
+                        LabeledContent(localized("label_height"), value: playerPackage.player.height.isEmpty ? localized("text_not_set") : UnitSettings.displayHeight(playerPackage.player.height))
+                        LabeledContent(localized("label_weight"), value: playerPackage.player.weight.isEmpty ? localized("text_not_set") : UnitSettings.displayWeight(playerPackage.player.weight))
                         Text(LocalizedStringKey("import_player_preview_hint"))
                             .font(.footnote)
                             .foregroundStyle(.secondary)

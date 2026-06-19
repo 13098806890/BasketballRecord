@@ -97,7 +97,7 @@ extension VoiceRules {
         surnamePinyinOverrides: [:],
         pinyinVariantRules: [],
         useLevenshteinMatching: true,
-        levenshteinThreshold: (short: 1, long: 2),
+        levenshteinThreshold: (short: 1, long: 3),
         useAnchorMatching: true,
         anchorWords: ["made", "got", "get", "missed", "miss", "no", "not", "know"]
     )

@@ -79,6 +79,7 @@
 "settings_teams" = "Команды";
 "settings_players" = "Игроки";
 "settings_new" = "Новый";
+"settings_section_units" = "Единицы";
 "settings_section_sync_import" = "Синхронизация и импорт";
 "settings_bluetooth_sync" = "Синхронизация по Bluetooth";
 "nav_bluetooth_sync" = "Синхронизация по Bluetooth";
@@ -851,7 +852,17 @@ Format:
 "section_nearby_devices" = "Устройства рядом";
 "stats_games" = "G";
 "settings_voice" = "Голос";
+"settings_voice_locale" = "Язык голоса";
+"settings_voice_locale_follow_app" = "Следовать языку приложения";
+"settings_voice_locale_footer" = "Выберите язык для распознавания речи. Влияет как на страницу подсчёта очков, так и на обучение.";
+
 "settings_voice_instruction" = "Голосовые инструкции";
+"voice_instruction_shots" = "Броски";
+"voice_instruction_stats" = "Статистика";
+"voice_instruction_substitution" = "Замена";
+"voice_instruction_period" = "Период & Пауза";
+"voice_instruction_shortcuts" = "Голосовые сокращения";
+"voice_instruction_tips" = "Советы";
 "settings_show_voice_button_footer" = "Показать кнопку микрофона на странице подсчёта для голосового ввода.";
 "settings_voice_log_enable" = "Включить голосовой журнал";
 "settings_voice_log_enable_footer" = "Записывает детали распознавания для отладки и просмотра.";
@@ -885,6 +896,20 @@ Format:
 "voice_unavailable" = "Распознавание речи недоступно";
 "voice_substitution_failed" = "Замена не удалась";
 "voice_unrecognized_format" = "Не распознано: %@";
+"settings_voice_tutorial" = "Голосовое обучение";
+"voice_tutorial_current_task" = "Текущая задача";
+"voice_tutorial_stop" = "Стоп";
+"voice_tutorial_record" = "Запись";
+"voice_tutorial_simulate" = "Симуляция";
+"voice_tutorial_simulate_placeholder" = "Введите текст для симуляции…";
+"voice_tutorial_send" = "Отправить";
+"voice_tutorial_complete_all" = "Завершить всё";
+"voice_tutorial_complete_done" = "Завершить и готово";
+"voice_tutorial_score" = "Пройдено %d/%d заданий";
+"voice_tutorial_restart" = "Перезапуск";
+"voice_tutorial_result_success" = "Успех";
+"voice_tutorial_result_fail" = "Неудача";
+
 "sort_avg_points" = "Ср. очки";
 "sort_total_points" = "Всего очков";
 "label_sort_by" = "Сортировать по";

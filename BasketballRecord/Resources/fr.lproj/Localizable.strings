@@ -14,6 +14,7 @@
 "settings_teams" = "Équipes";
 "settings_players" = "Joueurs";
 "settings_new" = "Nouveau";
+"settings_section_units" = "Unités";
 "settings_section_sync_import" = "Synchronisation et import";
 "settings_bluetooth_sync" = "Synchronisation Bluetooth";
 "nav_bluetooth_sync" = "Synchronisation Bluetooth";
@@ -851,7 +852,17 @@ Format:
 "section_nearby_devices" = "Appareils à proximité";
 "stats_games" = "G";
 "settings_voice" = "Voix";
+"settings_voice_locale" = "Langue vocale";
+"settings_voice_locale_follow_app" = "Suivre la langue de l'app";
+"settings_voice_locale_footer" = "Choisissez la langue utilisée pour la reconnaissance vocale. Affecte à la fois la page de score et le tutoriel.";
+
 "settings_voice_instruction" = "Instructions vocales";
+"voice_instruction_shots" = "Tirs";
+"voice_instruction_stats" = "Statistiques";
+"voice_instruction_substitution" = "Remplacement";
+"voice_instruction_period" = "Période & Pause";
+"voice_instruction_shortcuts" = "Raccourcis Vocaux";
+"voice_instruction_tips" = "Conseils";
 "settings_show_voice_button_footer" = "Afficher un bouton microphone sur la page de notation pour la saisie vocale.";
 "settings_voice_log_enable" = "Activer le journal vocal";
 "settings_voice_log_enable_footer" = "Enregistre les détails de reconnaissance pour le débogage et la révision.";
@@ -885,6 +896,20 @@ Format:
 "voice_unavailable" = "Reconnaissance vocale indisponible";
 "voice_substitution_failed" = "Remplacement échoué";
 "voice_unrecognized_format" = "Non reconnu : %@";
+"settings_voice_tutorial" = "Tutoriel vocal";
+"voice_tutorial_current_task" = "Tâche actuelle";
+"voice_tutorial_stop" = "Arrêter";
+"voice_tutorial_record" = "Enregistrer";
+"voice_tutorial_simulate" = "Simuler";
+"voice_tutorial_simulate_placeholder" = "Saisissez le texte à simuler…";
+"voice_tutorial_send" = "Envoyer";
+"voice_tutorial_complete_all" = "Tout terminer";
+"voice_tutorial_complete_done" = "Terminer et valider";
+"voice_tutorial_score" = "%d/%d tâches réussies";
+"voice_tutorial_restart" = "Redémarrer";
+"voice_tutorial_result_success" = "Succès";
+"voice_tutorial_result_fail" = "Échec";
+
 "sort_avg_points" = "Moy pts";
 "sort_total_points" = "Pts total";
 "label_sort_by" = "Trier par";

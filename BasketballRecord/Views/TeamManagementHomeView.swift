@@ -9,6 +9,38 @@ struct TeamManagementHomeView: View {
         NavigationStack {
             List {
                 Section(LocalizedStringKey("settings_section_data_management")) {
+                    Button {
+                        showingCreateEntry = true
+                    } label: {
+                        managementRow(
+                            title: LocalizedStringKey("settings_new"),
+                            systemImage: "plus.circle.fill",
+                            countText: nil,
+                            showsDisclosure: true
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    NavigationLink {
+                        PlayerManagementView()
+                    } label: {
+                        managementRow(
+                            title: LocalizedStringKey("settings_players"),
+                            systemImage: "person.crop.circle.fill",
+                            countText: "\(store.players.count)"
+                        )
+                    }
+
+                    NavigationLink {
+                        TeamManagementView()
+                    } label: {
+                        managementRow(
+                            title: LocalizedStringKey("settings_teams"),
+                            systemImage: "person.3.fill",
+                            countText: "\(store.teams.count)"
+                        )
+                    }
+
                     NavigationLink {
                         GameGroupManagementView(store: store)
                     } label: {
@@ -44,38 +76,6 @@ struct TeamManagementHomeView: View {
                                 .onTapGesture { isShowingPurchase = true }
                         }
                     }
-
-                    NavigationLink {
-                        TeamManagementView()
-                    } label: {
-                        managementRow(
-                            title: LocalizedStringKey("settings_teams"),
-                            systemImage: "person.3.fill",
-                            countText: "\(store.teams.count)"
-                        )
-                    }
-
-                    NavigationLink {
-                        PlayerManagementView()
-                    } label: {
-                        managementRow(
-                            title: LocalizedStringKey("settings_players"),
-                            systemImage: "person.crop.circle.fill",
-                            countText: "\(store.players.count)"
-                        )
-                    }
-
-                    Button {
-                        showingCreateEntry = true
-                    } label: {
-                        managementRow(
-                            title: LocalizedStringKey("settings_new"),
-                            systemImage: "plus.circle.fill",
-                            countText: nil,
-                            showsDisclosure: true
-                        )
-                    }
-                    .buttonStyle(.plain)
                 }
             }
             .navigationTitle(LocalizedStringKey("tab_management"))

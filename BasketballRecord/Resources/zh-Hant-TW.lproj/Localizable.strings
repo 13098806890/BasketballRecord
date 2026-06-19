@@ -14,6 +14,7 @@
 "settings_teams" = "球隊";
 "settings_players" = "球員";
 "settings_new" = "新建";
+"settings_section_units" = "單位";
 "settings_section_sync_import" = "同步與匯入";
 "settings_bluetooth_sync" = "藍牙協同";
 "nav_bluetooth_sync" = "藍牙協同";
@@ -861,7 +862,17 @@ Format:
 "icloud_error_unknown" = "未知的 iCloud 錯誤。";
 "stats_games" = "出場";
 "settings_voice" = "語音";
+"settings_voice_locale" = "語音語言";
+"settings_voice_locale_follow_app" = "跟隨 App 語言";
+"settings_voice_locale_footer" = "選擇語音辨識使用的語言。同時影響計分頁面和教學。";
+
 "settings_voice_instruction" = "語音說明";
+"voice_instruction_shots" = "投籃記錄";
+"voice_instruction_stats" = "統計記錄";
+"voice_instruction_substitution" = "換人";
+"voice_instruction_period" = "節次與暫停";
+"voice_instruction_shortcuts" = "快捷指令";
+"voice_instruction_tips" = "小技巧";
 "settings_show_voice_button_footer" = "在記分頁顯示麥克風按鈕，支援語音輸入。";
 "settings_voice_log_enable" = "啟用語音日誌";
 "settings_voice_log_enable_footer" = "記錄語音識別的詳細匹配過程，便於除錯和回顧。";
@@ -895,6 +906,20 @@ Format:
 "voice_unavailable" = "語音辨識不可用";
 "voice_substitution_failed" = "換人失敗";
 "voice_unrecognized_format" = "未識別：%@";
+"settings_voice_tutorial" = "語音教學";
+"voice_tutorial_current_task" = "目前任務";
+"voice_tutorial_stop" = "停止";
+"voice_tutorial_record" = "錄製";
+"voice_tutorial_simulate" = "模擬";
+"voice_tutorial_simulate_placeholder" = "輸入模擬文字…";
+"voice_tutorial_send" = "傳送";
+"voice_tutorial_complete_all" = "全部完成";
+"voice_tutorial_complete_done" = "完成並結束";
+"voice_tutorial_score" = "已完成 %d/%d 個任務";
+"voice_tutorial_restart" = "重新開始";
+"voice_tutorial_result_success" = "成功";
+"voice_tutorial_result_fail" = "失敗";
+
 "sort_avg_points" = "場均得分";
 "sort_total_points" = "總得分";
 "label_sort_by" = "排序";

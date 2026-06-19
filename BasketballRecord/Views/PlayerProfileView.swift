@@ -543,8 +543,8 @@ struct PlayerProfileView: View {
     private func profileSubtitle(_ player: Player) -> String {
         var parts: [String] = []
         if !player.number.isEmpty { parts.append("No. \(player.number)") }
-        if !player.height.isEmpty { parts.append("\(player.height)cm") }
-        if !player.weight.isEmpty { parts.append("\(player.weight)kg") }
+        if !player.height.isEmpty { parts.append(UnitSettings.displayHeight(player.height)) }
+        if !player.weight.isEmpty { parts.append(UnitSettings.displayWeight(player.weight)) }
         return parts.isEmpty ? localized("player_profile_missing_basic") : parts.joined(separator: " · ")
     }
 

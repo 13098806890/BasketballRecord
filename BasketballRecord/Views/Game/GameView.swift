@@ -58,6 +58,7 @@ struct GameView: View {
     @State private var autoEndAlertMessage = ""
     @State private var isShowingPurchase = false
     @StateObject private var voiceRecognizer = VoiceRecognizer()
+    @AppStorage("voice_locale") private var voiceLocale: String = ""
 
     private let matchClockTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -249,6 +250,9 @@ struct GameView: View {
             }
             .onAppear {
                 voiceRecognizer.configure(store: store)
+                if !voiceLocale.isEmpty {
+                    voiceRecognizer.updateRules(for: Locale(identifier: voiceLocale))
+                }
                 voiceRecognizer.onAction = { [self] action, playerID, side in
                     guard !snapshot.isComplete else {
                         statAlertMessage = NSLocalizedString("stat_game_already_finished", comment: "")
@@ -294,6 +298,9 @@ struct GameView: View {
             .onChange(of: bluetooth.latestLiveSnapshot?.id) { _, _ in
                 guard let incoming = bluetooth.latestLiveSnapshot else { return }
                 applyRemoteLiveSnapshot(incoming)
+            }
+            .onChange(of: voiceLocale) { _, newValue in
+                voiceRecognizer.updateRules(for: Locale(identifier: newValue.isEmpty ? "en" : newValue))
             }
             .onChange(of: bluetooth.latestInviteResponse?.id) { _, _ in
                 guard let response = bluetooth.latestInviteResponse else { return }
@@ -348,7 +355,7 @@ struct GameView: View {
         }
         .scrollBounceBehavior(.basedOnSize)
         .overlay(alignment: .bottom) {
-            if store.showsVoiceButton, store.isPro, !needsNewGameSetup {
+            if store.showsVoiceButton, !needsNewGameSetup {
                 VStack(spacing: 6) {
                     if let error = voiceRecognizer.errorMessage {
                         Text(error)
