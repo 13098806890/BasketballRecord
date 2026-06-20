@@ -1,0 +1,7 @@
+• Offensive & defensive rebound stats — track offensive and defensive boards separately
+• Combined voice commands — say "assist + shot" or "steal + turnover" in one go
+• Voice tutorial expanded to 27 tasks — new O/D rebound practice tasks
+• O/D rebound mode — toggle in game setup, adjusts game view buttons
+• Team stats now show OREB / DREB split and rearranged categories
+• Chinese pinyin variants enhanced, tutorial hint fixes
+• Multiple bug fixes and stability improvements

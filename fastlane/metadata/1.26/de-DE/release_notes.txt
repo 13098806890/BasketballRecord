@@ -1,0 +1,6 @@
+• Getrennte Offensive/Defensive-Rebound-Statistiken
+• Sprachgesteuerte Kombibefehle: "Assist + Wurf" oder "Steal + Turnover" in einem Befehl
+• Sprach-Tutorial auf 27 Aufgaben erweitert, inklusive O/D-Rebound-Übungen
+• O/D-Rebound-Modus: in Spieleinstellungen umschaltbar, Button-Layout passt sich an
+• Teamstatistiken zeigen jetzt OREB/DREB-Aufteilung
+• Mehrere Bugfixes und Stabilitätsverbesserungen
