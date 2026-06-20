@@ -16,7 +16,7 @@ struct VoiceShortcutSettingsView: View {
     ]
 
     private let statActions: [StatAction] = [
-        .foul, .assist, .rebound, .block, .steal, .turnover,
+        .foul, .assist, .rebound, .offensiveRebound, .defensiveRebound, .block, .steal, .turnover,
     ]
 
     private func icon(for action: StatAction) -> String {
@@ -31,6 +31,8 @@ struct VoiceShortcutSettingsView: View {
         case .foul: return "exclamationmark.triangle"
         case .assist: return "hand.raised"
         case .rebound: return "arrow.up.circle"
+        case .offensiveRebound: return "arrow.up.forward.circle"
+        case .defensiveRebound: return "arrow.down.backward.circle"
         case .block: return "shield.lefthalf.filled"
         case .steal: return "hand.raised.fill"
         case .turnover: return "arrow.triangle.2.circlepath"

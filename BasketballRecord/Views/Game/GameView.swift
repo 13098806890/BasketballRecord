@@ -303,14 +303,14 @@ struct GameView: View {
                     let op1 = BluetoothLiveOperationPayload.record(
                         action: action1.liveAction, playerID: pid1, side: side1.liveSide, at: now
                     )
-                    _ = submitLiveOperation(op1) {
-                        self.applyRecordOperation(action: action1, playerID: pid1, side: side1, at: now, eventMessage: combinedMsg)
-                    }
                     let op2 = BluetoothLiveOperationPayload.record(
                         action: action2.liveAction, playerID: pid2, side: side2.liveSide, at: now
                     )
                     _ = submitLiveOperation(op2) {
                         self.applyRecordOperation(action: action2, playerID: pid2, side: side2, at: now, eventMessage: "")
+                    }
+                    _ = submitLiveOperation(op1) {
+                        self.applyRecordOperation(action: action1, playerID: pid1, side: side1, at: now, eventMessage: combinedMsg)
                     }
                 }
                 voiceRecognizer.onCommand = { [self] command in
@@ -649,18 +649,24 @@ struct GameView: View {
                 if snapshot.showsAssistButton {
                     actionButton(LocalizedStringKey("action_assist"), systemImage: "person.2.fill", style: .assist) { record(.assist) }
                 }
-                if snapshot.showsReboundButton {
+                if snapshot.showsOffensiveDefensiveRebound {
+                    actionButton(LocalizedStringKey("action_offensive_rebound"), systemImage: "arrow.up.forward.circle.fill", style: .rebound) { record(.offensiveRebound) }
+                    actionButton(LocalizedStringKey("action_defensive_rebound"), systemImage: "arrow.down.backward.circle.fill", style: .rebound) { record(.defensiveRebound) }
+                } else if snapshot.showsReboundButton {
                     actionButton(LocalizedStringKey("action_rebound"), systemImage: "arrow.up.circle.fill", style: .rebound) { record(.rebound) }
                 }
                 if snapshot.showsBlockButton {
                     actionButton(LocalizedStringKey("action_block"), systemImage: "shield.lefthalf.filled", style: .rebound) { record(.block) }
                 }
-                if snapshot.showsStealButton {
+                if !snapshot.showsOffensiveDefensiveRebound, snapshot.showsStealButton {
                     actionButton(LocalizedStringKey("action_steal"), systemImage: "hand.raised.fill", style: .assist) { record(.steal) }
                 }
             }
 
             HStack(spacing: 8) {
+                if snapshot.showsOffensiveDefensiveRebound, snapshot.showsStealButton {
+                    actionButton(LocalizedStringKey("action_steal"), systemImage: "hand.raised.fill", style: .assist) { record(.steal) }
+                }
                 if snapshot.showsFoulButton {
                     actionButton(LocalizedStringKey("action_foul"), systemImage: "exclamationmark.triangle", style: .warning) { record(.foul) }
                 }
@@ -1121,6 +1127,8 @@ struct GameView: View {
             total.freeThrowMade += stats.freeThrowMade
             total.freeThrowAttempts += stats.freeThrowAttempts
             total.rebounds += stats.rebounds
+            total.offensiveRebounds += stats.offensiveRebounds
+            total.defensiveRebounds += stats.defensiveRebounds
             total.assists += stats.assists
             total.fouls += stats.fouls
             total.blocks += stats.blocks
@@ -2029,6 +2037,7 @@ struct GameView: View {
             courtPlayerCount: snapshot.courtPlayerCount,
             resetsTeamFoulsEachPeriod: snapshot.resetsTeamFoulsEachPeriod,
             showsReboundButton: snapshot.showsReboundButton,
+            showsOffensiveDefensiveRebound: snapshot.showsOffensiveDefensiveRebound,
             showsAssistButton: snapshot.showsAssistButton,
             showsFoulButton: snapshot.showsFoulButton,
             showsBlockButton: snapshot.showsBlockButton,
@@ -2061,6 +2070,7 @@ struct GameView: View {
             courtPlayerCount: config.courtPlayerCount,
             resetsTeamFoulsEachPeriod: config.resetsTeamFoulsEachPeriod,
             showsReboundButton: config.showsReboundButton,
+            showsOffensiveDefensiveRebound: config.showsOffensiveDefensiveRebound,
             showsAssistButton: config.showsAssistButton,
             showsFoulButton: config.showsFoulButton,
             showsBlockButton: config.showsBlockButton,
@@ -2187,6 +2197,7 @@ struct GameView: View {
             courtPlayerCount: courtCount,
             resetsTeamFoulsEachPeriod: snapshot.resetsTeamFoulsEachPeriod,
             showsReboundButton: snapshot.showsReboundButton,
+            showsOffensiveDefensiveRebound: snapshot.showsOffensiveDefensiveRebound,
             showsAssistButton: snapshot.showsAssistButton,
             showsFoulButton: snapshot.showsFoulButton,
             showsBlockButton: snapshot.showsBlockButton,
@@ -2686,6 +2697,7 @@ struct GameView: View {
 
         if let latest = store.latestUnfinishedGame() {
             snapshot = latest.snapshot
+            voiceRecognizer.currentSnapshot = snapshot
             undoStack = []
             redoStack.removeAll()
             currentGameRecordID = latest.id

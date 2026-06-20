@@ -32,6 +32,7 @@ struct VoiceInstructionView: View {
                 statSection
                 substitutionSection
                 periodPauseSection
+                combinedSection
                 shortcutsSection
                 tipsSection
             }
@@ -336,6 +337,39 @@ struct VoiceInstructionView: View {
             let cmds = t.periodPauseCommands.joined(separator: dq)
             let e = end.isEmpty ? "" : "\n\"\(end.joined(separator: dq))\""
             return "No player name needed.\n\nExamples:\n\"\(cmds)\"\(e)"
+        }
+    }
+
+    private var combinedSection: some View {
+        section(
+            icon: "link",
+            title: LocalizedStringKey("voice_instruction_combined"),
+            content: combinedContent
+        )
+    }
+
+    private var combinedContent: String {
+        switch languageCode {
+        case "zh-Hans":
+            return "复合指令：一次说出助攻+投篮或抢断+失误。\n\n示例：\n「俊宏助攻老张两分」→ 助攻 + 两分命中 + 比分更新\n「俊宏助攻老张三分」→ 助攻 + 三分命中 + 比分更新\n「俊宏抢断bobo」→ 抢断 + 失误"
+        case "zh-Hant":
+            return "複合指令：一次說出助攻+投籃或抄截+失誤。\n\n示例：\n「俊宏助攻老張兩分」→ 助攻 + 兩分命中 + 比分更新\n「俊宏助攻老張三分」→ 助攻 + 三分命中 + 比分更新\n「俊宏抄截bobo」→ 抄截 + 失誤"
+        case "ja":
+            return "複合コマンド：アシスト+シュート、スティール+ターンオーバーを一度に。\n\n例：\n「鈴木アシスト田中ツー」→ アシスト + ツー成功 + 得点更新\n「鈴木アシスト田中スリー」→ アシスト + スリー成功 + 得点更新\n「鈴木スティール佐藤」→ スティール + ターンオーバー"
+        case "ko":
+            return "복합 명령: 어시스트+슛 또는 스틸+턴오버를 한 번에.\n\n예시：\n「이영희 어시스트 김철수 투」→ 어시스트 + 2점 성공 + 점수 업데이트\n「이영희 어시스트 김철수 쓰리」→ 어시스트 + 3점 성공 + 점수 업데이트\n「이영희 스틸 정지원」→ 스틸 + 턴오버"
+        case "de":
+            return "Kombinierte Befehle: Assist + Wurf oder Steal + Turnover in einem.\n\nBeispiele:\n„Fritz Assist Hans zwei“ → Assist + 2 Punkte + Punktezähler aktualisiert\n„Fritz Assist Hans drei“ → Assist + 3 Punkte + Punktezähler aktualisiert\n„Fritz Steal Gerd“ → Steal + Turnover"
+        case "es":
+            return "Comandos combinados: asistencia + tiro o robo + perdida en uno.\n\nEjemplos:\n„Luis asistencia Carlos dos“ → asistencia + 2 puntos + marcador actualizado\n„Luis asistencia Carlos tres“ → asistencia + 3 puntos + marcador actualizado\n„Luis robo Juan“ → robo + perdida"
+        case "fr":
+            return "Commandes combinées : passe décisive + tir ou interception + perte de balle en une seule fois.\n\nExemples :\n„Paul assist Pierre deux“ → passe décisive + 2 points + score mis à jour\n„Paul assist Pierre trois“ → passe décisive + 3 points + score mis à jour\n„Paul interception Luc“ → interception + perte de balle"
+        case "it":
+            return "Comandi combinati: assist + tiro o palla rubata + perse in uno.\n\nEsempi:\n„Luca assist Marco due“ → assist + 2 punti + punteggio aggiornato\n„Luca assist Marco tre“ → assist + 3 punti + punteggio aggiornato\n„Luca rubata Mario“ → palla rubata + perse"
+        case "ru":
+            return "Комбинированные команды: ассист + бросок или перехват + потеря одним голосом.\n\nПримеры:\n«Пётр ассист Иван два» → ассист + 2 очка + счёт обновлён\n«Пётр ассист Иван три» → ассист + 3 очка + счёт обновлён\n«Пётр перехват Алексей» → перехват + потеря"
+        default:
+            return "Combine an assist with a shot, or a steal with a turnover, in one command.\n\nExamples:\n\"Mike assist John two\" → assist + 2PT made + score updated\n\"Mike assist John three\" → assist + 3PT made + score updated\n\"Mike steal Dave\" → steal + turnover"
         }
     }
 

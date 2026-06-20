@@ -48,8 +48,10 @@
 "stats_points_format_short" = "PTS";
 "stats_pts_min" = "PTS / MIN";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
-"stats_rebound_block" = "REB / BLK";
+"stats_rebound_block" = "REB / OREB / DREB";
+"stats_rebound_detail" = "REB / OREB / DREB";
 "stats_assist_steal" = "AST / STL";
+"stats_assist_steal_block" = "AST / STL / BLK";
 "stats_foul_turnover" = "FOUL / TO";
 "stats_minutes" = "MIN";
 "stats_starter_bench" = "S / B";
@@ -185,6 +187,9 @@
 "action_free_missed" = "FT Miss";
 "action_assist" = "Assist";
 "action_rebound" = "Rebound";
+"action_offensive_rebound" = "Offensive Rebound";
+"action_defensive_rebound" = "Defensive Rebound";
+"action_offensive_defensive_rebound" = "Offensive / Defensive Rebound";
 "action_foul" = "Foul";
 "action_steal" = "Steal";
 "action_block" = "Block";
@@ -263,7 +268,7 @@
 "stat_label_efg" = "eFG%";
 "stats_record_shooting_format" = "FG %d/%d  2PT %d/%d  3PT %d/%d";
 "stats_record_misc_format" = "FT %d/%d  REB %d  AST %d  FOUL %d  BLK %d  STL %d  TO %d";
-"stats_full_misc_format" = "REB / AST / FOUL / BLK / STL / TO";
+"stats_full_misc_format" = "REB(O-D) / AST / FOUL / BLK / STL / TO";
 "stats_plus_minus_footnote" = "Net points while on court";
 "stats_playing_time" = "Playing Time";
 "select_player" = "Select Player";
@@ -979,3 +984,8 @@ Format:
 "player_group_no_groups" = "No groups yet";
 "player_group_selected_filter" = "Filtering by player group";
 "player_group_filter" = "Filter";
+
+"settings_section_about" = "About";
+"settings_contact_developer" = "Contact Developer";
+"voice_instruction_combined" = "Combined Commands";
+"settings_about_content" = "Hi! I'm an independent developer who loves basketball.\n\nI built this app to help basketball enthusiasts around the world track their games. I have limited ability, but I'll do my best to improve it and add new features.\n\nIf you have any suggestions or feedback, feel free to email me:\nclassicalxie@163.com\n\nThank you for using %@!";

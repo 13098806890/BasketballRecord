@@ -128,6 +128,8 @@ enum BluetoothLiveStatAction: String, Codable, Hashable {
     case foul
     case assist
     case rebound
+    case offensiveRebound
+    case defensiveRebound
     case block
     case steal
     case turnover

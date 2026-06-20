@@ -562,6 +562,8 @@ struct TransferPlayerStatsV2: Codable, Hashable {
     var freeThrowMade: Int?
     var freeThrowAttempts: Int?
     var rebounds: Int?
+    var offensiveRebounds: Int?
+    var defensiveRebounds: Int?
     var assists: Int?
     var fouls: Int?
     var blocks: Int?
@@ -578,6 +580,8 @@ struct TransferPlayerStatsV2: Codable, Hashable {
         case freeThrowMade = "g"
         case freeThrowAttempts = "h"
         case rebounds = "i"
+        case offensiveRebounds = "o"
+        case defensiveRebounds = "p"
         case assists = "j"
         case fouls = "k"
         case blocks = "l"
@@ -595,6 +599,8 @@ struct TransferPlayerStatsV2: Codable, Hashable {
         freeThrowMade = legacy.freeThrowMade == 0 ? nil : legacy.freeThrowMade
         freeThrowAttempts = legacy.freeThrowAttempts == 0 ? nil : legacy.freeThrowAttempts
         rebounds = legacy.rebounds == 0 ? nil : legacy.rebounds
+        offensiveRebounds = legacy.offensiveRebounds == 0 ? nil : legacy.offensiveRebounds
+        defensiveRebounds = legacy.defensiveRebounds == 0 ? nil : legacy.defensiveRebounds
         assists = legacy.assists == 0 ? nil : legacy.assists
         fouls = legacy.fouls == 0 ? nil : legacy.fouls
         blocks = legacy.blocks == 0 ? nil : legacy.blocks
@@ -613,6 +619,8 @@ struct TransferPlayerStatsV2: Codable, Hashable {
         value.freeThrowMade = freeThrowMade ?? 0
         value.freeThrowAttempts = freeThrowAttempts ?? 0
         value.rebounds = rebounds ?? 0
+        value.offensiveRebounds = offensiveRebounds ?? 0
+        value.defensiveRebounds = defensiveRebounds ?? 0
         value.assists = assists ?? 0
         value.fouls = fouls ?? 0
         value.blocks = blocks ?? 0
@@ -676,6 +684,8 @@ struct PlayerStats: Codable, Hashable {
     var freeThrowMade = 0
     var freeThrowAttempts = 0
     var rebounds = 0
+    var offensiveRebounds = 0
+    var defensiveRebounds = 0
     var assists = 0
     var fouls = 0
     var blocks = 0
@@ -692,6 +702,8 @@ struct PlayerStats: Codable, Hashable {
         case freeThrowMade
         case freeThrowAttempts
         case rebounds
+        case offensiveRebounds
+        case defensiveRebounds
         case assists
         case fouls
         case blocks
@@ -715,6 +727,8 @@ struct PlayerStats: Codable, Hashable {
         freeThrowMade = try container.decodeIfPresent(Int.self, forKey: .freeThrowMade) ?? 0
         freeThrowAttempts = try container.decodeIfPresent(Int.self, forKey: .freeThrowAttempts) ?? 0
         rebounds = try container.decodeIfPresent(Int.self, forKey: .rebounds) ?? 0
+        offensiveRebounds = try container.decodeIfPresent(Int.self, forKey: .offensiveRebounds) ?? 0
+        defensiveRebounds = try container.decodeIfPresent(Int.self, forKey: .defensiveRebounds) ?? 0
         assists = try container.decodeIfPresent(Int.self, forKey: .assists) ?? 0
         fouls = try container.decodeIfPresent(Int.self, forKey: .fouls) ?? 0
         blocks = try container.decodeIfPresent(Int.self, forKey: .blocks) ?? 0
@@ -728,6 +742,7 @@ struct PlayerStats: Codable, Hashable {
         paintAttempts = try container.decodeIfPresent(Int.self, forKey: .paintAttempts) ?? 0
     }
 
+    var totalRebounds: Int { rebounds + offensiveRebounds + defensiveRebounds }
     var made: Int { twoMade + threeMade }
     var attempts: Int { twoAttempts + threeAttempts }
     var allFreeThrowMade: Int { bonusFreeThrowMade + freeThrowMade }
@@ -1004,6 +1019,7 @@ struct GameSnapshot: Codable, Hashable {
     var periodScoreLimit: Int = 30
     var resetsTeamFoulsEachPeriod = true
     var showsReboundButton = true 
+    var showsOffensiveDefensiveRebound = false
     var showsAssistButton = true
     var showsFoulButton = true
     var showsBlockButton = true
@@ -1040,6 +1056,7 @@ struct GameSnapshot: Codable, Hashable {
         courtPlayerCount: Int = 4,
         resetsTeamFoulsEachPeriod: Bool = true,
         showsReboundButton: Bool = true,
+        showsOffensiveDefensiveRebound: Bool = false,
         showsAssistButton: Bool = true,
         showsFoulButton: Bool = true,
         showsBlockButton: Bool = true,
@@ -1080,6 +1097,7 @@ struct GameSnapshot: Codable, Hashable {
         self.periodScoreLimit = periodScoreLimit
         self.resetsTeamFoulsEachPeriod = resetsTeamFoulsEachPeriod
         self.showsReboundButton = showsReboundButton
+        self.showsOffensiveDefensiveRebound = showsOffensiveDefensiveRebound
         self.showsAssistButton = showsAssistButton
         self.showsFoulButton = showsFoulButton
         self.showsBlockButton = showsBlockButton
@@ -1117,6 +1135,7 @@ struct GameSnapshot: Codable, Hashable {
         courtPlayerCount = try container.decodeIfPresent(Int.self, forKey: .courtPlayerCount) ?? 4
         resetsTeamFoulsEachPeriod = try container.decodeIfPresent(Bool.self, forKey: .resetsTeamFoulsEachPeriod) ?? true
         showsReboundButton = try container.decodeIfPresent(Bool.self, forKey: .showsReboundButton) ?? true
+        showsOffensiveDefensiveRebound = try container.decodeIfPresent(Bool.self, forKey: .showsOffensiveDefensiveRebound) ?? false
         showsAssistButton = try container.decodeIfPresent(Bool.self, forKey: .showsAssistButton) ?? true
         showsFoulButton = try container.decodeIfPresent(Bool.self, forKey: .showsFoulButton) ?? true
         showsBlockButton = try container.decodeIfPresent(Bool.self, forKey: .showsBlockButton) ?? true

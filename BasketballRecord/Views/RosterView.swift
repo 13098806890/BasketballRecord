@@ -111,7 +111,7 @@ struct RosterView: View {
                             Text(unit.displayName).tag(unit)
                         }
                     } label: {
-                        Label(LocalizedStringKey("label_weight"), systemImage: "scalemass")
+                        Label(LocalizedStringKey("label_weight"), systemImage: "dumbbell.fill")
                             .foregroundStyle(.primary)
                     }
                 }
@@ -221,6 +221,16 @@ struct RosterView: View {
                     }
                     .buttonStyle(.plain)
 
+                    NavigationLink {
+                        AboutDeveloperView()
+                    } label: {
+                        settingsRow(
+                            title: LocalizedStringKey("settings_contact_developer"),
+                            systemImage: "envelope.fill",
+                            countText: nil
+                        )
+                    }
+
                     settingsRow(
                         title: LocalizedStringKey("settings_version"),
                         systemImage: "info.circle.fill",
@@ -228,6 +238,7 @@ struct RosterView: View {
                     )
                 }
             }
+
             .navigationTitle(LocalizedStringKey("settings_nav_title"))
             .sheet(isPresented: $showingRosterImport) {
                 ImportRosterPackageView()
@@ -288,6 +299,32 @@ struct RosterView: View {
             }
         }
         .contentShape(Rectangle())
+    }
+}
+
+private struct AboutDeveloperView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                Image(systemName: "person.circle.fill")
+                    .font(.system(size: 64))
+                    .foregroundStyle(.blue)
+                    .padding(.top, 24)
+
+                let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? ""
+                Text(String(format: NSLocalizedString("settings_about_content", comment: ""), appName))
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .padding(.horizontal, 20)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.vertical)
+        }
+        .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
+        .navigationTitle(LocalizedStringKey("settings_contact_developer"))
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

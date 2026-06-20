@@ -85,17 +85,55 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         voiceMissedStates = rules.missedStates
 
         voiceShotEvents = voiceShotTypes.map { ($0.keyword, $0.keyword, $0.eventPrefix, true) }
+        allStatEvents = rules.statEvents.map { (chinese: $0.keyword, code: $0.eventCode) }
+        allCommandEvents = rules.commandEvents.map { (chinese: $0.keyword, code: $0.eventCode) }
+        rebuildNonShotEvents()
+    }
+
+    /// Rebuild voiceNonShotEvents from allStatEvents and allCommandEvents,
+    /// filtering rebound keywords based on the current mode.
+    private func rebuildNonShotEvents() {
         voiceNonShotEvents = []
-        for (keyword, code) in rules.statEvents {
-            voiceNonShotEvents.append((keyword, code))
+        let useOD: Bool
+        if let taskOverride = taskUsesODRebound {
+            useOD = taskOverride
+        } else {
+            useOD = currentSnapshot?.showsOffensiveDefensiveRebound ?? false
         }
-        for (keyword, code) in rules.commandEvents {
-            voiceNonShotEvents.append((keyword, code))
+        if useOD {
+            for entry in allStatEvents {
+                if entry.code == "stat.offensiveRebound" || entry.code == "stat.defensiveRebound" {
+                    voiceNonShotEvents.append(entry)
+                }
+            }
+            for entry in allStatEvents {
+                if entry.code == "stat.rebound" {
+                    voiceNonShotEvents.append((entry.chinese, "stat.defensiveRebound"))
+                }
+            }
+            for entry in allStatEvents {
+                if entry.code != "stat.rebound" && entry.code != "stat.offensiveRebound" && entry.code != "stat.defensiveRebound" {
+                    voiceNonShotEvents.append(entry)
+                }
+            }
+        } else {
+            for entry in allStatEvents {
+                if entry.code == "stat.offensiveRebound" || entry.code == "stat.defensiveRebound" {
+                    voiceNonShotEvents.append((entry.chinese, "stat.rebound"))
+                } else {
+                    voiceNonShotEvents.append(entry)
+                }
+            }
         }
+        voiceNonShotEvents.append(contentsOf: allCommandEvents)
     }
 
     private var store: AppStore?
-    var currentSnapshot: GameSnapshot?
+    var currentSnapshot: GameSnapshot? {
+        didSet {
+            rebuildNonShotEvents()
+        }
+    }
     var onAction: ((StatAction, UUID, TeamSide) -> Void)?
     var onDualAction: ((StatAction, UUID, TeamSide, StatAction, UUID, TeamSide) -> Void)?
     var onCommand: ((VoiceCommand) -> Void)?
@@ -108,7 +146,25 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     private var voiceMissedStates: [String] = []
     private var voiceShotEvents: [(keyword: String, chinese: String, code: String, isShot: Bool)] = []
     private var voiceNonShotEvents: [(chinese: String, code: String)] = []
+
+    /// Full list of stat events from the current rules (unfiltered).
+    private var allStatEvents: [(chinese: String, code: String)] = []
+    /// Full list of command events from the current rules.
+    private var allCommandEvents: [(chinese: String, code: String)] = []
     private var preferredPlayerNumber: Int?
+
+    /// For tutorial mode: override the rebound filtering based on the current task.
+    /// - nil: use snapshot.showsOffensiveDefensiveRebound
+    /// - true: prioritize O/D keywords; unmatched generic rebound maps to defensiveRebound
+    /// - false: use generic rebound keyword only
+    private var taskUsesODRebound: Bool?
+
+    /// Update rebound keyword filtering. Call when the snapshot or task context changes.
+    /// - Parameter useOD: nil → use snapshot mode; true → O/D only; false → generic only
+    func setReboundFilterMode(_ useOD: Bool?) {
+        taskUsesODRebound = useOD
+        rebuildNonShotEvents()
+    }
 
     func configure(store: AppStore) {
         self.store = store
