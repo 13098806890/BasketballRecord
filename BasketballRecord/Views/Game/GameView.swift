@@ -310,7 +310,7 @@ struct GameView: View {
                         action: action2.liveAction, playerID: pid2, side: side2.liveSide, at: now
                     )
                     _ = submitLiveOperation(op2) {
-                        self.applyRecordOperation(action: action2, playerID: pid2, side: side2, at: now)
+                        self.applyRecordOperation(action: action2, playerID: pid2, side: side2, at: now, eventMessage: "")
                     }
                 }
                 voiceRecognizer.onCommand = { [self] command in
