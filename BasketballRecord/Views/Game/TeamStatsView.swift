@@ -147,30 +147,40 @@ struct TeamStatsDisclosureView: View {
                                    boldC(percent(awayStats.freeThrowRate), awayStats.freeThrowRate > homeStats.freeThrowRate)
                                }
                            })
-                compareRow(label: localized("stats_rebound_block"),
+                compareRow(label: localized("stats_rebound_detail"),
                            home: {
                                HStack(spacing: 0) {
-                                   c("\(homeStats.rebounds)", homeStats.rebounds > awayStats.rebounds)
+                                   c("\(homeStats.totalRebounds)", homeStats.totalRebounds > awayStats.totalRebounds)
                                        .font(.caption.monospacedDigit())
                                    Text("/")
                                        .font(.caption.monospacedDigit())
                                        .foregroundStyle(.secondary)
-                                   c("\(homeStats.blocks)", homeStats.blocks > awayStats.blocks)
+                                   c("\(homeStats.offensiveRebounds)", homeStats.offensiveRebounds > awayStats.offensiveRebounds)
+                                       .font(.caption.monospacedDigit())
+                                   Text("/")
+                                       .font(.caption.monospacedDigit())
+                                       .foregroundStyle(.secondary)
+                                   c("\(homeStats.defensiveRebounds)", homeStats.defensiveRebounds > awayStats.defensiveRebounds)
                                        .font(.caption.monospacedDigit())
                                }
                            },
                            away: {
                                HStack(spacing: 0) {
-                                   c("\(awayStats.rebounds)", awayStats.rebounds > homeStats.rebounds)
+                                   c("\(awayStats.totalRebounds)", awayStats.totalRebounds > homeStats.totalRebounds)
                                        .font(.caption.monospacedDigit())
                                    Text("/")
                                        .font(.caption.monospacedDigit())
                                        .foregroundStyle(.secondary)
-                                   c("\(awayStats.blocks)", awayStats.blocks > homeStats.blocks)
+                                   c("\(awayStats.offensiveRebounds)", awayStats.offensiveRebounds > homeStats.offensiveRebounds)
+                                       .font(.caption.monospacedDigit())
+                                   Text("/")
+                                       .font(.caption.monospacedDigit())
+                                       .foregroundStyle(.secondary)
+                                   c("\(awayStats.defensiveRebounds)", awayStats.defensiveRebounds > homeStats.defensiveRebounds)
                                        .font(.caption.monospacedDigit())
                                }
                            })
-                compareRow(label: localized("stats_assist_steal"),
+                compareRow(label: localized("stats_assist_steal_block"),
                            home: {
                                HStack(spacing: 0) {
                                    c("\(homeStats.assists)", homeStats.assists > awayStats.assists)
@@ -179,6 +189,11 @@ struct TeamStatsDisclosureView: View {
                                        .font(.caption.monospacedDigit())
                                        .foregroundStyle(.secondary)
                                    c("\(homeStats.steals)", homeStats.steals > awayStats.steals)
+                                       .font(.caption.monospacedDigit())
+                                   Text("/")
+                                       .font(.caption.monospacedDigit())
+                                       .foregroundStyle(.secondary)
+                                   c("\(homeStats.blocks)", homeStats.blocks > awayStats.blocks)
                                        .font(.caption.monospacedDigit())
                                }
                            },
@@ -190,6 +205,11 @@ struct TeamStatsDisclosureView: View {
                                        .font(.caption.monospacedDigit())
                                        .foregroundStyle(.secondary)
                                    c("\(awayStats.steals)", awayStats.steals > homeStats.steals)
+                                       .font(.caption.monospacedDigit())
+                                   Text("/")
+                                       .font(.caption.monospacedDigit())
+                                       .foregroundStyle(.secondary)
+                                   c("\(awayStats.blocks)", awayStats.blocks > homeStats.blocks)
                                        .font(.caption.monospacedDigit())
                                }
                            })
@@ -274,7 +294,7 @@ struct TeamStatsDisclosureView: View {
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
                 .minimumScaleFactor(0.6)
-                .frame(width: 64)
+                .frame(width: 80)
             away()
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -315,7 +335,7 @@ private struct CollapsibleStatsView: View {
 
                 HStack(spacing: 8) {
                     statTile(NSLocalizedString("stats_free_throw", comment: "Free throw"), "\(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)", percent(stats.freeThrowRate))
-                    statTile(NSLocalizedString("stats_full_misc_format", comment: "Rebounds assists fouls blocks steals turnovers"), "\(stats.rebounds) / \(stats.assists) / \(stats.fouls) / \(stats.blocks) / \(stats.steals) / \(stats.turnovers)", "")
+                    statTile(NSLocalizedString("stats_full_misc_format", comment: "Rebounds assists fouls blocks steals turnovers"), "\(stats.totalRebounds)(\(stats.offensiveRebounds)-\(stats.defensiveRebounds)) / \(stats.assists) / \(stats.fouls) / \(stats.blocks) / \(stats.steals) / \(stats.turnovers)", "")
                     statTile(NSLocalizedString("stats_advanced", comment: "Advanced stats"), "eFG \(percent(stats.effectiveFieldGoalRate))", "TS \(percent(stats.trueShootingRate))")
                 }
 

@@ -4,7 +4,7 @@ import SwiftUI
 enum StatAction {
     case twoMade, twoMissed, threeMade, threeMissed
     case bonusMade, bonusMissed, freeThrowMade, freeThrowMissed
-    case foul, assist, rebound, block, steal, turnover
+    case foul, assist, rebound, offensiveRebound, defensiveRebound, block, steal, turnover
     case layupMade, layupMissed, midRangeMade, midRangeMissed, paintMade, paintMissed
 
     var eventCode: String {
@@ -20,6 +20,8 @@ enum StatAction {
         case .foul: return "stat.foul"
         case .assist: return "stat.assist"
         case .rebound: return "stat.rebound"
+        case .offensiveRebound: return "stat.offensiveRebound"
+        case .defensiveRebound: return "stat.defensiveRebound"
         case .block: return "stat.block"
         case .steal: return "stat.steal"
         case .turnover: return "stat.turnover"
@@ -45,6 +47,8 @@ enum StatAction {
         case .foul: return "action_foul"
         case .assist: return "action_assist"
         case .rebound: return "action_rebound"
+        case .offensiveRebound: return "action_offensive_rebound"
+        case .defensiveRebound: return "action_defensive_rebound"
         case .block: return "action_block"
         case .steal: return "action_steal"
         case .turnover: return "action_turnover"
@@ -113,6 +117,10 @@ enum StatAction {
             stats.assists += 1
         case .rebound:
             stats.rebounds += 1
+        case .offensiveRebound:
+            stats.offensiveRebounds += 1
+        case .defensiveRebound:
+            stats.defensiveRebounds += 1
         case .block:
             stats.blocks += 1
         case .steal:
@@ -161,6 +169,12 @@ enum StatAction {
         case .rebound:
             guard stats.rebounds > 0 else { return false }
             stats.rebounds -= 1
+        case .offensiveRebound:
+            guard stats.offensiveRebounds > 0 else { return false }
+            stats.offensiveRebounds -= 1
+        case .defensiveRebound:
+            guard stats.defensiveRebounds > 0 else { return false }
+            stats.defensiveRebounds -= 1
         case .block:
             guard stats.blocks > 0 else { return false }
             stats.blocks -= 1
@@ -230,6 +244,8 @@ extension StatAction {
         case .foul: self = .foul
         case .assist: self = .assist
         case .rebound: self = .rebound
+        case .offensiveRebound: self = .offensiveRebound
+        case .defensiveRebound: self = .defensiveRebound
         case .block: self = .block
         case .steal: self = .steal
         case .turnover: self = .turnover
@@ -249,6 +265,8 @@ extension StatAction {
         case .foul: return .foul
         case .assist: return .assist
         case .rebound: return .rebound
+        case .offensiveRebound: return .offensiveRebound
+        case .defensiveRebound: return .defensiveRebound
         case .block: return .block
         case .steal: return .steal
         case .turnover: return .turnover
@@ -262,7 +280,7 @@ extension StatAction: Equatable {}
 
 extension StatAction: CaseIterable {
     static var allCases: [StatAction] {
-        [.twoMade, .twoMissed, .threeMade, .threeMissed, .bonusMade, .bonusMissed, .freeThrowMade, .freeThrowMissed, .foul, .assist, .rebound, .block, .steal, .turnover, .layupMade, .layupMissed, .midRangeMade, .midRangeMissed, .paintMade, .paintMissed]
+        [.twoMade, .twoMissed, .threeMade, .threeMissed, .bonusMade, .bonusMissed, .freeThrowMade, .freeThrowMissed, .foul, .assist, .rebound, .offensiveRebound, .defensiveRebound, .block, .steal, .turnover, .layupMade, .layupMissed, .midRangeMade, .midRangeMissed, .paintMade, .paintMissed]
     }
 }
 

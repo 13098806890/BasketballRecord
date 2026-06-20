@@ -347,6 +347,8 @@ struct SavedGameDetailView: View {
             total.freeThrowMade += stats.freeThrowMade
             total.freeThrowAttempts += stats.freeThrowAttempts
             total.rebounds += stats.rebounds
+            total.offensiveRebounds += stats.offensiveRebounds
+            total.defensiveRebounds += stats.defensiveRebounds
             total.assists += stats.assists
             total.fouls += stats.fouls
             total.blocks += stats.blocks

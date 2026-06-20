@@ -118,6 +118,9 @@
 "action_free_missed" = "자유투 실패";
 "action_assist" = "어시스트";
 "action_rebound" = "리바운드";
+"action_offensive_rebound" = "공격 리바운드";
+"action_defensive_rebound" = "수비 리바운드";
+"action_offensive_defensive_rebound" = "공격 / 수비 리바운드";
 "action_foul" = "파울";
 "action_steal" = "스틸";
 "action_block" = "블락";
@@ -201,7 +204,7 @@
 "stat_label_efg" = "eFG%";
 "stats_record_shooting_format" = "FG %d/%d  2점 %d/%d  3점 %d/%d";
 "stats_record_misc_format" = "FT %d/%d  리바운드 %d  어시스트 %d  파울 %d  블록 %d  스틸 %d  턴오버 %d";
-"stats_full_misc_format" = "리바운드 / 어시스트 / 파울 / 블록 / 스틸 / 턴오버";
+"stats_full_misc_format" = "리바운드(공-수) / 어시스트 / 파울 / 블록 / 스틸 / 턴오버";
 "stats_plus_minus" = "플러스/마이너스";
 "stats_plus_minus_footnote" = "경기 중 순 득점";
 "stats_playing_time" = "재생 시간";
@@ -850,7 +853,9 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "stats_points_format_short" = "PTS";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
 "stats_rebound_block" = "리바운드 / 블록";
+"stats_rebound_detail" = "리바운드 / 공격 / 수비";
 "stats_assist_steal" = "어시스트 / 스틸";
+"stats_assist_steal_block" = "어시스트 / 스틸 / 블록";
 "stats_foul_turnover" = "FOUL / TO";
 "stats_minutes" = "MIN";
 "stats_shooting" = "FG";
@@ -983,3 +988,8 @@ Format:
 "player_group_no_groups" = "아직 그룹이 없습니다";
 "player_group_selected_filter" = "선수 그룹별 필터링";
 "player_group_filter" = "필터";
+
+"settings_section_about" = "정보";
+"settings_contact_developer" = "개발자에게 연락";
+"voice_instruction_combined" = "복합 명령";
+"settings_about_content" = "Hi! I'm an independent developer who loves basketball.\n\nI built this app to help basketball enthusiasts around the world track their games. I have limited ability, but I'll do my best to improve it and add new features.\n\nIf you have any suggestions or feedback, feel free to email me:\nclassicalxie@163.com\n\nThank you for using %@!";

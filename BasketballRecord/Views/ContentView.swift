@@ -24,28 +24,33 @@ struct ContentView: View {
     @State private var isShowingStoreSyncBusyAlert = false
     @State private var suppressBusyAlertUntilIdle = false
     @State private var storeSyncBusyAlertText = ""
+    @State private var selectedTab: Int = 1
 
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             TeamManagementHomeView()
                 .tabItem {
                     Label(LocalizedStringKey("tab_management"), systemImage: "folder.fill")
                 }
+                .tag(0)
 
             GameView()
                 .tabItem {
                     Label(LocalizedStringKey("tab_score"), systemImage: "sportscourt")
                 }
+                .tag(1)
 
             CareerView()
                 .tabItem {
                     Label(LocalizedStringKey("tab_career"), systemImage: "trophy")
                 }
+                .tag(2)
 
             RosterView()
                 .tabItem {
                     Label(LocalizedStringKey("tab_settings"), systemImage: "gearshape")
                 }
+                .tag(3)
         }
         .overlay(alignment: .top) {
             if let summary = globalStoreSyncSummary {
@@ -58,6 +63,9 @@ struct ContentView: View {
         }
         .animation(.easeInOut(duration: 0.2), value: globalStoreSyncSummary?.id)
         .onAppear {
+            if store.players.isEmpty && store.teams.isEmpty {
+                selectedTab = 0
+            }
             refreshStoreSyncBusyAlertPresentation(force: true)
             presentNextGlobalAlertIfNeeded(force: true)
         }

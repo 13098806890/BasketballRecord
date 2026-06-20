@@ -16,6 +16,7 @@ struct GameSetupConfig {
     var showsBlockButton: Bool
     var showsStealButton: Bool
     var showsTurnoverButton: Bool
+    var showsOffensiveDefensiveRebound = false
     var periodEndCondition: PeriodEndCondition
     var periodTimeLimit: Int
     var periodScoreLimit: Int
@@ -43,6 +44,7 @@ struct NewGameSetupView: View {
     @AppStorage("setup_court_player_count") private var courtPlayerCount = 4
     @AppStorage("setup_reset_fouls") private var resetsTeamFoulsEachPeriod = true
     @AppStorage("setup_show_rebound") private var showsReboundButton = true
+    @AppStorage("setup_show_offensive_defensive_rebound") private var showsOffensiveDefensiveRebound = false
     @AppStorage("setup_show_assist") private var showsAssistButton = true
     @AppStorage("setup_show_foul") private var showsFoulButton = true
     @AppStorage("setup_show_block") private var showsBlockButton = true
@@ -163,7 +165,20 @@ struct NewGameSetupView: View {
                 }
 
                 Section(LocalizedStringKey("section_scoring_buttons")) {
-                    Toggle(LocalizedStringKey("action_rebound"), isOn: $showsReboundButton)
+                    Toggle(LocalizedStringKey("action_rebound"), isOn: Binding(
+                        get: { showsReboundButton },
+                        set: { v in
+                            if v { showsOffensiveDefensiveRebound = false }
+                            showsReboundButton = v
+                        }
+                    ))
+                    Toggle(LocalizedStringKey("action_offensive_defensive_rebound"), isOn: Binding(
+                        get: { showsOffensiveDefensiveRebound },
+                        set: { v in
+                            if v { showsReboundButton = false }
+                            showsOffensiveDefensiveRebound = v
+                        }
+                    ))
                     Toggle(LocalizedStringKey("action_assist"), isOn: $showsAssistButton)
                     Toggle(LocalizedStringKey("action_foul"), isOn: $showsFoulButton)
                     Toggle(LocalizedStringKey("action_block"), isOn: $showsBlockButton)
@@ -202,6 +217,7 @@ struct NewGameSetupView: View {
                             showsBlockButton: showsBlockButton,
                             showsStealButton: showsStealButton,
                             showsTurnoverButton: showsTurnoverButton,
+                            showsOffensiveDefensiveRebound: showsOffensiveDefensiveRebound,
                             periodEndCondition: periodEndCondition,
                             periodTimeLimit: periodTimeLimit,
                             periodScoreLimit: periodScoreLimit,

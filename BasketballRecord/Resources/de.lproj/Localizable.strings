@@ -117,7 +117,10 @@
 "action_bonus_missed" = "And-1 Fehl";
 "action_free_missed" = "FT Fehl";
 "action_assist" = "Assists";
-"action_rebound" = "Rebounds";
+"action_rebound" = "Rebound";
+"action_offensive_rebound" = "Offensiv Rebound";
+"action_defensive_rebound" = "Defensiv Rebound";
+"action_offensive_defensive_rebound" = "Offensiv / Defensiv Rebound";
 "action_foul" = "Foul";
 "action_steal" = "Steal";
 "action_block" = "Block";
@@ -201,7 +204,7 @@
 "stat_label_efg" = "eFG%";
 "stats_record_shooting_format" = "FG %d/%d 2PT %d/%d 3PT %d/%d";
 "stats_record_misc_format" = "FT %d/%d REB %d AST %d FOUL %d BLK %d STL %d TO %d";
-"stats_full_misc_format" = "REB / AST / FOUL / BLK / STL / TO";
+"stats_full_misc_format" = "REB(O-D) / AST / FOUL / BLK / STL / TO";
 "stats_plus_minus" = "Plus/Minus";
 "stats_plus_minus_footnote" = "Netto-Punkte auf dem Feld";
 "stats_playing_time" = "Spielzeit";
@@ -601,7 +604,9 @@
 "stats_points_format_short" = "PTS";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
 "stats_rebound_block" = "REB / BLK";
+"stats_rebound_detail" = "REB / OREB / DREB";
 "stats_assist_steal" = "AST / STL";
+"stats_assist_steal_block" = "AST / STL / BLK";
 "stats_foul_turnover" = "FOUL / TO";
 "stats_minutes" = "MIN";
 "stats_shooting" = "FG";
@@ -955,3 +960,8 @@ Format:
 "player_group_no_groups" = "Noch keine Gruppen";
 "player_group_selected_filter" = "Nach Spielergruppe filtern";
 "player_group_filter" = "Filter";
+
+"settings_section_about" = "Über";
+"settings_contact_developer" = "Entwickler kontaktieren";
+"voice_instruction_combined" = "Kombinierte Befehle";
+"settings_about_content" = "Hi! I'm an independent developer who loves basketball.\n\nI built this app to help basketball enthusiasts around the world track their games. I have limited ability, but I'll do my best to improve it and add new features.\n\nIf you have any suggestions or feedback, feel free to email me:\nclassicalxie@163.com\n\nThank you for using %@!";
