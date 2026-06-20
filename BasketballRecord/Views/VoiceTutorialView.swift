@@ -32,6 +32,8 @@ struct VoiceTutorialView: View {
     private let tasks: [TutorialTaskDef]
     private let substitutionTaskID: Int
     private let freePlayTaskID: Int
+    private static let dualActionTaskIDs: Set<Int> = [20]
+    private static let commandTaskIDs: Set<Int> = [21, 22, 23, 24]
 
     @State private var snapshot = GameSnapshot()
     @State private var selectedTaskIndex: Int
@@ -439,7 +441,27 @@ struct VoiceTutorialView: View {
             }
 
             guard isWaitingForResult, let task = selectedTask else { return }
+            guard !Self.dualActionTaskIDs.contains(task.id), !Self.commandTaskIDs.contains(task.id) else { return }
             if action == task.expectedAction && playerID == task.expectedPlayerID {
+                markTask(success: true)
+            } else {
+                markTask(success: false)
+            }
+            isWaitingForResult = false
+        }
+        recognizer.onDualAction = { [self] action1, pid1, _, action2, pid2, _ in
+            let pn1 = store.player(for: pid1)?.name ?? "?"
+            let pn2 = store.player(for: pid2)?.name ?? "?"
+            tutorialLog.append("\(pn1) · \(action1.message) → \(pn2) · \(action2.message)")
+
+            if isFreePlaySelected {
+                isWaitingForResult = false
+                return
+            }
+
+            guard isWaitingForResult, let task = selectedTask else { return }
+            guard !Self.commandTaskIDs.contains(task.id) else { return }
+            if action1 == task.expectedAction && pid1 == task.expectedPlayerID {
                 markTask(success: true)
             } else {
                 markTask(success: false)
@@ -461,6 +483,31 @@ struct VoiceTutorialView: View {
             if outgoingID == ids[0] && incomingID == ids[1] && side == .home {
                 markTask(success: true)
             } else {
+                markTask(success: false)
+            }
+            isWaitingForResult = false
+        }
+        recognizer.onCommand = { [self] command in
+            if isFreePlaySelected {
+                isWaitingForResult = false
+                return
+            }
+
+            guard isWaitingForResult, let task = selectedTask, Self.commandTaskIDs.contains(task.id) else { return }
+            switch command {
+            case .startPeriod:
+                if task.id == 21 || task.id == 24 {
+                    markTask(success: true)
+                } else {
+                    markTask(success: false)
+                }
+            case .togglePause:
+                if task.id == 22 || task.id == 23 {
+                    markTask(success: true)
+                } else {
+                    markTask(success: false)
+                }
+            default:
                 markTask(success: false)
             }
             isWaitingForResult = false
@@ -613,6 +660,9 @@ extension VoiceTutorialView {
                     expectedPlayerID: task.expectedPlayerID,
                     expectedAction: task.expectedAction
                 )
+            }
+            if Self.dualActionTaskIDs.contains(task.id) || Self.commandTaskIDs.contains(task.id) {
+                return task
             }
             let pi = playerInfo(task.expectedPlayerID)
             let team = pi.isHome ? prefixes.home : prefixes.away
@@ -794,6 +844,21 @@ extension VoiceTutorialView {
             taskDef(id: 19, desc: "Free Practice — try any command",
                     hint: "Say anything to practice — names, numbers, or team prefixes",
                     playerID: ids[0], action: .twoMade),
+            taskDef(id: 20, desc: "Mike assists John for a two-pointer",
+                    hint: "Say \"Mike assist John two\" · \"Mike assisted 7 got 2\" · \"home 10 assist 7 two\"",
+                    playerID: ids[1], action: .assist),
+            taskDef(id: 21, desc: "Start a period",
+                    hint: "Say \"start\" · \"begin\" · \"tip off\"",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 22, desc: "Pause the game",
+                    hint: "Say \"pause\" · \"timeout\" · \"stop\"",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 23, desc: "Resume the game",
+                    hint: "Say \"resume\" · \"continue\" · \"play\"",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 24, desc: "End a quarter",
+                    hint: "Say \"quarter done\"",
+                    playerID: ids[0], action: .twoMade),
         ]
         return LocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
     }
@@ -866,6 +931,21 @@ extension VoiceTutorialView {
                     playerID: ids[2], action: .twoMade),
             taskDef(id: 19, desc: "自由練習——任意のコマンドを試そう",
                     hint: "名前や番号やチーム名を自由に話して練習しよう",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 20, desc: "鈴木が田中にアシストしてツーポイント",
+                    hint: "「鈴木アシスト田中ツー」·「10番アシスト7番ツー成功」·「ホーム10番アシスト田中ツー」",
+                    playerID: ids[1], action: .assist),
+            taskDef(id: 21, desc: "クオーターを開始",
+                    hint: "「開始」·「スタート」·「第1クオーター」",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 22, desc: "一時停止",
+                    hint: "「一時停止」·「タイムアウト」·「休憩」",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 23, desc: "再開",
+                    hint: "「再開」·「リスタート」·「続ける」",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 24, desc: "クオーターエンド",
+                    hint: "「クオーターエンド」",
                     playerID: ids[0], action: .twoMade),
         ]
         return LocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
@@ -940,6 +1020,21 @@ extension VoiceTutorialView {
             taskDef(id: 19, desc: "자유 연습 — 원하는 명령을 시도해보세요",
                     hint: "이름이나 번호나 팀명을 자유롭게 말해서 연습해보세요",
                     playerID: ids[0], action: .twoMade),
+            taskDef(id: 20, desc: "이영희가 김철수의 2점슛을 어시스트합니다",
+                    hint: "「이영희 어시스트 김철수 투」·「10번 어시스트 7번 2점」·「홈 10번 어시스트 7번 투 성공」",
+                    playerID: ids[1], action: .assist),
+            taskDef(id: 21, desc: "쿼터 시작",
+                    hint: "「시작」·「첫 쿼터」",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 22, desc: "일시 정지",
+                    hint: "「일시정지」·「타임아웃」",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 23, desc: "재개",
+                    hint: "「재개」·「계속」",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 24, desc: "쿼터 종결",
+                    hint: "「쿼터종결」",
+                    playerID: ids[0], action: .twoMade),
         ]
         return LocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
     }
@@ -1012,6 +1107,21 @@ extension VoiceTutorialView {
                     playerID: ids[2], action: .twoMade),
             taskDef(id: 19, desc: "Freies Spiel — probiere beliebige Befehle",
                     hint: "Sage Namen, Nummern oder Teamnamen zum Üben",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 20, desc: "Fritz assistiert Hans bei einem Zweipunktewurf",
+                    hint: "„Fritz Assist Hans zwei\" · „10 Assist 7 zwei\" · „Heim 10 Assist Hans 2 Punkte\"",
+                    playerID: ids[1], action: .assist),
+            taskDef(id: 21, desc: "Starte ein Viertel",
+                    hint: "„start\" · „sprungball\" · „erstes viertel\"",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 22, desc: "Pausiere das Spiel",
+                    hint: "„pause\" · „auszeit\"",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 23, desc: "Spiel fortsetzen",
+                    hint: "„weiter\" · „weiterspielen\"",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 24, desc: "Viertel beenden",
+                    hint: "„viertel um\"",
                     playerID: ids[0], action: .twoMade),
         ]
         return LocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
@@ -1086,6 +1196,21 @@ extension VoiceTutorialView {
             taskDef(id: 19, desc: "Juego libre — prueba cualquier comando",
                     hint: "Di nombres, números o nombres de equipo para practicar",
                     playerID: ids[0], action: .twoMade),
+            taskDef(id: 20, desc: "Luis asiste a Carlos para un tiro de dos puntos",
+                    hint: "„Luis asistencia Carlos dos\" · „10 asistencia 7 dos\" · „Local 10 asistencia 7 dos canasta\"",
+                    playerID: ids[1], action: .assist),
+            taskDef(id: 21, desc: "Iniciar un cuarto",
+                    hint: "„inicio\" · „primer cuarto\"",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 22, desc: "Pausar el partido",
+                    hint: "„pausa\" · „tiempo muerto\"",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 23, desc: "Reanudar el partido",
+                    hint: "„continuar\" · „reanudar\"",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 24, desc: "Finalizar un cuarto",
+                    hint: "„cuarto concluido\"",
+                    playerID: ids[0], action: .twoMade),
         ]
         return LocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
     }
@@ -1158,6 +1283,21 @@ extension VoiceTutorialView {
                     playerID: ids[2], action: .twoMade),
             taskDef(id: 19, desc: "Jeu libre — essaye n'importe quelle commande",
                     hint: "Dis des noms, numéros ou noms d'équipe pour t'entraîner",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 20, desc: "Paul fait une passe décisive à Pierre pour un deux points",
+                    hint: "„Paul assist Pierre deux\" · „10 passe decisive 7 deux\" · „Domicile 10 assist 7 deux bon\"",
+                    playerID: ids[1], action: .assist),
+            taskDef(id: 21, desc: "Commencer un quart-temps",
+                    hint: "„début\" · „entre-deux\" · „premier quart\"",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 22, desc: "Faire une pause",
+                    hint: "„pause\" · „temps mort\" · „arrêter\"",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 23, desc: "Reprendre le jeu",
+                    hint: "„continuer\" · „reprise\" · „reprendre\"",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 24, desc: "Terminer un quart",
+                    hint: "„quart achevé\"",
                     playerID: ids[0], action: .twoMade),
         ]
         return LocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
@@ -1232,6 +1372,21 @@ extension VoiceTutorialView {
             taskDef(id: 19, desc: "Gioco libero — prova qualsiasi comando",
                     hint: "Pronuncia nomi, numeri o nomi di squadra per esercitarti",
                     playerID: ids[0], action: .twoMade),
+            taskDef(id: 20, desc: "Luca assiste Marco per un tiro da due punti",
+                    hint: "„Luca assist Marco due\" · „10 assist 7 due\" · „Casa 10 assist 7 due segnato\"",
+                    playerID: ids[1], action: .assist),
+            taskDef(id: 21, desc: "Iniziare un quarto",
+                    hint: "„inizio\" · „primo quarto\"",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 22, desc: "Mettere in pausa",
+                    hint: "„pausa\" · „timeout\"",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 23, desc: "Riprendere il gioco",
+                    hint: "„continuare\" · „riprendere\"",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 24, desc: "Concludere un quarto",
+                    hint: "„quarto concluso\"",
+                    playerID: ids[0], action: .twoMade),
         ]
         return LocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
     }
@@ -1304,6 +1459,21 @@ extension VoiceTutorialView {
                     playerID: ids[2], action: .twoMade),
             taskDef(id: 19, desc: "Свободная игра — попробуй любую команду",
                     hint: "Говори имена, номера или название команды для практики",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 20, desc: "Пётр отдаёт ассист на Ивана для двухочкового",
+                    hint: "«Пётр ассист Иван два»·«10 ассист 7 два»·«Хозяева 10 ассист 7 два попал»",
+                    playerID: ids[1], action: .assist),
+            taskDef(id: 21, desc: "Начать четверть",
+                    hint: "«начало»·«старт»·«первая четверть»",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 22, desc: "Пауза",
+                    hint: "«пауза»·«тайм-аут»",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 23, desc: "Продолжить игру",
+                    hint: "«продолжить»",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 24, desc: "Завершить четверть",
+                    hint: "«четверть завершена»",
                     playerID: ids[0], action: .twoMade),
         ]
         return LocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
@@ -1378,6 +1548,21 @@ extension VoiceTutorialView {
             taskDef(id: 19, desc: "自由练习——试试任意指令",
                     hint: "说任何指令来自由练习",
                     playerID: ids[0], action: .twoMade),
+            taskDef(id: 20, desc: "俊宏助攻老张两分命中",
+                    hint: "请说「俊宏助攻老张两分」·「10号助攻7号两分进了」·「俊宏传给队友得分」",
+                    playerID: ids[1], action: .assist),
+            taskDef(id: 21, desc: "开始一节比赛",
+                    hint: "请说「开始」·「第一节」·「第1节」",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 22, desc: "暂停比赛",
+                    hint: "请说「暂停」·「停表」",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 23, desc: "继续比赛",
+                    hint: "请说「继续」·「继续比赛」",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 24, desc: "结束本节",
+                    hint: "请说「结束本节」·「节结束」",
+                    playerID: ids[0], action: .twoMade),
         ]
         return LocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
     }
@@ -1450,6 +1635,21 @@ extension VoiceTutorialView {
                     playerID: ids[2], action: .twoMade),
             taskDef(id: 19, desc: "自由練習——試試任意指令",
                     hint: "說任何指令來自由練習",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 20, desc: "俊宏助攻老張兩分命中",
+                    hint: "請說「俊宏助攻老張兩分」·「10號助攻7號兩分進了」·「俊宏傳出助攻」",
+                    playerID: ids[1], action: .assist),
+            taskDef(id: 21, desc: "開始一節比賽",
+                    hint: "請說「開始」·「第一節」·「第1節」",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 22, desc: "暫停比賽",
+                    hint: "請說「暫停」·「停表」",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 23, desc: "繼續比賽",
+                    hint: "請說「繼續」·「繼續比賽」",
+                    playerID: ids[0], action: .twoMade),
+            taskDef(id: 24, desc: "結束本節",
+                    hint: "請說「結束本節」·「節結束」",
                     playerID: ids[0], action: .twoMade),
         ]
         return LocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)

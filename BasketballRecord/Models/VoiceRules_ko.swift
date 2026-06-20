@@ -61,6 +61,7 @@ extension VoiceRules {
             ("시작", "event.period"),
             ("첫 쿼터", "event.period"),
             ("다음 쿼터", "event.period"),
+            ("쿼터종결", "event.period"),
             ("일시정지", "event.pause"),
             ("타임아웃", "event.pause"),
             ("재개", "event.pause"),
@@ -76,6 +77,11 @@ extension VoiceRules {
         useLevenshteinMatching: true,
         levenshteinThreshold: (short: 1, long: 2),
         useAnchorMatching: false,
-        anchorWords: []
+        anchorWords: [],
+        stealTargetRule: .init(
+            extractFrom: .leftTextAfterPlayer,
+            suffixesToStrip: ["를", "을"],
+            segmentParticles: ["가", "를", "을"]
+        )
     )
 }

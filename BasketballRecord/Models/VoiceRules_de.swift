@@ -63,6 +63,7 @@ extension VoiceRules {
             ("tip off", "event.period"),
             ("erstes viertel", "event.period"),
             ("nächstes viertel", "event.period"),
+            ("viertel um", "event.period"),
             ("pause", "event.pause"),
             ("auszeit", "event.pause"),
             ("weiter", "event.pause"),

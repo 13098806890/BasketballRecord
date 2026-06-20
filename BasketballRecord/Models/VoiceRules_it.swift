@@ -64,6 +64,7 @@ extension VoiceRules {
             ("inizio", "event.period"),
             ("primo quarto", "event.period"),
             ("prossimo quarto", "event.period"),
+            ("quarto concluso", "event.period"),
             ("pausa", "event.pause"),
             ("timeout", "event.pause"),
             ("continuare", "event.pause"),
@@ -79,6 +80,7 @@ extension VoiceRules {
         useLevenshteinMatching: true,
         levenshteinThreshold: (short: 1, long: 2),
         useAnchorMatching: false,
-        anchorWords: []
+        anchorWords: [],
+        stealTargetRule: .init(prefixesToStrip: ["a "])
     )
 }

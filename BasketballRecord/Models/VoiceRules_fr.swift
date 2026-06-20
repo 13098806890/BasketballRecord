@@ -74,6 +74,7 @@ extension VoiceRules {
             ("premier quart", "event.period"),
             ("premier quart-temps", "event.period"),
             ("quart suivant", "event.period"),
+            ("quart achevé", "event.period"),
             ("pause", "event.pause"),
             ("arrêter", "event.pause"),
             ("temps mort", "event.pause"),

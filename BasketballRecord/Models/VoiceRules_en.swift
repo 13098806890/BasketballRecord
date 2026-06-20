@@ -81,6 +81,7 @@ extension VoiceRules {
             ("tip off", "event.period"),
             ("jump ball", "event.period"),
             ("next quarter", "event.period"),
+            ("quarter done", "event.period"),
             ("pause", "event.pause"),
             ("timeout", "event.pause"),
             ("stop", "event.pause"),
@@ -99,6 +100,7 @@ extension VoiceRules {
         useLevenshteinMatching: true,
         levenshteinThreshold: (short: 1, long: 3),
         useAnchorMatching: true,
-        anchorWords: ["made", "got", "get", "missed", "miss", "no", "not", "know"]
+        anchorWords: ["made", "got", "get", "missed", "miss", "no", "not", "know"],
+        stealTargetRule: .init(prefixesToStrip: ["from "])
     )
 }

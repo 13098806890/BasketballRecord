@@ -71,6 +71,7 @@ extension VoiceRules {
             ("第1クオーター", "event.period"),
             ("次のクオーター", "event.period"),
             ("次", "event.period"),
+            ("クオーターエンド", "event.period"),
             ("一時停止", "event.pause"),
             ("タイムアウト", "event.pause"),
             ("休憩", "event.pause"),
@@ -89,6 +90,11 @@ extension VoiceRules {
         useLevenshteinMatching: true,
         levenshteinThreshold: (short: 1, long: 2),
         useAnchorMatching: false,
-        anchorWords: []
+        anchorWords: [],
+        stealTargetRule: .init(
+            extractFrom: .leftTextAfterPlayer,
+            suffixesToStrip: ["から"],
+            segmentParticles: ["が", "から"]
+        )
     )
 }
