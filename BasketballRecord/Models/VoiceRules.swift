@@ -62,6 +62,24 @@ struct VoiceRules: Sendable {
     /// Only used when useAnchorMatching is true.
     let anchorWords: [String]
 
+    // MARK: - Steal target rule
+
+    /// Rule for extracting the target player in a steal+turnover dual action.
+    struct StealTargetRule: Sendable {
+        /// Where to extract the second player after the steal keyword is matched.
+        enum ExtractFrom: String, Sendable, Codable {
+            case rightText = "rightText"
+            case leftTextAfterPlayer = "leftTextAfterPlayer"
+        }
+
+        var extractFrom: ExtractFrom = .rightText
+        var prefixesToStrip: [String] = []
+        var suffixesToStrip: [String] = []
+        var segmentParticles: [String] = []
+    }
+
+    var stealTargetRule: StealTargetRule = StealTargetRule()
+
     func toPinyin(_ s: String) -> String {
         let mutable = NSMutableString(string: s) as CFMutableString
         CFStringTransform(mutable, nil, kCFStringTransformToLatin, false)

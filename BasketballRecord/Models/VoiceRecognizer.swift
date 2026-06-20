@@ -97,6 +97,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     private var store: AppStore?
     var currentSnapshot: GameSnapshot?
     var onAction: ((StatAction, UUID, TeamSide) -> Void)?
+    var onDualAction: ((StatAction, UUID, TeamSide, StatAction, UUID, TeamSide) -> Void)?
     var onCommand: ((VoiceCommand) -> Void)?
     var onSubstitution: ((TeamSide, UUID, UUID) -> Void)?
 
@@ -310,6 +311,17 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
         clearFlashAfterDelay()
         clearMatchAfterDelay(playerID: playerID)
+    }
+
+    private func showDualSuccessFeedback(action1: StatAction, playerID1: UUID, side1: TeamSide, action2: StatAction, playerID2: UUID, side2: TeamSide) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.match = (playerID1, side1, action1)
+            self.flashColor = .green
+            self.onDualAction?(action1, playerID1, side1, action2, playerID2, side2)
+        }
+        clearFlashAfterDelay()
+        clearMatchAfterDelay(playerID: playerID1)
     }
 
     /// Show error feedback with red flash
@@ -860,6 +872,102 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             return false
         }
         let pn = store.player(for: pid)?.name ?? "?"
+
+        if action == .steal {
+            let rule = currentRules.stealTargetRule
+            let sourceText: String
+            switch rule.extractFrom {
+            case .rightText:
+                sourceText = effectiveRight
+            case .leftTextAfterPlayer:
+                sourceText = effectiveLeft
+            }
+
+            var candidate = sourceText
+
+            if rule.extractFrom == .leftTextAfterPlayer {
+                for p in rule.segmentParticles {
+                    if let idx = candidate.range(of: p) {
+                        let after = candidate[idx.upperBound...].trimmingCharacters(in: .whitespaces)
+                        if !after.isEmpty {
+                            candidate = after
+                            break
+                        }
+                    }
+                }
+            }
+
+            for prefix in rule.prefixesToStrip {
+                if candidate.hasPrefix(prefix) {
+                    candidate = String(candidate.dropFirst(prefix.count))
+                }
+            }
+            for suffix in rule.suffixesToStrip {
+                if candidate.hasSuffix(suffix) {
+                    candidate = String(candidate.dropLast(suffix.count))
+                }
+            }
+            candidate = candidate.trimmingCharacters(in: .whitespaces)
+
+            if !candidate.isEmpty {
+                var targetID: UUID?
+                var targetSide: TeamSide?
+                if let res = resolvePlayerNumber(from: candidate, allIDs: allIDs) {
+                    targetID = res.playerID; targetSide = res.side
+                }
+                if targetID == nil {
+                    let targetPinyin = currentRules.toPinyin(candidate)
+                    let matchIDs = matchableIDs(from: allIDs, snapshot: snapshot)
+                    let (matches, _) = matchPlayerIDsDebug(text: candidate, textPinyin: targetPinyin, in: matchIDs, context: "抢断目标")
+                    if let m = matches.first {
+                        targetID = m.0; targetSide = m.1
+                    }
+                }
+                if let tid = targetID, let ts = targetSide, ts != sd, tid != pid {
+                    guard let turnoverAction = StatAction.allCases.first(where: { $0.eventCode == "stat.turnover" }) else {
+                        addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: finalCode, matchDetail: "球员匹配: \(dbgPlayer)")
+                        showSuccessFeedback(action: action, playerID: pid, side: sd)
+                        return true
+                    }
+                    let pn2 = store.player(for: tid)?.name ?? "?"
+                    addLog(text: text, isSuccess: true, action: "\(action.message) + \(turnoverAction.message)", playerName: "\(pn) → \(pn2)", matchedPattern: "\(finalCode)+turnover", matchDetail: "双事件: \(pn)抢断\(pn2)")
+                    showDualSuccessFeedback(action1: action, playerID1: pid, side1: sd, action2: turnoverAction, playerID2: tid, side2: ts)
+                    return true
+                }
+            }
+        }
+
+        if action == .assist && !effectiveRight.isEmpty {
+            let shotEvents = voiceShotEvents
+            for evt in shotEvents {
+                guard let (playerBText, shotRight) = findKeyword(evt.keyword, in: effectiveRight) else { continue }
+                let shotFinalCode: String
+                let (isMade, _) = determineShotState(rightText: shotRight)
+                shotFinalCode = evt.code + (isMade ? "Made" : "Missed")
+                guard let shotAction = StatAction.allCases.first(where: { $0.eventCode == shotFinalCode }) else { continue }
+
+                var targetID: UUID?
+                var targetSide: TeamSide?
+                if let res = resolvePlayerNumber(from: playerBText, allIDs: allIDs) {
+                    targetID = res.playerID; targetSide = res.side
+                }
+                if targetID == nil, !playerBText.isEmpty {
+                    let targetPinyin = currentRules.toPinyin(playerBText)
+                    let matchIDs = matchableIDs(from: allIDs, snapshot: snapshot)
+                    let (matches, _) = matchPlayerIDsDebug(text: playerBText, textPinyin: targetPinyin, in: matchIDs, context: "助攻目标")
+                    if let m = matches.first {
+                        targetID = m.0; targetSide = m.1
+                    }
+                }
+                if let tid = targetID, let ts = targetSide, ts == sd, tid != pid {
+                    let pn2 = store.player(for: tid)?.name ?? "?"
+                    addLog(text: text, isSuccess: true, action: "\(action.message) + \(shotAction.message)", playerName: "\(pn) → \(pn2)", matchedPattern: "\(finalCode)+\(shotFinalCode)", matchDetail: "双事件: \(pn)助攻\(pn2)\(shotAction.message)")
+                    showDualSuccessFeedback(action1: action, playerID1: pid, side1: sd, action2: shotAction, playerID2: tid, side2: ts)
+                    return true
+                }
+            }
+        }
+
         addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: finalCode, matchDetail: "球员匹配: \(dbgPlayer)")
         showSuccessFeedback(action: action, playerID: pid, side: sd)
         return true
@@ -923,9 +1031,10 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let nonShotEvents = voiceNonShotEvents
         for (chinese, code) in nonShotEvents {
             guard code.hasPrefix("stat.") else { continue }
-            if let (left, _) = findKeyword(chinese, in: text) {
-                addLog(text: text, isSuccess: false, action: code, matchDetail: "🔍 找到关键词「\(chinese)」 | 左侧原文: \(left.isEmpty ? "空" : left)")
-                if resolvePlayerAndExecute(leftText: left, eventCode: code, isShot: false, rightText: "", text: text, textPinyin: textPinyin) { return true }
+            if let (left, right) = findKeyword(chinese, in: text) {
+                addLog(text: text, isSuccess: false, action: code, matchDetail: "🔍 找到关键词「\(chinese)」 | 左侧原文: \(left.isEmpty ? "空" : left) | 右侧原文: \(right.isEmpty ? "空" : right)")
+                let rText = (code == "stat.steal" || code == "stat.assist") ? right : ""
+                if resolvePlayerAndExecute(leftText: left, eventCode: code, isShot: false, rightText: rText, text: text, textPinyin: textPinyin) { return true }
             }
         }
         for (chinese, code) in nonShotEvents {
@@ -956,12 +1065,13 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     private func processByPinyinFallback(text: String, textPinyin: String) -> Bool {
         let textFuzzy = currentRules.fuzzyPinyin(currentRules.toPinyin(text))
-        let shotPinyins = voiceShotTypes.map { (shot: $0, fuzzy: currentRules.fuzzyPinyin(currentRules.toPinyin($0.keyword))) }
-        for (shot, shotPinyin) in shotPinyins {
-            guard let kwRange = textFuzzy.range(of: shotPinyin) else { continue }
+        let shotPinyinVariants = voiceShotTypes.map { (shot: $0, variants: currentRules.generatePinyinVariants($0.keyword)) }
+        for (shot, variants) in shotPinyinVariants {
+            guard let matchedVariant = variants.first(where: { textFuzzy.range(of: $0) != nil }),
+                  let kwRange = textFuzzy.range(of: matchedVariant) else { continue }
             let leftPinyin = String(textFuzzy[textFuzzy.startIndex..<kwRange.lowerBound]).trimmingCharacters(in: .whitespaces)
             let rightPinyin = String(textFuzzy[kwRange.upperBound...]).trimmingCharacters(in: .whitespaces)
-            addLog(text: text, isSuccess: false, action: shot.eventPrefix, matchDetail: "🔍 拼音回退: 关键词pinyin=\(shotPinyin) | 左侧拼音: \(leftPinyin.isEmpty ? "空" : leftPinyin) | 右侧拼音: \(rightPinyin.isEmpty ? "空" : rightPinyin)")
+            addLog(text: text, isSuccess: false, action: shot.eventPrefix, matchDetail: "🔍 拼音回退: 关键词pinyin=\(matchedVariant) | 左侧拼音: \(leftPinyin.isEmpty ? "空" : leftPinyin) | 右侧拼音: \(rightPinyin.isEmpty ? "空" : rightPinyin)")
             var effectiveRightPinyin = rightPinyin
             if effectiveRightPinyin.isEmpty && !leftPinyin.isEmpty {
                 let sp = extractStatePinyinFromLeftPinyin(leftPinyin)
@@ -998,6 +1108,107 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             showSuccessFeedback(action: action, playerID: pid, side: sd)
             return true
         }
+
+        let statEvents = voiceNonShotEvents.filter { $0.1.hasPrefix("stat.") }
+        let statPinyinVariants = statEvents.map { (keyword: $0.0, code: $0.1, variants: currentRules.generatePinyinVariants($0.0)) }
+        for stat in statPinyinVariants {
+            guard let matchedVariant = stat.variants.first(where: { textFuzzy.range(of: $0) != nil }),
+                  let kwRange = textFuzzy.range(of: matchedVariant) else { continue }
+            let leftPinyin = String(textFuzzy[textFuzzy.startIndex..<kwRange.lowerBound]).trimmingCharacters(in: .whitespaces)
+            let rightPinyin = String(textFuzzy[kwRange.upperBound...]).trimmingCharacters(in: .whitespaces)
+            addLog(text: text, isSuccess: false, action: stat.code, matchDetail: "🔍 统计拼音回退: 关键词pinyin=\(matchedVariant) | 左侧拼音: \(leftPinyin.isEmpty ? "空" : leftPinyin) | 右侧拼音: \(rightPinyin.isEmpty ? "空" : rightPinyin)")
+            guard let store, let snapshot = currentSnapshot else { return false }
+            let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
+            var playerID: UUID?; var side: TeamSide?; var dbgPlayer = ""
+            if let res = resolvePlayerNumber(from: text, allIDs: allIDs) {
+                playerID = res.playerID; side = res.side; dbgPlayer = res.debug
+            }
+            if playerID == nil, !leftPinyin.isEmpty {
+                let matchIDs = matchableIDs(from: allIDs, snapshot: snapshot)
+                let (matches, dbg) = matchPlayerIDsDebug(text: leftPinyin, textPinyin: leftPinyin, in: matchIDs, context: "统计拼音回退球员")
+                dbgPlayer = dbg
+                if let m = matches.first {
+                    playerID = m.0; side = m.1
+                }
+            }
+            guard let pid = playerID, let sd = side else {
+                addLog(text: text, isSuccess: false, action: stat.code, matchDetail: "❌ 统计拼音回退: 未匹配到球员 | 左侧拼音: \(leftPinyin.isEmpty ? "空" : leftPinyin)")
+                showErrorWithFlash(String(format: NSLocalizedString("voice_unrecognized_format", comment: ""), text))
+                return true
+            }
+            guard let action = StatAction.allCases.first(where: { $0.eventCode == stat.code }) else {
+                addLog(text: text, isSuccess: false, action: stat.code, matchDetail: "❌ 统计拼音回退: 无对应StatAction: \(stat.code)")
+                showErrorWithFlash(String(format: NSLocalizedString("voice_unrecognized_format", comment: ""), text))
+                return true
+            }
+            let pn = store.player(for: pid)?.name ?? "?"
+
+            if action == .steal {
+                let rule = currentRules.stealTargetRule
+                let sourcePinyin: String
+                switch rule.extractFrom {
+                case .rightText:
+                    sourcePinyin = rightPinyin
+                case .leftTextAfterPlayer:
+                    sourcePinyin = leftPinyin
+                }
+
+                var candidate = sourcePinyin
+
+                if rule.extractFrom == .leftTextAfterPlayer {
+                    for p in rule.segmentParticles {
+                        let pPinyin = currentRules.toPinyin(p)
+                        if let idx = candidate.range(of: pPinyin) {
+                            let after = candidate[idx.upperBound...].trimmingCharacters(in: .whitespaces)
+                            if !after.isEmpty {
+                                candidate = after
+                                break
+                            }
+                        }
+                    }
+                }
+
+                for prefix in rule.prefixesToStrip {
+                    let pPinyin = currentRules.toPinyin(prefix.trimmingCharacters(in: .whitespaces))
+                    if candidate.hasPrefix(pPinyin) {
+                        candidate = String(candidate.dropFirst(pPinyin.count)).trimmingCharacters(in: .whitespaces)
+                    }
+                }
+                for suffix in rule.suffixesToStrip {
+                    let sPinyin = currentRules.toPinyin(suffix)
+                    if candidate.hasSuffix(sPinyin) {
+                        candidate = String(candidate.dropLast(sPinyin.count)).trimmingCharacters(in: .whitespaces)
+                    }
+                }
+                candidate = candidate.trimmingCharacters(in: .whitespaces)
+
+                if !candidate.isEmpty {
+                    var targetID: UUID?
+                    var targetSide: TeamSide?
+                    let matchIDs = matchableIDs(from: allIDs, snapshot: snapshot)
+                    let (matches, _) = matchPlayerIDsDebug(text: candidate, textPinyin: candidate, in: matchIDs, context: "统计拼音回退抢断目标")
+                    if let m = matches.first {
+                        targetID = m.0; targetSide = m.1
+                    }
+                    if let tid = targetID, let ts = targetSide, ts != sd, tid != pid {
+                        guard let turnoverAction = StatAction.allCases.first(where: { $0.eventCode == "stat.turnover" }) else {
+                            addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: stat.code, matchDetail: "统计拼音回退球员: \(dbgPlayer)")
+                            showSuccessFeedback(action: action, playerID: pid, side: sd)
+                            return true
+                        }
+                        let pn2 = store.player(for: tid)?.name ?? "?"
+                        addLog(text: text, isSuccess: true, action: "\(action.message) + \(turnoverAction.message)", playerName: "\(pn) → \(pn2)", matchedPattern: "\(stat.code)+turnover", matchDetail: "统计拼音回退双事件: \(pn)抢断\(pn2)")
+                        showDualSuccessFeedback(action1: action, playerID1: pid, side1: sd, action2: turnoverAction, playerID2: tid, side2: ts)
+                        return true
+                    }
+                }
+            }
+
+            addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: stat.code, matchDetail: "统计拼音回退球员: \(dbgPlayer)")
+            showSuccessFeedback(action: action, playerID: pid, side: sd)
+            return true
+        }
+
         return false
     }
 

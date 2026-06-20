@@ -72,7 +72,7 @@ struct VoiceCommandExamples {
             .rebound: ["{name}篮板", "{team}{number}号篮板", "{name}抢到篮板"],
             .assist: ["{name}助攻", "{number}号助攻", "{name}传出助攻"],
             .block: ["{name}盖帽", "{number}号盖帽", "{name}封盖"],
-            .steal: ["{name}抢断", "{number}号抢断", "{name}断球"],
+            .steal: ["{name}抢断", "{number}号抢断", "{name}断球", "{name}抢断{target}"],
             .turnover: ["{name}失误", "{number}号失误", "{name}走步"],
             .foul: ["{name}犯规", "{team}{number}号犯规", "{name}犯规了"],
             .bonusMade: ["{name}加罚", "{number}号加罚", "{name}加罚命中"],
@@ -118,7 +118,7 @@ struct VoiceCommandExamples {
             .rebound: ["{name}籃板", "{team}{number}號籃板", "{name}搶到籃板"],
             .assist: ["{name}助攻", "{number}號助攻", "{name}傳出助攻"],
             .block: ["{name}蓋帽", "{number}號蓋帽", "{name}封蓋"],
-            .steal: ["{name}抄截", "{number}號抄截", "{name}抄截了"],
+            .steal: ["{name}抄截", "{number}號抄截", "{name}抄截了", "{name}抄截{target}"],
             .turnover: ["{name}失誤", "{number}號失誤", "{name}走步"],
             .foul: ["{name}犯規", "{team}{number}號犯規", "{name}犯規了"],
             .bonusMade: ["{name}加罰", "{number}號加罰", "{name}加罰進了"],
@@ -164,7 +164,7 @@ struct VoiceCommandExamples {
             .rebound: ["{name} rebound", "{team} {number} rebound", "{name} got rebound"],
             .assist: ["{name} assist", "{team} {number} assist", "{number} assist"],
             .block: ["{name} block", "{number} block", "{team} {number} block"],
-            .steal: ["{name} steal", "{number} steal", "{team} {number} steal"],
+            .steal: ["{name} steal", "{number} steal", "{team} {number} steal", "{name} steal {target}"],
             .turnover: ["{name} turnover", "{number} turnover", "{name} turn over"],
             .foul: ["{name} foul", "{team} {number} foul", "{name} fouls"],
             .bonusMade: ["{name} bonus", "{number} and one", "{name} and one"],
@@ -209,6 +209,10 @@ struct VoiceCommandExamples {
             .paintMade: ["{name}ペイント", "{team}{number}番ペイント", "{team}{number}番インサイド"],
             .rebound: ["{name}リバウンド", "{team}{number}番リバウンド", "{team}リバウンド"],
             .foul: ["{name}ファウル", "{team}{number}番ファウル", "{team}{number}番ファウル"],
+            .assist: ["{name}アシスト", "{team}{number}番アシスト", "{number}番アシスト"],
+            .block: ["{name}ブロック", "{number}番ブロック", "{team}{number}番ブロック"],
+            .steal: ["{name}スティール", "{number}番スティール", "{team}{number}番スティール", "{name}が{target}からスティール"],
+            .turnover: ["{name}ターンオーバー", "{number}番ターンオーバー", "{name}ボールロスト"],
             .bonusMade: ["{name}ボーナス", "{number}番アンドワン", "{name}追加フリー"],
         ]
     )
@@ -251,6 +255,10 @@ struct VoiceCommandExamples {
             .paintMade: ["{name} 페인트", "{team} {number}번 페인트", "{team} {number}번 인사이드"],
             .rebound: ["{name} 리바운드", "{team} {number}번 리바운드", "{team} {number}번 리바운드"],
             .foul: ["{name} 파울", "{team} {number}번 파울", "{team} {number}번 파울"],
+            .assist: ["{name} 어시스트", "{team} {number}번 어시스트", "{number}번 어시스트"],
+            .block: ["{name} 블록", "{number}번 블록", "{team} {number}번 블록"],
+            .steal: ["{name} 스틸", "{number}번 스틸", "{team} {number}번 스틸", "{name}가{target}를 스틸"],
+            .turnover: ["{name} 턴오버", "{number}번 턴오버", "{name} 볼 손실"],
             .bonusMade: ["{name} 보너스", "{number}번 앤드원", "{name} 추가 자유투"],
         ]
     )
@@ -293,6 +301,10 @@ struct VoiceCommandExamples {
             .paintMade: ["{name} Korb", "{team} {number} Korb", "{team} {number} innen"],
             .rebound: ["{name} Rebound", "{team} {number} Rebound", "{team} {number} Rebound"],
             .foul: ["{name} Foul", "{team} {number} Foul", "{team} {number} Foul"],
+            .assist: ["{name} Assist", "{team} {number} Assist", "{number} Assist"],
+            .block: ["{name} Block", "{number} Block", "{team} {number} Block"],
+            .steal: ["{name} Steal", "{number} Steal", "{team} {number} Steal"],
+            .turnover: ["{name} Turnover", "{number} Turnover", "{name} Ballverlust"],
             .bonusMade: ["{name} Bonus", "{number} and one", "{name} Bonus Freiwurf"],
         ]
     )
@@ -335,6 +347,10 @@ struct VoiceCommandExamples {
             .paintMade: ["{name} pintura", "{team} {number} pintura", "{team} {number} interior"],
             .rebound: ["{name} rebote", "{team} {number} rebote", "{team} {number} rebote"],
             .foul: ["{name} falta", "{team} {number} falta", "{team} {number} falta"],
+            .assist: ["{name} asistencia", "{team} {number} asistencia", "{number} asistencia"],
+            .block: ["{name} bloqueo", "{number} bloqueo", "{team} {number} bloqueo"],
+            .steal: ["{name} robo", "{number} robo", "{team} {number} robo"],
+            .turnover: ["{name} perdida", "{number} perdida", "{name} turnover"],
             .bonusMade: ["{name} bonus", "{number} and one", "{name} tiro extra"],
         ]
     )
@@ -377,6 +393,10 @@ struct VoiceCommandExamples {
             .paintMade: ["{name} interieur", "{team} {number} interieur", "{team} {number} raquette"],
             .rebound: ["{name} rebond", "{team} {number} rebond", "{team} {number} rebond"],
             .foul: ["{name} faute", "{team} {number} faute", "{team} {number} faute"],
+            .assist: ["{name} assist", "{number} passe decisive", "{team} {number} assist"],
+            .block: ["{name} contre", "{number} contre", "{team} {number} contre"],
+            .steal: ["{name} interception", "{number} interception", "{team} {number} interception"],
+            .turnover: ["{name} turnover", "{number} turnover", "{name} perte de balle"],
             .bonusMade: ["{name} bonus", "{number} and one", "{name} lancer franc bonus"],
         ]
     )
@@ -419,6 +439,10 @@ struct VoiceCommandExamples {
             .paintMade: ["{name} dentro", "{team} {number} dentro", "{team} {number} interno"],
             .rebound: ["{name} rimbalzo", "{team} {number} rimbalzo", "{team} {number} rimbalzo"],
             .foul: ["{name} fallo", "{team} {number} fallo", "{team} {number} fallo"],
+            .assist: ["{name} assist", "{team} {number} assist", "{number} assist"],
+            .block: ["{name} stoppata", "{number} stoppata", "{team} {number} blocco"],
+            .steal: ["{name} palla rubata", "{number} rubata", "{team} {number} rubata"],
+            .turnover: ["{name} turnover", "{number} turnover", "{name} palla persa"],
             .bonusMade: ["{name} bonus", "{number} and one", "{name} tiro extra"],
         ]
     )
@@ -461,17 +485,22 @@ struct VoiceCommandExamples {
             .paintMade: ["{name} краска", "{team} {number} краска", "{team} {number} внутри"],
             .rebound: ["{name} подбор", "{team} {number} подбор", "{team} {number} подбор"],
             .foul: ["{name} фол", "{team} {number} фол", "{team} {number} фол"],
+            .assist: ["{name} ассист", "{team} {number} ассист", "{number} ассист"],
+            .block: ["{name} блок", "{number} блок", "{team} {number} блок"],
+            .steal: ["{name} перехват", "{number} перехват", "{team} {number} перехват"],
+            .turnover: ["{name} потеря", "{number} потеря", "{name} turnover"],
             .bonusMade: ["{name} бонус", "{number} and one", "{name} дополнительный штрафной"],
         ]
     )
 
     // MARK: - Helpers
 
-    static func fill(_ template: String, name: String, number: String, team: String = "", oppTeam: String = "") -> String {
+    static func fill(_ template: String, name: String, number: String, team: String = "", oppTeam: String = "", target: String = "") -> String {
         template.replacingOccurrences(of: "{name}", with: name)
             .replacingOccurrences(of: "{number}", with: number)
             .replacingOccurrences(of: "{team}", with: team)
             .replacingOccurrences(of: "{oppTeam}", with: oppTeam)
+            .replacingOccurrences(of: "{target}", with: target)
     }
 
     // MARK: - Instruction Content Builders
@@ -497,14 +526,14 @@ struct VoiceCommandExamples {
         return "直接说出指令，无需球员名。\n\n示例：\n\(cmds)"
     }
 
-    static func fillFirst(_ templates: [String], name: String, number: String, team: String = "", oppTeam: String = "") -> String {
+    static func fillFirst(_ templates: [String], name: String, number: String, team: String = "", oppTeam: String = "", target: String = "") -> String {
         guard let first = templates.first else { return "" }
-        return fill(first, name: name, number: number, team: team, oppTeam: oppTeam)
+        return fill(first, name: name, number: number, team: team, oppTeam: oppTeam, target: target)
     }
 
-    static func buildHint(for action: StatAction, templates: Templates, name: String, number: String, team: String = "", oppTeam: String = "") -> String {
+    static func buildHint(for action: StatAction, templates: Templates, name: String, number: String, team: String = "", oppTeam: String = "", target: String = "") -> String {
         guard let tpls = templates.actionTemplates[action] else { return "" }
-        let filled = tpls.map { fill($0, name: name, number: number, team: team, oppTeam: oppTeam) }
+        let filled = tpls.map { fill($0, name: name, number: number, team: team, oppTeam: oppTeam, target: target) }
         return "\(templates.hintPrefix)\(filled.map { "\u{300C}\($0)\u{300D}" }.joined(separator: templates.hintSeparator))"
     }
 

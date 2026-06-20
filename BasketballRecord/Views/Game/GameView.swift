@@ -277,6 +277,42 @@ struct GameView: View {
                         self.applyRecordOperation(action: action, playerID: playerID, side: side, at: now)
                     }
                 }
+                voiceRecognizer.onDualAction = { [self] action1, pid1, side1, action2, pid2, side2 in
+                    guard !snapshot.isComplete else {
+                        statAlertMessage = NSLocalizedString("stat_game_already_finished", comment: "")
+                        return
+                    }
+                    guard !snapshot.isPaused else {
+                        statAlertMessage = NSLocalizedString("stat_game_paused", comment: "")
+                        return
+                    }
+                    guard snapshot.periodIsRunning else {
+                        statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: ""), snapshot.currentPeriod)
+                        return
+                    }
+                    let now = Date()
+                    let pn1 = self.name(for: pid1)
+                    let pn2 = self.name(for: pid2)
+                    let locale = voiceRecognizer.currentRules.locale
+                    let combinedMsg: String
+                    if action1 == .steal && action2 == .turnover {
+                        combinedMsg = Self.dualStealMessage(pn1: pn1, pn2: pn2, locale: locale)
+                    } else {
+                        combinedMsg = Self.dualAssistMessage(pn1: pn1, pn2: pn2, shot: action2.message, locale: locale)
+                    }
+                    let op1 = BluetoothLiveOperationPayload.record(
+                        action: action1.liveAction, playerID: pid1, side: side1.liveSide, at: now
+                    )
+                    _ = submitLiveOperation(op1) {
+                        self.applyRecordOperation(action: action1, playerID: pid1, side: side1, at: now, eventMessage: combinedMsg)
+                    }
+                    let op2 = BluetoothLiveOperationPayload.record(
+                        action: action2.liveAction, playerID: pid2, side: side2.liveSide, at: now
+                    )
+                    _ = submitLiveOperation(op2) {
+                        self.applyRecordOperation(action: action2, playerID: pid2, side: side2, at: now)
+                    }
+                }
                 voiceRecognizer.onCommand = { [self] command in
                     switch command {
                     case .togglePause: togglePause()
@@ -1777,7 +1813,7 @@ struct GameView: View {
     }
 
     @discardableResult
-    func applyRecordOperation(action: StatAction, playerID: UUID, side: TeamSide, at: Date? = nil) -> Bool {
+    func applyRecordOperation(action: StatAction, playerID: UUID, side: TeamSide, at: Date? = nil, eventMessage: String? = nil) -> Bool {
         let isTeamMode = side == .home ? snapshot.homeTeamStatsMode : snapshot.awayTeamStatsMode
         let teamID = side == .home ? snapshot.homeTeamID : snapshot.awayTeamID
 
@@ -1800,7 +1836,13 @@ struct GameView: View {
                 applyPlusMinus(points: action.points, scoringSide: side)
             }
             let eventName = isTeamMode ? (store.team(for: teamID)?.name ?? "?") : name(for: playerID)
-            addEvent("\(eventName) \(action.message)", playerID: isTeamMode ? nil : playerID, eventCode: action.eventCode, at: at)
+            if let eventMessage {
+                if !eventMessage.isEmpty {
+                    addEvent(eventMessage, playerID: isTeamMode ? nil : playerID, eventCode: action.eventCode, at: at)
+                }
+            } else {
+                addEvent("\(eventName) \(action.message)", playerID: isTeamMode ? nil : playerID, eventCode: action.eventCode, at: at)
+            }
         }
         if action.points > 0, snapshot.periodEndCondition == .byScore {
             checkAndAutoEndPeriod()
@@ -2868,6 +2910,56 @@ struct GameView: View {
         let names = playerIDs.map { name(for: $0) }
         guard !names.isEmpty else { return NSLocalizedString("text_not_set", comment: "Not set fallback") }
         return ListFormatter.localizedString(byJoining: names)
+    }
+
+    static func dualStealMessage(pn1: String, pn2: String, locale: Locale) -> String {
+        let lang = locale.identifier
+        if lang.hasPrefix("zh-Hant") {
+            return "\(pn1)抄截\(pn2)"
+        } else if lang.hasPrefix("zh") {
+            return "\(pn1)抢断\(pn2)"
+        } else if lang.hasPrefix("ja") {
+            return "\(pn1)が\(pn2)からスティール"
+        } else if lang.hasPrefix("ko") {
+            return "\(pn1)가\(pn2)를 스틸"
+        } else if lang.hasPrefix("es") {
+            return "\(pn1) robo a \(pn2)"
+        } else if lang.hasPrefix("fr") {
+            return "\(pn1) interception \(pn2)"
+        } else if lang.hasPrefix("it") {
+            return "\(pn1) palla rubata a \(pn2)"
+        } else if lang.hasPrefix("de") {
+            return "\(pn1) steal \(pn2)"
+        } else if lang.hasPrefix("ru") {
+            return "\(pn1) перехват у \(pn2)"
+        } else {
+            return "\(pn1) stole from \(pn2)"
+        }
+    }
+
+    static func dualAssistMessage(pn1: String, pn2: String, shot: String, locale: Locale) -> String {
+        let lang = locale.identifier
+        if lang.hasPrefix("zh-Hant") {
+            return "\(pn1)助攻\(pn2)\(shot)"
+        } else if lang.hasPrefix("zh") {
+            return "\(pn1)助攻\(pn2)\(shot)"
+        } else if lang.hasPrefix("ja") {
+            return "\(pn1)が\(pn2)の\(shot)アシスト"
+        } else if lang.hasPrefix("ko") {
+            return "\(pn1)가\(pn2)의 \(shot) 어시스트"
+        } else if lang.hasPrefix("es") {
+            return "\(pn1) asistio a \(pn2) para \(shot)"
+        } else if lang.hasPrefix("fr") {
+            return "\(pn1) passe a \(pn2) pour \(shot)"
+        } else if lang.hasPrefix("it") {
+            return "\(pn1) assist per \(pn2) \(shot)"
+        } else if lang.hasPrefix("de") {
+            return "\(pn1) assist \(pn2) fur \(shot)"
+        } else if lang.hasPrefix("ru") {
+            return "\(pn1) ассист \(pn2) на \(shot)"
+        } else {
+            return "\(pn1) assisted \(pn2) for \(shot)"
+        }
     }
 
     private func unique(_ ids: [UUID]) -> [UUID] {
