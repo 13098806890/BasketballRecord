@@ -968,3 +968,5 @@ Format:
 "settings_contact_developer" = "Entwickler kontaktieren";
 "voice_instruction_combined" = "Kombinierte Befehle";
 "settings_about_content" = "Hi! I'm an independent developer who loves basketball.\n\nI built this app to help basketball enthusiasts around the world track their games. I have limited ability, but I'll do my best to improve it and add new features.\n\nIf you have any suggestions or feedback, feel free to email me:\nclassicalxie@163.com\n\nThank you for using %@!";
+"voice_tutorial_tab_tasks" = "Aufgaben";
+"voice_tutorial_tab_freeplay" = "Freies Üben";

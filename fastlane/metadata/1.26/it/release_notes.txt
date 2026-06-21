@@ -3,4 +3,5 @@
 • Tutorial vocale esteso a 27 attività, con esercizi per rimbalzi O/D
 • Modalità rimbalzo O/D: attivabile nelle impostazioni partita, layout pulsanti si adatta
 • Le statistiche squadra ora mostrano la suddivisione OREB/DREB
+• Miglioramento riconoscimento parole chiave — spazi flessibili per comandi multipli
 • Molteplici correzioni di bug e miglioramenti di stabilità

@@ -978,3 +978,5 @@ Format:
 "settings_contact_developer" = "聯繫開發者";
 "voice_instruction_combined" = "複合指令";
 "settings_about_content" = "你好！我是一名熱愛籃球的獨立開發者。\n\n我創建這個應用，希望能幫助世界各地的籃球愛好者記錄比賽。我能力有限，但會盡力完善各項功能。\n\n如果你有任何建議或意見，歡迎發送郵件至：\nclassicalxie@163.com\n\n感謝你使用 %@！";
+"voice_tutorial_tab_tasks" = "任務";
+"voice_tutorial_tab_freeplay" = "自由練習";

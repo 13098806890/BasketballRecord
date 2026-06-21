@@ -570,9 +570,9 @@ struct VoiceCommandExamples {
     static func substitutionHint(templates: Templates, outName: String, outNumber: String, inName: String, inNumber: String) -> String {
         switch templates.locale {
         case "zh-Hans":
-            return "\(templates.hintPrefix)\u{300C}\(inName)替换\(outName)\u{300D}\(templates.hintSeparator)\u{300C}\(inNumber)号替换\(outNumber)号\u{300D}\(templates.hintSeparator)\u{300C}换人\u{300D}"
+            return "\(templates.hintPrefix)\u{300C}\(inName)替换\(outName)\u{300D}\(templates.hintSeparator)\u{300C}\(inNumber)号替换\(outNumber)号\u{300D}"
         case "zh-Hant":
-            return "\(templates.hintPrefix)\u{300C}\(inName)替換\(outName)\u{300D}\(templates.hintSeparator)\u{300C}\(inNumber)號替換\(outNumber)號\u{300D}\(templates.hintSeparator)\u{300C}換人\u{300D}"
+            return "\(templates.hintPrefix)\u{300C}\(inName)替換\(outName)\u{300D}\(templates.hintSeparator)\u{300C}\(inNumber)號替換\(outNumber)號\u{300D}"
         case "en":
             return "\(templates.hintPrefix)\"sub \(outNumber) for \(inNumber)\" · \"substitute \(outName) for \(inName)\" · \"sub \(outNumber) \(inNumber)\""
         case "ja":

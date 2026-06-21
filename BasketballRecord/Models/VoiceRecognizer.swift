@@ -898,7 +898,12 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     private func findKeyword(_ kw: String, in text: String) -> (left: String, right: String)? {
-        guard let range = text.range(of: kw, options: [.caseInsensitive]) else { return nil }
+        let parts = kw.split(separator: " ", omittingEmptySubsequences: true)
+        let pattern = parts.isEmpty ? kw : parts.joined(separator: "\\s*")
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
+              let match = regex.firstMatch(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count))
+        else { return nil }
+        guard let range = Range(match.range, in: text) else { return nil }
         let left = String(text[text.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
         let right = String(text[range.upperBound...]).trimmingCharacters(in: .whitespaces)
         return (left, right)
