@@ -860,6 +860,8 @@ Format:
 "settings_voice_locale" = "Lingua vocale";
 "settings_voice_locale_follow_app" = "Segui lingua dell'app";
 "settings_voice_locale_footer" = "Seleziona la lingua per il riconoscimento vocale. Influisce sia sulla pagina di punteggio che sul tutorial.";
+"settings_voice_matching_threshold" = "Sensibilità di corrispondenza";
+"settings_voice_matching_threshold_footer" = "Valori più bassi consentono corrispondenze più flessibili (0.6 consigliato)";
 
 "settings_voice_instruction" = "Istruzioni vocali";
 "voice_instruction_shots" = "Tiri";
@@ -911,6 +913,7 @@ Format:
 "voice_tutorial_complete_all" = "Completa tutto";
 "voice_tutorial_complete_done" = "Completa e fine";
 "voice_tutorial_score" = "%d/%d compiti superati";
+"voice_tutorial_rate" = "Precisione: %.0f%%";
 "voice_tutorial_restart" = "Riavvia";
 "voice_tutorial_result_success" = "Successo";
 "voice_tutorial_result_fail" = "Fallimento";

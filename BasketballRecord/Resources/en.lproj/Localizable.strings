@@ -871,6 +871,8 @@ Format:
 "settings_voice_locale" = "Voice Language";
 "settings_voice_locale_follow_app" = "Follow App Language";
 "settings_voice_locale_footer" = "Select the language used for voice recognition. Affects both the scoring page and the tutorial.";
+"settings_voice_matching_threshold" = "Matching Sensitivity";
+"settings_voice_matching_threshold_footer" = "Lower values allow looser matching (recommended: 0.6)";
 
 "settings_voice_instruction" = "Voice Instructions";
 "voice_instruction_shots" = "Shots";
@@ -902,6 +904,7 @@ Format:
 "voice_tutorial_complete_all" = "All tasks passed!";
 "voice_tutorial_complete_done" = "Tutorial Complete";
 "voice_tutorial_score" = "Passed %d/%d tasks";
+"voice_tutorial_rate" = "Recognition Rate: %.0f%%";
 "voice_tutorial_restart" = "Restart";
 "voice_tutorial_result_success" = "✅ Correct!";
 "voice_tutorial_result_fail" = "❌ Try again";

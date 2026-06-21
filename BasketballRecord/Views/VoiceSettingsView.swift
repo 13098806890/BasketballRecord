@@ -18,6 +18,7 @@ private let voiceLanguages: [(id: String, name: String)] = [
 struct VoiceSettingsView: View {
     @ObservedObject var store: AppStore
     @AppStorage(kVoiceLocaleKey) private var voiceLocale: String = ""
+    @AppStorage("voice_matching_threshold") private var voiceMatchingThreshold: Double = 0.6
 
     private var effectiveLocale: String {
         voiceLocale.isEmpty ? (Bundle.main.preferredLocalizations.first ?? "en") : voiceLocale
@@ -38,6 +39,22 @@ struct VoiceSettingsView: View {
                 }
             } footer: {
                 Text(LocalizedStringKey("settings_voice_locale_footer"))
+            }
+
+            Section {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Label(LocalizedStringKey("settings_voice_matching_threshold"), systemImage: "gauge.medium")
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        Text(String(format: "%.1f", voiceMatchingThreshold))
+                            .font(.body.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $voiceMatchingThreshold, in: 0.3...1.0, step: 0.1)
+                }
+            } footer: {
+                Text(LocalizedStringKey("settings_voice_matching_threshold_footer"))
             }
 
             Section {

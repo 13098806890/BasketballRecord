@@ -870,6 +870,8 @@ Format:
 "settings_voice_locale" = "語音語言";
 "settings_voice_locale_follow_app" = "跟隨 App 語言";
 "settings_voice_locale_footer" = "選擇語音辨識使用的語言。同時影響計分頁面和教學。";
+"settings_voice_matching_threshold" = "匹配靈敏度";
+"settings_voice_matching_threshold_footer" = "數值越低匹配越寬鬆（建議 0.6）";
 
 "settings_voice_instruction" = "語音說明";
 "voice_instruction_shots" = "投籃記錄";
@@ -921,6 +923,7 @@ Format:
 "voice_tutorial_complete_all" = "全部完成";
 "voice_tutorial_complete_done" = "完成並結束";
 "voice_tutorial_score" = "已完成 %d/%d 個任務";
+"voice_tutorial_rate" = "識別成功率: %.0f%%";
 "voice_tutorial_restart" = "重新開始";
 "voice_tutorial_result_success" = "成功";
 "voice_tutorial_result_fail" = "失敗";

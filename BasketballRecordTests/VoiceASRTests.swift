@@ -340,15 +340,40 @@ final class VoiceASRTests: XCTestCase {
     }
 
     private func findEvent(text: String, rules: VoiceRules) -> String? {
-        for kw in rules.substitutionKeywords { if text.lowercased().contains(kw.lowercased()) { return "event.substitution" } }
+        let textVariants = rules.generatePinyinVariants(text)
+        let textLower = text.lowercased()
+
+        for kw in rules.substitutionKeywords {
+            if textLower.contains(kw.lowercased()) { return "event.substitution" }
+        }
+
+        for (kw, code) in rules.statEvents {
+            guard text.contains(kw) else { continue }
+            let isConflict = rules.shotKeywords.contains { shot in
+                shot.keyword.lowercased() != kw.lowercased()
+                && shot.keyword.lowercased().contains(kw.lowercased())
+                && textLower.contains(shot.keyword.lowercased())
+            }
+            if !isConflict { return code }
+        }
+
         for shot in rules.shotKeywords {
             guard let r = text.range(of: shot.keyword, options: .caseInsensitive) else { continue }
             let right = String(text[r.upperBound...]).trimmingCharacters(in: .whitespaces)
             for s in rules.missedStates { if right.contains(s) { return shot.eventPrefix + "Missed" } }
             return shot.eventPrefix + "Made"
         }
-        for (kw, code) in rules.statEvents { if text.contains(kw) { return code } }
-        for (kw, code) in rules.commandEvents { if text.lowercased().contains(kw.lowercased()) { return code } }
+
+        for (kw, code) in rules.statEvents {
+            let kwVariants = rules.generatePinyinVariants(kw)
+            if textVariants.contains(where: { tv in kwVariants.contains(where: { tv.contains($0) }) }) {
+                return code
+            }
+        }
+
+        for (kw, code) in rules.commandEvents {
+            if textLower.contains(kw.lowercased()) { return code }
+        }
         return nil
     }
 }

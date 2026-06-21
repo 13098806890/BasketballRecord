@@ -876,6 +876,8 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "settings_voice_locale" = "음성 언어";
 "settings_voice_locale_follow_app" = "앱 언어 따르기";
 "settings_voice_locale_footer" = "음성 인식에 사용할 언어를 선택하세요. 점수 기록 페이지와 튜토리얼에 모두 영향을 줍니다.";
+"settings_voice_matching_threshold" = "매칭 감도";
+"settings_voice_matching_threshold_footer" = "값이 낮을수록 느슨한 일치 허용 (권장 0.6)";
 
 "settings_voice_instruction" = "음성 사용 설명";
 "voice_instruction_shots" = "슛 기록";
@@ -907,6 +909,7 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "voice_tutorial_complete_all" = "모두 완료";
 "voice_tutorial_complete_done" = "완료 및 종료";
 "voice_tutorial_score" = "%d/%d 작업 완료";
+"voice_tutorial_rate" = "인식률: %.0f%%";
 "voice_tutorial_restart" = "다시 시작";
 "voice_tutorial_result_success" = "성공";
 "voice_tutorial_result_fail" = "실패";

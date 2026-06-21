@@ -138,6 +138,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     var onDualAction: ((StatAction, UUID, TeamSide, StatAction, UUID, TeamSide) -> Void)?
     var onCommand: ((VoiceCommand) -> Void)?
     var onSubstitution: ((TeamSide, UUID, UUID) -> Void)?
+    var matchingThreshold: Double = 0.6
 
     var currentRules: VoiceRules = .chinese
 
@@ -414,7 +415,6 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     private func matchPlayerIDsDebug(text: String, textPinyin: String, in allIDs: [UUID], context: String = "") -> ([(UUID, TeamSide, Double)], String) {
         guard let store, let snapshot = currentSnapshot else { return ([], "\(context): store/snapshot=nil") }
-        let threshold = 0.5
         var results: [(UUID, TeamSide, Double)] = []
         var details: [String] = []
 
@@ -457,25 +457,36 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     continue
                 }
 
-                // Priority 3: Fuzzy pinyin match with name variants (fallback for edge cases)
-                let fuzzyTP = currentRules.fuzzyPinyin(textPinyin)
+                // Priority 3: Variant pool with nameVariants (surname overrides, letter pinyin)
+                let textVariants = currentRules.generatePinyinVariants(text)
                 let nameVariants = currentRules.namePinyinVariants(player.name)
                 var matched = false
                 for variant in nameVariants {
-                    let namePinyin = currentRules.fuzzyPinyin(variant)
-                    let score = Self.nameSimilarity(namePinyin, fuzzyTP)
-                    if score >= threshold {
+                    let pv = currentRules.generatePinyinVariants(variant)
+                    if !pv.isDisjoint(with: textVariants) {
                         let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
-                        results.append((id, side, score))
-                        details.append("\(player.name)(拼音\(String(format:"%.2f", score)))")
+                        results.append((id, side, 0.90))
+                        details.append("\(player.name)(拼音变体0.90)")
                         matched = true
                         break
                     }
                 }
                 if !matched {
-                    let pinyin = currentRules.fuzzyPinyin(currentRules.toPinyin(player.name))
-                    let score = Self.nameSimilarity(pinyin, fuzzyTP)
-                    details.append("\(player.name)(拼音=\(pinyin) vs \(fuzzyTP)=\(String(format:"%.2f", score)))")
+                    for variant in nameVariants {
+                        let score = Self.nameSimilarity(variant, textPinyin)
+                        if score >= matchingThreshold {
+                            let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
+                            results.append((id, side, score))
+                            details.append("\(player.name)(拼音相似\(String(format:"%.2f", score)))")
+                            matched = true
+                            break
+                        }
+                    }
+                }
+                if !matched {
+                    let pinyin = currentRules.toPinyin(player.name)
+                    let score = Self.nameSimilarity(pinyin, textPinyin)
+                    details.append("\(player.name)(拼音=\(pinyin) vs \(textPinyin)=\(String(format:"%.2f", score)))")
                 }
             } else if let team = store.team(for: id) {
                 let nameLower = team.name.lowercased()
@@ -516,17 +527,18 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     continue
                 }
 
-                // Priority 3: Fuzzy pinyin match (fallback)
-                let fuzzyTP = currentRules.fuzzyPinyin(textPinyin)
-                let teamPinyin = currentRules.fuzzyPinyin(currentRules.toPinyin(team.name))
-                let score = Self.nameSimilarity(teamPinyin, fuzzyTP)
-                if score >= threshold {
+                // Priority 3: Variant pool with namePinyinVariants (fallback for team names)
+                let textVariants = currentRules.generatePinyinVariants(text)
+                let teamPV = currentRules.generatePinyinVariants(team.name)
+                if !teamPV.isDisjoint(with: textVariants) {
                     let side: TeamSide = isHome ? .home : .away
-                    results.append((id, side, score))
-                    details.append("\(team.name)(球队拼音\(String(format:"%.2f", score)))")
+                    results.append((id, side, 0.90))
+                    details.append("\(team.name)(球队变体0.90)")
                     continue
                 } else {
-                    details.append("\(team.name)(球队拼音=\(teamPinyin) vs \(fuzzyTP)=\(String(format:"%.2f", score)))")
+                    let teamPinyin = currentRules.toPinyin(team.name)
+                    let score = Self.nameSimilarity(teamPinyin, textPinyin)
+                    details.append("\(team.name)(球队拼音=\(teamPinyin) vs \(textPinyin)=\(String(format:"%.2f", score)))")
                 }
             }
         }
@@ -860,18 +872,27 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     private func determineShotState(rightText: String) -> (isMade: Bool, bestScore: Double) {
-        let rightFuzzy = currentRules.fuzzyPinyin(currentRules.toPinyin(rightText))
+        let rightPinyin = currentRules.toPinyin(rightText)
+        let rightVariants = currentRules.generatePinyinVariants(rightText)
         var bestScore = 0.0
         var foundMade: Bool?
         for state in voiceMadeStates {
-            let sp = currentRules.fuzzyPinyin(currentRules.toPinyin(state))
-            let s = Self.similarity(sp, rightFuzzy)
-            if s > bestScore { bestScore = s; foundMade = true }
+            let stateVariants = currentRules.generatePinyinVariants(state)
+            if !stateVariants.isDisjoint(with: rightVariants) {
+                if 1.0 > bestScore { bestScore = 1.0; foundMade = true }
+            } else {
+                let s = Self.similarity(currentRules.toPinyin(state), rightPinyin)
+                if s > bestScore { bestScore = s; foundMade = true }
+            }
         }
         for state in voiceMissedStates {
-            let sp = currentRules.fuzzyPinyin(currentRules.toPinyin(state))
-            let s = Self.similarity(sp, rightFuzzy)
-            if s > bestScore { bestScore = s; foundMade = false }
+            let stateVariants = currentRules.generatePinyinVariants(state)
+            if !stateVariants.isDisjoint(with: rightVariants) {
+                if 1.0 > bestScore { bestScore = 1.0; foundMade = false }
+            } else {
+                let s = Self.similarity(currentRules.toPinyin(state), rightPinyin)
+                if s > bestScore { bestScore = s; foundMade = false }
+            }
         }
         return (foundMade ?? true, bestScore)
     }
@@ -1120,13 +1141,24 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     private func processByPinyinFallback(text: String, textPinyin: String) -> Bool {
-        let textFuzzy = currentRules.fuzzyPinyin(currentRules.toPinyin(text))
+        let textVariants = currentRules.generatePinyinVariants(text)
         let shotPinyinVariants = voiceShotTypes.map { (shot: $0, variants: currentRules.generatePinyinVariants($0.keyword)) }
         for (shot, variants) in shotPinyinVariants {
-            guard let matchedVariant = variants.first(where: { textFuzzy.range(of: $0) != nil }),
-                  let kwRange = textFuzzy.range(of: matchedVariant) else { continue }
-            let leftPinyin = String(textFuzzy[textFuzzy.startIndex..<kwRange.lowerBound]).trimmingCharacters(in: .whitespaces)
-            let rightPinyin = String(textFuzzy[kwRange.upperBound...]).trimmingCharacters(in: .whitespaces)
+            var matchedVariant: String?
+            var matchedText: String?
+            for kv in variants {
+                for tv in textVariants {
+                    if tv.range(of: kv) != nil {
+                        matchedVariant = kv; matchedText = tv; break
+                    }
+                }
+                if matchedVariant != nil { break }
+            }
+            guard let matchedVariant, let matchedText, let kwRange = matchedText.range(of: matchedVariant) else { continue }
+            let kwLower = matchedText[matchedText.startIndex..<kwRange.lowerBound]
+            let kwUpper = matchedText[kwRange.upperBound...]
+            let leftPinyin = String(kwLower).trimmingCharacters(in: .whitespaces)
+            let rightPinyin = String(kwUpper).trimmingCharacters(in: .whitespaces)
             addLog(text: text, isSuccess: false, action: shot.eventPrefix, matchDetail: "🔍 拼音回退: 关键词pinyin=\(matchedVariant) | 左侧拼音: \(leftPinyin.isEmpty ? "空" : leftPinyin) | 右侧拼音: \(rightPinyin.isEmpty ? "空" : rightPinyin)")
             var effectiveRightPinyin = rightPinyin
             if effectiveRightPinyin.isEmpty && !leftPinyin.isEmpty {
@@ -1168,10 +1200,21 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let statEvents = voiceNonShotEvents.filter { $0.1.hasPrefix("stat.") }
         let statPinyinVariants = statEvents.map { (keyword: $0.0, code: $0.1, variants: currentRules.generatePinyinVariants($0.0)) }
         for stat in statPinyinVariants {
-            guard let matchedVariant = stat.variants.first(where: { textFuzzy.range(of: $0) != nil }),
-                  let kwRange = textFuzzy.range(of: matchedVariant) else { continue }
-            let leftPinyin = String(textFuzzy[textFuzzy.startIndex..<kwRange.lowerBound]).trimmingCharacters(in: .whitespaces)
-            let rightPinyin = String(textFuzzy[kwRange.upperBound...]).trimmingCharacters(in: .whitespaces)
+            var matchedVariant: String?
+            var matchedText: String?
+            for kv in stat.variants {
+                for tv in textVariants {
+                    if tv.range(of: kv) != nil {
+                        matchedVariant = kv; matchedText = tv; break
+                    }
+                }
+                if matchedVariant != nil { break }
+            }
+            guard let matchedVariant, let matchedText, let kwRange = matchedText.range(of: matchedVariant) else { continue }
+            let kwLower = matchedText[matchedText.startIndex..<kwRange.lowerBound]
+            let kwUpper = matchedText[kwRange.upperBound...]
+            let leftPinyin = String(kwLower).trimmingCharacters(in: .whitespaces)
+            let rightPinyin = String(kwUpper).trimmingCharacters(in: .whitespaces)
             addLog(text: text, isSuccess: false, action: stat.code, matchDetail: "🔍 统计拼音回退: 关键词pinyin=\(matchedVariant) | 左侧拼音: \(leftPinyin.isEmpty ? "空" : leftPinyin) | 右侧拼音: \(rightPinyin.isEmpty ? "空" : rightPinyin)")
             guard let store, let snapshot = currentSnapshot else { return false }
             let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs

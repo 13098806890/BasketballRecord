@@ -78,6 +78,7 @@ extension VoiceRules {
         fuzzyMap: [],
         surnamePinyinOverrides: [:],
         pinyinVariantRules: [],
+        multiPronunciations: [:],
         useLevenshteinMatching: true,
         levenshteinThreshold: (short: 1, long: 2),
         useAnchorMatching: false,
