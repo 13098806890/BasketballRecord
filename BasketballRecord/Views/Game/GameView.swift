@@ -59,6 +59,7 @@ struct GameView: View {
     @State private var isShowingPurchase = false
     @StateObject private var voiceRecognizer = VoiceRecognizer()
     @AppStorage("voice_locale") private var voiceLocale: String = ""
+    @AppStorage("voice_matching_threshold") private var voiceMatchingThreshold: Double = 0.6
 
     private let matchClockTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -250,6 +251,7 @@ struct GameView: View {
             }
             .onAppear {
                 voiceRecognizer.configure(store: store)
+                voiceRecognizer.matchingThreshold = voiceMatchingThreshold
                 if !voiceLocale.isEmpty {
                     voiceRecognizer.updateRules(for: Locale(identifier: voiceLocale))
                 }
@@ -337,6 +339,9 @@ struct GameView: View {
             }
             .onChange(of: voiceLocale) { _, newValue in
                 voiceRecognizer.updateRules(for: Locale(identifier: newValue.isEmpty ? "en" : newValue))
+            }
+            .onChange(of: voiceMatchingThreshold) { _, newValue in
+                voiceRecognizer.matchingThreshold = newValue
             }
             .onChange(of: bluetooth.latestInviteResponse?.id) { _, _ in
                 guard let response = bluetooth.latestInviteResponse else { return }

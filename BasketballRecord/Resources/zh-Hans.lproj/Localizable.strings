@@ -873,6 +873,8 @@ Format:
 "settings_voice_locale" = "语音语言";
 "settings_voice_locale_follow_app" = "跟随 App 语言";
 "settings_voice_locale_footer" = "选择语音识别使用的语言。同时影响记分页面和教程。";
+"settings_voice_matching_threshold" = "匹配灵敏度";
+"settings_voice_matching_threshold_footer" = "数值越低匹配越宽松（建议 0.6）";
 
 "settings_voice_instruction" = "语音说明";
 "voice_instruction_shots" = "投篮记录";
@@ -923,6 +925,7 @@ Format:
 "voice_tutorial_complete_all" = "全部完成";
 "voice_tutorial_complete_done" = "完成并结束";
 "voice_tutorial_score" = "已完成 %d/%d 个任务";
+"voice_tutorial_rate" = "识别成功率: %.0f%%";
 "voice_tutorial_restart" = "重新开始";
 "voice_tutorial_result_success" = "成功";
 "voice_tutorial_result_fail" = "失败";

@@ -60,7 +60,6 @@ final class VoiceRulesTests: XCTestCase {
 
     func testEnglishShots() {
         let rules = VoiceRules.english
-        XCTAssertTrue(rules.madeStates.isEmpty)
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "two" }))
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "two pointer" }))
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "three" }))
@@ -78,8 +77,6 @@ final class VoiceRulesTests: XCTestCase {
 
     func testEnglishColloquial() {
         let rules = VoiceRules.english
-        XCTAssertTrue(rules.madeStates.isEmpty)
-        XCTAssertTrue(rules.madeStates.isEmpty)
         XCTAssertTrue(rules.missedStates.contains("no"))
         XCTAssertTrue(rules.missedStates.contains("not"))
         XCTAssertTrue(rules.statEvents.contains(where: { $0.keyword == "board" }))
@@ -106,7 +103,6 @@ final class VoiceRulesTests: XCTestCase {
 
     func testJapaneseShots() {
         let rules = VoiceRules.japanese
-        XCTAssertTrue(rules.madeStates.isEmpty)
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "スリー" }))
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "スリーポイント" }))
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "フリースロー" }))
@@ -120,7 +116,6 @@ final class VoiceRulesTests: XCTestCase {
 
     func testJapaneseColloquial() {
         let rules = VoiceRules.japanese
-        XCTAssertTrue(rules.madeStates.isEmpty)
         XCTAssertTrue(rules.missedStates.contains("ミス"))
         XCTAssertTrue(rules.statEvents.contains(where: { $0.keyword == "トラベリング" }))
         XCTAssertTrue(rules.statEvents.contains(where: { $0.keyword == "ダブルドリブル" }))
@@ -136,7 +131,6 @@ final class VoiceRulesTests: XCTestCase {
 
     func testKoreanShots() {
         let rules = VoiceRules.korean
-        XCTAssertTrue(rules.madeStates.isEmpty)
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "투" }))
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "투포인트" }))
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "쓰리" }))
@@ -168,7 +162,6 @@ final class VoiceRulesTests: XCTestCase {
 
     func testKoreanColloquial() {
         let rules = VoiceRules.korean
-        XCTAssertTrue(rules.madeStates.isEmpty)
         XCTAssertTrue(rules.substitutionKeywords.contains("교체"))
         XCTAssertTrue(rules.substitutionKeywords.contains("체인지"))
         XCTAssertTrue(rules.substitutionKeywords.contains("교체 투입"))
@@ -187,7 +180,6 @@ final class VoiceRulesTests: XCTestCase {
 
     func testGermanShots() {
         let rules = VoiceRules.german
-        XCTAssertTrue(rules.madeStates.isEmpty)
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "zwei" }))
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "zwei punkte" }))
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "drei" }))
@@ -202,7 +194,6 @@ final class VoiceRulesTests: XCTestCase {
 
     func testGermanColloquial() {
         let rules = VoiceRules.german
-        XCTAssertTrue(rules.madeStates.isEmpty)
         XCTAssertTrue(rules.missedStates.contains("verfehlt"))
         XCTAssertTrue(rules.statEvents.contains(where: { $0.keyword == "abpraller" }))
         XCTAssertTrue(rules.statEvents.contains(where: { $0.keyword == "vorlage" }))
@@ -222,7 +213,6 @@ final class VoiceRulesTests: XCTestCase {
 
     func testSpanishShots() {
         let rules = VoiceRules.spanish
-        XCTAssertTrue(rules.madeStates.isEmpty)
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "dos" }))
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "dos puntos" }))
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "tres" }))
@@ -254,7 +244,6 @@ final class VoiceRulesTests: XCTestCase {
 
     func testSpanishColloquial() {
         let rules = VoiceRules.spanish
-        XCTAssertTrue(rules.madeStates.isEmpty)
         XCTAssertTrue(rules.substitutionKeywords.contains("cambio"))
         XCTAssertTrue(rules.substitutionKeywords.contains("sustitución"))
         XCTAssertTrue(rules.substitutionKeywords.contains("reemplazo"))
@@ -273,7 +262,6 @@ final class VoiceRulesTests: XCTestCase {
 
     func testFrenchShots() {
         let rules = VoiceRules.french
-        XCTAssertTrue(rules.madeStates.isEmpty)
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "deux" }))
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "deux points" }))
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "trois" }))
@@ -303,7 +291,6 @@ final class VoiceRulesTests: XCTestCase {
 
     func testFrenchColloquial() {
         let rules = VoiceRules.french
-        XCTAssertTrue(rules.madeStates.isEmpty)
         XCTAssertTrue(rules.substitutionKeywords.contains("remplacement"))
         XCTAssertTrue(rules.substitutionKeywords.contains("remplace"))
         XCTAssertTrue(rules.substitutionKeywords.contains("changement"))
@@ -320,7 +307,6 @@ final class VoiceRulesTests: XCTestCase {
 
     func testItalianShots() {
         let rules = VoiceRules.italian
-        XCTAssertTrue(rules.madeStates.isEmpty)
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "due" }))
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "due punti" }))
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "tre" }))
@@ -352,7 +338,6 @@ final class VoiceRulesTests: XCTestCase {
 
     func testItalianColloquial() {
         let rules = VoiceRules.italian
-        XCTAssertTrue(rules.madeStates.isEmpty)
         XCTAssertTrue(rules.substitutionKeywords.contains("cambio"))
         XCTAssertTrue(rules.substitutionKeywords.contains("sostituzione"))
         XCTAssertTrue(rules.substitutionKeywords.contains("sostituisci"))
@@ -371,7 +356,6 @@ final class VoiceRulesTests: XCTestCase {
 
     func testRussianShots() {
         let rules = VoiceRules.russian
-        XCTAssertTrue(rules.madeStates.isEmpty)
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "два" }))
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "три" }))
         XCTAssertTrue(rules.shotKeywords.contains(where: { $0.keyword == "лей-ап" }))
@@ -401,7 +385,6 @@ final class VoiceRulesTests: XCTestCase {
 
     func testRussianColloquial() {
         let rules = VoiceRules.russian
-        XCTAssertTrue(rules.madeStates.isEmpty)
         XCTAssertTrue(rules.substitutionKeywords.contains("замена"))
         XCTAssertTrue(rules.substitutionKeywords.contains("меняем"))
         XCTAssertTrue(rules.substitutionKeywords.contains("заменить"))

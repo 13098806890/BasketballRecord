@@ -860,6 +860,8 @@ Format:
 "settings_voice_locale" = "Язык голоса";
 "settings_voice_locale_follow_app" = "Следовать языку приложения";
 "settings_voice_locale_footer" = "Выберите язык для распознавания речи. Влияет как на страницу подсчёта очков, так и на обучение.";
+"settings_voice_matching_threshold" = "Чувствительность сопоставления";
+"settings_voice_matching_threshold_footer" = "Более низкие значения допускают менее строгие совпадения (рекомендуется 0.6)";
 
 "settings_voice_instruction" = "Голосовые инструкции";
 "voice_instruction_shots" = "Броски";
@@ -911,6 +913,7 @@ Format:
 "voice_tutorial_complete_all" = "Завершить всё";
 "voice_tutorial_complete_done" = "Завершить и готово";
 "voice_tutorial_score" = "Пройдено %d/%d заданий";
+"voice_tutorial_rate" = "Точность распознавания: %.0f%%";
 "voice_tutorial_restart" = "Перезапуск";
 "voice_tutorial_result_success" = "Успех";
 "voice_tutorial_result_fail" = "Неудача";

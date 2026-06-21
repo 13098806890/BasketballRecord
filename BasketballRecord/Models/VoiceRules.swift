@@ -42,6 +42,12 @@ struct VoiceRules: Sendable {
     /// Only populated for CJK locales; empty for others.
     let pinyinVariantRules: [(String, String)]
 
+    /// Multi-pronunciation character overrides: character → all valid pinyin readings.
+    /// For 多音字 characters like 长(chang/zhang), list all readings.
+    /// generatePinyinVariants will produce variants for each alternative reading.
+    /// Only populated for CJK locales with multi-pronunciation characters; empty for others.
+    let multiPronunciations: [Character: [String]]
+
     // MARK: - Advanced matching features
 
     /// Whether to enable Levenshtein distance matching for player/team names.
@@ -113,15 +119,37 @@ struct VoiceRules: Sendable {
                 }
             }
         }
+        if !multiPronunciations.isEmpty {
+            let chars = Array(text)
+            if chars.count == syllables.count {
+                for (i, ch) in chars.enumerated() {
+                    guard let alternatives = multiPronunciations[ch] else { continue }
+                    for alt in alternatives where alt != syllables[i] {
+                        var altSyllables = syllables
+                        altSyllables[i] = alt
+                        variants.insert(altSyllables.joined(separator: " "))
+                        for (from, to) in pinyinVariantRules {
+                            if alt.contains(from) {
+                                var modified = altSyllables
+                                modified[i] = alt.replacingOccurrences(of: from, with: to)
+                                variants.insert(modified.joined(separator: " "))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        let noSpace = basePinyin.replacingOccurrences(of: " ", with: "")
+        if noSpace != basePinyin { variants.insert(noSpace) }
         return variants
     }
 
     func letterPinyin(_ ch: Character) -> String {
         switch ch {
-        case "a": return "a"; case "b": return "bo"; case "c": return "ci"
-        case "d": return "di"; case "e": return "e"
+        case "a": return "a"; case "b": return "bi"; case "c": return "ci"
+        case "d": return "di"; case "e": return "yi"
         case "f": return "efu"; case "g": return "ji"; case "h": return "equ"
-        case "i": return "ai"; case "j": return "jie"; case "k": return "ke"
+        case "i": return "ai"; case "j": return "ji"; case "k": return "ke"
         case "l": return "elou"; case "m": return "emu"; case "n": return "en"
         case "o": return "ou"; case "p": return "pi"; case "q": return "q"
         case "r": return "aer"; case "s": return "esi"; case "t": return "ti"
@@ -135,7 +163,7 @@ struct VoiceRules: Sendable {
         let clean = toPinyin(name)
         var variants = [clean]
         let letters = name.lowercased().filter { $0.isLetter && $0.isASCII }
-        if letters.count >= 2 && letters.count <= 4 {
+        if letters.count >= 1 && letters.count <= 4 {
             let letterPinyins = letters.map { letterPinyin($0) }
             variants.append(letterPinyins.joined(separator: " "))
             variants.append(String(letters))

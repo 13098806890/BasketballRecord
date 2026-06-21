@@ -871,6 +871,8 @@ Format:
 "settings_voice_locale" = "音声言語";
 "settings_voice_locale_follow_app" = "アプリ言語に従う";
 "settings_voice_locale_footer" = "音声認識に使用する言語を選択します。スコアリングページとチュートリアルの両方に影響します。";
+"settings_voice_matching_threshold" = "マッチング感度";
+"settings_voice_matching_threshold_footer" = "値が低いほど緩やかな一致を許容（推奨 0.6）";
 
 "settings_voice_instruction" = "音声の使い方";
 "voice_instruction_shots" = "シュート記録";
@@ -922,6 +924,7 @@ Format:
 "voice_tutorial_complete_all" = "すべて完了";
 "voice_tutorial_complete_done" = "完了して終了";
 "voice_tutorial_score" = "%d/%d タスククリア";
+"voice_tutorial_rate" = "認識率: %.0f%%";
 "voice_tutorial_restart" = "再開";
 "voice_tutorial_result_success" = "成功";
 "voice_tutorial_result_fail" = "失敗";

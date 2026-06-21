@@ -860,6 +860,8 @@ Format:
 "settings_voice_locale" = "Sprache für Spracheingabe";
 "settings_voice_locale_follow_app" = "App-Sprache verwenden";
 "settings_voice_locale_footer" = "Wählen Sie die Sprache für die Spracherkennung. Dies betrifft sowohl die Spielseite als auch das Tutorial.";
+"settings_voice_matching_threshold" = "Übereinstimmungsempfindlichkeit";
+"settings_voice_matching_threshold_footer" = "Niedrigere Werte ermöglichen lockerere Übereinstimmungen (0.6 empfohlen)";
 
 "settings_voice_instruction" = "Sprachanleitung";
 "voice_instruction_shots" = "Wurf";
@@ -911,6 +913,7 @@ Format:
 "voice_tutorial_complete_all" = "Alle abschließen";
 "voice_tutorial_complete_done" = "Abschließen & Fertig";
 "voice_tutorial_score" = "%d/%d Aufgaben bestanden";
+"voice_tutorial_rate" = "Erkennungsrate: %.0f%%";
 "voice_tutorial_restart" = "Neustart";
 "voice_tutorial_result_success" = "Erfolg";
 "voice_tutorial_result_fail" = "Fehlschlag";

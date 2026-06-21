@@ -385,19 +385,29 @@ struct VoiceTutorialView: View {
     }
 
     private var completionView: some View {
-        let successCount = taskResults.compactMap { $0 }.filter { $0 }.count
+        let totalCount = taskResults.count
+        let freePlayIndex = tasks.firstIndex(where: { $0.id == freePlayTaskID }) ?? (totalCount - 1)
+        let filteredResults = taskResults.enumerated().filter { $0.offset != freePlayIndex }.map { $0.element }
+        let attempted = filteredResults.compactMap { $0 }
+        let successCount = attempted.filter { $0 }.count
+        let rateTotal = attempted.count
+        let rate = rateTotal > 0 ? Double(successCount) / Double(rateTotal) * 100 : 0
+        let passed = rate >= 90
         return VStack(spacing: 20) {
             Spacer()
-            Image(systemName: successCount == tasks.count ? "star.fill" : "flag.fill")
+            Image(systemName: passed ? "star.fill" : "flag.fill")
                 .font(.system(size: 48))
-                .foregroundStyle(successCount == tasks.count ? .yellow : .blue)
-            Text(successCount == tasks.count
+                .foregroundStyle(passed ? .yellow : .blue)
+            Text(passed
                  ? LocalizedStringKey("voice_tutorial_complete_all")
                  : LocalizedStringKey("voice_tutorial_complete_done"))
                 .font(.title2.weight(.bold))
             Text(String(format: NSLocalizedString("voice_tutorial_score", comment: ""), successCount, tasks.count))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+            Text(String(format: NSLocalizedString("voice_tutorial_rate", comment: ""), rate))
+                .font(.headline)
+                .foregroundStyle(passed ? .green : .orange)
             Button(LocalizedStringKey("voice_tutorial_restart")) {
                 resetTutorial()
             }
@@ -898,7 +908,7 @@ extension VoiceTutorialView {
                     hint: "Say \"resume\" · \"continue\" · \"play\"",
                     playerID: ids[0], action: .twoMade),
             taskDef(id: 24, desc: "End a quarter",
-                    hint: "Say \"quarter done\"",
+                    hint: "Say \"quarter done\" · \"quarter down\" · \"quarter end\"",
                     playerID: ids[0], action: .twoMade),
             taskDef(id: 25, desc: "Mike steals from Dave",
                     hint: "Say \"Mike steal Dave\" · \"Mike steal 12\" · \"10 steal Dave\"",
