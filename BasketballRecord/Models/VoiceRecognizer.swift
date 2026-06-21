@@ -310,7 +310,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             // 1. Success with both action and playerName
             // 2. Explicit failure (matchDetail starts with ❌ or isSuccess=false with details)
             let hasSuccessResult = isSuccess && action != nil && playerName != nil
-            let hasFailureResult = matchDetail?.hasPrefix("❌") == true || (!isSuccess && (matchDetail != nil || action != nil))
+            let hasFailureResult = matchDetail?.hasPrefix("❌") == true
 
             if hasSuccessResult || hasFailureResult {
                 logFlush(isSuccess: isSuccess, action: action, playerName: playerName, matchedPattern: matchedPattern)

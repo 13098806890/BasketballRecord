@@ -526,7 +526,11 @@ struct VoiceTutorialView: View {
             }
 
             guard !recognizer.isRecording, isWaitingForResult, let task = selectedTask else { return }
-            guard !Self.dualActionTaskIDs.contains(task.id), !Self.commandTaskIDs.contains(task.id) else { return }
+            if Self.dualActionTaskIDs.contains(task.id) || Self.commandTaskIDs.contains(task.id) {
+                markTask(success: false)
+                isWaitingForResult = false
+                return
+            }
             if action == task.expectedAction && playerID == task.expectedPlayerID {
                 markTask(success: true)
             } else {
@@ -552,7 +556,11 @@ struct VoiceTutorialView: View {
             }
 
             guard !recognizer.isRecording, isWaitingForResult, let task = selectedTask else { return }
-            guard !Self.commandTaskIDs.contains(task.id) else { return }
+            if Self.commandTaskIDs.contains(task.id) {
+                markTask(success: false)
+                isWaitingForResult = false
+                return
+            }
             if action1 == task.expectedAction && pid1 == task.expectedPlayerID {
                 markTask(success: true)
             } else {
@@ -969,6 +977,9 @@ extension VoiceTutorialView {
             taskDef(id: 20, desc: "Mike assists John for a two-pointer",
                     hint: "Say \"Mike assist John two\" · \"Mike assist John two got\"",
                     playerID: ids[1], action: .assist),
+            taskDef(id: 25, desc: "Mike steals from Dave",
+                    hint: "Say \"Mike steal Dave\" · \"Mike steal 12\" · \"10 steal Dave\"",
+                    playerID: ids[1], action: .steal),
             taskDef(id: 26, desc: "Steve grabs an offensive rebound",
                     hint: "",
                     playerID: ids[2], action: .offensiveRebound),
@@ -987,9 +998,6 @@ extension VoiceTutorialView {
             taskDef(id: 24, desc: "End a quarter",
                     hint: "Say \"quarter done\" · \"quarter down\" · \"quarter end\"",
                     playerID: ids[0], action: .twoMade),
-            taskDef(id: 25, desc: "Mike steals from Dave",
-                    hint: "Say \"Mike steal Dave\" · \"Mike steal 12\" · \"10 steal Dave\"",
-                    playerID: ids[1], action: .steal),
             taskDef(id: 19, desc: "Free Practice — try any command",
                     hint: "Say anything to practice — names, numbers, or team prefixes",
                     playerID: ids[0], action: .twoMade),
@@ -1066,6 +1074,9 @@ extension VoiceTutorialView {
             taskDef(id: 20, desc: "鈴木が田中にアシストしてツーポイント",
                     hint: "「鈴木アシスト田中ツー」·「鈴木アシスト田中ツー成功」",
                     playerID: ids[1], action: .assist),
+            taskDef(id: 25, desc: "鈴木が佐藤からスティール",
+                    hint: "「鈴木スティール佐藤」·「鈴木スティール１２番」·「１０番スティール佐藤」",
+                    playerID: ids[1], action: .steal),
             taskDef(id: 26, desc: "山田がオフェンスリバウンドを取る",
                     hint: "",
                     playerID: ids[2], action: .offensiveRebound),
@@ -1084,9 +1095,6 @@ extension VoiceTutorialView {
             taskDef(id: 24, desc: "クオーターエンド",
                     hint: "「クオーターエンド」",
                     playerID: ids[0], action: .twoMade),
-            taskDef(id: 25, desc: "鈴木が佐藤からスティール",
-                    hint: "「鈴木スティール佐藤」·「鈴木スティール１２番」·「１０番スティール佐藤」",
-                    playerID: ids[1], action: .steal),
             taskDef(id: 19, desc: "自由練習——任意のコマンドを試そう",
                     hint: "名前や番号やチーム名を自由に話して練習しよう",
                     playerID: ids[0], action: .twoMade),
@@ -1163,6 +1171,9 @@ extension VoiceTutorialView {
             taskDef(id: 20, desc: "이영희가 김철수의 2점슛을 어시스트합니다",
                     hint: "「이영희 어시스트 김철수 투」·「이영희 어시스트 김철수 2점 성공」",
                     playerID: ids[1], action: .assist),
+            taskDef(id: 25, desc: "이영희가 정지원을 스틸",
+                    hint: "「이영희 스틸 정지원」·「이영희 스틸 12번」·「10번 스틸 정지원」",
+                    playerID: ids[1], action: .steal),
             taskDef(id: 26, desc: "박민수가 공격 리바운드를 잡습니다",
                     hint: "",
                     playerID: ids[2], action: .offensiveRebound),
@@ -1181,9 +1192,6 @@ extension VoiceTutorialView {
             taskDef(id: 24, desc: "쿼터 종결",
                     hint: "「쿼터종결」",
                     playerID: ids[0], action: .twoMade),
-            taskDef(id: 25, desc: "이영희가 정지원을 스틸",
-                    hint: "「이영희 스틸 정지원」·「이영희 스틸 12번」·「10번 스틸 정지원」",
-                    playerID: ids[1], action: .steal),
             taskDef(id: 19, desc: "자유 연습 — 원하는 명령을 시도해보세요",
                     hint: "이름이나 번호나 팀명을 자유롭게 말해서 연습해보세요",
                     playerID: ids[0], action: .twoMade),
@@ -1260,6 +1268,9 @@ extension VoiceTutorialView {
             taskDef(id: 20, desc: "Fritz assistiert Hans bei einem Zweipunktewurf",
                     hint: "„Fritz Assist Hans zwei\" · „Fritz Assist Hans zwei getroffen\"",
                     playerID: ids[1], action: .assist),
+            taskDef(id: 25, desc: "Fritz stiehlt Gerd den Ball",
+                    hint: "„Fritz Steal Gerd\" · „Fritz Steal 12\" · „10 Steal Gerd\"",
+                    playerID: ids[1], action: .steal),
             taskDef(id: 26, desc: "Klaus holt sich den offensiven Rebound",
                     hint: "",
                     playerID: ids[2], action: .offensiveRebound),
@@ -1278,9 +1289,6 @@ extension VoiceTutorialView {
             taskDef(id: 24, desc: "Viertel beenden",
                     hint: "„viertel um\"",
                     playerID: ids[0], action: .twoMade),
-            taskDef(id: 25, desc: "Fritz stiehlt Gerd den Ball",
-                    hint: "„Fritz Steal Gerd\" · „Fritz Steal 12\" · „10 Steal Gerd\"",
-                    playerID: ids[1], action: .steal),
             taskDef(id: 19, desc: "Freies Spiel — probiere beliebige Befehle",
                     hint: "Sage Namen, Nummern oder Teamnamen zum Üben",
                     playerID: ids[0], action: .twoMade),
@@ -1357,6 +1365,9 @@ extension VoiceTutorialView {
             taskDef(id: 20, desc: "Luis asiste a Carlos para un tiro de dos puntos",
                     hint: "„Luis asistencia Carlos dos\" · „Luis asistencia Carlos dos canasta\"",
                     playerID: ids[1], action: .assist),
+            taskDef(id: 25, desc: "Luis roba el balón a Juan",
+                    hint: "„Luis robo Juan\" · „Luis robo 12\" · „10 robo Juan\"",
+                    playerID: ids[1], action: .steal),
             taskDef(id: 26, desc: "José atrapa un rebote ofensivo",
                     hint: "",
                     playerID: ids[2], action: .offensiveRebound),
@@ -1375,9 +1386,6 @@ extension VoiceTutorialView {
             taskDef(id: 24, desc: "Finalizar un cuarto",
                     hint: "„cuarto concluido\"",
                     playerID: ids[0], action: .twoMade),
-            taskDef(id: 25, desc: "Luis roba el balón a Juan",
-                    hint: "„Luis robo Juan\" · „Luis robo 12\" · „10 robo Juan\"",
-                    playerID: ids[1], action: .steal),
             taskDef(id: 19, desc: "Juego libre — prueba cualquier comando",
                     hint: "Di nombres, números o nombres de equipo para practicar",
                     playerID: ids[0], action: .twoMade),
@@ -1454,6 +1462,9 @@ extension VoiceTutorialView {
             taskDef(id: 20, desc: "Paul fait une passe décisive à Pierre pour un deux points",
                     hint: "„Paul assist Pierre deux\" · „Paul assist Pierre deux réussi\"",
                     playerID: ids[1], action: .assist),
+            taskDef(id: 25, desc: "Paul intercepte le ballon de Luc",
+                    hint: "„Paul interception Luc\" · „Paul interception 12\" · „10 interception Luc\"",
+                    playerID: ids[1], action: .steal),
             taskDef(id: 26, desc: "Jacques attrape un rebond offensif",
                     hint: "",
                     playerID: ids[2], action: .offensiveRebound),
@@ -1472,9 +1483,6 @@ extension VoiceTutorialView {
             taskDef(id: 24, desc: "Terminer un quart",
                     hint: "„quart achevé\"",
                     playerID: ids[0], action: .twoMade),
-            taskDef(id: 25, desc: "Paul intercepte le ballon de Luc",
-                    hint: "„Paul interception Luc\" · „Paul interception 12\" · „10 interception Luc\"",
-                    playerID: ids[1], action: .steal),
             taskDef(id: 19, desc: "Jeu libre — essaye n'importe quelle commande",
                     hint: "Dis des noms, numéros ou noms d'équipe pour t'entraîner",
                     playerID: ids[0], action: .twoMade),
@@ -1551,6 +1559,9 @@ extension VoiceTutorialView {
             taskDef(id: 20, desc: "Luca assiste Marco per un tiro da due punti",
                     hint: "„Luca assist Marco due\" · „Luca assist Marco due segnato\"",
                     playerID: ids[1], action: .assist),
+            taskDef(id: 25, desc: "Luca ruba il pallone a Mario",
+                    hint: "„Luca rubata Mario\" · „Luca rubata 12\" · „10 rubata Mario\"",
+                    playerID: ids[1], action: .steal),
             taskDef(id: 26, desc: "Paolo prende un rimbalzo offensivo",
                     hint: "",
                     playerID: ids[2], action: .offensiveRebound),
@@ -1569,9 +1580,6 @@ extension VoiceTutorialView {
             taskDef(id: 24, desc: "Concludere un quarto",
                     hint: "„quarto concluso\"",
                     playerID: ids[0], action: .twoMade),
-            taskDef(id: 25, desc: "Luca ruba il pallone a Mario",
-                    hint: "„Luca rubata Mario\" · „Luca rubata 12\" · „10 rubata Mario\"",
-                    playerID: ids[1], action: .steal),
             taskDef(id: 19, desc: "Gioco libero — prova qualsiasi comando",
                     hint: "Pronuncia nomi, numeri o nomi di squadra per esercitarti",
                     playerID: ids[0], action: .twoMade),
@@ -1648,6 +1656,9 @@ extension VoiceTutorialView {
             taskDef(id: 20, desc: "Пётр отдаёт ассист на Ивана для двухочкового",
                     hint: "«Пётр ассист Иван два»·«Пётр ассист Иван два попал»",
                     playerID: ids[1], action: .assist),
+            taskDef(id: 25, desc: "Пётр перехватывает мяч у Алексея",
+                    hint: "«Пётр перехват Алексей»·«Пётр перехват 12»·«10 перехват Алексей»",
+                    playerID: ids[1], action: .steal),
             taskDef(id: 26, desc: "Сергей подбирает мяч в нападении",
                     hint: "",
                     playerID: ids[2], action: .offensiveRebound),
@@ -1666,9 +1677,6 @@ extension VoiceTutorialView {
             taskDef(id: 24, desc: "Завершить четверть",
                     hint: "«четверть завершена»",
                     playerID: ids[0], action: .twoMade),
-            taskDef(id: 25, desc: "Пётр перехватывает мяч у Алексея",
-                    hint: "«Пётр перехват Алексей»·«Пётр перехват 12»·«10 перехват Алексей»",
-                    playerID: ids[1], action: .steal),
             taskDef(id: 19, desc: "Свободная игра — попробуй любую команду",
                     hint: "Говори имена, номера или название команды для практики",
                     playerID: ids[0], action: .twoMade),
@@ -1745,6 +1753,9 @@ extension VoiceTutorialView {
             taskDef(id: 20, desc: "俊宏助攻老张两分命中",
                     hint: "请说「俊宏助攻老张两分」·「俊宏助攻老张两分命中」",
                     playerID: ids[1], action: .assist),
+            taskDef(id: 25, desc: "俊宏抢断bobo",
+                    hint: "请说「俊宏抢断bobo」·「俊宏抢断12号」·「10号抢断bobo」",
+                    playerID: ids[1], action: .steal),
             taskDef(id: 26, desc: "仔队抢到前场篮板",
                     hint: "",
                     playerID: ids[2], action: .offensiveRebound),
@@ -1763,9 +1774,6 @@ extension VoiceTutorialView {
             taskDef(id: 24, desc: "结束本节",
                     hint: "请说「结束本节」",
                     playerID: ids[0], action: .twoMade),
-            taskDef(id: 25, desc: "俊宏抢断bobo",
-                    hint: "请说「俊宏抢断bobo」·「俊宏抢断12号」·「10号抢断bobo」",
-                    playerID: ids[1], action: .steal),
             taskDef(id: 19, desc: "自由练习——试试任意指令",
                     hint: "说任何指令来自由练习",
                     playerID: ids[0], action: .twoMade),
@@ -1842,6 +1850,9 @@ extension VoiceTutorialView {
             taskDef(id: 20, desc: "俊宏助攻老張兩分命中",
                     hint: "請說「俊宏助攻老張兩分」·「俊宏助攻老張兩分命中」",
                     playerID: ids[1], action: .assist),
+            taskDef(id: 25, desc: "俊宏抄截bobo",
+                    hint: "請說「俊宏抄截bobo」·「俊宏抄截12號」·「10號抄截bobo」",
+                    playerID: ids[1], action: .steal),
             taskDef(id: 26, desc: "仔隊搶到前場籃板",
                     hint: "",
                     playerID: ids[2], action: .offensiveRebound),
@@ -1860,9 +1871,6 @@ extension VoiceTutorialView {
             taskDef(id: 24, desc: "結束本節",
                     hint: "請說「結束本節」",
                     playerID: ids[0], action: .twoMade),
-            taskDef(id: 25, desc: "俊宏抄截bobo",
-                    hint: "請說「俊宏抄截bobo」·「俊宏抄截12號」·「10號抄截bobo」",
-                    playerID: ids[1], action: .steal),
             taskDef(id: 19, desc: "自由練習——試試任意指令",
                     hint: "說任何指令來自由練習",
                     playerID: ids[0], action: .twoMade),
