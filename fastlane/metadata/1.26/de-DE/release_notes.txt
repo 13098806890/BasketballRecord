@@ -3,4 +3,5 @@
 • Sprach-Tutorial auf 27 Aufgaben erweitert, inklusive O/D-Rebound-Übungen
 • O/D-Rebound-Modus: in Spieleinstellungen umschaltbar, Button-Layout passt sich an
 • Teamstatistiken zeigen jetzt OREB/DREB-Aufteilung
+• Verbesserte Schlüsselwort-Erkennung — flexible Leerzeichen bei Mehrwort-Befehlen
 • Mehrere Bugfixes und Stabilitätsverbesserungen

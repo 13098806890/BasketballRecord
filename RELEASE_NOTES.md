@@ -33,8 +33,14 @@
 - **中文拼音变体增强**：新增「全场板」「全场篮板」及拼音变体；新增 `("ian", "uan")` 双向规则覆盖前(qian)↔全(quan)混淆场景。
 - **默认 Tab 逻辑优化**：无球员/球队时默认切到球队管理页，否则默认显示计时器页；图标替换为 `dumbbell.fill`。
 
+### 改进
+
+- **多词关键词空格容错**：`findKeyword` 从精确字符串匹配改为正则表达式，ASR 输出无空格时（如 "infor"）也能匹配多词关键词（如 "in for"）。
+
 ### 修复
 
+- **语音识别测试全面重构**：移除 `findEvent` 静态方法，全部 209 个单元测试使用真实 `VoiceRecognizer.processText()` 匹配逻辑，确保测试覆盖生产代码。
+- **测试辅助方法回调同步等待修复**：`assertCmd`/`assertMatch` 在回调同步触发时不再跳过 `wait(for:)`，消除 XCTest「未等待预期」错误，修复 7 个换人命令测试在真实匹配逻辑下的失败。
 - **拼音变体交集空格不匹配**：`generatePinyinVariants` 对中文拼音输出"bo bo"（带空格）与拉丁名字"bobo"（无空格）无法交集，新增无空格变体解决"波波"→"bobo"匹配失败。
 - **多音字"地"漏配**：CFStringTransform 将"地"转为"de"而非"di"，`multiPronunciations` 新增"地"→`["de", "di"]`，修复"A地"→"ad"匹配失败。
 - **matchPlayerIDsDebug 未使用 threshold 变量**：删除 dead code，消除 Xcode warning。

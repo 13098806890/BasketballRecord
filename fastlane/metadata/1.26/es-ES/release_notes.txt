@@ -3,4 +3,5 @@
 • Tutorial de voz ampliado a 27 tareas, incluyendo práctica de rebotes O/D
 • Modo O/D de rebotes: conmutable en configuración de partido, el diseño se ajusta automáticamente
 • Estadísticas de equipo ahora muestran la división OREB/DREB
+• Mejora en el reconocimiento de palabras clave — espacios flexibles en comandos múltiples
 • Múltiples correcciones de errores y mejoras de estabilidad

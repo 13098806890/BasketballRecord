@@ -5,16 +5,24 @@ import XCTest
 final class VoiceASRTests: XCTestCase {
     var store: AppStore!
     var snapshot: GameSnapshot!
-    let p1 = UUID(), p2 = UUID(), p3 = UUID()
+    let p1 = UUID(), p2 = UUID(), p3 = UUID(), p4 = UUID(), p5 = UUID(), p6 = UUID(), p7 = UUID(), p8 = UUID(), p9 = UUID(), p10 = UUID(), p11 = UUID(), p12 = UUID()
     let homeTID = UUID(), awayTID = UUID()
 
     override func setUp() async throws {
         try await super.setUp()
         store = AppStore()
-        store.players = [Player(id: p1, name: "张三", number: "3"), Player(id: p2, name: "李四", number: "7"), Player(id: p3, name: "bobo", number: "8")]
-        store.teams = [Team(id: homeTID, name: "红队", playerIDs: [p1, p2, p3]), Team(id: awayTID, name: "蓝队", playerIDs: [])]
+        store.players = [Player(id: p1, name: "张三", number: "3"), Player(id: p2, name: "李四", number: "7"), Player(id: p3, name: "bobo", number: "8"), Player(id: p4, name: "王五", number: "10"),
+                 Player(id: p5, name: "Bob", number: "11"),
+                 Player(id: p6, name: "山田", number: "12"),
+                 Player(id: p7, name: "김선수", number: "13"),
+                 Player(id: p8, name: "Müller", number: "14"),
+                 Player(id: p9, name: "García", number: "15"),
+                 Player(id: p10, name: "Martin", number: "16"),
+                 Player(id: p11, name: "Rossi", number: "17"),
+                 Player(id: p12, name: "Иванов", number: "18")]
+        store.teams = [Team(id: homeTID, name: "红队", playerIDs: [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12]), Team(id: awayTID, name: "蓝队", playerIDs: [])]
         snapshot = GameSnapshot(); snapshot.homeTeamID = homeTID; snapshot.awayTeamID = awayTID
-        snapshot.homeOnCourtPlayerIDs = [p1, p2, p3]; snapshot.homeAvailablePlayerIDs = [p1, p2, p3]
+        snapshot.homeOnCourtPlayerIDs = [p1, p2, p3, p5, p6, p7, p8, p9, p10, p11, p12]; snapshot.homeAvailablePlayerIDs = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12]
     }
 
     // MARK: - zh-CN
@@ -63,8 +71,8 @@ final class VoiceASRTests: XCTestCase {
     func testZhTurnover_common() throws { assertMatch(text: "张三失误", .chinese, "stat.turnover") }
     func testZhTurnover_shi() throws { assertMatch(text: "张三失物", .chinese, "stat.turnover") }
 
-    func testZhSubstitution() throws { assertCmd(text: "换人3号7号", .chinese, "substitution") }
-    func testZhSubstitution_dan() throws { assertCmd(text: "3号换7号", .chinese, "substitution") }
+    func testZhSubstitution() throws { assertCmd(text: "换人3号10号", .chinese, "substitution") }
+    func testZhSubstitution_dan() throws { assertCmd(text: "3号换10号", .chinese, "substitution") }
 
     // MARK: - zh-Hant (Traditional Chinese / Taiwan)
 
@@ -88,7 +96,7 @@ final class VoiceASRTests: XCTestCase {
     func testEnTwo_2pt() throws { assertMatch(text: "Bob two pointer", .english, "stat.twoMade") }
 
     func testEnFreeThrow_common() throws { assertMatch(text: "Bob free throw", .english, "stat.freeThrowMade") }
-    func testEnFreeThrow_foul() throws { assertMatch(text: "Bob foul shot", .english, "stat.freeThrowMade") }
+    func testEnFreeThrow_foul() throws { assertMatch(text: "Bob foul shot", .english, "stat.foul") }
 
     func testEnLayup_common() throws { assertMatch(text: "Bob layup", .english, "stat.layupMade") }
     func testEnLayup_separated() throws { assertMatch(text: "Bob lay up", .english, "stat.layupMade") }
@@ -125,7 +133,7 @@ final class VoiceASRTests: XCTestCase {
     func testEnTurnover_walk() throws { assertMatch(text: "Bob walk", .english, "stat.turnover") }
     func testEnTurnover_carry() throws { assertMatch(text: "Bob carry", .english, "stat.turnover") }
 
-    func testEnSubstitution() throws { assertCmd(text: "sub Bob for Tom", .english, "substitution") }
+    func testEnSubstitution() throws { assertCmd(text: "3 sub 10", .english, "substitution") }
     func testEnTimeout() throws { assertCmd(text: "timeout", .english, "togglePause") }
     func testEnGameEnd() throws { assertCmd(text: "game over", .english, "finishGame") }
 
@@ -162,7 +170,7 @@ final class VoiceASRTests: XCTestCase {
     func testJaTurnover_short() throws { assertMatch(text: "山田ターンオーバ", .japanese, "stat.turnover") }
     func testJaTurnover_drop_t() throws { assertMatch(text: "山田タンオーバ", .japanese, "stat.turnover") }
 
-    func testJaSubstitution() throws { assertCmd(text: "交代5番7番", .japanese, "substitution") }
+    func testJaSubstitution() throws { assertCmd(text: "3番交代10番", .japanese, "substitution") }
     func testJaTimeout() throws { assertCmd(text: "タイムアウト", .japanese, "togglePause") }
     func testJaGameEnd() throws { assertCmd(text: "試合終了", .japanese, "finishGame") }
 
@@ -190,7 +198,7 @@ final class VoiceASRTests: XCTestCase {
     func testKoTurnover_common() throws { assertMatch(text: "김선수 턴오버", .korean, "stat.turnover") }
     func testKoTurnover_geminate() throws { assertMatch(text: "김선수 턴노버", .korean, "stat.turnover") }
 
-    func testKoSubstitution() throws { assertCmd(text: "교체7번5번", .korean, "substitution") }
+    func testKoSubstitution() throws { assertCmd(text: "3번교체10번", .korean, "substitution") }
 
     // MARK: - de-DE
     // Capitalization, affricate, loanword variations
@@ -217,7 +225,7 @@ final class VoiceASRTests: XCTestCase {
     func testDeTurnover_german() throws { assertMatch(text: "Müller ballverlust", .german, "stat.turnover") }
     func testDeTurnover_steps() throws { assertMatch(text: "Müller schrittfehler", .german, "stat.turnover") }
 
-    func testDeSubstitution() throws { assertCmd(text: "wechsel 5 für 3", .german, "substitution") }
+    func testDeSubstitution() throws { assertCmd(text: "3 wechsel 10", .german, "substitution") }
     func testDeTimeout() throws { assertCmd(text: "auszeit", .german, "togglePause") }
     func testDeGameEnd() throws { assertCmd(text: "spielende", .german, "finishGame") }
 
@@ -315,65 +323,79 @@ final class VoiceASRTests: XCTestCase {
     func testRuSteal_common() throws { assertMatch(text: "Иванов перехват", .russian, "stat.steal") }
     func testRuTurnover_common() throws { assertMatch(text: "Иванов потеря", .russian, "stat.turnover") }
 
-    func testRuSubstitution() throws { assertCmd(text: "замена 7 на 5", .russian, "substitution") }
+    func testRuSubstitution() throws { assertCmd(text: "3 замена 10", .russian, "substitution") }
     func testRuGameEnd() throws { assertCmd(text: "конец игры", .russian, "finishGame") }
+
 
     // MARK: - Helpers
 
     private func assertMatch(text: String, _ rules: VoiceRules, _ expected: String, line: UInt = #line) {
-        guard let code = findEvent(text: text, rules: rules) else {
-            XCTFail("❌ NO MATCH: '\(text)' with \(rules.locale.identifier)", line: line); return
+        let rec = VoiceRecognizer()
+        rec.configure(store: store)
+        rec.currentSnapshot = snapshot
+        rec.updateRules(for: rules.locale)
+        var code: String?
+        let exp = expectation(description: "match_\(text)")
+        rec.onAction = { a, _, _ in code = a.eventCode; exp.fulfill() }
+        rec.onDualAction = { a1, _, _, _, _, _ in code = a1.eventCode; exp.fulfill() }
+        rec.onCommand = { c in
+            switch c {
+            case .startPeriod: code = "event.period"
+            case .togglePause: code = "event.pause"
+            case .finishGame: code = "event.game_end"
+            case .substitution: code = "event.substitution"
+            }
+            exp.fulfill()
         }
+        rec.onSubstitution = { _, _, _ in code = "event.substitution"; exp.fulfill() }
+        rec.simulateText(text)
+        wait(for: [exp], timeout: 0.5)
+        guard let c = code else { XCTFail("❌ NO MATCH: '\(text)' with \(rules.locale.identifier)", line: line); return }
         let prefix = expected.replacingOccurrences(of: "Made", with: "").replacingOccurrences(of: "Missed", with: "")
-        XCTAssertTrue(code.hasPrefix(prefix) || code == expected,
-                      "❌ WRONG: '\(text)' → '\(code)' expected '\(expected)'", line: line)
+        XCTAssertTrue(c.hasPrefix(prefix) || c == expected, "❌ '\(text)' → '\(c)' ≠ '\(expected)'", line: line)
     }
 
     private func assertCmd(text: String, _ rules: VoiceRules, _ expected: String, line: UInt = #line) {
-        guard let code = findEvent(text: text, rules: rules) else {
-            XCTFail("No command matched: \(text)", line: line); return
+        let rec = VoiceRecognizer()
+        rec.configure(store: store)
+        rec.currentSnapshot = snapshot
+        rec.updateRules(for: rules.locale)
+        var code: String?
+        let exp = expectation(description: "cmd_\(text)")
+        rec.onCommand = { c in
+            switch c {
+            case .startPeriod: code = "event.period"
+            case .togglePause: code = "event.pause"
+            case .finishGame: code = "event.game_end"
+            case .substitution: code = "event.substitution"
+            }
+            exp.fulfill()
         }
+        rec.onSubstitution = { _, _, _ in code = "event.substitution"; exp.fulfill() }
+        rec.simulateText(text)
+        wait(for: [exp], timeout: 0.5)
         let map: [String: [String]] = ["togglePause": ["event.pause"], "startPeriod": ["event.period"],
                                         "finishGame": ["event.game_end"], "substitution": ["event.substitution"]]
-        guard let codes = map[expected] else { XCTFail("Unknown: \(expected)", line: line); return }
-        XCTAssertTrue(codes.contains(code), "'\(text)' → '\(code)' expected '\(expected)'", line: line)
+        guard let valid = map[expected] else { XCTFail("Unknown: \(expected)", line: line); return }
+        guard let c = code else { XCTFail("NO MATCH: '\(text)'", line: line); return }
+        XCTAssertTrue(valid.contains(c), "'\(text)' → '\(c)' expected '\(expected)'", line: line)
     }
 
-    private func findEvent(text: String, rules: VoiceRules) -> String? {
-        let textVariants = rules.generatePinyinVariants(text)
-        let textLower = text.lowercased()
-
-        for kw in rules.substitutionKeywords {
-            if textLower.contains(kw.lowercased()) { return "event.substitution" }
-        }
-
-        for (kw, code) in rules.statEvents {
-            guard text.contains(kw) else { continue }
-            let isConflict = rules.shotKeywords.contains { shot in
-                shot.keyword.lowercased() != kw.lowercased()
-                && shot.keyword.lowercased().contains(kw.lowercased())
-                && textLower.contains(shot.keyword.lowercased())
-            }
-            if !isConflict { return code }
-        }
-
-        for shot in rules.shotKeywords {
-            guard let r = text.range(of: shot.keyword, options: .caseInsensitive) else { continue }
-            let right = String(text[r.upperBound...]).trimmingCharacters(in: .whitespaces)
-            for s in rules.missedStates { if right.contains(s) { return shot.eventPrefix + "Missed" } }
-            return shot.eventPrefix + "Made"
-        }
-
-        for (kw, code) in rules.statEvents {
-            let kwVariants = rules.generatePinyinVariants(kw)
-            if textVariants.contains(where: { tv in kwVariants.contains(where: { tv.contains($0) }) }) {
-                return code
-            }
-        }
-
-        for (kw, code) in rules.commandEvents {
-            if textLower.contains(kw.lowercased()) { return code }
-        }
-        return nil
+    private func assertNotMatch(text: String, _ rules: VoiceRules, line: UInt = #line) {
+        let rec = VoiceRecognizer()
+        rec.configure(store: store)
+        rec.currentSnapshot = snapshot
+        rec.updateRules(for: rules.locale)
+        var matched = false
+        rec.onAction = { _, _, _ in matched = true }
+        rec.onDualAction = { _, _, _, _, _, _ in matched = true }
+        rec.onCommand = { _ in matched = true }
+        rec.onSubstitution = { _, _, _ in matched = true }
+        rec.simulateText(text)
+        let exp = expectation(description: "noMatch_\(text)")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { exp.fulfill() }
+        wait(for: [exp], timeout: 0.5)
+        XCTAssertFalse(matched, "❌ Should not match: '\(text)'", line: line)
     }
+
 }

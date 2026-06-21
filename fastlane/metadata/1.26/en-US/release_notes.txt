@@ -4,4 +4,5 @@
 • O/D rebound mode — toggle in game setup, adjusts game view buttons
 • Team stats now show OREB / DREB split and rearranged categories
 • Chinese pinyin variants enhanced, tutorial hint fixes
+• Voice keyword matching improvements — flexible spaces for multi-word commands
 • Multiple bug fixes and stability improvements
