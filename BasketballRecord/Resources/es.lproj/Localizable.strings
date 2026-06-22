@@ -970,3 +970,13 @@ Format:
 "settings_about_content" = "Hi! I'm an independent developer who loves basketball.\n\nI built this app to help basketball enthusiasts around the world track their games. I have limited ability, but I'll do my best to improve it and add new features.\n\nIf you have any suggestions or feedback, feel free to email me:\nclassicalxie@163.com\n\nThank you for using %@!";
 "voice_tutorial_tab_tasks" = "Tareas";
 "voice_tutorial_tab_freeplay" = "Juego libre";
+"scf_error_no_receipt" = "No se encontró el recibo de App Store. Asegúrate de tener una suscripción activa.";
+"scf_error_subscription_inactive" = "Tu suscripción no está activa. Suscríbete para usar funciones en la nube.";
+"scf_error_not_configured" = "Servicio en la nube no configurado.";
+"scf_error_no_response" = "Sin respuesta del servidor.";
+"scf_error_empty_key" = "Clave vacía recibida del servidor.";
+"button_ai_view_summary" = "Ver resumen IA";
+"button_ai_limit_reached" = "Límite diario alcanzado (10/10). Añade tu propia clave API en Ajustes para obtener resúmenes ilimitados.";
+"ai_service_description" = "¿Sin clave API? ¡No hay problema! Suscríbete a Pro y disfruta de resúmenes de IA gratis — hasta 10 al día, uno por partido. Añade tu propia clave API para obtener resúmenes ilimitados.";
+"alert_ai_summary_exists_title" = "Ya generado";
+"alert_ai_summary_exists_message" = "Este partido ya tiene un resumen de IA. Con nuestro servicio solo se puede generar una vez por partido. Añade tu propia clave API en Ajustes para generar múltiples veces.";

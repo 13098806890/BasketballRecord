@@ -982,3 +982,13 @@ Format:
 "settings_about_content" = "你好！我是一名热爱篮球的独立开发者。\n\n我创建这个应用，希望能帮助世界各地的篮球爱好者记录比赛。我能力有限，但会尽力完善各项功能。\n\n如果你有任何建议或意见，欢迎发送邮件至：\nclassicalxie@163.com\n\n感谢你使用 %@！";
 "voice_tutorial_tab_tasks" = "任务";
 "voice_tutorial_tab_freeplay" = "自由练习";
+"scf_error_no_receipt" = "未找到 App Store 回执，请确保你有有效的订阅。";
+"scf_error_subscription_inactive" = "订阅未激活，请先订阅以使用云服务。";
+"scf_error_not_configured" = "云服务未配置。";
+"scf_error_no_response" = "服务器无响应。";
+"scf_error_empty_key" = "服务器返回的密钥为空。";
+"button_ai_view_summary" = "查看 AI 总结";
+"button_ai_limit_reached" = "今日额度已用完（10/10）。在设置中配置自己的 API Key 即可解锁无限次生成。";
+"ai_service_description" = "没有 API Key 也没关系！订阅 Pro 即可免费使用 AI 总结——每天 10 次，每场比赛生成一次。配置自己的 API Key 可解锁无限次数。";
+"alert_ai_summary_exists_title" = "已生成总结";
+"alert_ai_summary_exists_message" = "本场比赛已有 AI 总结。使用我们的服务每场比赛仅可生成一次。在设置中配置自己的 API Key 可多次生成。";

@@ -13,6 +13,7 @@ struct BasketballRecordApp: App {
                 .environmentObject(bluetoothSync)
                 .onAppear {
                     UIApplication.shared.isIdleTimerDisabled = store.keepsScreenAwake
+                    AIKeychain.migrateIfNeeded()
                 }
                 .onChange(of: store.keepsScreenAwake) { _, isEnabled in
                     UIApplication.shared.isIdleTimerDisabled = isEnabled

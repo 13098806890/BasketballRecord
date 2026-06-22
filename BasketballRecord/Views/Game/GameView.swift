@@ -166,7 +166,7 @@ struct GameView: View {
     }
 
     private var alertWrappedView: some View {
-        sheetWrappedView
+        AnyView(sheetWrappedView
             .alert(LocalizedStringKey("alert_saved"), isPresented: Binding(
                 get: { saveConfirmation != nil },
                 set: { if !$0 { saveConfirmation = nil } }
@@ -235,11 +235,11 @@ struct GameView: View {
                 Button(LocalizedStringKey("button_ok")) { }
             } message: {
                 Text(autoEndAlertMessage)
-            }
+            })
     }
 
     private var lifecycleWrappedView: some View {
-        alertWrappedView
+        AnyView(alertWrappedView
             .onAppear {
                 restoreLatestGameIfNeeded()
             }
@@ -370,7 +370,7 @@ struct GameView: View {
                 scorePulseDismissTask?.cancel()
                 actionButtonPulseDismissTask?.cancel()
                 highlightedLogDismissTask?.cancel()
-            }
+            })
     }
 
     private var gameLayout: some View {

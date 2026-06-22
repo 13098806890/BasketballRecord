@@ -998,3 +998,13 @@ Format:
 "settings_about_content" = "Hi! I'm an independent developer who loves basketball.\n\nI built this app to help basketball enthusiasts around the world track their games. I have limited ability, but I'll do my best to improve it and add new features.\n\nIf you have any suggestions or feedback, feel free to email me:\nclassicalxie@163.com\n\nThank you for using %@!";
 "voice_tutorial_tab_tasks" = "과제";
 "voice_tutorial_tab_freeplay" = "자유 연습";
+"scf_error_no_receipt" = "App Store 영수증을 찾을 수 없습니다. 활성 구독이 있는지 확인하세요.";
+"scf_error_subscription_inactive" = "구독이 활성화되지 않았습니다. 클라우드 기능을 사용하려면 구독하세요.";
+"scf_error_not_configured" = "클라우드 서비스가 구성되지 않았습니다.";
+"scf_error_no_response" = "서버 응답이 없습니다.";
+"scf_error_empty_key" = "서버에서 빈 키를 수신했습니다.";
+"button_ai_view_summary" = "AI 요약 보기";
+"button_ai_limit_reached" = "오늘 한도 도달 (10/10). 설정에서 자신의 API Key를 추가하면 무제한 사용 가능합니다.";
+"ai_service_description" = "API Key가 없어도 괜찮아요! Pro를 구독하면 AI 요약을 무료로 이용할 수 있습니다 — 하루 최대 10회, 경기당 1회. 자신의 API Key를 추가하면 무제한으로 사용할 수 있습니다.";
+"alert_ai_summary_exists_title" = "이미 생성됨";
+"alert_ai_summary_exists_message" = "이 경기에는 이미 AI 요약이 있습니다. 당사 서비스를 사용하면 경기당 한 번만 생성할 수 있습니다. 설정에서 자신의 API Key를 추가하면 여러 번 생성할 수 있습니다.";
