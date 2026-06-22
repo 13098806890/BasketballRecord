@@ -970,3 +970,13 @@ Format:
 "settings_about_content" = "Hi! I'm an independent developer who loves basketball.\n\nI built this app to help basketball enthusiasts around the world track their games. I have limited ability, but I'll do my best to improve it and add new features.\n\nIf you have any suggestions or feedback, feel free to email me:\nclassicalxie@163.com\n\nThank you for using %@!";
 "voice_tutorial_tab_tasks" = "Aufgaben";
 "voice_tutorial_tab_freeplay" = "Freies Üben";
+"scf_error_no_receipt" = "Keine App Store-Quittung gefunden. Bitte stelle sicher, dass du ein aktives Abonnement hast.";
+"scf_error_subscription_inactive" = "Dein Abonnement ist nicht aktiv. Bitte abonniere, um Cloud-Funktionen zu nutzen.";
+"scf_error_not_configured" = "Cloud-Dienst nicht konfiguriert.";
+"scf_error_no_response" = "Keine Antwort vom Server.";
+"scf_error_empty_key" = "Leerer Schlüssel vom Server erhalten.";
+"button_ai_view_summary" = "KI-Zusammenfassung anzeigen";
+"button_ai_limit_reached" = "Tageslimit erreicht (10/10). Füge in den Einstellungen deinen eigenen API-Key hinzu, um unbegrenzte Zusammenfassungen zu erhalten.";
+"ai_service_description" = "Kein API-Key? Kein Problem! Abonniere Pro und nutze KI-Zusammenfassungen kostenlos — bis zu 10 pro Tag, eine pro Spiel. Füge deinen eigenen API-Key hinzu für unbegrenzte Nutzung.";
+"alert_ai_summary_exists_title" = "Bereits erstellt";
+"alert_ai_summary_exists_message" = "Dieses Spiel hat bereits eine KI-Zusammenfassung. Mit unserem Dienst kann jedes Spiel nur einmal erstellt werden. Füge deinen eigenen API-Key in den Einstellungen hinzu, um mehrere zu erstellen.";

@@ -389,6 +389,7 @@ struct ProSubscriptionStoreView: View {
             .subscriptionStorePolicyDestination(for: .termsOfService) {
                 SafariWebView(url: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
             }
+            .task { await PurchaseManager.shared.checkSubscriptionStatus() }
         }
     }
 
@@ -490,6 +491,14 @@ private struct AISettingsView: View {
                         loadSavedKey()
                     }
 
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(LocalizedStringKey("ai_service_description"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.vertical, 4)
+
                     Picker(LocalizedStringKey("label_ai_model"), selection: $selectedModelID) {
                         ForEach(availableModels) { model in
                             Text(model.displayName).tag(model.id)
@@ -507,8 +516,14 @@ private struct AISettingsView: View {
                         testConnection()
                     } label: {
                         HStack {
-                            if isTesting { ProgressView() }
+                            if isTesting {
+                                ProgressView()
+                            } else {
+                                Image(systemName: "bolt.horizontal.circle")
+                                    .frame(width: 16)
+                            }
                             Text(isTesting ? LocalizedStringKey("deepseek_testing") : LocalizedStringKey("deepseek_test"))
+                            Spacer()
                         }
                         .frame(maxWidth: .infinity)
                     }
@@ -517,8 +532,13 @@ private struct AISettingsView: View {
                     Button {
                         saveKey()
                     } label: {
-                        Label(LocalizedStringKey("deepseek_save_key"), systemImage: "key")
-                            .frame(maxWidth: .infinity)
+                        HStack {
+                            Image(systemName: "key")
+                                .frame(width: 16)
+                            Text(LocalizedStringKey("deepseek_save_key"))
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity)
                     }
                     .disabled(!canSave)
 

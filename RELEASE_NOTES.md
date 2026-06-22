@@ -1,5 +1,27 @@
 # Release Notes
 
+## 1.27 (2026-06-22)
+
+### 新增
+
+- **AI 总结云服务**：接入腾讯云 SCF + App Store Server API，订阅用户可直接生成 AI 比赛总结，无需自行配置 DeepSeek Key。每场比赛限一次，每日限 10 场；配置自有 Key 可解锁无限次数。
+- **ELO 天梯积分系统**：球员生涯页面新增段位计算（青铜→最强王者），基于胜负、对手强度、个人 Game Score 联动调整，支持段位色徽章和积分历史查看。
+- **球员生涯筛选+排序**：支持按比赛分组筛选上场球员，按总得分/场均得分/正负值/ELO 排序（升降序切换）。
+- **AI 设置说明**：设置页新增规则说明，无 API Key 也可用。
+
+### 架构
+
+- **App Store Server API 集成**：SCF 通过 ES256 JWT 验证订阅 transactionId，Apple 签名数据不可伪造；同时验证 bundleId、productId、过期时间、退款状态。
+- **DeepSeek Key 零泄露**：Key 仅存在于 SCF 环境变量，App 经 SCF 代理调用 AI，用户无法直接获取 Key。
+- **PurchaseManager 重构**：减少日志量（非关键日志降为 .debug），简化状态管理，统一数据源。
+
+### 修复
+
+- **订阅状态刷新**：`checkSubscriptionStatus` 增加 UserDefaults 缓存兜底，解决沙箱跨设备 `currentEntitlements` 为空的问题。
+- **AI 按钮点击无响应**：修复非 Pro 用户按钮被禁用的问题；修复已有总结时视图不显示 alert 的问题。
+- **GameView 编译错误**：Swift 6.2 类型检查器限制，用 `AnyView` 包裹长链 alert 修饰器。
+- **每日记录清理**：`ai_gen_records` 自动清理 7 天前记录，防止 UserDefaults 无限增长。
+
 ## 1.26 (2026-06-20)
 
 ### 新增

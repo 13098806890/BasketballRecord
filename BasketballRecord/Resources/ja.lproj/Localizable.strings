@@ -981,3 +981,13 @@ Format:
 "settings_about_content" = "Hi! I'm an independent developer who loves basketball.\n\nI built this app to help basketball enthusiasts around the world track their games. I have limited ability, but I'll do my best to improve it and add new features.\n\nIf you have any suggestions or feedback, feel free to email me:\nclassicalxie@163.com\n\nThank you for using %@!";
 "voice_tutorial_tab_tasks" = "タスク";
 "voice_tutorial_tab_freeplay" = "フリープレイ";
+"scf_error_no_receipt" = "App Store のレシートが見つかりません。有効なサブスクリプションがあることを確認してください。";
+"scf_error_subscription_inactive" = "サブスクリプションがアクティブではありません。クラウド機能を利用するにはサブスクライブしてください。";
+"scf_error_not_configured" = "クラウドサービスが設定されていません。";
+"scf_error_no_response" = "サーバーからの応答がありません。";
+"scf_error_empty_key" = "サーバーから空のキーを受信しました。";
+"button_ai_view_summary" = "AI要約を表示";
+"button_ai_limit_reached" = "本日の上限に達しました（10/10）。設定でご自身のAPI Keyを追加すると無制限に利用できます。";
+"ai_service_description" = "API Keyがなくても大丈夫！Proに登録すればAI要約を無料でご利用いただけます——1日最大10件、1試合につき1件。ご自身のAPI Keyを追加すると無制限に利用できます。";
+"alert_ai_summary_exists_title" = "生成済み";
+"alert_ai_summary_exists_message" = "この試合には既に AI 要約があります。本サービスでは1試合につき1回のみ生成できます。設定でご自身のAPI Keyを追加すると複数回生成できます。";

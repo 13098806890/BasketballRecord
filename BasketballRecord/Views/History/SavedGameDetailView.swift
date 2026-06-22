@@ -18,6 +18,7 @@ struct SavedGameDetailView: View {
     @State private var selectedGroupID: UUID?
     @State private var editDisplayName = ""
     @State private var isShowingPurchase = false
+    @State private var showSummaryExistsAlert = false
     @State private var shareImage: UIImage?
     @State private var savedToPhotos = false
 
@@ -36,7 +37,7 @@ struct SavedGameDetailView: View {
     }
 
     var body: some View {
-        List {
+        let l = List {
             groupAssignmentSection
 
             Section {
@@ -104,6 +105,10 @@ struct SavedGameDetailView: View {
             if displayMode == .history {
                 Section(LocalizedStringKey("section_ai_game_summary")) {
                     Button {
+                        if hasSummary && aiConfig == nil {
+                            showSummaryExistsAlert = true
+                            return
+                        }
                         if !store.isPro {
                             isShowingPurchase = true
                         } else {
@@ -114,10 +119,10 @@ struct SavedGameDetailView: View {
                             if isGeneratingAISummary {
                                 ProgressView()
                             }
-                            Label(LocalizedStringKey(isGeneratingAISummary ? "button_ai_generating" : "button_ai_generate_summary"), systemImage: "sparkles")
+                            Label(buttonTitleKey, systemImage: "sparkles")
                         }
                     }
-                    .disabled(isGeneratingAISummary || (!store.isPro && aiConfig == nil))
+                    .disabled(isGeneratingAISummary || generationBlocked)
 
                     if !aiSummary.isEmpty {
                         Button {
@@ -183,12 +188,17 @@ struct SavedGameDetailView: View {
                     }
                 }
             }
-        }
-        .onChange(of: store.cloudEnabledGameIDs) { _, _ in
+        }; return l
+            .onChange(of: store.cloudEnabledGameIDs) { _, _ in
             // UI refreshes automatically via @Published
         }
             .sheet(isPresented: $isShowingPurchase) {
                 ProSubscriptionStoreView()
+            }
+            .alert(LocalizedStringKey("alert_ai_summary_exists_title"), isPresented: $showSummaryExistsAlert) {
+                Button(LocalizedStringKey("button_ok")) { }
+            } message: {
+                Text(LocalizedStringKey("alert_ai_summary_exists_message"))
             }
             .sheet(isPresented: $isShowingExport) {
             ExportGameView(game: game)
@@ -507,24 +517,81 @@ struct SavedGameDetailView: View {
         parseAISummarySections(from: normalizeAISummary(aiSummary))
     }
 
+    private var hasSummary: Bool {
+        if !aiSummary.isEmpty { return true }
+        let stored = store.savedGames.first { $0.id == game.id }?.aiSummary
+        return stored?.isEmpty == false
+    }
+
+    private var usingOwnKey: Bool { aiConfig != nil }
+
+    private var generationBlocked: Bool {
+        guard !usingOwnKey else { return false }
+        if hasSummary { return true }
+        return dailyGenerationCount >= 10
+    }
+
+    private var dailyGenerationCount: Int {
+        let today = Calendar.current.startOfDay(for: Date())
+        let saved = UserDefaults.standard.dictionary(forKey: "ai_gen_records") as? [String: Int] ?? [:]
+        let key = "\(today.timeIntervalSince1970)"
+        return saved[key] ?? 0
+    }
+
+    private func incrementGenerationCount() {
+        let today = Calendar.current.startOfDay(for: Date())
+        var saved = UserDefaults.standard.dictionary(forKey: "ai_gen_records") as? [String: Int] ?? [:]
+        // Clean records older than 7 days
+        let weekAgo = today.timeIntervalSince1970 - 7 * 86400
+        for (k, _) in saved where Double(k) ?? 0 < weekAgo {
+            saved.removeValue(forKey: k)
+        }
+        let key = "\(today.timeIntervalSince1970)"
+        saved[key] = (saved[key] ?? 0) + 1
+        UserDefaults.standard.set(saved, forKey: "ai_gen_records")
+    }
+
+    private var buttonTitleKey: LocalizedStringKey {
+        if isGeneratingAISummary { return LocalizedStringKey("button_ai_generating") }
+        if hasSummary { return LocalizedStringKey("button_ai_view_summary") }
+        if generationBlocked { return LocalizedStringKey("button_ai_limit_reached") }
+        return LocalizedStringKey("button_ai_generate_summary")
+    }
+
     private var aiSummaryAccentColor: Color {
         Color(red: 0.22, green: 0.52, blue: 0.90)
     }
 
     private func generateAISummary() {
-        guard let config = aiConfig else {
-            aiSummaryError = NSLocalizedString("alert_ai_no_api_key", comment: "AI no API key")
+        if hasSummary && usingOwnKey {
+            aiSummary = game.aiSummary ?? aiSummary
             return
         }
+        if generationBlocked { return }
 
         let prompt = summaryPrompt()
+        let systemRole = NSLocalizedString("ai_system_role", comment: "AI system role")
+
         isGeneratingAISummary = true
         aiSummaryError = nil
 
         Task {
             do {
-                let systemRole = NSLocalizedString("ai_system_role", comment: "AI system role")
-                let summary = try await AIService.shared.sendChat(model: config.model, apiKey: config.apiKey, systemPrompt: systemRole, userPrompt: prompt)
+                let summary: String
+                if let config = aiConfig {
+                    summary = try await AIService.shared.sendChat(
+                        model: config.model, apiKey: config.apiKey,
+                        systemPrompt: systemRole, userPrompt: prompt
+                    )
+                } else {
+                    summary = try await AIServiceProxy.chat(
+                        messages: [["role": "user", "content": prompt]],
+                        systemPrompt: systemRole,
+                        temperature: 0.6,
+                        maxTokens: 2500
+                    )
+                    await MainActor.run { incrementGenerationCount() }
+                }
                 let normalizedSummary = normalizeAISummary(summary)
                 await MainActor.run {
                     aiSummary = normalizedSummary
@@ -533,7 +600,7 @@ struct SavedGameDetailView: View {
                 }
             } catch {
                 await MainActor.run {
-                    aiSummaryError = (error as? LocalizedError)?.errorDescription ?? NSLocalizedString("alert_ai_generate_failed", comment: "AI generate failed")
+                    aiSummaryError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
                     isGeneratingAISummary = false
                 }
             }
