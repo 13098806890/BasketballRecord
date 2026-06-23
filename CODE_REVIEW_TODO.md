@@ -1,64 +1,243 @@
 # Code Review TODO
 
-## 🔴 严重风险（优先修复）
+## 分支信息
+
+**当前工作分支**: `refactor`
+**已推送**: 是 (`origin/refactor`)
+**Commits** (自上而下):
+
+| Hash | 内容 |
+|------|------|
+| `6d6be17` | VoiceRules JSON 数据模型 — 删除 10 个 VoiceRules_*.swift，改为 VoiceRulesData.swift 内嵌 JSON |
+| `690f258` | build 版本号 28→29 |
+| `f73ab7e` | refactor 分支创建（空基 commit） |
+| `ee546d6` | 父 commit — safeWrite/safeRead、mergedStats、saveGeneration、CoreData refreshAllObjects、CloudKit defer、PurchaseManager 优化、GameView period_start revert、GameSetupView @FocusState、AIServiceProxy @MainActor |
+
+**Branch 策略**:
+- `refactor` 分支从 `main` 的 `ee546d6` 创建
+- Items 1-5、8、9、15、17、18、21 的改动在 `ee546d6` + `refactor` 分支上
+- Items 10、11、19 确认不处理
+- `main` 分支保持原样（不含 JSON VoiceRules 等大型重构）
+- `main_free_pro` 分支待后续同步
+- 后续完成 Item 6 和 7 后，由用户决定是否合入 `main`
+
+---
+
+## ✅ 已完成
 
 ### ~~1. `AppStore.safeWrite` 中的强制类型转换~~ ✅ 已修复
 - **文件**: `Services/AppStore.swift`
+- **Branch**: `main` + `refactor`
 - **问题**: `valueToEncode = game as! T` 当 `T` 不是 `SavedGame` 时直接崩溃
 - **改动**: 
-  - `safeWrite` 对 `game_` 前缀的 key 走独立路径：先 `as? SavedGame` 安全拆包，trim 后重新 encode，不再强制转换 `T`
-  - `safeRead` 同理，对 `game_` 前缀先 decode 为 `SavedGame` 再 trim，`as? T` 作为安全回退
-  - 提取 `readRawData` 公用方法消除重复
+  - `safeWrite` 改为 `if key.hasPrefix("game_"), var game = value as? SavedGame` 组合条件，独立路径 encode/trim，无类型强转
+  - `safeRead` 同理，先 decode 为 `SavedGame` 再 trim，`as? T` 作安全回退
+  - 提取 `readRawData` 消除重复
 
 ### ~~2. CoreData NSBatchDeleteRequest 后 context 不一致~~ ✅ 已修复
 - **文件**: `Services/CoreDataStore.swift:276-283`
-- **问题**: `deleteAll()` 使用 `NSBatchDeleteRequest` 后需要在同一个 context 同步状态
-- **改动**: 在 `NSManagedObjectContext.mergeChanges` 后追加 `context.refreshAllObjects()`，确保 context 完全同步
+- **Branch**: `main` + `refactor`
+- **问题**: `deleteAll()` batch delete 后 context 未同步
+- **改动**: 追加 `context.refreshAllObjects()`，确保同一 context 后续操作不读到过时对象
 
 ### ~~3. `mergedStats` 遗漏细分字段~~ ✅ 已修复
 - **文件**: `Services/AppStore.swift:1297-1325`
-- **问题**: 球员合并未合并 `layupMade/Attempts`、`midRangeMade/Attempts`、`paintMade/Attempts`、`offensiveRebounds`、`defensiveRebounds`
-- **改动**: 补充全部 10 个遗漏字段的累加
+- **Branch**: `main` + `refactor`
+- **问题**: 球员合并未合并 layup/midRange/paint/O-D rebound 字段
+- **改动**: 补充 `layupMade/Attempts`、`midRangeMade/Attempts`、`paintMade/Attempts`、`offensiveRebounds`、`defensiveRebounds`
 
 ### ~~4. CloudKit temp 文件无限增长~~ ✅ 已修复
 - **文件**: `Services/CloudKitManager.swift:70-95`
-- **问题**: `writeTempFile` 每次上传创建临时文件但不清理
-- **改动**: `uploadGame` 中将文件创建提前到 `do` 块开头，用 `defer { try? FileManager.default.removeItem(at: fileURL) }` 确保方法退出时自动清理
+- **Branch**: `main` + `refactor`
+- **问题**: `writeTempFile` 不清理
+- **改动**: `uploadGame` 中用 `defer { try? FileManager.default.removeItem(at: fileURL) }` 自动清理
 
 ### ~~5. PurchaseManager 的 `isPro` 异步闪屏~~ ✅ 已修复
-- **文件**: `Services/PurchaseManager.swift:45-49`
-- **问题**: `checkSubscriptionStatus()` 在 `loadProducts()` 之后才执行，延迟了 StoreKit 状态刷新
+- **文件**: `Services/PurchaseManager.swift:40-107`
+- **Branch**: `main` + `refactor`
+- **问题**: `checkSubscriptionStatus()` 在 `loadProducts()` 之后才执行
 - **改动**: 
-  - `init` 中 `Task` 改为先 `checkSubscriptionStatus()` 再 `loadProducts()`
-  - `checkSubscriptionStatus` 内加 `if foundPro != isPro` 判断，值未变时不触发 `@Published` 发布，避免冗余 UI 刷新
+  - Task 内先 `checkSubscriptionStatus()` 再 `loadProducts()`
+  - `if foundPro != isPro` 守卫避免冗余 `@Published` 发布
 
-## 🟡 代码质量与可维护性
+### ~~8. `VoiceRecognizer` 责任过重~~ ✅ 已修复
+- **文件**: `Models/VoiceRecognizer.swift`、`Views/Game/GameView.swift`、`Views/VoiceTutorialView.swift`
+- **Branch**: `main` + `refactor`
+- **问题**: VoiceRecognizer 持有 `@Published var match/flashColor/errorMessage` UI 状态
+- **改动**:
+  - VoiceRecognizer 移除 `match`、`flashColor`、`errorMessage` 三个 `@Published` 属性
+  - 新增 `onFlash`、`onError`、`onClear` 三个回调闭包
+  - GameView 用自己 `@State` 管理 voiceMatch/voiceFlashColor/voiceErrorMessage
+  - VoiceTutorialView 同理用自己 `@State`
+  - 清除逻辑（clearVoiceFlashAfterDelay/clearVoiceMatchAfterDelay/clearVoiceErrorAfterDelay）移到 GameView
+  - VoiceRecognizer 的 `showSuccessFeedback`/`showDualSuccessFeedback`/`showErrorWithFlash`/`showError` 不再设置 UI 属性，改调回调
 
-### 6. `AppStore` 上帝类
-- **文件**: `Services/AppStore.swift`（1433 行）
-- **方案**: 拆分出 `PlayerManager`、`TeamManager`、`GameManager`
+### ~~9. VoiceRules 文件代码重复~~ ✅ 已修复
+- **文件**: 删除 `Models/VoiceRules_en/zh/zh_Hant/ja/ko/de/es/fr/it/ru.swift`（10 个文件）
+- **新增**: `Models/VoiceRulesData.swift`
+- **Branch**: `refactor` 分支（`main` 无此改动）
+- **问题**: 10 个语言文件内容结构完全一致，仅有数据不同
+- **改动**:
+  - `VoiceRulesData`：`Decodable` 结构体，字段对应 VoiceRules 构造参数
+  - 10 个语言 JSON 数据以内嵌字符串（Swift 双引号转义）存储在 `VoiceRulesData.embeddedJSON` 字典中
+  - `VoiceRulesData.load(language:)` 按语言标识符（zh-Hans/en/ja 等）加载对应 JSON
+  - `VoiceRules(data:)` 从 `VoiceRulesData` 构造 VoiceRules 实例
+  - `VoiceRules` 静态属性（.chinese/.english 等）改为调用 `fromJSON(language:)`
+  - JSON 源文件保留在 `Resources/VoiceRules/*.json` 作为可编辑的数据源
+  - **关键点**: 内嵌 JSON 解决了无需 Xcode 项目文件操作即可在运行时加载的问题
 
-### 7. `GameView` 超大 View
-- **文件**: `Views/Game/GameView.swift`（3017 行）
-- **方案**: 将蓝牙协作状态机提取为 `LiveCollaborationManager`；将模拟器逻辑提取到单独服务
+### ~~15. `event.period_start` 撤销未恢复时间状态~~ ✅ 已修复
+- **文件**: `Views/Game/GameView.swift:2836-2843`
+- **Branch**: `main` + `refactor`
+- **问题**: 撤销 period_start 时未关闭活跃 stints/clocks
+- **改动**: 调用 `closeActiveStints`、`closeMatchClock`、`closePeriodClock`，设置 `isPaused = false`
 
-### 8. `VoiceRecognizer` 责任过重
-- **文件**: `Models/VoiceRecognizer.swift`
-- **方案**: 将 UI 状态（`flashColor`、`match`）移出，仅保留识别+匹配合成逻辑
+### ~~17. 保存 debounce 500ms 可能丢失中间状态~~ ✅ 已修复
+- **文件**: `Services/AppStore.swift:959-975`
+- **Branch**: `main` + `refactor`
+- **问题**: 被取消的 saveTask 仍会清除 `dirtyKeys`
+- **改动**: 引入 `saveGeneration` 计数器，只在当前 generation 未过期时清除 `dirtyKeys`
 
-### 9. VoiceRules 文件代码重复
-- **文件**: `Models/VoiceRules_*.swift`
-- **方案**: 改用 JSON/plist 配置文件
+### ~~18. Keyboard dismissal 使用 UIKit API~~ ✅ 已修复
+- **文件**: `Views/Game/GameSetupView.swift:195-201`
+- **Branch**: `main` + `refactor`
+- **改动**: `@FocusState` 替代 `UIApplication.shared.sendAction`
 
-### 10. CoreData 实体通过代码手动创建
-- **文件**: `Services/CoreDataStack.swift`
-- **方案**: 使用 `.xcdatamodeld` 文件可视化定义模型
+### ~~19. en.lproj 的 comment 包含中文~~ ✅ 无需处理
+- **结论**: en.lproj 无中文 comment，已确认
 
-### 11. CoreDataStore 使用 KVC 访问属性
-- **文件**: `Services/CoreDataStore.swift`
-- **方案**: 使用 `@NSManaged` 属性包装或代码生成
+### ~~21. PurchaseManager.appAccountToken 可能主线程阻塞~~ ✅ 已修复
+- **文件**: `Services/PurchaseManager.swift:16-29`
+- **Branch**: `main` + `refactor`
+- **改动**: 移除 `try? NSUbiquitousKeyValueStore.default`、移除 `synchronize()`
 
-## 🔵 业务逻辑风险
+---
+
+## 🟡 代码质量与可维护性（待完成）
+
+### 6. `AppStore` 中度拆分
+- **文件**: `Services/AppStore.swift`（~1430 行）
+- **Branch**: `refactor` 分支（新会话处理）
+- **方案**: 创建三个 extension 文件拆分 CRUD 方法：
+
+  **`Services/AppStore+Player.swift`**:
+  ```
+  移入方法:
+  - player(for:) -> Player?
+  - addPlayer(_:)
+  - updatePlayer(_:)
+  - deletePlayers(at:)
+  - upsertPlayers(_:) -> PlayerUpsertSummary
+  - mergePlayer(sourceID:into:) -> PlayerMergeSummary?
+  - importPlayerPackage(_:) -> PlayerImportSummary
+  - exportPlayerBase64(_:) -> String?
+  
+  相关私有辅助方法:
+  - photoFile(for:) (URL 计算)
+  - photosDir (目录计算)
+  ```
+  
+  **`Services/AppStore+Team.swift`**:
+  ```
+  移入方法:
+  - team(for:) -> Team?
+  - addTeam(_:)
+  - updateTeam(_:)
+  - deleteTeams(at:)
+  - upsertTeams(_:) -> TeamUpsertSummary
+  - mergeTeam(sourceID:into:) -> TeamMergeSummary?
+  - importTeamPackage(_:) -> TeamImportSummary
+  - exportTeamBase64(_:) -> String?
+  - exportTeam(id:fallbackName:playerIDs:) -> ExportTeam?
+  ```
+  
+  **`Services/AppStore+Game.swift`**:
+  ```
+  移入方法:
+  - buildSavedGame(id:snapshot:savedAt:) -> SavedGame
+  - saveGame(_:)
+  - autoSaveGame(_:gameID:undoSnapshots:) -> UUID
+  - upsertSavedGames(_:) -> SavedGameUpsertSummary
+  - deleteSavedGames(at:)
+  - deleteSavedGames(ids:)
+  - saveIfNeeded()
+  - latestUnfinishedGame() -> SavedGame?
+  - exportGameBase64(_:) -> String?
+  - importGamePackage(_:playerMapping:teamMapping:importsUnmatchedRoster:) -> GameImportDisposition
+  - previewGameImportDisposition(...)
+  - decodeGamePackage(from:) -> ExportedGamePackage?
+  - remappedGame(...)
+  - remappedSnapshot(...)
+  - gameContainsPlayer(...)
+  - gameContainsTeam(...)
+  - upsertImportedGame(...)
+  - gameImportDisposition(for:)
+  - inferredPlayerIDMap(...)
+  - inferredTeamIDMap(...)
+  - isLikelyDuplicateGame(_,_)
+  - dedupedPlayerIDs(primary:fallback:)
+  - remapDictionary(_:using:)
+  - dedupedIDs(_:)
+  ```
+  
+  **注意**: 
+  - `AppStore.swift` 保留: `@Published` 属性、`init`、`save()`/`load()`、`scheduleSave()`、`safeWrite`/`safeRead`、`dirtyKeys`/`suppressSave`、分组管理方法（GameGroup/PlayerGroup）、CloudKit 同步、`StrippedForTransfer`
+  - 所有方法都在同一个 `AppStore` class 上，extension 可访问 private 成员，只需将 `private` 改为 `fileprivate` 或保持 `private`（Swift extension 在同一文件内可访问 private，跨文件不可——需要改用 `fileprivate` 或将辅助方法留在主文件）
+  - **关键约束**: `private` 方法在跨文件 extension 中不可见。需要将某些辅助方法改为 `fileprivate`，或留在主 `AppStore.swift` 中
+
+### 7. `GameView` 提取 LiveCollaborationManager
+- **文件**: `Views/Game/GameView.swift`（~3000 行）
+- **Branch**: `refactor` 分支（新会话处理）
+- **方案**: 提取蓝牙直播协作状态和操作到独立的 `LiveCollaborationManager` 类
+
+  **新建 `Services/LiveCollaborationManager.swift`**:
+  ```
+  属性:
+  - activeLiveSessionID: UUID?
+  - liveRole: LiveCollaborationRole?  (enum: host/participant)
+  - liveVersion: Int
+  - liveStateHash: String
+  - liveHostPeerName: String?
+  - liveHostPeerID: MCPeerID?
+  - liveParticipantNames: Set<String>
+  - localLiveOpSeq: Int
+  - liveCommitHistory: [BluetoothLiveOpCommitPayload]
+  - peerAckVersionByDeviceID: [String: Int]
+  - isApplyingRemoteSnapshot: Bool
+  
+  方法:
+  - sendLiveInvite(to:)
+  - handleInviteResponse(_:)
+  - applyRemoteLiveSnapshot(_:)
+  - applyAuthoritativeState(_:version:hash:)
+  - sendAuthoritativeSnapshot(reason:to:)
+  - requestLiveResync(reason:)
+  - handleIncomingLiveOpRequest(_:)
+  - handleIncomingLiveOpCommit(_:)
+  - handleIncomingLiveOpAck(_:)
+  - handleIncomingResyncRequest(_:)
+  - submitLiveOperation(_:applyLocal:) -> Bool
+  - applyLiveOperationPayload(_:) -> Bool
+  - buildLiveStatePayload() -> BluetoothLiveGameStatePayload
+  - stateHash(for:) -> String
+  - snapshotForLiveSync(_:) -> GameSnapshot
+  - snapshotForLocalClock(fromRemote:) -> GameSnapshot
+  
+  回调:
+  - onStateChanged: ((GameSnapshot, undoStack: [GameSnapshot], redo: [GameSnapshot], gameID: UUID?) -> Void)?
+  - onError: ((String) -> Void)?
+  - onInviteResponseNeeded: ((BluetoothReceivedInviteResponse) -> Void)?
+  ```
+
+  **GameView 改动**:
+  - `@StateObject private var liveManager = LiveCollaborationManager()`
+  - 在 `onAppear` 中设置 `liveManager` 回调
+  - 移除所有 live collaboration 的 `@State` 属性和方法（约 600 行）
+  - GameView 只保留 UI 渲染、用户交互回调、和 `liveManager` 的调用
+
+---
+
+## 🔵 业务逻辑风险（待评估）
 
 ### 12. O/D 篮板模式切换时 `totalRebounds` 数据膨胀
 - **文件**: `Models/Models.swift:745`
@@ -72,34 +251,14 @@
 - **文件**: `Views/Game/GameView.swift:2806-2833`
 - **问题**: `relatedPlayerID` 为 nil 时从消息文本反解析，名字包含关系可能导致误匹配
 
-### ~~15. `event.period_start` 撤销未恢复时间状态~~ ✅ 已修复
-- **文件**: `Views/Game/GameView.swift:2836-2848`
-- **问题**: 只重置了 `periodIsRunning`，未关闭活跃 stints/clocks
-- **改动**: 撤销 `event.period_start` 时调用 `closeActiveStints`、`closeMatchClock`、`closePeriodClock`，并设置 `isPaused = false`
-
 ### 16. 自定义语音映射的球员号码误匹配
 - **文件**: `Models/VoiceRecognizer.swift:804-827`
-- **问题**: `extractNumber` 会提取"2分命中"中的 2 作为球员号码
-- **状态**: ⏳ 待确认具体场景（当前 standalone 正则 `(?:^|\\s)(\\d+)(?:\\s|$)` 不匹配 "2分命中"）
+- **问题**: `extractNumber` 是否会从"2分命中"中提取 2 作为球员号码
+- **状态**: ⏳ 待用户确认具体场景（当前 standalone 正则 `(?:^|\\s)(\\d+)(?:\\s|$)` 不匹配 "2分命中"）
 
-## ⚪ 建议优化
+---
 
-### ~~17. 保存 debounce 500ms 可能丢失中间状态~~ ✅ 已修复
-- **文件**: `Services/AppStore.swift:956-969`
-- **问题**: 被取消的 saveTask 在 `save()` 完成后仍会清除 `dirtyKeys`，导致后续新 saveTask 认为无脏数据从而跳过 CoreData/game 写入
-- **改动**: 引入 `saveGeneration` 计数器，`save()` 完成后校验 `saveGeneration` 未变才清除 `dirtyKeys`
-
-### ~~18. Keyboard dismissal 使用 UIKit API~~ ✅ 已修复
-- **文件**: `Views/Game/GameSetupView.swift:195-200`
-- **方案**: 改用 `@FocusState` 管理 TextField 焦点，toolbar Done 按钮设为 `isInputFocused = false`
-
-### ~~19. en.lproj 的 comment 包含中文~~ ✅ 无需处理
-- **结论**: 经确认 `en.lproj/Localizable.strings` 中无中文 comment，中文仅出现在 `zh-Hans`/`zh-Hant-TW` 中，属正确行为
+## ⚪ 建议优化（待评估）
 
 ### 20. 核心业务逻辑缺少单元测试
 - ELO 计算、球员合并、比赛自动结束、统计计算
-
-### ~~21. PurchaseManager.appAccountToken 可能主线程阻塞~~ ✅ 已修复
-- **文件**: `Services/PurchaseManager.swift:16-31`
-- **问题**: `try? NSUbiquitousKeyValueStore.default`（多余 try）、`synchronize()`（已废弃）
-- **改动**: 移除多余 `try?`，移除已废弃的 `synchronize()` 调用
