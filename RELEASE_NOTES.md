@@ -5,7 +5,6 @@
 ### 架构
 
 - **代码结构优化**：`RosterView`（2200→1140 行）、`VoiceTutorialView`（1880→692 行）拆分为独立文件，提升可维护性。
-- **iCloud 跨设备同步**：`appAccountToken` 通过 `NSUbiquitousKeyValueStore` 同步，同一 iCloud 账号的设备共享购买验证。
 
 ### 修复
 
