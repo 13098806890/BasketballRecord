@@ -1,4 +1,4 @@
 • KI-Spielzusammenfassung — erstelle nach dem Abo mit einem Klick KI-Zusammenfassungen
   Kein API-Key nötig. Eine Zusammenfassung pro Spiel, bis zu 10 pro Tag.
 • Abosicherheit — gerätegebundene Verifizierung via iCloud
-• Leistungsverbesserungen und Fehlerbehebungen
+• Codebasis umstrukturiert, server-seitige Limitierung, Fehlerbehebungen

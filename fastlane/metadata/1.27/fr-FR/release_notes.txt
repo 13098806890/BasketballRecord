@@ -1,4 +1,4 @@
 • Résumé IA des matchs — génère des résumés IA après abonnement
   Pas de clé API nécessaire. Un résumé par match, jusqu'à 10 par jour.
 • Sécurité d'abonnement — vérification liée à l'appareil via iCloud
-• Améliorations de performance et corrections de bugs
+• Restructuration du code, limitation côté serveur, correctifs

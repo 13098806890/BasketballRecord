@@ -1,21 +1,5 @@
 # Release Notes
 
-## 1.28 (2026-06-23)
-
-### 架构
-
-- **代码结构优化**：`RosterView`（2200→1140 行）、`VoiceTutorialView`（1880→692 行）拆分为独立文件，提升可维护性。
-- **PurchaseManager 简化**：移除所有缓存兜底，订阅状态仅依赖 `Transaction.currentEntitlements`；`loadProducts` 添加 `isLoadingProducts` 防并发；去掉超时逻辑，StoreKit 调用保持原始行为。
-- **AIServiceProxy 简化**：移除缓存兜底，仅从 `currentEntitlements` 获取 transactionId。
-- **SCF 服务端限流**：每 transactionId 每天 10 次上限，每日自动清理计数；支持 `environment` 参数指定沙箱/生产环境，避免无谓的 10s 超时。
-
-### 修复
-
-- **语音指令页标题本地化**：`headerTitle`/`headerSubtitle` 从硬编码 switch 迁移至 `Localizable.strings`，10 种语言统一管理。
-- **设置页拆分后引用完整**：确保 `localized()` 等模块级函数在拆分后文件正确可见。
-- **`keepOriginalHintTaskIDs` 值对齐**：修复提取过程中数值不一致问题。
-- **`appAccountToken` 初始化保护**：`NSUbiquitousKeyValueStore` 改为 `try?` 防止 crash，同时保留 iCloud 跨设备同步。
-
 ## 1.27 (2026-06-23)
 
 ### 新增
@@ -28,14 +12,20 @@
 
 - **App Store Server API 集成**：SCF 通过 ES256 JWT 验证订阅 transactionId，Apple 签名数据不可伪造；同时验证 bundleId、productId、过期时间、退款状态、appAccountToken。
 - **DeepSeek Key 零泄露**：Key 仅存在于 SCF 环境变量，App 经 SCF 代理调用 AI，用户无法直接获取 Key。
-- **PurchaseManager 重构**：减少日志量（非关键日志降为 .debug），简化订阅状态管理；`loadProducts` 添加 30s 超时防止 StoreKit 挂起。
-- **AIServiceProxy 简化**：移除冗余的循环重试逻辑，单次请求直连 SCF。
+- **PurchaseManager 重构**：移除所有缓存兜底，订阅状态仅依赖 `Transaction.currentEntitlements`；`loadProducts` 添加 `isLoadingProducts` 防并发；去掉超时逻辑。
+- **AIServiceProxy 简化**：移除缓存兜底，仅从 `currentEntitlements` 获取 transactionId；移除冗余的循环重试逻辑。
+- **SCF 服务端限流**：每 transactionId 每天 10 次上限，每日自动清理计数；支持 `environment` 参数指定沙箱/生产环境。
+- **代码结构优化**：`RosterView`（2200→1140 行）、`VoiceTutorialView`（1880→692 行）拆分为独立文件，提升可维护性。
 
 ### 修复
 
-- **订阅状态刷新**：`checkSubscriptionStatus` 移除过期 fallback，仅以 `Transaction.currentEntitlements` 为准。
+- **订阅状态刷新**：`checkSubscriptionStatus` 移除过期缓存兜底，仅以 `Transaction.currentEntitlements` 为准。
 - **AI 按钮点击无响应**：修复非 Pro 用户按钮被禁用的问题；修复已有总结时视图不显示 alert 的问题。
 - **订阅页面加载卡死**：`ProSubscriptionStoreView` 添加 `@ObservedObject` 监听产品加载完成自动刷新；不再重复调用 `loadProducts`。
+- **语音指令页标题本地化**：`headerTitle`/`headerSubtitle` 从硬编码 switch 迁移至 `Localizable.strings`，10 种语言统一管理。
+- **设置页拆分后引用完整**：确保 `localized()` 等模块级函数在拆分后文件正确可见。
+- **`keepOriginalHintTaskIDs` 值对齐**：修复提取过程中数值不一致问题。
+- **`appAccountToken` 初始化保护**：`NSUbiquitousKeyValueStore` 改为 `try?` 防止 crash，同时保留 iCloud 跨设备同步。
 - **GameView 编译错误**：Swift 6.2 类型检查器限制，用 `AnyView` 包裹长链 alert 修饰器。
 - **每日记录清理**：`ai_gen_records` 自动清理 7 天前记录，防止 UserDefaults 无限增长。
 

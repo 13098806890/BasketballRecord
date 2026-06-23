@@ -1,4 +1,5 @@
 • AI Game Summary — subscribe and generate AI-powered game summaries with one tap
   No API key needed. One summary per game, up to 10 per day.
-• Subscription Security — device-bound purchase verification via iCloud sync
-• Performance improvements and bug fixes
+• Subscription Security — device-bound purchase verification via iCloud
+• Codebase restructured — RosterView and VoiceTutorialView split into separate files
+• Server-side rate limiting, performance improvements, bug fixes

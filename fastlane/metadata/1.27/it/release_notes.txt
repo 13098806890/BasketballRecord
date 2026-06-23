@@ -1,4 +1,4 @@
 • Riepilogo AI delle partite — genera riepiloghi AI dopo l'abbonamento
   Nessuna chiave API necessaria. Un riepilogo per partita, fino a 10 al giorno.
 • Sicurezza abbonamento — verifica legata al dispositivo via iCloud
-• Miglioramenti delle prestazioni e correzioni di bug
+• Ristrutturazione codice, limitazione lato server, correzioni bug
