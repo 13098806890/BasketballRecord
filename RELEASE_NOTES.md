@@ -1,7 +1,5 @@
 # Release Notes
 
-<<<<<<< HEAD
-=======
 ## 1.28 (2026-06-23)
 
 ### 架构
@@ -13,8 +11,6 @@
 ### 代码质量
 
 - **去除 `unique()` 重复定义**：LiveCollaborationManager 改用 `private static func deduped` 类方法，消除与 GameView 的 `unique()` 重复。
-
->>>>>>> main
 ## 1.27 (2026-06-23)
 
 ### 新增
