@@ -124,7 +124,7 @@ final class LiveCollaborationManager: ObservableObject {
                 synced.playingSecondsByPlayerID[playerID, default: 0] += max(0, now.timeIntervalSince(startedAt))
             }
 
-            let onCourtIDs = unique(synced.homeOnCourtPlayerIDs + synced.awayOnCourtPlayerIDs)
+            let onCourtIDs = Self.deduped(synced.homeOnCourtPlayerIDs + synced.awayOnCourtPlayerIDs)
             synced.activeSinceByPlayerID = Dictionary(uniqueKeysWithValues: onCourtIDs.map { ($0, now) })
         } else {
             synced.matchActiveSince = nil
@@ -142,7 +142,7 @@ final class LiveCollaborationManager: ObservableObject {
         if adjusted.periodIsRunning && !adjusted.isPaused && !adjusted.isComplete {
             adjusted.matchActiveSince = now
             adjusted.periodActiveSince = now
-            let onCourtIDs = unique(adjusted.homeOnCourtPlayerIDs + adjusted.awayOnCourtPlayerIDs)
+            let onCourtIDs = Self.deduped(adjusted.homeOnCourtPlayerIDs + adjusted.awayOnCourtPlayerIDs)
             adjusted.activeSinceByPlayerID = Dictionary(uniqueKeysWithValues: onCourtIDs.map { ($0, now) })
         } else {
             adjusted.matchActiveSince = nil
@@ -151,6 +151,11 @@ final class LiveCollaborationManager: ObservableObject {
         }
 
         return adjusted
+    }
+
+    private static func deduped<T: Hashable>(_ elements: [T]) -> [T] {
+        var seen: Set<T> = []
+        return elements.filter { seen.insert($0).inserted }
     }
 
     func buildLiveStatePayload() -> BluetoothLiveGameStatePayload {
@@ -393,9 +398,4 @@ final class LiveCollaborationManager: ObservableObject {
         liveCommitHistory.removeAll()
         peerAckVersionByDeviceID.removeAll()
     }
-}
-
-private func unique<T: Hashable>(_ elements: [T]) -> [T] {
-    var seen: Set<T> = []
-    return elements.filter { seen.insert($0).inserted }
 }

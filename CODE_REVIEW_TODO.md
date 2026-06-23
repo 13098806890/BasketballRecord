@@ -16,7 +16,8 @@
 
 **Branch 策略**:
 - `refactor` 分支从 `main` 的 `ee546d6` 创建
-- Items 1-5、8、9、15、17、18、21 的改动在 `ee546d6` + `refactor` 分支上
+- Items 1-5、9、15、17、18、21 的改动在 `ee546d6` + `refactor` 分支上
+- Item 8（VoiceRecognizer 回调重构）仅在 `refactor` 分支（`main` 仍用旧版 `@Published`）
 - Items 6、7 仅在 `refactor` 分支（AppStore 拆分 + LiveCollaborationManager 提取）
 - Items 10、11、19 确认不处理
 - `main` 分支保持原样（不含 JSON VoiceRules 等大型重构）
@@ -64,7 +65,7 @@
 
 ### ~~8. `VoiceRecognizer` 责任过重~~ ✅ 已修复
 - **文件**: `Models/VoiceRecognizer.swift`、`Views/Game/GameView.swift`、`Views/VoiceTutorialView.swift`
-- **Branch**: `main` + `refactor`
+- **Branch**: `refactor` 分支（`main` 仍使用旧版 `@Published` 属性）
 - **问题**: VoiceRecognizer 持有 `@Published var match/flashColor/errorMessage` UI 状态
 - **改动**:
   - VoiceRecognizer 移除 `match`、`flashColor`、`errorMessage` 三个 `@Published` 属性
