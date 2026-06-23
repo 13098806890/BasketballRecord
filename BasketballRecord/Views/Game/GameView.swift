@@ -54,9 +54,15 @@ struct GameView: View {
     @State private var blinkTimer: Timer?
     @State private var highlightedLogID: UUID?
     @State private var highlightedLogDismissTask: Task<Void, Never>?
+    @State private var voiceMatchDismissTask: Task<Void, Never>?
+    @State private var voiceFlashDismissTask: Task<Void, Never>?
+    @State private var voiceErrorDismissTask: Task<Void, Never>?
     @State private var showAutoEndAlert = false
     @State private var autoEndAlertMessage = ""
     @State private var isShowingPurchase = false
+    @State private var voiceMatch: (playerID: UUID, side: TeamSide, action: StatAction)?
+    @State private var voiceFlashColor: Color?
+    @State private var voiceErrorMessage: String?
     @StateObject private var voiceRecognizer = VoiceRecognizer()
     @AppStorage("voice_locale") private var voiceLocale: String = ""
     @AppStorage("voice_matching_threshold") private var voiceMatchingThreshold: Double = 0.6
@@ -255,6 +261,19 @@ struct GameView: View {
                 if !voiceLocale.isEmpty {
                     voiceRecognizer.updateRules(for: Locale(identifier: voiceLocale))
                 }
+                voiceRecognizer.onClear = { [self] in
+                    voiceMatch = nil
+                    voiceFlashColor = nil
+                    voiceErrorMessage = nil
+                }
+                voiceRecognizer.onError = { [self] msg in
+                    voiceErrorMessage = msg
+                    clearVoiceErrorAfterDelay()
+                }
+                voiceRecognizer.onFlash = { [self] color in
+                    voiceFlashColor = color
+                    clearVoiceFlashAfterDelay()
+                }
                 voiceRecognizer.onAction = { [self] action, playerID, side in
                     guard !snapshot.isComplete else {
                         statAlertMessage = NSLocalizedString("stat_game_already_finished", comment: "")
@@ -278,6 +297,8 @@ struct GameView: View {
                     _ = submitLiveOperation(operation) {
                         self.applyRecordOperation(action: action, playerID: playerID, side: side, at: now)
                     }
+                    voiceMatch = (playerID, side, action)
+                    clearVoiceMatchAfterDelay(playerID: playerID)
                 }
                 voiceRecognizer.onDualAction = { [self] action1, pid1, side1, action2, pid2, side2 in
                     guard !snapshot.isComplete else {
@@ -314,6 +335,8 @@ struct GameView: View {
                     _ = submitLiveOperation(op1) {
                         self.applyRecordOperation(action: action1, playerID: pid1, side: side1, at: now, eventMessage: combinedMsg)
                     }
+                    voiceMatch = (pid1, side1, action1)
+                    clearVoiceMatchAfterDelay(playerID: pid1)
                 }
                 voiceRecognizer.onCommand = { [self] command in
                     switch command {
@@ -370,6 +393,9 @@ struct GameView: View {
                 scorePulseDismissTask?.cancel()
                 actionButtonPulseDismissTask?.cancel()
                 highlightedLogDismissTask?.cancel()
+                voiceMatchDismissTask?.cancel()
+                voiceFlashDismissTask?.cancel()
+                voiceErrorDismissTask?.cancel()
             })
     }
 
@@ -398,7 +424,7 @@ struct GameView: View {
         .overlay(alignment: .bottom) {
             if store.showsVoiceButton, !needsNewGameSetup {
                 VStack(spacing: 6) {
-                    if let error = voiceRecognizer.errorMessage {
+                    if let error = voiceErrorMessage {
                         Text(error)
                             .font(.caption.weight(.medium))
                             .foregroundStyle(.red)
@@ -407,7 +433,7 @@ struct GameView: View {
                             .background(.regularMaterial, in: Capsule())
                             .transition(.opacity)
                     }
-                    if let match = voiceRecognizer.match {
+                    if let match = voiceMatch {
                         Text(match.action.message)
                             .font(.caption.weight(.semibold))
                             .padding(.horizontal, 10)
@@ -425,7 +451,7 @@ struct GameView: View {
                 if voiceRecognizer.isRecording {
                     voiceWave
                         .allowsHitTesting(false)
-                } else if let color = voiceRecognizer.flashColor {
+                } else if let color = voiceFlashColor {
                     Rectangle()
                         .fill(color.opacity(0.15))
                         .ignoresSafeArea()
@@ -2644,6 +2670,42 @@ struct GameView: View {
                 withAnimation(.easeOut(duration: 0.2)) {
                     highlightedLogID = nil
                 }
+            }
+        }
+    }
+
+    private func clearVoiceFlashAfterDelay() {
+        voiceFlashDismissTask?.cancel()
+        voiceFlashDismissTask = Task {
+            try? await Task.sleep(for: .seconds(0.5))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                withAnimation(.easeOut(duration: 0.16)) {
+                    voiceFlashColor = nil
+                }
+            }
+        }
+    }
+
+    private func clearVoiceMatchAfterDelay(playerID: UUID) {
+        voiceMatchDismissTask?.cancel()
+        voiceMatchDismissTask = Task {
+            try? await Task.sleep(for: .seconds(1.5))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                guard voiceMatch?.playerID == playerID else { return }
+                voiceMatch = nil
+            }
+        }
+    }
+
+    private func clearVoiceErrorAfterDelay() {
+        voiceErrorDismissTask?.cancel()
+        voiceErrorDismissTask = Task {
+            try? await Task.sleep(for: .seconds(1.5))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                voiceErrorMessage = nil
             }
         }
     }
