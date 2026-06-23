@@ -1,0 +1,26 @@
+Basketball Journey est une application d'enregistrement de basketball pour les entraînements, les matchs informels et les scrimmages internes. Suivez rapidement les scores, les statistiques des joueurs, l'historique et les données de carrière.
+
+Fonctionnalités principales :
+
+- Score rapide et statistiques complètes : 2PT/3PT, lancers francs, rebonds, passes décisives, interceptions, contres, pertes de balle, fautes et plus ;
+- Gestion complète du match : Gestion des périodes, remplacements, arrivées tardives, fin automatique de période, pause/reprise et fin de match ;
+- Gestion des équipes et joueurs : Créez et modifiez équipes et joueurs avec avatars, numéros, taille, poids, etc. ;
+- Analyse historique et carrière : Détails par match, statistiques cumulées et moyennes par joueur, titularisations/remplacements ;
+- Résumés IA : Connectez DeepSeek, OpenAI ou Anthropic pour générer résumés, MVP et moments forts ;
+- Groupes de matchs : Organisez les matchs en groupes pour des vues filtrées ;
+- Collaboration Bluetooth : Synchronisez les scores en temps réel entre plusieurs appareils ;
+- Stockage iCloud : Synchronisez les données de match sur iCloud pour un accès multi-appareils ;
+- Import/Export : Sauvegarde, migration et restauration avec fusion de données et mapping UUID ;
+- Annuler et rétablir : Annulez ou rétablissez les opérations à tout moment ;
+
+Cas d'utilisation :
+
+- Entraînements d'équipe et scrimmages internes
+- Score rapide pour matchs informels
+- Révision de saison et suivi personnel
+
+Terms of Use:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+Privacy Policy:
+https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
