@@ -1,0 +1,9 @@
+• Riepilogo AI delle partite — genera riepiloghi AI dopo l'abbonamento
+  Nessuna chiave API necessaria. Un riepilogo per partita, fino a 10 al giorno.
+• Sistema di valutazione ELO — carriera giocatore con livelli Bronzo a Re,
+  aggiustamento Game Score e cronologia
+• Ordina giocatori — per punti totali, media, +/- o ELO
+  con ordine crescente/decrescente
+• Filtro gruppo — mostra solo i giocatori del gruppo selezionato
+• Sicurezza abbonamento — verifica legata al dispositivo via iCloud
+• Miglioramenti delle prestazioni e correzioni di bug

@@ -1,0 +1,9 @@
+• AI Game Summary — subscribe and generate AI-powered game summaries with one tap
+  No API key needed. One summary per game, up to 10 per day.
+• ELO Rating System — player career now tracks ELO with Bronze to King tiers,
+  Game Score adjustment, and per-game history
+• Player Career Sorting — sort by total points, average, plus-minus, or ELO
+  with ascending/descending toggle
+• Player Group Filter — only show players who played in the selected game group
+• Subscription Security — device-bound purchase verification via iCloud sync
+• Performance improvements and bug fixes
