@@ -990,3 +990,5 @@ Format:
 "ai_service_description" = "沒有 API Key 也沒關係！訂閱 Pro 即可免費使用 AI 總結——每天 10 次，每場比賽生成一次。配置自己的 API Key 可解鎖無限次數。";
 "alert_ai_summary_exists_title" = "已生成總結";
 "alert_ai_summary_exists_message" = "本場比賽已有 AI 總結。使用我們的服務每場比賽僅可生成一次。在設定中配置自己的 API Key 可多次生成。";
+"text_loading_products" = "正在加載訂閱選項...";
+"text_ai_pro_hint" = "你也可以在設定中配置自己的 API Key，解鎖無限次數生成。";

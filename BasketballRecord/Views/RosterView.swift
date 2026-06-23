@@ -330,6 +330,7 @@ private struct AboutDeveloperView: View {
 
 struct ProSubscriptionStoreView: View {
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var purchaseManager = PurchaseManager.shared
 
     private let features: [SettingsFeatureSection] = [
         SettingsFeatureSection(icon: "folder.fill", title: LocalizedStringKey("game_group_nav_title"), items: [
@@ -352,8 +353,12 @@ struct ProSubscriptionStoreView: View {
     var body: some View {
         let products = [PurchaseManager.shared.yearlyProduct, PurchaseManager.shared.monthlyProduct].compactMap { $0 }
         if products.isEmpty {
-            ProgressView()
-                .task { await PurchaseManager.shared.loadProducts() }
+            VStack(spacing: 12) {
+                ProgressView()
+                Text(LocalizedStringKey("text_loading_products"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         } else {
             SubscriptionStoreView(subscriptions: products) {
                 ScrollView {

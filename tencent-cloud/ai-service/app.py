@@ -59,7 +59,7 @@ def make_jwt(issuer_id, key_id, bundle_id):
     return f"{header}.{payload}.{base64.urlsafe_b64encode(sig_raw).decode().rstrip('=')}"
 
 
-def verify_transaction(tid, config, bundle_id):
+def verify_transaction(tid, config, bundle_id, client_token=""):
     token = make_jwt(config["issuer_id"], config["key_id"], bundle_id)
     for base_url in [APPLE_PRODUCTION, APPLE_SANDBOX]:
         url = f"{base_url}/inApps/v1/transactions/{tid}"
@@ -79,6 +79,9 @@ def verify_transaction(tid, config, bundle_id):
                     return False, "bundle_mismatch"
                 if info.get("expiresDate", 0) <= int(time.time() * 1000):
                     return False, "expired"
+                apple_token = info.get("appAccountToken", "")
+                if apple_token and apple_token != client_token:
+                    return False, "token_mismatch"
                 return True, "active"
         except urllib.error.HTTPError as e:
             body = e.read().decode()
@@ -135,7 +138,8 @@ def chat():
         if not tid:
             return jsonify({"error": "transactionId required"}), 400
 
-        valid, status = verify_transaction(tid, config, "com.xiedongze.BasketballRecord")
+        client_token = body.get("appAccountToken", "")
+        valid, status = verify_transaction(tid, config, "com.xiedongze.BasketballRecord", client_token)
         if not valid:
             return jsonify({"error": f"subscription {status}"}), 403
 

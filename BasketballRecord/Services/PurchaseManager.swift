@@ -14,6 +14,28 @@ final class PurchaseManager: ObservableObject {
     private var cachedTransactionIds: [UInt64] = []
     private let cachedTxKey = "cached_transaction_id"
 
+    let appAccountToken: UUID = {
+        let kvs = NSUbiquitousKeyValueStore.default
+        let ud = UserDefaults.standard
+        let kvsKey = "app_account_token"
+        let udKey = "app_account_token"
+        // Try iCloud first, then UserDefaults
+        if let saved = kvs.string(forKey: kvsKey) ?? ud.string(forKey: udKey),
+           let uuid = UUID(uuidString: saved) {
+            // Ensure it's in both stores
+            if ud.string(forKey: udKey) == nil { ud.set(uuid.uuidString, forKey: udKey) }
+            if kvs.string(forKey: kvsKey) == nil { kvs.set(uuid.uuidString, forKey: kvsKey) }
+            return uuid
+        }
+        let uuid = UUID()
+        ud.set(uuid.uuidString, forKey: udKey)
+        kvs.set(uuid.uuidString, forKey: kvsKey)
+        kvs.synchronize()
+        return uuid
+    }()
+
+
+
     var latestTransactionId: UInt64? {
         if let first = cachedTransactionIds.sorted().last { return first }
         return UserDefaults.standard.string(forKey: cachedTxKey).flatMap { UInt64($0) }
@@ -35,15 +57,32 @@ final class PurchaseManager: ObservableObject {
     deinit { updates?.cancel() }
 
     func loadProducts() async {
-        os_log(.debug, log: log, "Loading products")
-        let products = try? await Product.products(for: allProductIDs)
-        monthlyProduct = products?.first { $0.id == monthlyProductID }
-        yearlyProduct = products?.first { $0.id == yearlyProductID }
+        if monthlyProduct != nil || yearlyProduct != nil {
+            os_log(.debug, log: log, "Products already loaded, skipping")
+            return
+        }
+        os_log(.info, log: log, "Loading products")
+        let loaded = await withTaskGroup(of: [Product]?.self) { group in
+            group.addTask { try? await Product.products(for: self.allProductIDs) }
+            group.addTask {
+                try? await Task.sleep(nanoseconds: 30_000_000_000)
+                return nil
+            }
+            for await result in group {
+                if let products = result { return products }
+            }
+            return []
+        }
+        monthlyProduct = loaded.first { $0.id == monthlyProductID }
+        yearlyProduct = loaded.first { $0.id == yearlyProductID }
+        os_log(.info, log: log, "Products: monthly=%@, yearly=%@",
+              monthlyProduct != nil ? "✅" : "nil",
+              yearlyProduct != nil ? "✅" : "nil")
     }
 
     func purchase(_ product: Product) async throws {
         os_log(.info, log: log, "Purchase started: %{public}@", product.id)
-        let result = try await product.purchase()
+        let result = try await product.purchase(options: [.appAccountToken(appAccountToken)])
 
         switch result {
         case let .success(.verified(transaction)):
@@ -80,14 +119,9 @@ final class PurchaseManager: ObservableObject {
             isPro = true
         }
 
-        if !isPro, let _ = UserDefaults.standard.string(forKey: cachedTxKey), !cachedTransactionIds.isEmpty {
-            isPro = true
-        }
-
-        let old = self.isPro
         self.isPro = isPro
         UserDefaults.standard.set(isPro, forKey: "is_pro")
-        if old != isPro { os_log(.info, log: log, "Pro status: %d -> %d", old, isPro) }
+        os_log(.info, log: log, "Pro status: %d", isPro)
     }
 
     private func observeTransactionUpdates() -> Task<Void, Never> {

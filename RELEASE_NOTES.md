@@ -1,6 +1,6 @@
 # Release Notes
 
-## 1.27 (2026-06-22)
+## 1.27 (2026-06-23)
 
 ### 新增
 
@@ -8,17 +8,20 @@
 - **ELO 天梯积分系统**：球员生涯页面新增段位计算（青铜→最强王者），基于胜负、对手强度、个人 Game Score 联动调整，支持段位色徽章和积分历史查看。
 - **球员生涯筛选+排序**：支持按比赛分组筛选上场球员，按总得分/场均得分/正负值/ELO 排序（升降序切换）。
 - **AI 设置说明**：设置页新增规则说明，无 API Key 也可用。
+- **订阅安全增强**：购买时传递 `appAccountToken`（UUID），通过 iCloud Key-Value 跨设备同步；SCF 验证 Apple 签名数据中的 token，防止 transactionId 滥用。
 
 ### 架构
 
-- **App Store Server API 集成**：SCF 通过 ES256 JWT 验证订阅 transactionId，Apple 签名数据不可伪造；同时验证 bundleId、productId、过期时间、退款状态。
+- **App Store Server API 集成**：SCF 通过 ES256 JWT 验证订阅 transactionId，Apple 签名数据不可伪造；同时验证 bundleId、productId、过期时间、退款状态、appAccountToken。
 - **DeepSeek Key 零泄露**：Key 仅存在于 SCF 环境变量，App 经 SCF 代理调用 AI，用户无法直接获取 Key。
-- **PurchaseManager 重构**：减少日志量（非关键日志降为 .debug），简化状态管理，统一数据源。
+- **PurchaseManager 重构**：减少日志量（非关键日志降为 .debug），简化订阅状态管理；`loadProducts` 添加 30s 超时防止 StoreKit 挂起。
+- **AIServiceProxy 简化**：移除冗余的循环重试逻辑，单次请求直连 SCF。
 
 ### 修复
 
-- **订阅状态刷新**：`checkSubscriptionStatus` 增加 UserDefaults 缓存兜底，解决沙箱跨设备 `currentEntitlements` 为空的问题。
+- **订阅状态刷新**：`checkSubscriptionStatus` 移除过期 fallback，仅以 `Transaction.currentEntitlements` 为准。
 - **AI 按钮点击无响应**：修复非 Pro 用户按钮被禁用的问题；修复已有总结时视图不显示 alert 的问题。
+- **订阅页面加载卡死**：`ProSubscriptionStoreView` 添加 `@ObservedObject` 监听产品加载完成自动刷新；不再重复调用 `loadProducts`。
 - **GameView 编译错误**：Swift 6.2 类型检查器限制，用 `AnyView` 包裹长链 alert 修饰器。
 - **每日记录清理**：`ai_gen_records` 自动清理 7 天前记录，防止 UserDefaults 无限增长。
 

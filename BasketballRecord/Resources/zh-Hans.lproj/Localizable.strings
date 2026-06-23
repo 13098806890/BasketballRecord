@@ -992,3 +992,5 @@ Format:
 "ai_service_description" = "没有 API Key 也没关系！订阅 Pro 即可免费使用 AI 总结——每天 10 次，每场比赛生成一次。配置自己的 API Key 可解锁无限次数。";
 "alert_ai_summary_exists_title" = "已生成总结";
 "alert_ai_summary_exists_message" = "本场比赛已有 AI 总结。使用我们的服务每场比赛仅可生成一次。在设置中配置自己的 API Key 可多次生成。";
+"text_loading_products" = "正在加载订阅选项...";
+"text_ai_pro_hint" = "你也可以在设置中配置自己的 API Key，解锁无限次数生成。";

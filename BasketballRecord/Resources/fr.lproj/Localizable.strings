@@ -980,3 +980,5 @@ Format:
 "ai_service_description" = "Pas de clé API ? Pas de problème ! Abonnez-vous à Pro et profitez gratuitement des résumés IA — jusqu'à 10 par jour, un par match. Ajoutez votre propre clé API pour des résumés illimités.";
 "alert_ai_summary_exists_title" = "Déjà généré";
 "alert_ai_summary_exists_message" = "Ce match a déjà un résumé IA. Avec notre service, chaque match ne peut être généré qu'une seule fois. Ajoutez votre propre clé API dans les Réglages pour générer plusieurs fois.";
+"text_loading_products" = "Chargement des options d'abonnement...";
+"text_ai_pro_hint" = "Vous pouvez également configurer votre propre clé API dans les Réglages pour des résumés illimités.";
