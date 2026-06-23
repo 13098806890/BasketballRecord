@@ -8,6 +8,7 @@
 
 | Hash | 内容 |
 |------|------|
+| `1af4f88` | docs: update CODE_REVIEW_TODO with detailed branch/commit status and implementation plans |
 | `6d6be17` | VoiceRules JSON 数据模型 — 删除 10 个 VoiceRules_*.swift，改为 VoiceRulesData.swift 内嵌 JSON |
 | `690f258` | build 版本号 28→29 |
 | `f73ab7e` | refactor 分支创建（空基 commit） |
@@ -16,10 +17,11 @@
 **Branch 策略**:
 - `refactor` 分支从 `main` 的 `ee546d6` 创建
 - Items 1-5、8、9、15、17、18、21 的改动在 `ee546d6` + `refactor` 分支上
+- Items 6、7 仅在 `refactor` 分支（AppStore 拆分 + LiveCollaborationManager 提取）
 - Items 10、11、19 确认不处理
 - `main` 分支保持原样（不含 JSON VoiceRules 等大型重构）
 - `main_free_pro` 分支待后续同步
-- 后续完成 Item 6 和 7 后，由用户决定是否合入 `main`
+- 后续由用户决定是否合入 `main`
 
 ---
 
@@ -111,129 +113,29 @@
 - **Branch**: `main` + `refactor`
 - **改动**: 移除 `try? NSUbiquitousKeyValueStore.default`、移除 `synchronize()`
 
----
+### ~~6. `AppStore` 中度拆分~~ ✅ 已修复
+- **Branch**: `refactor` 分支（不涉及 `main`）
+- **文件**: `Services/AppStore.swift`（1451→687 行）、`Services/AppStore+Player.swift`（新增 262 行）、`Services/AppStore+Team.swift`（新增 183 行）、`Services/AppStore+Game.swift`（新增 343 行）
+- **问题**: `AppStore.swift` 单一文件 ~1430 行，职责过重
+- **改动**:
+  - 创建三个 extension 文件，按 Player/Team/Game 拆分 CRUD、合并、导入导出方法
+  - `AppStore.swift` 保留: `@Published` 属性、`init`/`load`/`save`、`safeWrite`/`safeRead`、`scheduleSave`、`dirtyKeys`/`suppressSave`、GameGroup/PlayerGroup 管理、CloudKit 同步、career stat 可见性
+  - `AppStore+Player.swift` 移入: `player(for:)`、`addPlayer`、`updatePlayer`、`deletePlayers`、`upsertPlayers`、`mergePlayer`、`importPlayerPackage`、`exportPlayerBase64` + 全部 merge 私有辅助方法
+  - `AppStore+Team.swift` 移入: `team(for:)`、`addTeam`、`updateTeam`、`deleteTeams`、`upsertTeams`、`mergeTeam`、`importTeamPackage`、`exportTeamBase64`、`exportTeam(id:...)` + 合并私有辅助方法
+  - `AppStore+Game.swift` 移入: `saveGame`、`autoSaveGame`、`latestUnfinishedGame`、`exportGameBase64`、`deleteSavedGames`、`upsertSavedGames`、`importGamePackage`、`previewGameImportDisposition`、`decodeGamePackage` + 全部 remapping/import 私有辅助方法
+  - 关键约束处理：`private` 跨文件不可见 → 将 `photoFile`/`photosDir`/`saveDeletedCloudGameIDs`/`deletedCloudGameIDs` 改为 internal（移除 `private`），其余私有辅助方法随调用方迁移到各自 extension 文件
 
-## 🟡 代码质量与可维护性（待完成）
-
-### 6. `AppStore` 中度拆分
-- **文件**: `Services/AppStore.swift`（~1430 行）
-- **Branch**: `refactor` 分支（新会话处理）
-- **方案**: 创建三个 extension 文件拆分 CRUD 方法：
-
-  **`Services/AppStore+Player.swift`**:
-  ```
-  移入方法:
-  - player(for:) -> Player?
-  - addPlayer(_:)
-  - updatePlayer(_:)
-  - deletePlayers(at:)
-  - upsertPlayers(_:) -> PlayerUpsertSummary
-  - mergePlayer(sourceID:into:) -> PlayerMergeSummary?
-  - importPlayerPackage(_:) -> PlayerImportSummary
-  - exportPlayerBase64(_:) -> String?
-  
-  相关私有辅助方法:
-  - photoFile(for:) (URL 计算)
-  - photosDir (目录计算)
-  ```
-  
-  **`Services/AppStore+Team.swift`**:
-  ```
-  移入方法:
-  - team(for:) -> Team?
-  - addTeam(_:)
-  - updateTeam(_:)
-  - deleteTeams(at:)
-  - upsertTeams(_:) -> TeamUpsertSummary
-  - mergeTeam(sourceID:into:) -> TeamMergeSummary?
-  - importTeamPackage(_:) -> TeamImportSummary
-  - exportTeamBase64(_:) -> String?
-  - exportTeam(id:fallbackName:playerIDs:) -> ExportTeam?
-  ```
-  
-  **`Services/AppStore+Game.swift`**:
-  ```
-  移入方法:
-  - buildSavedGame(id:snapshot:savedAt:) -> SavedGame
-  - saveGame(_:)
-  - autoSaveGame(_:gameID:undoSnapshots:) -> UUID
-  - upsertSavedGames(_:) -> SavedGameUpsertSummary
-  - deleteSavedGames(at:)
-  - deleteSavedGames(ids:)
-  - saveIfNeeded()
-  - latestUnfinishedGame() -> SavedGame?
-  - exportGameBase64(_:) -> String?
-  - importGamePackage(_:playerMapping:teamMapping:importsUnmatchedRoster:) -> GameImportDisposition
-  - previewGameImportDisposition(...)
-  - decodeGamePackage(from:) -> ExportedGamePackage?
-  - remappedGame(...)
-  - remappedSnapshot(...)
-  - gameContainsPlayer(...)
-  - gameContainsTeam(...)
-  - upsertImportedGame(...)
-  - gameImportDisposition(for:)
-  - inferredPlayerIDMap(...)
-  - inferredTeamIDMap(...)
-  - isLikelyDuplicateGame(_,_)
-  - dedupedPlayerIDs(primary:fallback:)
-  - remapDictionary(_:using:)
-  - dedupedIDs(_:)
-  ```
-  
-  **注意**: 
-  - `AppStore.swift` 保留: `@Published` 属性、`init`、`save()`/`load()`、`scheduleSave()`、`safeWrite`/`safeRead`、`dirtyKeys`/`suppressSave`、分组管理方法（GameGroup/PlayerGroup）、CloudKit 同步、`StrippedForTransfer`
-  - 所有方法都在同一个 `AppStore` class 上，extension 可访问 private 成员，只需将 `private` 改为 `fileprivate` 或保持 `private`（Swift extension 在同一文件内可访问 private，跨文件不可——需要改用 `fileprivate` 或将辅助方法留在主文件）
-  - **关键约束**: `private` 方法在跨文件 extension 中不可见。需要将某些辅助方法改为 `fileprivate`，或留在主 `AppStore.swift` 中
-
-### 7. `GameView` 提取 LiveCollaborationManager
-- **文件**: `Views/Game/GameView.swift`（~3000 行）
-- **Branch**: `refactor` 分支（新会话处理）
-- **方案**: 提取蓝牙直播协作状态和操作到独立的 `LiveCollaborationManager` 类
-
-  **新建 `Services/LiveCollaborationManager.swift`**:
-  ```
-  属性:
-  - activeLiveSessionID: UUID?
-  - liveRole: LiveCollaborationRole?  (enum: host/participant)
-  - liveVersion: Int
-  - liveStateHash: String
-  - liveHostPeerName: String?
-  - liveHostPeerID: MCPeerID?
-  - liveParticipantNames: Set<String>
-  - localLiveOpSeq: Int
-  - liveCommitHistory: [BluetoothLiveOpCommitPayload]
-  - peerAckVersionByDeviceID: [String: Int]
-  - isApplyingRemoteSnapshot: Bool
-  
-  方法:
-  - sendLiveInvite(to:)
-  - handleInviteResponse(_:)
-  - applyRemoteLiveSnapshot(_:)
-  - applyAuthoritativeState(_:version:hash:)
-  - sendAuthoritativeSnapshot(reason:to:)
-  - requestLiveResync(reason:)
-  - handleIncomingLiveOpRequest(_:)
-  - handleIncomingLiveOpCommit(_:)
-  - handleIncomingLiveOpAck(_:)
-  - handleIncomingResyncRequest(_:)
-  - submitLiveOperation(_:applyLocal:) -> Bool
-  - applyLiveOperationPayload(_:) -> Bool
-  - buildLiveStatePayload() -> BluetoothLiveGameStatePayload
-  - stateHash(for:) -> String
-  - snapshotForLiveSync(_:) -> GameSnapshot
-  - snapshotForLocalClock(fromRemote:) -> GameSnapshot
-  
-  回调:
-  - onStateChanged: ((GameSnapshot, undoStack: [GameSnapshot], redo: [GameSnapshot], gameID: UUID?) -> Void)?
-  - onError: ((String) -> Void)?
-  - onInviteResponseNeeded: ((BluetoothReceivedInviteResponse) -> Void)?
-  ```
-
-  **GameView 改动**:
-  - `@StateObject private var liveManager = LiveCollaborationManager()`
-  - 在 `onAppear` 中设置 `liveManager` 回调
-  - 移除所有 live collaboration 的 `@State` 属性和方法（约 600 行）
-  - GameView 只保留 UI 渲染、用户交互回调、和 `liveManager` 的调用
+### ~~7. `GameView` 提取 LiveCollaborationManager~~ ✅ 已修复
+- **Branch**: `refactor` 分支（不涉及 `main`）
+- **文件**: `Views/Game/GameView.swift`（3081→2731 行）、`Services/LiveCollaborationManager.swift`（新增 401 行）
+- **问题**: `GameView.swift` ~3000 行，蓝牙直播协作状态和协议处理高度耦合
+- **改动**:
+  - 新建 `LiveCollaborationManager: ObservableObject`，持有所有直播状态属性和协议方法
+  - GameView 以 `@StateObject private var liveManager` 持有实例
+  - `onAppear` 中设置回调闭包：`onBuildStatePayload`、`onApplyOperation`、`onStateChanged`、`onAlert`
+  - 移除 GameView 中 ~12 个 `@State` 属性和 ~17 个私有方法（约 350 行）
+  - `applyResetGameOperation`/`startNewGame` 改为调用 `liveManager.resetSession()`
+  - `collaborationStatus`、`.onChange` 处理器等全部转发到 `liveManager`
 
 ---
 
