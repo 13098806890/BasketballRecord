@@ -15,18 +15,16 @@ final class PurchaseManager: ObservableObject {
 
     let appAccountToken: UUID = {
         let ud = UserDefaults.standard
-        let kvs = try? NSUbiquitousKeyValueStore.default
+        let kvs = NSUbiquitousKeyValueStore.default
         let key = "app_account_token"
-        // Try iCloud first (cross-device), then UserDefaults
-        let saved = kvs?.string(forKey: key) ?? ud.string(forKey: key)
+        let saved = kvs.string(forKey: key) ?? ud.string(forKey: key)
         if let s = saved, let uuid = UUID(uuidString: s) {
             if ud.string(forKey: key) == nil { ud.set(uuid.uuidString, forKey: key) }
             return uuid
         }
         let uuid = UUID()
         ud.set(uuid.uuidString, forKey: key)
-        kvs?.set(uuid.uuidString, forKey: key)
-        kvs?.synchronize()
+        kvs.set(uuid.uuidString, forKey: key)
         return uuid
     }()
 
@@ -42,7 +40,10 @@ final class PurchaseManager: ObservableObject {
     init() {
         isPro = UserDefaults.standard.bool(forKey: "is_pro")
         updates = observeTransactionUpdates()
-        Task { await loadProducts(); await checkSubscriptionStatus() }
+        Task {
+            await checkSubscriptionStatus()
+            await loadProducts()
+        }
     }
 
     deinit { updates?.cancel() }
@@ -88,19 +89,21 @@ final class PurchaseManager: ObservableObject {
 
     func checkSubscriptionStatus() async {
         os_log(.debug, log: log, "Checking subscription status")
-        var isPro = false
+        var foundPro = false
 
         for await result in Transaction.currentEntitlements {
             guard case let .verified(t) = result,
                   allProductIDs.contains(t.productID),
                   t.revocationDate == nil,
                   t.expirationDate.map({ $0 > Date() }) ?? true else { continue }
-            isPro = true
+            foundPro = true
         }
 
-        self.isPro = isPro
-        UserDefaults.standard.set(isPro, forKey: "is_pro")
-        os_log(.info, log: log, "Pro status: %d", isPro)
+        if foundPro != isPro {
+            isPro = foundPro
+        }
+        UserDefaults.standard.set(foundPro, forKey: "is_pro")
+        os_log(.info, log: log, "Pro status: %d", foundPro)
     }
 
     private func observeTransactionUpdates() -> Task<Void, Never> {

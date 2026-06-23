@@ -183,6 +183,7 @@ final class AppStore: ObservableObject {
 
     private let storageKey = "basketball-record-store-v1"
     private var saveTask: Task<Void, Never>?
+    private var saveGeneration = 0
     private let saveDebounceNanoseconds: UInt64 = 500_000_000
     private var cancellables = Set<AnyCancellable>()
     let coreDataStore = CoreDataStore()
@@ -812,55 +813,60 @@ final class AppStore: ObservableObject {
     }
 
     private func safeWrite<T: Encodable>(_ value: T, forKey key: String) {
-        var valueToEncode = value
-        // If it's a game with excessive undo snapshots, trim them first
+        let data: Data
         if key.hasPrefix("game_"), var game = value as? SavedGame {
-            let trimmedUndo = game.undoSnapshots.count > 30
-            let trimmedPrev = game.previousSnapshot != nil
-            if trimmedUndo { game.undoSnapshots = Array(game.undoSnapshots.suffix(30)) }
-            if trimmedPrev { game.previousSnapshot = nil }
-            if trimmedUndo || trimmedPrev { valueToEncode = game as! T }
+            if game.undoSnapshots.count > 30 {
+                game.undoSnapshots = Array(game.undoSnapshots.suffix(30))
+            }
+            game.previousSnapshot = nil
+            guard let encoded = try? JSONEncoder().encode(game) else {
+                print("[Storage] Failed to encode game for \(key)")
+                return
+            }
+            data = encoded
+        } else {
+            guard let encoded = try? JSONEncoder().encode(value) else {
+                print("[Storage] Failed to encode \(key)")
+                return
+            }
+            data = encoded
         }
-        guard let data = try? JSONEncoder().encode(valueToEncode) else {
-            print("[Storage] Failed to encode \(key)")
-            return
-        }
-        print("[Storage] Writing \(key): \(data.count) bytes")
 
+        print("[Storage] Writing \(key): \(data.count) bytes")
         if data.count >= 3_000_000 {
             let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
                 .appendingPathComponent("\(key).json")
             try? data.write(to: fileURL, options: .atomic)
             print("[Storage] Wrote \(key) to file instead of UserDefaults")
-            return
+        } else {
+            UserDefaults.standard.set(data, forKey: key)
+            print("[Storage] Wrote \(key) to UserDefaults OK")
         }
-        UserDefaults.standard.set(data, forKey: key)
-        print("[Storage] Wrote \(key) to UserDefaults OK")
     }
 
     private func safeRead<T: Decodable>(_ type: T.Type, forKey key: String) -> T? {
-        if let data = UserDefaults.standard.data(forKey: key) {
-            if let value = try? JSONDecoder().decode(type, from: data) {
-                return value
+        let data = readRawData(forKey: key)
+        guard let data else { return nil }
+
+        if key.hasPrefix("game_"), var game = try? JSONDecoder().decode(SavedGame.self, from: data) {
+            if game.undoSnapshots.count > 30 {
+                print("[Storage] Trimming undo stack on load: \(game.undoSnapshots.count) -> 30")
+                game.undoSnapshots = Array(game.undoSnapshots.suffix(30))
             }
+            game.previousSnapshot = nil
+            return game as? T
         }
-        // Fallback: try file
+
+        return try? JSONDecoder().decode(type, from: data)
+    }
+
+    private func readRawData(forKey key: String) -> Data? {
+        if let data = UserDefaults.standard.data(forKey: key) {
+            return data
+        }
         let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
             .appendingPathComponent("\(key).json")
-        if let data = try? Data(contentsOf: fileURL),
-           let value = try? JSONDecoder().decode(type, from: data) {
-            // Trim oversized game on load
-            if key.hasPrefix("game_"), var game = value as? SavedGame {
-                if game.undoSnapshots.count > 30 {
-                    print("[Storage] Trimming undo stack on load: \(game.undoSnapshots.count) -> 30")
-                    game.undoSnapshots = Array(game.undoSnapshots.suffix(30))
-                }
-                game.previousSnapshot = nil
-                return game as? T
-            }
-            return value
-        }
-        return nil
+        return try? Data(contentsOf: fileURL)
     }
 
     func saveIfNeeded() {
@@ -943,6 +949,8 @@ final class AppStore: ObservableObject {
 
     private func scheduleSave() {
         saveTask?.cancel()
+        saveGeneration += 1
+        let gen = saveGeneration
         saveTask = Task { [weak self] in
             guard let self else { return }
             do {
@@ -950,8 +958,10 @@ final class AppStore: ObservableObject {
             } catch {
                 return
             }
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled, saveGeneration == gen else { return }
             save()
+            guard !Task.isCancelled, saveGeneration == gen else { return }
+            dirtyKeys = []
         }
     }
 
@@ -1305,11 +1315,19 @@ final class AppStore: ObservableObject {
         total.freeThrowMade += rhs.freeThrowMade
         total.freeThrowAttempts += rhs.freeThrowAttempts
         total.rebounds += rhs.rebounds
+        total.offensiveRebounds += rhs.offensiveRebounds
+        total.defensiveRebounds += rhs.defensiveRebounds
         total.assists += rhs.assists
         total.fouls += rhs.fouls
         total.blocks += rhs.blocks
         total.steals += rhs.steals
         total.turnovers += rhs.turnovers
+        total.layupMade += rhs.layupMade
+        total.layupAttempts += rhs.layupAttempts
+        total.midRangeMade += rhs.midRangeMade
+        total.midRangeAttempts += rhs.midRangeAttempts
+        total.paintMade += rhs.paintMade
+        total.paintAttempts += rhs.paintAttempts
         return total
     }
 

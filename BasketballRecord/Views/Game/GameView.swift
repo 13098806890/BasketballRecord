@@ -2834,10 +2834,12 @@ struct GameView: View {
             return true
 
         case "event.period_start":
-            // Revert starting a period: period was ended, just mark it not running
+            let now = Date()
+            closeActiveStints(at: now)
+            closeMatchClock(at: now)
+            closePeriodClock(at: now)
             snapshot.periodIsRunning = false
-            snapshot.periodElapsedSeconds = 0
-            snapshot.periodActiveSince = nil
+            snapshot.isPaused = false
             return true
 
         case "event.period_end":

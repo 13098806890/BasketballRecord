@@ -18,6 +18,7 @@ enum AIServiceProxyError: LocalizedError {
     }
 }
 
+@MainActor
 struct AIServiceProxy {
     static func chat(messages: [[String: String]], systemPrompt: String, temperature: Double, maxTokens: Int) async throws -> String {
         os_log(.info, log: aiLog, "AI chat started")
