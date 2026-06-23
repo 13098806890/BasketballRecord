@@ -52,17 +52,7 @@ final class PurchaseManager: ObservableObject {
         isLoadingProducts = true
         defer { isLoadingProducts = false }
         os_log(.info, log: log, "Loading products")
-        let loaded = await withTaskGroup(of: [Product]?.self) { group in
-            group.addTask { try? await Product.products(for: self.allProductIDs) }
-            group.addTask {
-                try? await Task.sleep(nanoseconds: 30_000_000_000)
-                return nil
-            }
-            for await result in group {
-                if let products = result { return products }
-            }
-            return []
-        }
+        let loaded = (try? await Product.products(for: allProductIDs)) ?? []
         monthlyProduct = loaded.first { $0.id == monthlyProductID }
         yearlyProduct = loaded.first { $0.id == yearlyProductID }
         os_log(.info, log: log, "Products: monthly=%@, yearly=%@",

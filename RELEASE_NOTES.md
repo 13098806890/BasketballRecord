@@ -5,7 +5,7 @@
 ### 架构
 
 - **代码结构优化**：`RosterView`（2200→1140 行）、`VoiceTutorialView`（1880→692 行）拆分为独立文件，提升可维护性。
-- **PurchaseManager 简化**：移除 `cachedTransactionIds` 数组和 `latestTransactionId`，订阅状态仅依赖 `Transaction.currentEntitlements`；`loadProducts` 添加 `isLoadingProducts` 防并发。
+- **PurchaseManager 简化**：移除所有缓存兜底，订阅状态仅依赖 `Transaction.currentEntitlements`；`loadProducts` 添加 `isLoadingProducts` 防并发；去掉超时逻辑，StoreKit 调用保持原始行为。
 - **AIServiceProxy 简化**：移除缓存兜底，仅从 `currentEntitlements` 获取 transactionId。
 - **SCF 服务端限流**：每 transactionId 每天 10 次上限，每日自动清理计数；支持 `environment` 参数指定沙箱/生产环境，避免无谓的 10s 超时。
 
