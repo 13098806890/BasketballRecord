@@ -33,18 +33,8 @@ struct GameView: View {
     @State private var statAlertMessage: String?
     @State private var simulationAlertMessage: String?
     @State private var collaborationAlertMessage: String?
+    @StateObject private var liveManager = LiveCollaborationManager()
     @State private var isSimulating = false
-    @State private var activeLiveSessionID: UUID?
-    @State private var liveRole: LiveCollaborationRole?
-    @State private var liveVersion = 0
-    @State private var liveStateHash = ""
-    @State private var liveHostPeerName: String?
-    @State private var liveHostPeerID: MCPeerID?
-    @State private var liveParticipantNames: Set<String> = []
-    @State private var localLiveOpSeq = 0
-    @State private var liveCommitHistory: [BluetoothLiveOpCommitPayload] = []
-    @State private var peerAckVersionByDeviceID: [String: Int] = [:]
-    @State private var isApplyingRemoteSnapshot = false
     @State private var clockNow = Date()
     @State private var scorePulseSide: TeamSide?
     @State private var scorePulseDismissTask: Task<Void, Never>?
@@ -54,9 +44,15 @@ struct GameView: View {
     @State private var blinkTimer: Timer?
     @State private var highlightedLogID: UUID?
     @State private var highlightedLogDismissTask: Task<Void, Never>?
+    @State private var voiceMatchDismissTask: Task<Void, Never>?
+    @State private var voiceFlashDismissTask: Task<Void, Never>?
+    @State private var voiceErrorDismissTask: Task<Void, Never>?
     @State private var showAutoEndAlert = false
     @State private var autoEndAlertMessage = ""
     @State private var isShowingPurchase = false
+    @State private var voiceMatch: (playerID: UUID, side: TeamSide, action: StatAction)?
+    @State private var voiceFlashColor: Color?
+    @State private var voiceErrorMessage: String?
     @StateObject private var voiceRecognizer = VoiceRecognizer()
     @AppStorage("voice_locale") private var voiceLocale: String = ""
     @AppStorage("voice_matching_threshold") private var voiceMatchingThreshold: Double = 0.6
@@ -249,11 +245,49 @@ struct GameView: View {
                     checkAndAutoEndPeriod()
                 }
             }
-            .onAppear {
+            .onAppear { [self] in
+                liveManager.bluetooth = bluetooth
+                liveManager.store = store
+                liveManager.onBuildStatePayload = { [self] in
+                    (snapshot, undoStack, currentGameRecordID)
+                }
+                liveManager.onApplyOperation = { [self] payload in
+                    applyLiveOperationPayload(payload)
+                }
+                liveManager.onStateChanged = { [self] snapshot, undoStack, redo, gameID in
+                    self.snapshot = snapshot
+                    self.undoStack = undoStack
+                    self.redoStack = redo
+                    self.currentGameRecordID = gameID
+                    trimInvalidLineups()
+                    ensureSelectedPlayer()
+                    autoSaveCurrentGame()
+                    let currentLogID = self.snapshot.logs.last?.id
+                    if let previousLogID = self.snapshot.logs.dropLast().last?.id,
+                       currentLogID != previousLogID, let currentLogID {
+                        highlightLatestLog(currentLogID)
+                    }
+                }
+                liveManager.onAlert = { [self] message in
+                    collaborationAlertMessage = message
+                }
                 voiceRecognizer.configure(store: store)
                 voiceRecognizer.matchingThreshold = voiceMatchingThreshold
                 if !voiceLocale.isEmpty {
                     voiceRecognizer.updateRules(for: Locale(identifier: voiceLocale))
+                }
+                voiceRecognizer.onClear = { [self] in
+                    voiceMatch = nil
+                    voiceFlashColor = nil
+                    voiceErrorMessage = nil
+                }
+                voiceRecognizer.onError = { [self] msg in
+                    voiceErrorMessage = msg
+                    clearVoiceErrorAfterDelay()
+                }
+                voiceRecognizer.onFlash = { [self] color in
+                    voiceFlashColor = color
+                    clearVoiceFlashAfterDelay()
                 }
                 voiceRecognizer.onAction = { [self] action, playerID, side in
                     guard !snapshot.isComplete else {
@@ -275,9 +309,11 @@ struct GameView: View {
                         side: side.liveSide,
                         at: now
                     )
-                    _ = submitLiveOperation(operation) {
+                    _ = liveManager.submitLiveOperation(operation) {
                         self.applyRecordOperation(action: action, playerID: playerID, side: side, at: now)
                     }
+                    voiceMatch = (playerID, side, action)
+                    clearVoiceMatchAfterDelay(playerID: playerID)
                 }
                 voiceRecognizer.onDualAction = { [self] action1, pid1, side1, action2, pid2, side2 in
                     guard !snapshot.isComplete else {
@@ -308,12 +344,14 @@ struct GameView: View {
                     let op2 = BluetoothLiveOperationPayload.record(
                         action: action2.liveAction, playerID: pid2, side: side2.liveSide, at: now
                     )
-                    _ = submitLiveOperation(op2) {
+                    _ = liveManager.submitLiveOperation(op2) {
                         self.applyRecordOperation(action: action2, playerID: pid2, side: side2, at: now, eventMessage: "")
                     }
-                    _ = submitLiveOperation(op1) {
+                    _ = liveManager.submitLiveOperation(op1) {
                         self.applyRecordOperation(action: action1, playerID: pid1, side: side1, at: now, eventMessage: combinedMsg)
                     }
+                    voiceMatch = (pid1, side1, action1)
+                    clearVoiceMatchAfterDelay(playerID: pid1)
                 }
                 voiceRecognizer.onCommand = { [self] command in
                     switch command {
@@ -325,7 +363,7 @@ struct GameView: View {
                 }
                 voiceRecognizer.onSubstitution = { [self] side, outgoingID, incomingID in
                     let now = Date()
-                    _ = submitLiveOperation(.substitution(outgoingPlayerID: outgoingID, incomingPlayerID: incomingID, side: side.liveSide, at: now)) {
+                    _ = liveManager.submitLiveOperation(.substitution(outgoingPlayerID: outgoingID, incomingPlayerID: incomingID, side: side.liveSide, at: now)) {
                         applySubstitutionOperation(outgoingPlayerID: outgoingID, incomingPlayerID: incomingID, side: side, at: now)
                     }
                 }
@@ -335,7 +373,7 @@ struct GameView: View {
             }
             .onChange(of: bluetooth.latestLiveSnapshot?.id) { _, _ in
                 guard let incoming = bluetooth.latestLiveSnapshot else { return }
-                applyRemoteLiveSnapshot(incoming)
+                liveManager.applyRemoteLiveSnapshot(incoming)
             }
             .onChange(of: voiceLocale) { _, newValue in
                 voiceRecognizer.updateRules(for: Locale(identifier: newValue.isEmpty ? "en" : newValue))
@@ -345,23 +383,23 @@ struct GameView: View {
             }
             .onChange(of: bluetooth.latestInviteResponse?.id) { _, _ in
                 guard let response = bluetooth.latestInviteResponse else { return }
-                handleInviteResponse(response)
+                liveManager.handleInviteResponse(response)
             }
             .onChange(of: bluetooth.pendingLiveOpRequest?.id) { _, _ in
                 guard let request = bluetooth.pendingLiveOpRequest else { return }
-                handleIncomingLiveOpRequest(request)
+                liveManager.handleIncomingLiveOpRequest(request)
             }
             .onChange(of: bluetooth.latestLiveOpCommit?.id) { _, _ in
                 guard let commit = bluetooth.latestLiveOpCommit else { return }
-                handleIncomingLiveOpCommit(commit)
+                liveManager.handleIncomingLiveOpCommit(commit)
             }
             .onChange(of: bluetooth.latestLiveOpAck?.id) { _, _ in
                 guard let ack = bluetooth.latestLiveOpAck else { return }
-                handleIncomingLiveOpAck(ack)
+                liveManager.handleIncomingLiveOpAck(ack)
             }
             .onChange(of: bluetooth.latestLiveResyncRequest?.id) { _, _ in
                 guard let request = bluetooth.latestLiveResyncRequest else { return }
-                handleIncomingResyncRequest(request)
+                liveManager.handleIncomingResyncRequest(request)
             }
             .onChange(of: store.teams) { _, _ in ensureInitialSelection() }
             .onChange(of: substitutionSide) { _, _ in prepareSubstitutionDefaults() }
@@ -370,6 +408,9 @@ struct GameView: View {
                 scorePulseDismissTask?.cancel()
                 actionButtonPulseDismissTask?.cancel()
                 highlightedLogDismissTask?.cancel()
+                voiceMatchDismissTask?.cancel()
+                voiceFlashDismissTask?.cancel()
+                voiceErrorDismissTask?.cancel()
             })
     }
 
@@ -398,7 +439,7 @@ struct GameView: View {
         .overlay(alignment: .bottom) {
             if store.showsVoiceButton, !needsNewGameSetup {
                 VStack(spacing: 6) {
-                    if let error = voiceRecognizer.errorMessage {
+                    if let error = voiceErrorMessage {
                         Text(error)
                             .font(.caption.weight(.medium))
                             .foregroundStyle(.red)
@@ -407,7 +448,7 @@ struct GameView: View {
                             .background(.regularMaterial, in: Capsule())
                             .transition(.opacity)
                     }
-                    if let match = voiceRecognizer.match {
+                    if let match = voiceMatch {
                         Text(match.action.message)
                             .font(.caption.weight(.semibold))
                             .padding(.horizontal, 10)
@@ -425,7 +466,7 @@ struct GameView: View {
                 if voiceRecognizer.isRecording {
                     voiceWave
                         .allowsHitTesting(false)
-                } else if let color = voiceRecognizer.flashColor {
+                } else if let color = voiceFlashColor {
                     Rectangle()
                         .fill(color.opacity(0.15))
                         .ignoresSafeArea()
@@ -586,8 +627,8 @@ struct GameView: View {
     }
 
     private var collaborationStatus: (message: String, isDisconnected: Bool)? {
-        guard let role = liveRole,
-              activeLiveSessionID != nil else {
+        guard let role = liveManager.liveRole,
+              liveManager.activeLiveSessionID != nil else {
             return nil
         }
 
@@ -603,7 +644,7 @@ struct GameView: View {
 
         switch role {
         case .participant:
-            guard let hostName = liveHostPeerName, !hostName.isEmpty else {
+            guard let hostName = liveManager.liveHostPeerName, !hostName.isEmpty else {
                 return (String(format: NSLocalizedString("collab_status_participant_waiting_host", comment: "participant waiting host status"), roleLabel), false)
             }
             if connectedPeerNames.contains(hostName) {
@@ -612,7 +653,7 @@ struct GameView: View {
             return (String(format: NSLocalizedString("collab_status_participant_host_disconnected", comment: "participant host disconnected"), roleLabel, hostName), true)
 
         case .host:
-            let knownParticipants = liveParticipantNames.sorted()
+            let knownParticipants = liveManager.liveParticipantNames.sorted()
             guard !knownParticipants.isEmpty else {
                 return (String(format: NSLocalizedString("collab_status_host_waiting_for_participants", comment: "host waiting for participants"), roleLabel), false)
             }
@@ -1297,7 +1338,7 @@ struct GameView: View {
             side: selectedSide.liveSide,
             at: now
         )
-        let changed = submitLiveOperation(operation) {
+        let changed = liveManager.submitLiveOperation(operation) {
             applyRecordOperation(action: action, playerID: pid, side: selectedSide, at: now)
         }
         if changed {
@@ -1392,354 +1433,7 @@ struct GameView: View {
             return
         }
 
-        sendLiveInvite(to: bluetooth.connectedPeers)
-    }
-
-    private func sendLiveInvite(to peers: [MCPeerID]) {
-        let payload = buildLiveStatePayload()
-        liveVersion = 0
-        liveStateHash = stateHash(for: payload)
-        liveRole = .host
-        liveHostPeerName = nil
-        liveHostPeerID = nil
-        liveParticipantNames.removeAll()
-        localLiveOpSeq = 0
-        liveCommitHistory.removeAll()
-        peerAckVersionByDeviceID.removeAll()
-
-        guard let sessionID = bluetooth.sendLiveInvite(
-            players: store.players,
-            teams: store.teams,
-            state: payload,
-            stateVersion: liveVersion,
-            stateHash: liveStateHash,
-            to: peers
-        ) else {
-            collaborationAlertMessage = NSLocalizedString("collab_invite_send_failed", comment: "Invite send failed message")
-            return
-        }
-
-        activeLiveSessionID = sessionID
-        collaborationAlertMessage = NSLocalizedString("collab_invite_sent_waiting", comment: "Invite sent, waiting message")
-    }
-
-    private func handleInviteResponse(_ response: BluetoothReceivedInviteResponse) {
-        guard response.payload.sessionID == activeLiveSessionID else { return }
-        if response.payload.accepted {
-            bluetooth.noteAcceptedLiveSession(sessionID: response.payload.sessionID, with: response.fromPeerName)
-            liveParticipantNames.insert(response.fromPeerName)
-            sendAuthoritativeSnapshot(reason: "New device joined")
-        } else {
-            liveParticipantNames.remove(response.fromPeerName)
-        }
-    }
-
-    private func applyRemoteLiveSnapshot(_ incoming: BluetoothReceivedLiveSnapshot) {
-        let isNewSession = activeLiveSessionID != incoming.payload.sessionID
-        let needsParticipantBootstrap = liveRole != .participant
-        if isNewSession || needsParticipantBootstrap {
-            activeLiveSessionID = incoming.payload.sessionID
-            liveRole = .participant
-            liveParticipantNames.removeAll()
-            localLiveOpSeq = 0
-            liveCommitHistory.removeAll()
-            peerAckVersionByDeviceID.removeAll()
-        }
-        guard incoming.payload.sessionID == activeLiveSessionID else { return }
-        liveHostPeerName = incoming.fromPeerName
-        liveHostPeerID = incoming.fromPeerID
-        bluetooth.noteAcceptedLiveSession(sessionID: incoming.payload.sessionID, with: incoming.fromPeerName)
-        applyAuthoritativeState(
-            incoming.payload.state,
-            version: incoming.payload.version,
-            hash: incoming.payload.stateHash
-        )
-    }
-
-    private func applyAuthoritativeState(_ state: BluetoothLiveGameStatePayload, version: Int, hash: String) {
-        let previousLastLogID = snapshot.logs.last?.id
-
-        isApplyingRemoteSnapshot = true
-        defer { isApplyingRemoteSnapshot = false }
-
-        currentGameRecordID = state.gameID
-        undoStack = state.undoSnapshots
-        redoStack.removeAll()
-        snapshot = snapshotForLocalClock(fromRemote: state.snapshot)
-        trimInvalidLineups()
-        ensureSelectedPlayer()
-        autoSaveCurrentGame()
-        liveVersion = version
-        liveStateHash = hash
-
-        if let latestLogID = snapshot.logs.last?.id,
-           latestLogID != previousLastLogID {
-            highlightLatestLog(latestLogID)
-        }
-    }
-
-    private func snapshotForLiveSync(_ source: GameSnapshot) -> GameSnapshot {
-        var synced = source
-        let now = Date()
-
-        if synced.periodIsRunning && !synced.isPaused && !synced.isComplete {
-            if let activeSince = synced.matchActiveSince {
-                synced.matchElapsedSeconds += max(0, now.timeIntervalSince(activeSince))
-            }
-            synced.matchActiveSince = now
-
-            if let activeSince = synced.periodActiveSince {
-                synced.periodElapsedSeconds += max(0, now.timeIntervalSince(activeSince))
-            }
-            synced.periodActiveSince = now
-
-            for (playerID, startedAt) in synced.activeSinceByPlayerID {
-                synced.playingSecondsByPlayerID[playerID, default: 0] += max(0, now.timeIntervalSince(startedAt))
-            }
-
-            let onCourtIDs = unique(synced.homeOnCourtPlayerIDs + synced.awayOnCourtPlayerIDs)
-            synced.activeSinceByPlayerID = Dictionary(uniqueKeysWithValues: onCourtIDs.map { ($0, now) })
-        } else {
-            synced.matchActiveSince = nil
-            synced.periodActiveSince = nil
-            synced.activeSinceByPlayerID = [:]
-        }
-
-        return synced
-    }
-
-    private func snapshotForLocalClock(fromRemote source: GameSnapshot) -> GameSnapshot {
-        var adjusted = source
-        let now = Date()
-
-        if adjusted.periodIsRunning && !adjusted.isPaused && !adjusted.isComplete {
-            adjusted.matchActiveSince = now
-            adjusted.periodActiveSince = now
-            let onCourtIDs = unique(adjusted.homeOnCourtPlayerIDs + adjusted.awayOnCourtPlayerIDs)
-            adjusted.activeSinceByPlayerID = Dictionary(uniqueKeysWithValues: onCourtIDs.map { ($0, now) })
-        } else {
-            adjusted.matchActiveSince = nil
-            adjusted.periodActiveSince = nil
-            adjusted.activeSinceByPlayerID = [:]
-        }
-
-        return adjusted
-    }
-
-    private func buildLiveStatePayload() -> BluetoothLiveGameStatePayload {
-        BluetoothLiveGameStatePayload(
-            gameID: currentGameRecordID,
-            snapshot: snapshotForLiveSync(snapshot),
-            undoSnapshots: undoStack
-        )
-    }
-
-    private func stateHash(for payload: BluetoothLiveGameStatePayload) -> String {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.sortedKeys]
-        guard let data = try? encoder.encode(payload) else { return "" }
-        let digest = SHA256.hash(data: data)
-        return digest.map { String(format: "%02x", $0) }.joined()
-    }
-
-    private func sendAuthoritativeSnapshot(reason: String, to peers: [MCPeerID]? = nil) {
-        guard liveRole == .host,
-              let sessionID = activeLiveSessionID else {
-            return
-        }
-
-        let payload = buildLiveStatePayload()
-        liveStateHash = stateHash(for: payload)
-        bluetooth.sendLiveSnapshot(
-            sessionID: sessionID,
-            state: payload,
-            version: liveVersion,
-            stateHash: liveStateHash,
-            reason: reason,
-            to: peers
-        )
-    }
-
-    private func requestLiveResync(reason: String) {
-        guard let sessionID = activeLiveSessionID else { return }
-        bluetooth.sendLiveResyncRequest(
-            sessionID: sessionID,
-            expectedVersion: liveVersion,
-            reason: reason,
-            to: liveHostPeerID
-        )
-    }
-
-    private func handleIncomingLiveOpRequest(_ incoming: BluetoothReceivedLiveOpRequest) {
-        bluetooth.clearPendingLiveOpRequest()
-        guard liveRole == .host,
-              let sessionID = activeLiveSessionID,
-              incoming.payload.sessionID == sessionID else {
-            return
-        }
-
-        liveParticipantNames.insert(incoming.fromPeerName)
-
-        guard incoming.payload.op.baseVersion == liveVersion else {
-            sendAuthoritativeSnapshot(reason: "Version mismatch, triggering resync", to: [incoming.fromPeerID])
-            return
-        }
-
-        let applied = applyLiveOperationPayload(incoming.payload.op.payload)
-        guard applied else {
-            sendAuthoritativeSnapshot(reason: "Operation could not be applied, triggering resync", to: [incoming.fromPeerID])
-            return
-        }
-
-        liveVersion += 1
-        let payload = buildLiveStatePayload()
-        liveStateHash = stateHash(for: payload)
-        let commit = BluetoothLiveOpCommitPayload(
-            sessionID: sessionID,
-            op: incoming.payload.op,
-            newVersion: liveVersion,
-            stateHash: liveStateHash
-        )
-        appendLiveCommitHistory(commit)
-        bluetooth.sendLiveOpCommit(sessionID: sessionID, commit: commit)
-    }
-
-    private func handleIncomingLiveOpCommit(_ incoming: BluetoothReceivedLiveOpCommit) {
-        guard liveRole == .participant,
-              let sessionID = activeLiveSessionID,
-              incoming.payload.sessionID == sessionID else {
-            return
-        }
-
-        liveHostPeerName = incoming.fromPeerName
-        liveHostPeerID = incoming.fromPeerID
-
-        guard incoming.payload.op.baseVersion == liveVersion,
-              incoming.payload.newVersion == liveVersion + 1 else {
-            requestLiveResync(reason: "Commit version mismatch")
-            return
-        }
-
-        let applied = applyLiveOperationPayload(incoming.payload.op.payload)
-        guard applied else {
-            requestLiveResync(reason: "Commit could not be applied locally")
-            return
-        }
-
-        liveVersion = incoming.payload.newVersion
-        let computedHash = stateHash(for: buildLiveStatePayload())
-        guard computedHash == incoming.payload.stateHash else {
-            requestLiveResync(reason: "Hash mismatch after commit")
-            return
-        }
-
-        liveStateHash = incoming.payload.stateHash
-        bluetooth.sendLiveOpAck(
-            sessionID: sessionID,
-            opID: incoming.payload.op.opID,
-            version: liveVersion,
-            to: liveHostPeerID
-        )
-    }
-
-    private func handleIncomingLiveOpAck(_ incoming: BluetoothReceivedLiveOpAck) {
-        bluetooth.clearLatestLiveOpAck()
-        guard liveRole == .host,
-              let sessionID = activeLiveSessionID,
-              incoming.payload.sessionID == sessionID else {
-            return
-        }
-
-        let currentVersion = peerAckVersionByDeviceID[incoming.payload.deviceID] ?? -1
-        if incoming.payload.version > currentVersion {
-            peerAckVersionByDeviceID[incoming.payload.deviceID] = incoming.payload.version
-        }
-    }
-
-    private func handleIncomingResyncRequest(_ incoming: BluetoothReceivedLiveResyncRequest) {
-        guard liveRole == .host,
-              let sessionID = activeLiveSessionID,
-              incoming.payload.sessionID == sessionID else {
-            return
-        }
-
-        liveParticipantNames.insert(incoming.fromPeerName)
-
-        if let commits = missingCommits(after: incoming.payload.expectedVersion), !commits.isEmpty {
-            for commit in commits {
-                bluetooth.sendLiveOpCommit(sessionID: sessionID, commit: commit, to: [incoming.fromPeerID])
-            }
-            return
-        }
-
-        sendAuthoritativeSnapshot(reason: "Resync request received", to: [incoming.fromPeerID])
-    }
-
-    private var isLiveSessionActive: Bool {
-        activeLiveSessionID != nil && liveRole != nil
-    }
-
-    private func appendLiveCommitHistory(_ commit: BluetoothLiveOpCommitPayload) {
-        liveCommitHistory.append(commit)
-        if liveCommitHistory.count > 300 {
-            liveCommitHistory.removeFirst(liveCommitHistory.count - 300)
-        }
-    }
-
-    private func missingCommits(after version: Int) -> [BluetoothLiveOpCommitPayload]? {
-        guard version < liveVersion else { return [] }
-        let expectedRange = (version + 1)...liveVersion
-        let commits = liveCommitHistory.filter { expectedRange.contains($0.newVersion) }
-            .sorted { $0.newVersion < $1.newVersion }
-        let versions = commits.map(\.newVersion)
-        let expected = Array(expectedRange)
-        return versions == expected ? commits : nil
-    }
-
-    @discardableResult
-    private func submitLiveOperation(_ payload: BluetoothLiveOperationPayload, applyLocal: () -> Bool) -> Bool {
-        guard let sessionID = activeLiveSessionID,
-              let role = liveRole else {
-            return applyLocal()
-        }
-
-        localLiveOpSeq += 1
-        let operation = BluetoothLiveOperation(
-            opID: UUID(),
-            deviceID: bluetooth.localDeviceID,
-            seq: localLiveOpSeq,
-            baseVersion: liveVersion,
-            payload: payload
-        )
-
-        switch role {
-        case .host:
-            let changed = applyLocal()
-            guard changed else { return false }
-            liveVersion += 1
-            liveStateHash = stateHash(for: buildLiveStatePayload())
-            let commit = BluetoothLiveOpCommitPayload(
-                sessionID: sessionID,
-                op: operation,
-                newVersion: liveVersion,
-                stateHash: liveStateHash
-            )
-            appendLiveCommitHistory(commit)
-            bluetooth.sendLiveOpCommit(sessionID: sessionID, commit: commit)
-            return true
-
-        case .participant:
-            let sent = bluetooth.sendLiveOpRequest(
-                sessionID: sessionID,
-                op: operation,
-                toHost: liveHostPeerID,
-                hostName: liveHostPeerName
-            )
-            if !sent {
-                collaborationAlertMessage = NSLocalizedString("collab_operation_send_failed", comment: "Operation send failed")
-            }
-            return false
-        }
+        liveManager.sendLiveInvite(to: bluetooth.connectedPeers)
     }
 
     private func togglePeriod() {
@@ -1748,7 +1442,7 @@ struct GameView: View {
             return
         }
         let now = Date()
-        _ = submitLiveOperation(.togglePeriod(at: now)) {
+        _ = liveManager.submitLiveOperation(.togglePeriod(at: now)) {
             applyTogglePeriodOperation(at: now)
         }
     }
@@ -1763,7 +1457,7 @@ struct GameView: View {
             return
         }
         let now = Date()
-        _ = submitLiveOperation(.togglePause(at: now)) {
+        _ = liveManager.submitLiveOperation(.togglePause(at: now)) {
             applyTogglePauseOperation(at: now)
         }
     }
@@ -2020,16 +1714,7 @@ struct GameView: View {
     @discardableResult
     private func applyResetGameOperation(keepLiveSession: Bool) -> Bool {
         if !keepLiveSession {
-            activeLiveSessionID = nil
-            liveRole = nil
-            liveHostPeerName = nil
-            liveHostPeerID = nil
-            liveParticipantNames.removeAll()
-            liveVersion = 0
-            liveStateHash = ""
-            localLiveOpSeq = 0
-            liveCommitHistory.removeAll()
-            peerAckVersionByDeviceID.removeAll()
+            liveManager.resetSession()
         }
 
         undoStack.removeAll()
@@ -2055,16 +1740,7 @@ struct GameView: View {
     }
 
     private func startNewGame(with config: GameSetupConfig) {
-        activeLiveSessionID = nil
-        liveRole = nil
-        liveHostPeerName = nil
-        liveHostPeerID = nil
-        liveParticipantNames.removeAll()
-        liveVersion = 0
-        liveStateHash = ""
-        localLiveOpSeq = 0
-        liveCommitHistory.removeAll()
-        peerAckVersionByDeviceID.removeAll()
+        liveManager.resetSession()
         undoStack.removeAll()
         redoStack.removeAll()
         currentGameRecordID = UUID()
@@ -2113,7 +1789,7 @@ struct GameView: View {
     private func finishGame() {
         guard !snapshot.isComplete else { return }
         let now = Date()
-        _ = submitLiveOperation(.finishGame(at: now)) {
+        _ = liveManager.submitLiveOperation(.finishGame(at: now)) {
             applyFinishGameOperation(at: now)
         }
     }
@@ -2137,7 +1813,7 @@ struct GameView: View {
               outgoingPlayerID != incomingPlayerID else { return }
 
         let now = Date()
-        _ = submitLiveOperation(
+        _ = liveManager.submitLiveOperation(
             .substitution(
                 outgoingPlayerID: outgoingPlayerID,
                 incomingPlayerID: incomingPlayerID,
@@ -2565,7 +2241,7 @@ struct GameView: View {
 
     private func performLateArrival() {
         guard let incomingPlayerID = lateArrivalIncomingPlayerID else { return }
-        _ = submitLiveOperation(
+        _ = liveManager.submitLiveOperation(
             .lateArrival(playerID: incomingPlayerID, side: lateArrivalSide.liveSide)
         ) {
             applyLateArrivalOperation(playerID: incomingPlayerID, side: lateArrivalSide)
@@ -2574,7 +2250,7 @@ struct GameView: View {
 
     private func undo() {
         guard !undoStack.isEmpty else { return }
-        _ = submitLiveOperation(.undo) {
+        _ = liveManager.submitLiveOperation(.undo) {
             guard let previous = undoStack.popLast() else { return false }
             redoStack.append(snapshot)
             if redoStack.count > 30 { redoStack.removeFirst(redoStack.count - 30) }
@@ -2587,7 +2263,7 @@ struct GameView: View {
 
     private func redo() {
         guard !redoStack.isEmpty else { return }
-        _ = submitLiveOperation(.redo) {
+        _ = liveManager.submitLiveOperation(.redo) {
             guard let next = redoStack.popLast() else { return false }
             undoStack.append(snapshot)
             if undoStack.count > 30 { undoStack.removeFirst(undoStack.count - 30) }
@@ -2599,8 +2275,8 @@ struct GameView: View {
     }
 
     private func resetGame() {
-        _ = submitLiveOperation(.resetGame) {
-            applyResetGameOperation(keepLiveSession: isLiveSessionActive)
+        _ = liveManager.submitLiveOperation(.resetGame) {
+            applyResetGameOperation(keepLiveSession: liveManager.isLiveSessionActive)
         }
     }
 
@@ -2648,6 +2324,42 @@ struct GameView: View {
         }
     }
 
+    private func clearVoiceFlashAfterDelay() {
+        voiceFlashDismissTask?.cancel()
+        voiceFlashDismissTask = Task {
+            try? await Task.sleep(for: .seconds(0.5))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                withAnimation(.easeOut(duration: 0.16)) {
+                    voiceFlashColor = nil
+                }
+            }
+        }
+    }
+
+    private func clearVoiceMatchAfterDelay(playerID: UUID) {
+        voiceMatchDismissTask?.cancel()
+        voiceMatchDismissTask = Task {
+            try? await Task.sleep(for: .seconds(1.5))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                guard voiceMatch?.playerID == playerID else { return }
+                voiceMatch = nil
+            }
+        }
+    }
+
+    private func clearVoiceErrorAfterDelay() {
+        voiceErrorDismissTask?.cancel()
+        voiceErrorDismissTask = Task {
+            try? await Task.sleep(for: .seconds(1.5))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                voiceErrorMessage = nil
+            }
+        }
+    }
+
     private func eventPeriodContext(for message: String, eventCode: String?) -> (period: Int?, periodElapsedSeconds: TimeInterval?) {
         let nonPeriodEventCodes: Set<String> = ["event.game_end", "event.game_saved"]
         let nonPeriodMessages: Set<String> = [
@@ -2682,7 +2394,7 @@ struct GameView: View {
 
     private func autoSaveCurrentGame() {
         var snapshotForSaving = snapshot
-        if activeLiveSessionID != nil {
+        if liveManager.activeLiveSessionID != nil {
             snapshotForSaving.wasBluetoothCollaborated = true
         }
         if snapshotForSaving.logs.isEmpty {

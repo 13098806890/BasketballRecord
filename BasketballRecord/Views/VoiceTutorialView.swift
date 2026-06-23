@@ -34,6 +34,7 @@ struct VoiceTutorialView: View {
     @State private var totalAttempts: Int
     @State private var successfulAttempts: Int
     @State private var freePlayReboundMode = false
+    @State private var voiceErrorMessage: String?
 
     private var isFreePlaySelected: Bool { showingFreePlay }
 
@@ -120,7 +121,7 @@ struct VoiceTutorialView: View {
         .overlay(alignment: .bottom) {
             if showingFreePlay || selectedTask != nil {
                 VStack(spacing: 6) {
-                    if let error = recognizer.errorMessage {
+                    if let error = voiceErrorMessage {
                         Text(error)
                             .font(.caption.weight(.medium))
                             .foregroundStyle(.red)
@@ -458,8 +459,7 @@ struct VoiceTutorialView: View {
         let ids = Self.playerIDs
         selectedTaskIndex = index
         feedbackMessage = ""
-        recognizer.match = nil
-        recognizer.errorMessage = nil
+        voiceErrorMessage = nil
         let task = tasks[index]
         if task.id == substitutionTaskID {
             snapshot.homeOnCourtPlayerIDs = [ids[0]]
@@ -498,6 +498,12 @@ struct VoiceTutorialView: View {
         recognizer.configure(store: store)
         if !voiceLanguage.isEmpty {
             recognizer.updateRules(for: Locale(identifier: voiceLanguage))
+        }
+        recognizer.onClear = { [self] in
+            voiceErrorMessage = nil
+        }
+        recognizer.onError = { [self] msg in
+            voiceErrorMessage = msg
         }
         recognizer.onAction = { [self] action, playerID, _ in
             let pn = store.player(for: playerID)?.name ?? "?"
@@ -638,8 +644,7 @@ struct VoiceTutorialView: View {
         totalAttempts += 1
         if success { successfulAttempts += 1 }
         saveResults()
-        recognizer.match = nil
-        recognizer.errorMessage = nil
+        voiceErrorMessage = nil
 
         withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
             animatingTaskID = taskID
@@ -658,7 +663,6 @@ struct VoiceTutorialView: View {
             } else {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                     selectedTaskIndex = tasks.count
-                    recognizer.match = nil
                 }
             }
         }

@@ -34,9 +34,9 @@ enum VoiceCommand {
 @MainActor
 final class VoiceRecognizer: NSObject, ObservableObject {
     @Published var isRecording = false
-    @Published var match: (playerID: UUID, side: TeamSide, action: StatAction)?
-    @Published var flashColor: Color?
-    @Published var errorMessage: String?
+    var onError: ((String) -> Void)?
+    var onFlash: ((Color) -> Void)?
+    var onClear: (() -> Void)?
     private let maxLogCount = 200
     /// Buffered log detail for the current recognition session.
     /// Accumulates all matching steps; flushed to store.voiceLog on completion or failure.
@@ -197,9 +197,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     func startRecording() {
-        errorMessage = nil
-        match = nil
-        flashColor = nil
+        onClear?()
 
         guard SFSpeechRecognizer.authorizationStatus() == .authorized else {
             SFSpeechRecognizer.requestAuthorization { _ in }
@@ -335,76 +333,30 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     // MARK: - Helper Methods for UI Feedback
 
-    /// Clear flash color after a short delay
-    private func clearFlashAfterDelay() {
-        Task { [weak self] in
-            try? await Task.sleep(for: .seconds(0.5))
-            await MainActor.run { [weak self] in
-                self?.flashColor = nil
-            }
-        }
-    }
-
-    /// Clear match display after a delay if it matches the given playerID
-    private func clearMatchAfterDelay(playerID: UUID) {
-        Task { [weak self] in
-            try? await Task.sleep(for: .seconds(1.5))
-            await MainActor.run { [weak self] in
-                guard let self else { return }
-                if self.match?.playerID == playerID {
-                    self.match = nil
-                }
-            }
-        }
-    }
-
     private func showSuccessFeedback(action: StatAction, playerID: UUID, side: TeamSide) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            self.match = (playerID, side, action)
-            self.flashColor = .green
-            self.onAction?(action, playerID, side)
-        }
-
-        clearFlashAfterDelay()
-        clearMatchAfterDelay(playerID: playerID)
+        onFlash?(.green)
+        onAction?(action, playerID, side)
     }
 
     private func showDualSuccessFeedback(action1: StatAction, playerID1: UUID, side1: TeamSide, action2: StatAction, playerID2: UUID, side2: TeamSide) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            self.match = (playerID1, side1, action1)
-            self.flashColor = .green
-            self.onDualAction?(action1, playerID1, side1, action2, playerID2, side2)
-        }
-        clearFlashAfterDelay()
-        clearMatchAfterDelay(playerID: playerID1)
+        onFlash?(.green)
+        onDualAction?(action1, playerID1, side1, action2, playerID2, side2)
     }
 
     /// Show error feedback with red flash
     private func showErrorWithFlash(_ msg: String) {
         showError(msg)
-        flashColor = .red
-        clearFlashAfterDelay()
+        onFlash?(.red)
     }
 
     private func showError(_ msg: String) {
-        errorMessage = msg
+        onError?(msg)
         DispatchQueue.main.async {
             let impact = UIImpactFeedbackGenerator(style: .medium)
             impact.prepare()
             impact.impactOccurred()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { impact.impactOccurred() }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) { impact.impactOccurred() }
-        }
-        Task { [weak self] in
-            try? await Task.sleep(for: .seconds(1.5))
-            await MainActor.run { [weak self] in
-                guard let self else { return }
-                if self.errorMessage == msg {
-                    self.errorMessage = nil
-                }
-            }
         }
     }
 
@@ -576,8 +528,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     if let o = cIDs.first(where: { store.player(for: $0)?.number == "\(a)" }),
                        let i = bIDs.first(where: { store.player(for: $0)?.number == "\(b)" }) {
                         let p1 = store.player(for: o)?.name ?? "?"; let p2 = store.player(for: i)?.name ?? "?"
-                        addLog(text: text, isSuccess: true, action: "换人", playerName: "\(p1)→\(p2)"); flashColor = .green
-                        onSubstitution?(side, o, i); Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }; return
+                        addLog(text: text, isSuccess: true, action: "换人", playerName: "\(p1)→\(p2)")
+                        onFlash?(.green)
+                        onSubstitution?(side, o, i); return
                     }
                 }
             }
@@ -619,8 +572,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 dbgLines.append("\(label) \(lbl): 场上\(cD) | 场下\(bD)")
                 if let ot = cM.first, let it = bM.first {
                     let outN = store.player(for: ot.0)?.name ?? "?"; let inN = store.player(for: it.0)?.name ?? "?"
-                    addLog(text: text, isSuccess: true, action: "换人", playerName: "\(outN)→\(inN)"); flashColor = .green
-                    onSubstitution?(side, ot.0, it.0); Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }; return
+                    addLog(text: text, isSuccess: true, action: "换人", playerName: "\(outN)→\(inN)")
+                    onFlash?(.green)
+                    onSubstitution?(side, ot.0, it.0); return
                 }
             }
         }
@@ -636,8 +590,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             if let ot = cM.first, let it = bM.first {
                 let sd: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(ot.0) ? .home : .away
                 let outN = store.player(for: ot.0)?.name ?? "?"; let inN = store.player(for: it.0)?.name ?? "?"
-                addLog(text: text, isSuccess: true, action: "换人", playerName: "\(outN)→\(inN)"); flashColor = .green
-                onSubstitution?(sd, ot.0, it.0); Task { try? await Task.sleep(for: .seconds(0.5)); flashColor = nil }; return
+                addLog(text: text, isSuccess: true, action: "换人", playerName: "\(outN)→\(inN)")
+                onFlash?(.green)
+                onSubstitution?(sd, ot.0, it.0); return
             }
         }
 
@@ -785,8 +740,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
         addLog(text: processedText, isSuccess: false, matchDetail: "❌ 全文无匹配: \(processedText) | 拼音: \(textPinyin)")
         showError(String(format: NSLocalizedString("voice_unrecognized_format", comment: ""), processedText))
-        flashColor = .red
-        clearFlashAfterDelay()
+        onFlash?(.red)
     }
 
     private func detectTeamPrefix(_ text: String) -> TeamSide? {
@@ -945,8 +899,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         guard let pid = playerID, let sd = side else {
             addLog(text: text, isSuccess: false, action: finalCode, matchDetail: "❌ 未匹配到球员 | 左侧文本: \(leftText.isEmpty ? "空" : leftText) | 拼音: \(textPinyin)")
             showError(String(format: NSLocalizedString("voice_unrecognized_format", comment: ""), text))
-            flashColor = .red
-            clearFlashAfterDelay()
+            onFlash?(.red)
             return false
         }
         guard let action = StatAction.allCases.first(where: { $0.eventCode == finalCode }) else {
@@ -1123,16 +1076,15 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             guard code.hasPrefix("event.") else { continue }
             if findKeyword(chinese, in: text) != nil {
                 addLog(text: text, isSuccess: true, action: code, matchDetail: "命令: \(chinese)")
-                flashColor = .green
+                onFlash?(.green)
                 let cmd: VoiceCommand
                 if code == "event.period" { cmd = .startPeriod }
                 else if code == "event.pause" { cmd = .togglePause }
                 else { cmd = .finishGame }
                 DispatchQueue.main.async { [weak self] in
                     self?.onCommand?(cmd)
-                    self?.flashColor = .green
+                    self?.onFlash?(.green)
                 }
-                clearFlashAfterDelay()
                 return true
             }
         }
