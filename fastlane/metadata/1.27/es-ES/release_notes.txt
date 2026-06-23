@@ -1,4 +1,4 @@
 • Resumen IA de partidos — genera resúmenes con IA tras suscribirte
   Sin necesidad de clave API. Un resumen por partido, hasta 10 al día.
 • Seguridad de suscripción — verificación vinculada al dispositivo vía iCloud
-• Mejoras de rendimiento y corrección de errores
+• Reestructuración de código, limitación del lado del servidor, correcciones
