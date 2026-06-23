@@ -200,9 +200,15 @@ final class AppStore: ObservableObject {
     private let gamesIndexKey = "store_games_index"
     private func gameKey(for id: UUID) -> String { "game_\(id.uuidString)" }
 
+    private var documentsDir: URL {
+        guard let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            fatalError("Documents directory not available")
+        }
+        return url
+    }
+
     var photosDir: URL {
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            .appendingPathComponent("player_photos", isDirectory: true)
+        documentsDir.appendingPathComponent("player_photos", isDirectory: true)
     }
 
     func photoFile(for playerID: UUID) -> URL {
@@ -430,8 +436,7 @@ final class AppStore: ObservableObject {
 
         print("[Storage] Writing \(key): \(data.count) bytes")
         if data.count >= 3_000_000 {
-            let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-                .appendingPathComponent("\(key).json")
+            let fileURL = documentsDir.appendingPathComponent("\(key).json")
             try? data.write(to: fileURL, options: .atomic)
             print("[Storage] Wrote \(key) to file instead of UserDefaults")
         } else {
@@ -460,8 +465,7 @@ final class AppStore: ObservableObject {
         if let data = UserDefaults.standard.data(forKey: key) {
             return data
         }
-        let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            .appendingPathComponent("\(key).json")
+        let fileURL = documentsDir.appendingPathComponent("\(key).json")
         return try? Data(contentsOf: fileURL)
     }
 

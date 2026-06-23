@@ -233,7 +233,7 @@ extension AppStore {
             .filter { seen.insert($0).inserted }
     }
 
-    private func mergedStats(lhs: PlayerStats, rhs: PlayerStats) -> PlayerStats {
+    func mergedStats(lhs: PlayerStats, rhs: PlayerStats) -> PlayerStats {
         var total = lhs
         total.twoMade += rhs.twoMade
         total.twoAttempts += rhs.twoAttempts

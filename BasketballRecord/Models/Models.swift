@@ -775,7 +775,7 @@ struct PlayerStats: Codable, Hashable {
         return Double(points)
             + 0.4 * Double(fgm) - 0.7 * Double(fga)
             - 0.4 * Double(fta - ftm)
-            + 0.5 * Double(rebounds)
+            + 0.5 * Double(totalRebounds)
             + Double(steals)
             + 0.7 * Double(assists)
             + 0.7 * Double(blocks)

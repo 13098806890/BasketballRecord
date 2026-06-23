@@ -694,6 +694,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     private func processText(_ text: String) {
+        preferredPlayerNumber = nil
         logStart(text)
         let textPinyin = currentRules.toPinyin(text)
         logStep("原文: \(text) | 拼音: \(textPinyin)")
@@ -1012,13 +1013,15 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         preferredPlayerNumber = nil
         var text = rawText
         let numberXPattern = try? NSRegularExpression(pattern: "(?:^|\\s)(number|#)\\s*(one|two|three|four|five|six|seven|eight|nine|ten|\\d+)(?:\\s|$)", options: [.caseInsensitive])
-        if let match = numberXPattern?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
-            let numWordRange = Range(match.range(at: 2), in: text)!
+        if let match = numberXPattern?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+           let numWordRange = Range(match.range(at: 2), in: text),
+           let fullRange = Range(match.range, in: text) {
             let numWord = String(text[numWordRange]).lowercased()
             preferredPlayerNumber = Int(numWord) ?? Self.wordToNum[numWord]
-            let fullRange = Range(match.range, in: text)!
             text = (text[..<fullRange.lowerBound] + text[fullRange.upperBound...]).trimmingCharacters(in: .whitespaces)
-            logStep("提取号码前缀: \(preferredPlayerNumber!) | 剩余文本: \(text)")
+            if let pn = preferredPlayerNumber {
+                logStep("提取号码前缀: \(pn) | 剩余文本: \(text)")
+            }
         }
         if let match = text.wholeMatch(of: /(\d+)(0[23])/) {
             let shotType = String(match.2) == "02" ? "two" : "three"
@@ -1036,7 +1039,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 let shotType = lastDigit == 3 ? "three" : "two"
                 preferredPlayerNumber = num / 10
                 text = (text + " " + shotType).trimmingCharacters(in: .whitespaces)
-                logStep("拆分号码+投篮: \(num)→\(preferredPlayerNumber!)号 \(shotType)")
+                if let pn = preferredPlayerNumber {
+                    logStep("拆分号码+投篮: \(num)→\(pn)号 \(shotType)")
+                }
             } else if lastDigit == 4, text.trimmingCharacters(in: .whitespaces).isEmpty {
                 let actualNum = num / 10
                 if actualNum > 0 {
@@ -1276,41 +1281,41 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         // CJK: 号, hao, 番, 번
         let cjk = try? NSRegularExpression(pattern: "(\\d+)\\s*(号|hao|番|번)")
         var nums = cjk?.matches(in: text, range: NSRange(text.startIndex..., in: text)).compactMap { match -> Int? in
-            guard match.numberOfRanges > 1 else { return nil }
-            let range = Range(match.range(at: 1), in: text)!
-            let num = Int(String(text[range]))!
-            guard num >= 0, num <= 99 else { return nil }
+            guard match.numberOfRanges > 1,
+                  let range = Range(match.range(at: 1), in: text),
+                  let num = Int(String(text[range])),
+                  num >= 0, num <= 99 else { return nil }
             return num
         } ?? []
         // English: number 5, no.5, #5
         let eng = try? NSRegularExpression(pattern: "(?:number|no\\.|#)\\s*(\\d+)", options: [.caseInsensitive])
         nums += eng?.matches(in: text, range: NSRange(text.startIndex..., in: text)).compactMap { match -> Int? in
-            guard match.numberOfRanges > 1 else { return nil }
-            let range = Range(match.range(at: 1), in: text)!
-            let num = Int(String(text[range]))!
-            guard num >= 0, num <= 99 else { return nil }
+            guard match.numberOfRanges > 1,
+                  let range = Range(match.range(at: 1), in: text),
+                  let num = Int(String(text[range])),
+                  num >= 0, num <= 99 else { return nil }
             return num
         } ?? []
         // Standalone numbers
         let standalone = try? NSRegularExpression(pattern: "(?:^|\\s)(\\d+)(?:\\s|$)")
         nums += standalone?.matches(in: text, range: NSRange(text.startIndex..., in: text)).compactMap { match -> Int? in
-            guard match.numberOfRanges > 1 else { return nil }
-            let range = Range(match.range(at: 1), in: text)!
-            let num = Int(String(text[range]))!
-            guard num >= 1, num <= 99 else { return nil }
+            guard match.numberOfRanges > 1,
+                  let range = Range(match.range(at: 1), in: text),
+                  let num = Int(String(text[range])),
+                  num >= 1, num <= 99 else { return nil }
             return num
         } ?? []
         let engWordPrefix = try? NSRegularExpression(pattern: "(?:number|no\\.|#)\\s*(one|two|three|four|five|six|seven|eight|nine|ten)", options: [.caseInsensitive])
         nums += engWordPrefix?.matches(in: text, range: NSRange(text.startIndex..., in: text)).compactMap { match -> Int? in
-            guard match.numberOfRanges > 1 else { return nil }
-            let range = Range(match.range(at: 1), in: text)!
+            guard match.numberOfRanges > 1,
+                  let range = Range(match.range(at: 1), in: text) else { return nil }
             let word = String(text[range]).lowercased()
             return Self.wordToNum[word]
         } ?? []
         let standaloneWord = try? NSRegularExpression(pattern: "(?:^|\\s)(one|two|three|four|five|six|seven|eight|nine|ten)(?:\\s|$)", options: [.caseInsensitive])
         nums += standaloneWord?.matches(in: text, range: NSRange(text.startIndex..., in: text)).compactMap { match -> Int? in
-            guard match.numberOfRanges > 1 else { return nil }
-            let range = Range(match.range(at: 1), in: text)!
+            guard match.numberOfRanges > 1,
+                  let range = Range(match.range(at: 1), in: text) else { return nil }
             let word = String(text[range]).lowercased()
             return Self.wordToNum[word]
         } ?? []

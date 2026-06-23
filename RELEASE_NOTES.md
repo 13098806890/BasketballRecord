@@ -12,6 +12,20 @@
 
 - **去除 `unique()` 重复定义**：LiveCollaborationManager 改用 `private static func deduped` 类方法，消除与 GameView 的 `unique()` 重复。
 
+### 修复
+
+- **`gameScore` 使用 `totalRebounds`**：O/D 篮板模式下 `gameScore` 未计入 `offensiveRebounds`/`defensiveRebounds`，导致 ELO 积分偏差，改用 `totalRebounds` 合计三个篮板字段。
+- **蓝牙 participant dualAction 竞态**：复合语音指令（助攻+投篮、抢断+失误）在 participant 端发两个独立 operation 导致第二个因 version 不匹配被拒绝；合并为单一 `dualAction` operation，原子化发送。
+- **VoiceRecognizer 10 处 force-unwrap**：`Range(...)!` 和 `Int(...)!` 改用 `guard let`，消除极端输入下的崩溃风险。
+- **换人撤销移除文本猜测**：`relatedPlayerID` 在全部生产路径已确保传入，移除 `revertLastAction` 中基于消息子串的脆弱 fallback，缺失时直接返回 false。
+- **`remapDictionary` 碰撞合并**：导入时字典 remapping 若发生 key 碰撞，根据值类型执行对应合并策略（PlayerStats 求和、Date 取 min、数值求和），静默覆盖不再发生。
+- **participant 按钮反馈**：手动记分时 participant 设备也能获得震动和分数脉冲反馈（此前 `submitLiveOperation` 返回 false 跳过了反馈）。
+- **force-unwrap 清理**：`FileManager.default.urls(...).first!` 提取为 `documentsDir` 属性统一管理；`scfChatURL` 改为 computed property + `guard`。
+- **测试 `UUID(uuidString:)` 安全化**：动态构造 UUID 的 helper 函数改用 `guard let` + `fatalError`。
+- **`preferredPlayerNumber` 跨调用泄漏**：`processText` 入口提前重置，不依赖 `preprocessEnglishText` 路径。
+- **`GameLogFormatter` 单测覆盖**：新增 7 个测试覆盖 extractEventCode、normalizedMessage、isScoring、periodNumber 等核心方法。
+- **`VoiceRulesData` JSON 有效性测试**：新增测试遍历 10 种语言内嵌 JSON，确保全部解析成功。
+
 ## 1.27 (2026-06-23)
 
 ### 新增

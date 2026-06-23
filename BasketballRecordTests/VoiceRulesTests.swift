@@ -910,4 +910,14 @@ final class VoiceRulesTests: XCTestCase {
         }
         return c
     }
+
+    // MARK: - VoiceRulesData JSON validation
+
+    func testAllEmbeddedJSONParsesSuccessfully() {
+        let locales = ["en", "zh-Hans", "zh-Hant-TW", "ja", "ko", "de", "es", "fr", "it", "ru"]
+        for locale in locales {
+            let data = VoiceRulesData.load(language: locale)
+            XCTAssertNotNil(data, "VoiceRulesData.load failed for \(locale)")
+        }
+    }
 }
