@@ -242,22 +242,53 @@ extension AppStore {
             }
             return mapped
         }
-        remapped.statsByPlayerID = remapDictionary(snapshot.statsByPlayerID, using: playerIDMap)
+        remapped.statsByPlayerID = remapStatsDictionary(snapshot.statsByPlayerID, using: playerIDMap)
         remapped.homeOnCourtPlayerIDs = dedupedIDs(snapshot.homeOnCourtPlayerIDs.map { playerIDMap[$0] ?? $0 })
         remapped.awayOnCourtPlayerIDs = dedupedIDs(snapshot.awayOnCourtPlayerIDs.map { playerIDMap[$0] ?? $0 })
         remapped.homeAvailablePlayerIDs = dedupedIDs(snapshot.homeAvailablePlayerIDs.map { playerIDMap[$0] ?? $0 })
         remapped.awayAvailablePlayerIDs = dedupedIDs(snapshot.awayAvailablePlayerIDs.map { playerIDMap[$0] ?? $0 })
         remapped.starterPlayerIDs = dedupedIDs(snapshot.starterPlayerIDs.map { playerIDMap[$0] ?? $0 })
-        remapped.playingSecondsByPlayerID = remapDictionary(snapshot.playingSecondsByPlayerID, using: playerIDMap)
-        remapped.activeSinceByPlayerID = remapDictionary(snapshot.activeSinceByPlayerID, using: playerIDMap)
-        remapped.plusMinusByPlayerID = remapDictionary(snapshot.plusMinusByPlayerID, using: playerIDMap)
+        remapped.playingSecondsByPlayerID = remapDictionary(snapshot.playingSecondsByPlayerID, using: playerIDMap, combine: +)
+        remapped.activeSinceByPlayerID = remapDateDictionary(snapshot.activeSinceByPlayerID, using: playerIDMap)
+        remapped.plusMinusByPlayerID = remapDictionary(snapshot.plusMinusByPlayerID, using: playerIDMap, combine: +)
         return remapped
     }
 
-    private func remapDictionary<Value>(_ dictionary: [UUID: Value], using map: [UUID: UUID]) -> [UUID: Value] {
+    private func remapDictionary<Value>(_ dictionary: [UUID: Value], using map: [UUID: UUID], combine: ((Value, Value) -> Value)? = nil) -> [UUID: Value] {
         var result: [UUID: Value] = [:]
         for (oldID, value) in dictionary {
-            result[map[oldID] ?? oldID] = value
+            let newID = map[oldID] ?? oldID
+            if let existing = result[newID], let combine {
+                result[newID] = combine(existing, value)
+            } else {
+                result[newID] = value
+            }
+        }
+        return result
+    }
+
+    private func remapStatsDictionary(_ dictionary: [UUID: PlayerStats], using map: [UUID: UUID]) -> [UUID: PlayerStats] {
+        var result: [UUID: PlayerStats] = [:]
+        for (oldID, value) in dictionary {
+            let newID = map[oldID] ?? oldID
+            if let existing = result[newID] {
+                result[newID] = mergedStats(lhs: existing, rhs: value)
+            } else {
+                result[newID] = value
+            }
+        }
+        return result
+    }
+
+    private func remapDateDictionary(_ dictionary: [UUID: Date], using map: [UUID: UUID]) -> [UUID: Date] {
+        var result: [UUID: Date] = [:]
+        for (oldID, value) in dictionary {
+            let newID = map[oldID] ?? oldID
+            if let existing = result[newID] {
+                result[newID] = min(existing, value)
+            } else {
+                result[newID] = value
+            }
         }
         return result
     }

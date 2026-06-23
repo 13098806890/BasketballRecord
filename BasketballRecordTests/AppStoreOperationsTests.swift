@@ -430,6 +430,9 @@ final class AppStoreOperationsTests: XCTestCase {
     }
 
     private func uuid(_ value: String) -> UUID {
-        UUID(uuidString: value)!
+        guard let uuid = UUID(uuidString: value) else {
+            fatalError("Invalid UUID string: \(value)")
+        }
+        return uuid
     }
 }

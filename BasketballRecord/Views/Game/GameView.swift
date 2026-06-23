@@ -338,17 +338,14 @@ struct GameView: View {
                     } else {
                         combinedMsg = Self.dualAssistMessage(pn1: pn1, pn2: pn2, shot: action2.message, locale: locale)
                     }
-                    let op1 = BluetoothLiveOperationPayload.record(
-                        action: action1.liveAction, playerID: pid1, side: side1.liveSide, at: now
-                    )
-                    let op2 = BluetoothLiveOperationPayload.record(
-                        action: action2.liveAction, playerID: pid2, side: side2.liveSide, at: now
-                    )
-                    _ = liveManager.submitLiveOperation(op2) {
+                    _ = liveManager.submitLiveOperation(.dualAction(
+                        action1: action1.liveAction, playerID1: pid1, side1: side1.liveSide,
+                        action2: action2.liveAction, playerID2: pid2, side2: side2.liveSide,
+                        at: now
+                    )) {
                         self.applyRecordOperation(action: action2, playerID: pid2, side: side2, at: now, eventMessage: "")
-                    }
-                    _ = liveManager.submitLiveOperation(op1) {
                         self.applyRecordOperation(action: action1, playerID: pid1, side: side1, at: now, eventMessage: combinedMsg)
+                        return true
                     }
                     voiceMatch = (pid1, side1, action1)
                     clearVoiceMatchAfterDelay(playerID: pid1)
@@ -1338,12 +1335,10 @@ struct GameView: View {
             side: selectedSide.liveSide,
             at: now
         )
-        let changed = liveManager.submitLiveOperation(operation) {
+        liveManager.submitLiveOperation(operation) {
             applyRecordOperation(action: action, playerID: pid, side: selectedSide, at: now)
         }
-        if changed {
-            showRecordFeedback(action: action, side: selectedSide)
-        }
+        showRecordFeedback(action: action, side: selectedSide)
     }
 
     private func showRecordFeedback(action: StatAction, side: TeamSide) {
@@ -1468,6 +1463,12 @@ struct GameView: View {
         case let .record(action, playerID, side, at):
             guard let statAction = StatAction(liveAction: action) else { return false }
             return applyRecordOperation(action: statAction, playerID: playerID, side: TeamSide(liveSide: side), at: at)
+
+        case let .dualAction(action1, playerID1, side1, action2, playerID2, side2, at):
+            guard let statAction1 = StatAction(liveAction: action1),
+                  let statAction2 = StatAction(liveAction: action2) else { return false }
+            applyRecordOperation(action: statAction2, playerID: playerID2, side: TeamSide(liveSide: side2), at: at, eventMessage: "")
+            return applyRecordOperation(action: statAction1, playerID: playerID1, side: TeamSide(liveSide: side1), at: at)
 
         case let .togglePeriod(at):
             return applyTogglePeriodOperation(at: at)
@@ -2522,14 +2523,7 @@ struct GameView: View {
             if let storedOutgoingID = lastLog.relatedPlayerID {
                 outgoingID = storedOutgoingID
             } else {
-                let message = lastLog.message
-                let allPlayers = players(in: snapshot.homeTeamID) + players(in: snapshot.awayTeamID)
-                let playerNames = allPlayers.filter { $0.id != incomingID && message.contains($0.name) }
-                if let outgoingMatch = playerNames.max(by: { $0.name.count < $1.name.count }) {
-                    outgoingID = outgoingMatch.id
-                } else {
-                    return false
-                }
+                return false
             }
             // Swap back: remove incoming, add outgoing
             if side == .home {

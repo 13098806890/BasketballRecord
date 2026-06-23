@@ -307,7 +307,10 @@ final class DataCompatibilityTests: XCTestCase {
         let padded = value.count == 4
             ? "00000000-0000-0000-0000-\(String(repeating: "0", count: 12 - value.count))\(value)"
             : value
-        return UUID(uuidString: padded)!
+        guard let uuid = UUID(uuidString: padded) else {
+            fatalError("Invalid UUID string: \(padded)")
+        }
+        return uuid
     }
 
     // MARK: - Team Stats Mode Serialization

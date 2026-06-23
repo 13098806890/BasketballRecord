@@ -476,3 +476,53 @@ final class GameUndoMultilingualTests: XCTestCase {
         XCTAssertEqual(snapshot.plusMinusByPlayerID[awayPlayerID], beforePMAway)
     }
 }
+
+final class GameLogFormatterTests: XCTestCase {
+    func testExtractEventCode() {
+        XCTAssertEqual(GameLogFormatter.extractEventCode(from: "张三两分命中[event:stat.twoMade]"), "stat.twoMade")
+        XCTAssertEqual(GameLogFormatter.extractEventCode(from: "换人[event:event.substitution]"), "event.substitution")
+        XCTAssertNil(GameLogFormatter.extractEventCode(from: "张三两分命中"))
+        XCTAssertNil(GameLogFormatter.extractEventCode(from: ""))
+    }
+
+    func testNormalizedMessage() {
+        XCTAssertEqual(GameLogFormatter.normalizedMessage("张三两分命中"), "张三两分命中")
+        XCTAssertEqual(GameLogFormatter.normalizedMessage("  "), "")
+        let withScore = GameLogFormatter.normalizedMessage("张三两分命中(20:18)")
+        XCTAssertEqual(withScore, "张三两分命中")
+    }
+
+    func testIsScoring() {
+        let scoringEntry = GameLogEntry(timestamp: Date(), message: "得分", eventCode: "stat.twoMade")
+        XCTAssertTrue(GameLogFormatter.isScoring(scoringEntry))
+        let nonScoringEntry = GameLogEntry(timestamp: Date(), message: "犯规", eventCode: "stat.foul")
+        XCTAssertFalse(GameLogFormatter.isScoring(nonScoringEntry))
+        let nilCodeEntry = GameLogEntry(timestamp: Date(), message: "张三2分命中")
+        XCTAssertTrue(GameLogFormatter.isScoring(nilCodeEntry))
+    }
+
+    func testPeriodNumber() {
+        XCTAssertEqual(GameLogFormatter.periodNumber(fromControlMessage: "第1节"), 1)
+        XCTAssertEqual(GameLogFormatter.periodNumber(fromControlMessage: "第2节"), 2)
+        XCTAssertNil(GameLogFormatter.periodNumber(fromControlMessage: "暂停"))
+    }
+
+    func testStartedPeriodNumber() {
+        XCTAssertEqual(GameLogFormatter.startedPeriodNumber(from: "第1节开始[event:event.period_start]"), 1)
+        XCTAssertNil(GameLogFormatter.startedPeriodNumber(from: "第1节结束[event:event.period_end]"))
+    }
+
+    func testEndedPeriodNumber() {
+        XCTAssertEqual(GameLogFormatter.endedPeriodNumber(from: "第1节结束[event:event.period_end]"), 1)
+        XCTAssertNil(GameLogFormatter.endedPeriodNumber(from: "第1节开始[event:event.period_start]"))
+    }
+
+    func testLineText() {
+        let log = PeriodAwareLog(
+            entry: GameLogEntry(timestamp: Date(), message: "张三两分命中"),
+            inferredPeriod: 1
+        )
+        let text = GameLogFormatter.lineText(for: log)
+        XCTAssertTrue(text.contains("张三两分命中"))
+    }
+}

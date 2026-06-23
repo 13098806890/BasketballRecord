@@ -3,7 +3,12 @@ import OSLog
 import StoreKit
 
 private let scfBaseURL = "https://1443094980-bwq2035uwg.ap-shanghai.tencentscf.com"
-private let scfChatURL = URL(string: "\(scfBaseURL)/v1/chat")!
+private var scfChatURL: URL {
+    guard let url = URL(string: "\(scfBaseURL)/v1/chat") else {
+        fatalError("Invalid SCF chat URL")
+    }
+    return url
+}
 private let aiLog = OSLog(subsystem: Bundle.main.bundleIdentifier ?? "BasketballRecord", category: "AIService")
 
 enum AIServiceProxyError: LocalizedError {
