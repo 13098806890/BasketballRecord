@@ -185,6 +185,24 @@ struct VoiceRules: Sendable {
         return variants
     }
 
+    private static func fromJSON(language: String) -> VoiceRules {
+        guard let data = VoiceRulesData.load(language: language) else {
+            fatalError("Failed to load voice rules for \(language)")
+        }
+        return VoiceRules(data: data)
+    }
+
+    static let chinese = fromJSON(language: "zh-Hans")
+    static let traditionalChinese = fromJSON(language: "zh-Hant-TW")
+    static let english = fromJSON(language: "en")
+    static let japanese = fromJSON(language: "ja")
+    static let korean = fromJSON(language: "ko")
+    static let german = fromJSON(language: "de")
+    static let spanish = fromJSON(language: "es")
+    static let french = fromJSON(language: "fr")
+    static let italian = fromJSON(language: "it")
+    static let russian = fromJSON(language: "ru")
+
     /// Detect the best rule set for the current app language.
     static func forCurrentAppLanguage() -> VoiceRules {
         let preferredLang = Bundle.main.preferredLocalizations.first ?? "zh-Hans"
@@ -198,7 +216,6 @@ struct VoiceRules: Sendable {
         case "it": return .italian
         case "ru": return .russian
         case "zh-Hant-TW", "zh-Hant-HK": return .traditionalChinese
-        case "zh-Hans", "zh": fallthrough
         default: return .chinese
         }
     }
