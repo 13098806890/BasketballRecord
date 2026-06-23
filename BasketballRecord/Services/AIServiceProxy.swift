@@ -43,6 +43,7 @@ struct AIServiceProxy {
 
         let requestBody: [String: Any] = [
             "transactionId": tid,
+            "appAccountToken": PurchaseManager.shared.appAccountToken.uuidString,
             "messages": messages,
             "systemPrompt": systemPrompt,
             "temperature": temperature,

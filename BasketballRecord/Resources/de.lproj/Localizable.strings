@@ -980,3 +980,5 @@ Format:
 "ai_service_description" = "Kein API-Key? Kein Problem! Abonniere Pro und nutze KI-Zusammenfassungen kostenlos — bis zu 10 pro Tag, eine pro Spiel. Füge deinen eigenen API-Key hinzu für unbegrenzte Nutzung.";
 "alert_ai_summary_exists_title" = "Bereits erstellt";
 "alert_ai_summary_exists_message" = "Dieses Spiel hat bereits eine KI-Zusammenfassung. Mit unserem Dienst kann jedes Spiel nur einmal erstellt werden. Füge deinen eigenen API-Key in den Einstellungen hinzu, um mehrere zu erstellen.";
+"text_loading_products" = "Lade Abonnementoptionen...";
+"text_ai_pro_hint" = "Du kannst auch in den Einstellungen deinen eigenen API-Key hinzufügen, um unbegrenzte Zusammenfassungen zu erhalten.";

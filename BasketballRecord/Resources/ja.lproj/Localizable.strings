@@ -991,3 +991,5 @@ Format:
 "ai_service_description" = "API Keyがなくても大丈夫！Proに登録すればAI要約を無料でご利用いただけます——1日最大10件、1試合につき1件。ご自身のAPI Keyを追加すると無制限に利用できます。";
 "alert_ai_summary_exists_title" = "生成済み";
 "alert_ai_summary_exists_message" = "この試合には既に AI 要約があります。本サービスでは1試合につき1回のみ生成できます。設定でご自身のAPI Keyを追加すると複数回生成できます。";
+"text_loading_products" = "購読オプションを読み込み中...";
+"text_ai_pro_hint" = "設定でご自身のAPI Keyを追加すると、無制限に利用できます。";

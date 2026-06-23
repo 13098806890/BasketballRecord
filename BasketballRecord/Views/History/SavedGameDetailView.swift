@@ -156,7 +156,7 @@ struct SavedGameDetailView: View {
                     }
 
                     if aiSummary.isEmpty {
-                        Text(LocalizedStringKey(!store.isPro ? "text_ai_pro_required" : (aiConfig == nil ? "text_ai_waiting_key" : "text_ai_will_generate")))
+                        Text(LocalizedStringKey(store.isPro ? "text_ai_pro_hint" : "text_ai_pro_required"))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     } else {

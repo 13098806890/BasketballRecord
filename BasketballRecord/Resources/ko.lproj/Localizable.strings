@@ -1008,3 +1008,5 @@ Format:
 "ai_service_description" = "API Key가 없어도 괜찮아요! Pro를 구독하면 AI 요약을 무료로 이용할 수 있습니다 — 하루 최대 10회, 경기당 1회. 자신의 API Key를 추가하면 무제한으로 사용할 수 있습니다.";
 "alert_ai_summary_exists_title" = "이미 생성됨";
 "alert_ai_summary_exists_message" = "이 경기에는 이미 AI 요약이 있습니다. 당사 서비스를 사용하면 경기당 한 번만 생성할 수 있습니다. 설정에서 자신의 API Key를 추가하면 여러 번 생성할 수 있습니다.";
+"text_loading_products" = "구독 옵션 로딩 중...";
+"text_ai_pro_hint" = "설정에서 자신의 API Key를 추가하면 무제한으로 사용할 수 있습니다.";

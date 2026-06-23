@@ -980,3 +980,5 @@ Format:
 "ai_service_description" = "¿Sin clave API? ¡No hay problema! Suscríbete a Pro y disfruta de resúmenes de IA gratis — hasta 10 al día, uno por partido. Añade tu propia clave API para obtener resúmenes ilimitados.";
 "alert_ai_summary_exists_title" = "Ya generado";
 "alert_ai_summary_exists_message" = "Este partido ya tiene un resumen de IA. Con nuestro servicio solo se puede generar una vez por partido. Añade tu propia clave API en Ajustes para generar múltiples veces.";
+"text_loading_products" = "Cargando opciones de suscripción...";
+"text_ai_pro_hint" = "También puedes configurar tu propia clave API en Ajustes para obtener resúmenes ilimitados.";
