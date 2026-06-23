@@ -1368,9 +1368,9 @@ struct GameView: View {
     }
 
     private func triggerTapFeedback() {
-        let feedbackGenerator = UIImpactFeedbackGenerator(style: .heavy)
-        feedbackGenerator.prepare()
-        feedbackGenerator.impactOccurred(intensity: 1)
+        let generator = UIImpactFeedbackGenerator(style: .heavy)
+        generator.prepare()
+        generator.impactOccurred(intensity: 1)
     }
 
     private func checkAndAutoEndPeriod() {
