@@ -71,12 +71,14 @@ final class CloudKitManager: ObservableObject {
             let data = try JSONEncoder().encode(game)
             print("[CloudKit] Encoded game: \(data.count) bytes")
             let recordID = CKRecord.ID(recordName: game.id.uuidString)
+            let fileURL = writeTempFile(data)
+            defer { try? FileManager.default.removeItem(at: fileURL) }
 
             do {
                 print("[CloudKit] Checking for existing record: \(recordID.recordName)")
                 let existing = try await database.record(for: recordID)
                 print("[CloudKit] Existing record found, updating...")
-                existing["gameData"] = CKAsset(fileURL: writeTempFile(data))
+                existing["gameData"] = CKAsset(fileURL: fileURL)
                 existing["version"] = (existing["version"] as? Int64 ?? 0) + 1
                 existing["updatedAt"] = Date()
                 let saved = try await database.save(existing)
@@ -87,7 +89,7 @@ final class CloudKitManager: ObservableObject {
                 record["homeTeamName"] = game.homeTeamName
                 record["awayTeamName"] = game.awayTeamName
                 record["savedAt"] = game.savedAt
-                record["gameData"] = CKAsset(fileURL: writeTempFile(data))
+                record["gameData"] = CKAsset(fileURL: fileURL)
                 record["version"] = Int64(1)
                 record["updatedAt"] = Date()
                 let saved = try await database.save(record)

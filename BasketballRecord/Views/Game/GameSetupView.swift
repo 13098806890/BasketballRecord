@@ -40,6 +40,7 @@ struct NewGameSetupView: View {
     @State private var awayBenchIDs: [UUID] = []
     @State private var homeTeamStatsMode = false
     @State private var awayTeamStatsMode = false
+    @FocusState private var isInputFocused: Bool
     @AppStorage("setup_period_count") private var periodCount = 4
     @AppStorage("setup_court_player_count") private var courtPlayerCount = 4
     @AppStorage("setup_reset_fouls") private var resetsTeamFoulsEachPeriod = true
@@ -147,6 +148,7 @@ struct NewGameSetupView: View {
                                 .keyboardType(.numberPad)
                                 .multilineTextAlignment(.trailing)
                                 .frame(width: 60)
+                                .focused($isInputFocused)
                             Text(LocalizedStringKey("label_minutes_unit"))
                                 .foregroundStyle(.secondary)
                         }
@@ -158,6 +160,7 @@ struct NewGameSetupView: View {
                                 .keyboardType(.numberPad)
                                 .multilineTextAlignment(.trailing)
                                 .frame(width: 60)
+                                .focused($isInputFocused)
                             Text(LocalizedStringKey("label_points_unit"))
                                 .foregroundStyle(.secondary)
                         }
@@ -195,7 +198,7 @@ struct NewGameSetupView: View {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button(LocalizedStringKey("button_done")) {
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        isInputFocused = false
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {

@@ -29,6 +29,17 @@
 - **GameView 编译错误**：Swift 6.2 类型检查器限制，用 `AnyView` 包裹长链 alert 修饰器。
 - **每日记录清理**：`ai_gen_records` 自动清理 7 天前记录，防止 UserDefaults 无限增长。
 
+### 代码质量
+
+- **存储层类型安全**：`safeWrite`/`safeRead` 移除 `game as! T` 强制向下转型，按独立路径 encode/trim，消除崩溃风险。
+- **存储竞态修复**：引入 `saveGeneration` 计数器，防止被取消的 saveTask 在完成后错误清除 `dirtyKeys` 导致后续写入跳过 CoreData/game。
+- **球员合并统计补全**：`mergedStats` 补充 `layupMade/Attempts`、`midRangeMade/Attempts`、`paintMade/Attempts`、`offensiveRebounds`、`defensiveRebounds` 共 10 个遗漏字段。
+- **CoreData 状态同步**：`NSBatchDeleteRequest` 后追加 `context.refreshAllObjects()`，确保同一 context 中后续操作不读到过时对象。
+- **CloudKit 临时文件清理**：`uploadGame` 中用 `defer` 确保上传完成后删除临时文件，防止 temp 目录无限增长。
+- **PurchaseManager 初始化优化**：`init` 中 Task 先验证 `checkSubscriptionStatus` 再 `loadProducts`，减少 StoreKit 状态延迟；值未变时不触发 `@Published` 发布，避免 UI 无谓刷新；移除多余 `try?` 和废弃的 `synchronize()` 调用。
+- **GameView 撤销节开始修复**：撤销 `event.period_start` 时正确关闭活跃 stints 和 match/period 计时，不再漏记上场时间。
+- **GameSetupView 键盘收起**：`@FocusState` 替代 `UIApplication.shared.sendAction`，更 SwiftUI 化。
+
 ## 1.26 (2026-06-20)
 
 ### 新增
