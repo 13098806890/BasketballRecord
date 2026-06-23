@@ -23,22 +23,18 @@ struct AIServiceProxy {
         os_log(.info, log: aiLog, "AI chat started")
 
         let tid: String
-        if let cached = await PurchaseManager.shared.latestTransactionId {
-            tid = "\(cached)"
-        } else {
-            var found: String?
-            for await result in Transaction.currentEntitlements {
-                guard case let .verified(t) = result,
-                      ["com.doxie.basketball.pro.monthly", "com.doxie.basketball.pro.yearly"].contains(t.productID) else { continue }
-                found = "\(t.id)"
-                break
-            }
-            guard let id = found else {
-                os_log(.error, log: aiLog, "No subscription found")
-                throw AIServiceProxyError.subscriptionInactive
-            }
-            tid = id
+        var found: String?
+        for await result in Transaction.currentEntitlements {
+            guard case let .verified(t) = result,
+                  ["com.doxie.basketball.pro.monthly", "com.doxie.basketball.pro.yearly"].contains(t.productID) else { continue }
+            found = "\(t.id)"
+            break
         }
+        guard let id = found else {
+            os_log(.error, log: aiLog, "No subscription found")
+            throw AIServiceProxyError.subscriptionInactive
+        }
+        tid = id
         os_log(.debug, log: aiLog, "Using transactionId=%{public}@", tid)
 
         let requestBody: [String: Any] = [
