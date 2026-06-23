@@ -1,9 +1,4 @@
 • Resumen IA de partidos — genera resúmenes con IA tras suscribirte
   Sin necesidad de clave API. Un resumen por partido, hasta 10 al día.
-• Sistema de clasificación ELO — carrera del jugador con niveles de Bronce a Rey,
-  ajuste por Game Score e historial
-• Ordenar jugadores — por puntos totales, promedio, +/- o ELO
-  con orden ascendente/descendente
-• Filtro por grupo — muestra solo jugadores del grupo seleccionado
 • Seguridad de suscripción — verificación vinculada al dispositivo vía iCloud
 • Mejoras de rendimiento y corrección de errores
