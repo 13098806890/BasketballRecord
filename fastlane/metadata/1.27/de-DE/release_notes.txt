@@ -1,0 +1,9 @@
+• KI-Spielzusammenfassung — erstelle nach dem Abo mit einem Klick KI-Zusammenfassungen
+  Kein API-Key nötig. Eine Zusammenfassung pro Spiel, bis zu 10 pro Tag.
+• ELO-Rangsystem — Spielerkarriere mit Bronze- bis König-Stufen,
+  Game Score-Anpassung und Spielverlauf
+• Spielerliste sortieren — nach Punkten, Durchschnitt, +/- oder ELO
+  mit auf-/absteigender Sortierung
+• Spieler-Gruppenfilter — zeige nur Spieler der ausgewählten Gruppe
+• Abosicherheit — gerätegebundene Verifizierung via iCloud
+• Leistungsverbesserungen und Fehlerbehebungen

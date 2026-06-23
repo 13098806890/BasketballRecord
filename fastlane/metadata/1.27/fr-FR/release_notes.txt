@@ -1,0 +1,9 @@
+• Résumé IA des matchs — génère des résumés IA après abonnement
+  Pas de clé API nécessaire. Un résumé par match, jusqu'à 10 par jour.
+• Système de classement ELO — carrière du joueur avec niveaux Bronze à Roi,
+  ajustement Game Score et historique
+• Trier les joueurs — par points totaux, moyenne, +/- ou ELO
+  avec tri ascendant/descendant
+• Filtre par groupe — affiche uniquement les joueurs du groupe sélectionné
+• Sécurité d'abonnement — vérification liée à l'appareil via iCloud
+• Améliorations de performance et corrections de bugs
