@@ -75,33 +75,11 @@ struct VoiceInstructionView: View {
     }
 
     private var headerTitle: String {
-        switch languageCode {
-        case "zh-Hans": return "语音控制"
-        case "zh-Hant": return "語音控制"
-        case "ja": return "音声コントロール"
-        case "ko": return "음성 제어"
-        case "de": return "Sprachsteuerung"
-        case "es": return "Control por Voz"
-        case "fr": return "Commande Vocale"
-        case "it": return "Controllo Vocale"
-        case "ru": return "Голосовое управление"
-        default: return "Voice Control"
-        }
+        NSLocalizedString("voice_header_title", comment: "Voice control header")
     }
 
     private var headerSubtitle: String {
-        switch languageCode {
-        case "zh-Hans": return "按住麦克风说出指令，松开后自动识别"
-        case "zh-Hant": return "按住麥克風說出指令，鬆開後自動識別"
-        case "ja": return "マイクを押しながら話し、離して認識"
-        case "ko": return "마이크를 누르고 말한 후 손을 떼면 인식"
-        case "de": return "Mikrofon gedrückt halten, sprechen, dann loslassen"
-        case "es": return "Manten presionado el microfono, habla y suelta"
-        case "fr": return "Maintenez le micro enfonce, parlez, puis relachez"
-        case "it": return "Tieni premuto il microfono, parla, poi rilascia"
-        case "ru": return "Зажмите микрофон, говорите команду, затем отпустите"
-        default: return "Hold the mic button, speak a command, then release"
-        }
+        NSLocalizedString("voice_header_subtitle", comment: "Voice control subtitle")
     }
 
     private var shotSection: some View {
