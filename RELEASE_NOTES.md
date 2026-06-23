@@ -1,5 +1,18 @@
 # Release Notes
 
+## 1.28 (2026-06-23)
+
+### 架构
+
+- **代码结构优化**：`RosterView`（2200→1140 行）、`VoiceTutorialView`（1880→692 行）拆分为独立文件，提升可维护性。
+- **iCloud 跨设备同步**：`appAccountToken` 通过 `NSUbiquitousKeyValueStore` 同步，同一 iCloud 账号的设备共享购买验证。
+
+### 修复
+
+- **语音指令页标题本地化**：`headerTitle`/`headerSubtitle` 从硬编码 switch 迁移至 `Localizable.strings`，10 种语言统一管理。
+- **设置页拆分后引用完整**：确保 `localized()` 等模块级函数在拆分后文件正确可见。
+- **`keepOriginalHintTaskIDs` 值对齐**：修复提取过程中数值不一致问题。
+
 ## 1.27 (2026-06-23)
 
 ### 新增

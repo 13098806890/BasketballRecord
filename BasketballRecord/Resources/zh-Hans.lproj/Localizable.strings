@@ -994,3 +994,5 @@ Format:
 "alert_ai_summary_exists_message" = "本场比赛已有 AI 总结。使用我们的服务每场比赛仅可生成一次。在设置中配置自己的 API Key 可多次生成。";
 "text_loading_products" = "正在加载订阅选项...";
 "text_ai_pro_hint" = "你也可以在设置中配置自己的 API Key，解锁无限次数生成。";
+"voice_header_title" = "语音控制";
+"voice_header_subtitle" = "按住麦克风说出指令，松开后自动识别";

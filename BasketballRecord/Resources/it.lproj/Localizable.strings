@@ -982,3 +982,5 @@ Format:
 "alert_ai_summary_exists_message" = "Questa partita ha già un riepilogo AI. Con il nostro servizio ogni partita può essere generata una sola volta. Aggiungi la tua chiave API in Impostazioni per generare più volte.";
 "text_loading_products" = "Caricamento opzioni abbonamento...";
 "text_ai_pro_hint" = "Puoi anche configurare la tua chiave API in Impostazioni per riepiloghi illimitati.";
+"voice_header_title" = "Controllo Vocale";
+"voice_header_subtitle" = "Tieni premuto il microfono, parla, poi rilascia";
