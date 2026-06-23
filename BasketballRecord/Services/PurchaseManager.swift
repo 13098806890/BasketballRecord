@@ -8,6 +8,9 @@ private let log = OSLog(subsystem: Bundle.main.bundleIdentifier ?? "BasketballRe
 final class PurchaseManager: ObservableObject {
     static let shared = PurchaseManager()
 
+    // Personal build override — set false on main branch
+    private static let forcePro = true
+
     @Published private(set) var isPro = false
     @Published private(set) var monthlyProduct: Product?
     @Published private(set) var yearlyProduct: Product?
@@ -38,7 +41,7 @@ final class PurchaseManager: ObservableObject {
     private var allProductIDs: [String] { [monthlyProductID, yearlyProductID] }
 
     init() {
-        isPro = UserDefaults.standard.bool(forKey: "is_pro")
+        isPro = Self.forcePro || UserDefaults.standard.bool(forKey: "is_pro")
         updates = observeTransactionUpdates()
         Task {
             await checkSubscriptionStatus()
@@ -88,6 +91,11 @@ final class PurchaseManager: ObservableObject {
     }
 
     func checkSubscriptionStatus() async {
+        guard !Self.forcePro else {
+            isPro = true
+            UserDefaults.standard.set(true, forKey: "is_pro")
+            return
+        }
         os_log(.debug, log: log, "Checking subscription status")
         var foundPro = false
 
