@@ -11,35 +11,26 @@ final class PurchaseManager: ObservableObject {
     @Published private(set) var isPro = false
     @Published private(set) var monthlyProduct: Product?
     @Published private(set) var yearlyProduct: Product?
-    private var cachedTransactionIds: [UInt64] = []
-    private let cachedTxKey = "cached_transaction_id"
+    private var isLoadingProducts = false
 
     let appAccountToken: UUID = {
-        let kvs = NSUbiquitousKeyValueStore.default
         let ud = UserDefaults.standard
-        let kvsKey = "app_account_token"
-        let udKey = "app_account_token"
-        // Try iCloud first, then UserDefaults
-        if let saved = kvs.string(forKey: kvsKey) ?? ud.string(forKey: udKey),
-           let uuid = UUID(uuidString: saved) {
-            // Ensure it's in both stores
-            if ud.string(forKey: udKey) == nil { ud.set(uuid.uuidString, forKey: udKey) }
-            if kvs.string(forKey: kvsKey) == nil { kvs.set(uuid.uuidString, forKey: kvsKey) }
+        let kvs = try? NSUbiquitousKeyValueStore.default
+        let key = "app_account_token"
+        // Try iCloud first (cross-device), then UserDefaults
+        let saved = kvs?.string(forKey: key) ?? ud.string(forKey: key)
+        if let s = saved, let uuid = UUID(uuidString: s) {
+            if ud.string(forKey: key) == nil { ud.set(uuid.uuidString, forKey: key) }
             return uuid
         }
         let uuid = UUID()
-        ud.set(uuid.uuidString, forKey: udKey)
-        kvs.set(uuid.uuidString, forKey: kvsKey)
-        kvs.synchronize()
+        ud.set(uuid.uuidString, forKey: key)
+        kvs?.set(uuid.uuidString, forKey: key)
+        kvs?.synchronize()
         return uuid
     }()
 
 
-
-    var latestTransactionId: UInt64? {
-        if let first = cachedTransactionIds.sorted().last { return first }
-        return UserDefaults.standard.string(forKey: cachedTxKey).flatMap { UInt64($0) }
-    }
 
     let monthlyProductID = "com.doxie.basketball.pro.monthly"
     let yearlyProductID = "com.doxie.basketball.pro.yearly"
@@ -57,10 +48,9 @@ final class PurchaseManager: ObservableObject {
     deinit { updates?.cancel() }
 
     func loadProducts() async {
-        if monthlyProduct != nil || yearlyProduct != nil {
-            os_log(.debug, log: log, "Products already loaded, skipping")
-            return
-        }
+        if monthlyProduct != nil || yearlyProduct != nil || isLoadingProducts { return }
+        isLoadingProducts = true
+        defer { isLoadingProducts = false }
         os_log(.info, log: log, "Loading products")
         let loaded = await withTaskGroup(of: [Product]?.self) { group in
             group.addTask { try? await Product.products(for: self.allProductIDs) }
@@ -115,7 +105,6 @@ final class PurchaseManager: ObservableObject {
                   allProductIDs.contains(t.productID),
                   t.revocationDate == nil,
                   t.expirationDate.map({ $0 > Date() }) ?? true else { continue }
-            UserDefaults.standard.set("\(t.id)", forKey: cachedTxKey)
             isPro = true
         }
 
@@ -126,11 +115,7 @@ final class PurchaseManager: ObservableObject {
 
     private func observeTransactionUpdates() -> Task<Void, Never> {
         Task { [weak self] in
-            for await update in Transaction.updates {
-                if case let .verified(t) = update {
-                    self?.cachedTransactionIds.append(t.id)
-                    UserDefaults.standard.set("\(t.id)", forKey: self?.cachedTxKey ?? "cached_transaction_id")
-                }
+            for await _ in Transaction.updates {
                 try? await Task.sleep(nanoseconds: 500_000_000)
                 await self?.checkSubscriptionStatus()
                 await self?.loadProducts()

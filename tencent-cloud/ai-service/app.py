@@ -1,10 +1,31 @@
 import os, json, base64, time, urllib.request, urllib.error, traceback
+from datetime import date
 from flask import Flask, request, jsonify
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.backends import default_backend
 
 app = Flask(__name__)
+
+# In-memory rate limit: 10 requests per transactionId per day
+_rate_limit = {}  # {"txnId_date": count}
+_last_cleanup = ""
+
+def _check_rate(tid):
+    global _last_cleanup
+    today = str(date.today())
+    # Clean old entries once per day
+    if _last_cleanup != today:
+        for k in list(_rate_limit):
+            if not k.endswith(f"_{today}"):
+                del _rate_limit[k]
+        _last_cleanup = today
+    key = f"{tid}_{today}"
+    count = _rate_limit.get(key, 0)
+    if count >= 10:
+        return False
+    _rate_limit[key] = count + 1
+    return True
 
 APP_CONFIGS = {
     "com.xiedongze.BasketballRecord": {
@@ -59,9 +80,16 @@ def make_jwt(issuer_id, key_id, bundle_id):
     return f"{header}.{payload}.{base64.urlsafe_b64encode(sig_raw).decode().rstrip('=')}"
 
 
-def verify_transaction(tid, config, bundle_id, client_token=""):
+def verify_transaction(tid, config, bundle_id, client_token="", environment=""):
     token = make_jwt(config["issuer_id"], config["key_id"], bundle_id)
-    for base_url in [APPLE_PRODUCTION, APPLE_SANDBOX]:
+    urls = []
+    if environment == "Sandbox":
+        urls = [APPLE_SANDBOX]
+    elif environment == "Production":
+        urls = [APPLE_PRODUCTION]
+    else:
+        urls = [APPLE_PRODUCTION, APPLE_SANDBOX]
+    for base_url in urls:
         url = f"{base_url}/inApps/v1/transactions/{tid}"
         req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
         try:
@@ -138,8 +166,12 @@ def chat():
         if not tid:
             return jsonify({"error": "transactionId required"}), 400
 
+        if not _check_rate(tid):
+            return jsonify({"error": "rate limit reached (10/day)"}), 429
+
         client_token = body.get("appAccountToken", "")
-        valid, status = verify_transaction(tid, config, "com.xiedongze.BasketballRecord", client_token)
+        env = body.get("environment", "")
+        valid, status = verify_transaction(tid, config, "com.xiedongze.BasketballRecord", client_token, env)
         if not valid:
             return jsonify({"error": f"subscription {status}"}), 403
 

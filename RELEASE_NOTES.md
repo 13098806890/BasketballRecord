@@ -5,12 +5,16 @@
 ### 架构
 
 - **代码结构优化**：`RosterView`（2200→1140 行）、`VoiceTutorialView`（1880→692 行）拆分为独立文件，提升可维护性。
+- **PurchaseManager 简化**：移除 `cachedTransactionIds` 数组和 `latestTransactionId`，订阅状态仅依赖 `Transaction.currentEntitlements`；`loadProducts` 添加 `isLoadingProducts` 防并发。
+- **AIServiceProxy 简化**：移除缓存兜底，仅从 `currentEntitlements` 获取 transactionId。
+- **SCF 服务端限流**：每 transactionId 每天 10 次上限，每日自动清理计数；支持 `environment` 参数指定沙箱/生产环境，避免无谓的 10s 超时。
 
 ### 修复
 
 - **语音指令页标题本地化**：`headerTitle`/`headerSubtitle` 从硬编码 switch 迁移至 `Localizable.strings`，10 种语言统一管理。
 - **设置页拆分后引用完整**：确保 `localized()` 等模块级函数在拆分后文件正确可见。
 - **`keepOriginalHintTaskIDs` 值对齐**：修复提取过程中数值不一致问题。
+- **`appAccountToken` 初始化保护**：`NSUbiquitousKeyValueStore` 改为 `try?` 防止 crash，同时保留 iCloud 跨设备同步。
 
 ## 1.27 (2026-06-23)
 
