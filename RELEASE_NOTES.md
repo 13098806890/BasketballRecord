@@ -1,5 +1,17 @@
 # Release Notes
 
+## 1.28 (2026-06-23)
+
+### 架构
+
+- **VoiceRules JSON 化**：移除 10 个 `VoiceRules_*.swift` 文件，改为 `VoiceRulesData.swift` 内嵌 JSON + `Resources/VoiceRules/` 源文件双源；JSON 数据按语言独立管理，便于编辑和跨平台复用。
+- **AppStore 中度拆分**：`AppStore.swift`（1451→687 行）拆分为 `AppStore+Player.swift`、`AppStore+Team.swift`、`AppStore+Game.swift` 三个 extension 文件，按 Player/Team/Game 职责分离 CRUD、合并、导入导出逻辑。
+- **GameView 提取 LiveCollaborationManager**：`GameView.swift`（3081→2731 行）中蓝牙直播协作状态和协议处理逻辑提取到独立的 `LiveCollaborationManager`（401 行），通过 `@StateObject` + 回调闭包与 GameView 通信。
+
+### 代码质量
+
+- **去除 `unique()` 重复定义**：LiveCollaborationManager 改用 `private static func deduped` 类方法，消除与 GameView 的 `unique()` 重复。
+
 ## 1.27 (2026-06-23)
 
 ### 新增
