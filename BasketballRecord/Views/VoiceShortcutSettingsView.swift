@@ -36,6 +36,8 @@ struct VoiceShortcutSettingsView: View {
         case .block: return "shield.lefthalf.filled"
         case .steal: return "hand.raised.fill"
         case .turnover: return "arrow.triangle.2.circlepath"
+        case .putbackMade, .putbackMissed: return "arrow.uturn.forward.circle"
+        case .dunkMade, .dunkMissed: return "figure.disc.sports"
         }
     }
 

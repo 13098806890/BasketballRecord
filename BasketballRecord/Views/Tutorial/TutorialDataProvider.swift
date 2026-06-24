@@ -318,6 +318,18 @@ struct TutorialDataProvider {
             taskDef(id: 19, desc: "Free Practice — try any command",
                     hint: "Say anything to practice — names, numbers, or team prefixes",
                     playerID: ids[0], action: .twoMade),
+            taskDef(id: 28, desc: "仔隊補籃命中",
+                    hint: "請說「仔隊補籃」·「仔隊補進」·「仔隊補進命中」",
+                    playerID: ids[2], action: .putbackMade),
+            taskDef(id: 29, desc: "仔隊補籃不中",
+                    hint: "請說「仔隊補籃沒進」·「仔隊補進不中」",
+                    playerID: ids[2], action: .putbackMissed),
+            taskDef(id: 30, desc: "Zai Dui dunk",
+                    hint: "Say \"Zai Dui dunk\" · \"Zai Dui dunk made\" · \"Zai Dui slam\"",
+                    playerID: ids[2], action: .dunkMade),
+            taskDef(id: 31, desc: "Zai Dui dunk miss",
+                    hint: "Say \"Zai Dui dunk miss\" · \"Zai Dui dunk no\"",
+                    playerID: ids[2], action: .dunkMissed),
         ]
         return TutorialLocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
     }
@@ -415,6 +427,18 @@ struct TutorialDataProvider {
             taskDef(id: 19, desc: "自由練習——任意のコマンドを試そう",
                     hint: "名前や番号やチーム名を自由に話して練習しよう",
                     playerID: ids[0], action: .twoMade),
+            taskDef(id: 28, desc: "ジー ドゥイ パットバック成功",
+                    hint: "「ジー ドゥイ パットバック」·「ジー ドゥイ パットバック成功」",
+                    playerID: ids[2], action: .putbackMade),
+            taskDef(id: 29, desc: "ジー ドゥイ パットバック失敗",
+                    hint: "「ジー ドゥイ パットバック失敗」·「ジー ドゥイ パットバックミス」",
+                    playerID: ids[2], action: .putbackMissed),
+            taskDef(id: 30, desc: "ジー ドゥイ ダンク成功",
+                    hint: "「ジー ドゥイ ダンク」·「ジー ドゥイ ダンク成功」",
+                    playerID: ids[2], action: .dunkMade),
+            taskDef(id: 31, desc: "ジー ドゥイ ダンク失敗",
+                    hint: "「ジー ドゥイ ダンク失敗」·「ジー ドゥイ ダンクミス」",
+                    playerID: ids[2], action: .dunkMissed),
         ]
         return TutorialLocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
     }
@@ -512,6 +536,18 @@ struct TutorialDataProvider {
             taskDef(id: 19, desc: "자유 연습 — 원하는 명령을 시도해보세요",
                     hint: "이름이나 번호나 팀명을 자유롭게 말해서 연습해보세요",
                     playerID: ids[0], action: .twoMade),
+            taskDef(id: 28, desc: "쟈 두에이 팟백 성공",
+                    hint: "「쟈 두에이 팟백」·「쟈 두에이 팟백 성공」",
+                    playerID: ids[2], action: .putbackMade),
+            taskDef(id: 29, desc: "쟈 두에이 팟백 실패",
+                    hint: "「쟈 두에이 팟백 실패」·「쟈 두에이 팟백 미스」",
+                    playerID: ids[2], action: .putbackMissed),
+            taskDef(id: 30, desc: "쟈 두에이 덩크 성공",
+                    hint: "「쟈 두에이 덩크」·「쟈 두에이 덩크 성공」",
+                    playerID: ids[2], action: .dunkMade),
+            taskDef(id: 31, desc: "쟈 두에이 덩크 실패",
+                    hint: "「쟈 두에이 덩크 실패」·「쟈 두에이 덩크 미스」",
+                    playerID: ids[2], action: .dunkMissed),
         ]
         return TutorialLocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
     }
@@ -609,6 +645,18 @@ struct TutorialDataProvider {
             taskDef(id: 19, desc: "Freies Spiel — probiere beliebige Befehle",
                     hint: "Sage Namen, Nummern oder Teamnamen zum Üben",
                     playerID: ids[0], action: .twoMade),
+            taskDef(id: 28, desc: "Zai Dui Putback verwandelt",
+                    hint: "Say \"Zai Dui putback\" · \"Zai Dui putback getroffen\"",
+                    playerID: ids[2], action: .putbackMade),
+            taskDef(id: 29, desc: "Zai Dui Putback verfehlt",
+                    hint: "Say \"Zai Dui putback miss\" · \"Zai Dui putback verfehlt\"",
+                    playerID: ids[2], action: .putbackMissed),
+            taskDef(id: 30, desc: "Zai Dui dunk",
+                    hint: "Say \"Zai Dui dunk\" · \"Zai Dui dunk made\" · \"Zai Dui slam\"",
+                    playerID: ids[2], action: .dunkMade),
+            taskDef(id: 31, desc: "Zai Dui dunk miss",
+                    hint: "Say \"Zai Dui dunk miss\" · \"Zai Dui dunk no\"",
+                    playerID: ids[2], action: .dunkMissed),
         ]
         return TutorialLocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
     }
@@ -706,6 +754,18 @@ struct TutorialDataProvider {
             taskDef(id: 19, desc: "Juego libre — prueba cualquier comando",
                     hint: "Di nombres, números o nombres de equipo para practicar",
                     playerID: ids[0], action: .twoMade),
+            taskDef(id: 28, desc: "Zai Dui putback anotado",
+                    hint: "Say \"Zai Dui putback\" · \"Zai Dui putback anotado\"",
+                    playerID: ids[2], action: .putbackMade),
+            taskDef(id: 29, desc: "Zai Dui putback fallado",
+                    hint: "Say \"Zai Dui putback miss\" · \"Zai Dui putback fallado\"",
+                    playerID: ids[2], action: .putbackMissed),
+            taskDef(id: 30, desc: "Zai Dui dunk",
+                    hint: "Say \"Zai Dui dunk\" · \"Zai Dui dunk made\" · \"Zai Dui slam\"",
+                    playerID: ids[2], action: .dunkMade),
+            taskDef(id: 31, desc: "Zai Dui dunk miss",
+                    hint: "Say \"Zai Dui dunk miss\" · \"Zai Dui dunk no\"",
+                    playerID: ids[2], action: .dunkMissed),
         ]
         return TutorialLocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
     }
@@ -803,6 +863,18 @@ struct TutorialDataProvider {
             taskDef(id: 19, desc: "Jeu libre — essaye n'importe quelle commande",
                     hint: "Dis des noms, numéros ou noms d'équipe pour t'entraîner",
                     playerID: ids[0], action: .twoMade),
+            taskDef(id: 28, desc: "Zai Dui putback réussi",
+                    hint: "Say \"Zai Dui putback\" · \"Zai Dui putback réussi\"",
+                    playerID: ids[2], action: .putbackMade),
+            taskDef(id: 29, desc: "Zai Dui putback manqué",
+                    hint: "Say \"Zai Dui putback miss\" · \"Zai Dui putback manqué\"",
+                    playerID: ids[2], action: .putbackMissed),
+            taskDef(id: 30, desc: "Zai Dui dunk",
+                    hint: "Say \"Zai Dui dunk\" · \"Zai Dui dunk made\" · \"Zai Dui slam\"",
+                    playerID: ids[2], action: .dunkMade),
+            taskDef(id: 31, desc: "Zai Dui dunk miss",
+                    hint: "Say \"Zai Dui dunk miss\" · \"Zai Dui dunk no\"",
+                    playerID: ids[2], action: .dunkMissed),
         ]
         return TutorialLocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
     }
@@ -900,6 +972,18 @@ struct TutorialDataProvider {
             taskDef(id: 19, desc: "Gioco libero — prova qualsiasi comando",
                     hint: "Pronuncia nomi, numeri o nomi di squadra per esercitarti",
                     playerID: ids[0], action: .twoMade),
+            taskDef(id: 28, desc: "Zai Dui putback realizzato",
+                    hint: "Say \"Zai Dui putback\" · \"Zai Dui putback realizzato\"",
+                    playerID: ids[2], action: .putbackMade),
+            taskDef(id: 29, desc: "Zai Dui putback sbagliato",
+                    hint: "Say \"Zai Dui putback miss\" · \"Zai Dui putback sbagliato\"",
+                    playerID: ids[2], action: .putbackMissed),
+            taskDef(id: 30, desc: "Zai Dui dunk",
+                    hint: "Say \"Zai Dui dunk\" · \"Zai Dui dunk made\" · \"Zai Dui slam\"",
+                    playerID: ids[2], action: .dunkMade),
+            taskDef(id: 31, desc: "Zai Dui dunk miss",
+                    hint: "Say \"Zai Dui dunk miss\" · \"Zai Dui dunk no\"",
+                    playerID: ids[2], action: .dunkMissed),
         ]
         return TutorialLocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
     }
@@ -997,6 +1081,18 @@ struct TutorialDataProvider {
             taskDef(id: 19, desc: "Свободная игра — попробуй любую команду",
                     hint: "Говори имена, номера или название команды для практики",
                     playerID: ids[0], action: .twoMade),
+            taskDef(id: 28, desc: "Цзай Дуй путбэк забит",
+                    hint: "Скажите «Цзай Дуй путбэк» · «Цзай Дуй путбэк забит»",
+                    playerID: ids[2], action: .putbackMade),
+            taskDef(id: 29, desc: "Цзай Дуй путбэк промах",
+                    hint: "Скажите «Цзай Дуй путбэк промах» · «Цзай Дуй путбэк не забит»",
+                    playerID: ids[2], action: .putbackMissed),
+            taskDef(id: 30, desc: "Цзай Дуй данк забит",
+                    hint: "Скажите «Цзай Дуй данк» · «Цзай Дуй данк забит»",
+                    playerID: ids[2], action: .dunkMade),
+            taskDef(id: 31, desc: "Цзай Дуй данк промах",
+                    hint: "Скажите «Цзай Дуй данк промах» · «Цзай Дуй данк не забит»",
+                    playerID: ids[2], action: .dunkMissed),
         ]
         return TutorialLocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
     }
@@ -1094,6 +1190,18 @@ struct TutorialDataProvider {
             taskDef(id: 19, desc: "自由练习——试试任意指令",
                     hint: "说任何指令来自由练习",
                     playerID: ids[0], action: .twoMade),
+            taskDef(id: 28, desc: "仔隊補籃命中",
+                    hint: "請說「仔隊補籃」·「仔隊補進」·「仔隊補進命中」",
+                    playerID: ids[2], action: .putbackMade),
+            taskDef(id: 29, desc: "仔隊補籃不中",
+                    hint: "請說「仔隊補籃沒進」·「仔隊補進不中」",
+                    playerID: ids[2], action: .putbackMissed),
+            taskDef(id: 30, desc: "仔隊扣籃命中",
+                    hint: "請說「仔隊扣籃」·「仔隊扣進」·「仔隊扣籃命中」",
+                    playerID: ids[2], action: .dunkMade),
+            taskDef(id: 31, desc: "仔隊扣籃不中",
+                    hint: "請說「仔隊扣籃沒進」·「仔隊扣進不中」",
+                    playerID: ids[2], action: .dunkMissed),
         ]
         return TutorialLocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
     }
@@ -1191,6 +1299,18 @@ struct TutorialDataProvider {
             taskDef(id: 19, desc: "自由練習——試試任意指令",
                     hint: "說任何指令來自由練習",
                     playerID: ids[0], action: .twoMade),
+            taskDef(id: 28, desc: "仔隊補籃命中",
+                    hint: "請說「仔隊補籃」·「仔隊補進」·「仔隊補進命中」",
+                    playerID: ids[2], action: .putbackMade),
+            taskDef(id: 29, desc: "仔隊補籃不中",
+                    hint: "請說「仔隊補籃沒進」·「仔隊補進不中」",
+                    playerID: ids[2], action: .putbackMissed),
+            taskDef(id: 30, desc: "仔隊扣籃命中",
+                    hint: "請說「仔隊扣籃」·「仔隊扣進」·「仔隊扣籃命中」",
+                    playerID: ids[2], action: .dunkMade),
+            taskDef(id: 31, desc: "仔隊扣籃不中",
+                    hint: "請說「仔隊扣籃沒進」·「仔隊扣進不中」",
+                    playerID: ids[2], action: .dunkMissed),
         ]
         return TutorialLocalizedData(players: players, tasks: tasks, substitutionTaskID: 17, freePlayTaskID: 19)
     }

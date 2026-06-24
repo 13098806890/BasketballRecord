@@ -995,3 +995,7 @@ Format:
 "text_ai_pro_hint" = "設定でご自身のAPI Keyを追加すると、無制限に利用できます。";
 "voice_header_title" = "音声コントロール";
 "voice_header_subtitle" = "マイクを押しながら話し、離して認識";
+"action_putback_made" = "パットバック成功";
+"action_putback_missed" = "パットバック失敗";
+"action_dunk_made" = "ダンク成功";
+"action_dunk_missed" = "ダンク失敗";

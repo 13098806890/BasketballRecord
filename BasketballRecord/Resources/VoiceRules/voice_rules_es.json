@@ -26,7 +26,12 @@
     {"keyword": "libra", "eventPrefix": "stat.freeThrow"},
     {"keyword": "bonus", "eventPrefix": "stat.bonus"},
     {"keyword": "y uno", "eventPrefix": "stat.bonus"},
-    {"keyword": "i uno", "eventPrefix": "stat.bonus"}
+    {"keyword": "i uno", "eventPrefix": "stat.bonus"},
+    {"keyword": "putback", "eventPrefix": "stat.putback"},
+    {"keyword": "put back", "eventPrefix": "stat.putback"},
+    {"keyword": "mate", "eventPrefix": "stat.dunk"},
+    {"keyword": "clavada", "eventPrefix": "stat.dunk"},
+    {"keyword": "dunk", "eventPrefix": "stat.dunk"}
   ],
   "madeStates": ["anotó", "entró", "metió", "canasta", "bueno"],
   "missedStates": ["fallado", "fuera", "bloqueado", "perdido", "no", "fallo", "aire"],
@@ -73,7 +78,9 @@
     ["final", "event.game_end"],
     ["fin del partido", "event.game_end"],
     ["terminar", "event.game_end"],
-    ["terminado", "event.game_end"]
+    ["terminado", "event.game_end"],
+    ["undo", "event.undo"],
+    ["redo", "event.redo"]
   ],
   "useLevenshteinMatching": true,
   "levenshteinThresholdShort": 1,

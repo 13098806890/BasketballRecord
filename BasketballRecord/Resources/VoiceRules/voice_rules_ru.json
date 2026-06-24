@@ -24,7 +24,12 @@
     {"keyword": "штрафной бросок", "eventPrefix": "stat.freeThrow"},
     {"keyword": "штрафный", "eventPrefix": "stat.freeThrow"},
     {"keyword": "бонус", "eventPrefix": "stat.bonus"},
-    {"keyword": "бонас", "eventPrefix": "stat.bonus"}
+    {"keyword": "бонас", "eventPrefix": "stat.bonus"},
+    {"keyword": "putback", "eventPrefix": "stat.putback"},
+    {"keyword": "put back", "eventPrefix": "stat.putback"},
+    {"keyword": "данк", "eventPrefix": "stat.dunk"},
+    {"keyword": "слэм-данк", "eventPrefix": "stat.dunk"},
+    {"keyword": "дануть", "eventPrefix": "stat.dunk"}
   ],
   "madeStates": ["попал", "забил", "есть", "удачно", "зашёл"],
   "missedStates": ["промах", "мимо", "заблокировали", "не попал", "нет", "мимо кольца"],
@@ -72,7 +77,9 @@
     ["конец", "event.game_end"],
     ["конец игры", "event.game_end"],
     ["финал", "event.game_end"],
-    ["закончили", "event.game_end"]
+    ["закончили", "event.game_end"],
+    ["undo", "event.undo"],
+    ["redo", "event.redo"]
   ],
   "useLevenshteinMatching": true,
   "levenshteinThresholdShort": 1,

@@ -984,3 +984,7 @@ Format:
 "text_ai_pro_hint" = "Puoi anche configurare la tua chiave API in Impostazioni per riepiloghi illimitati.";
 "voice_header_title" = "Controllo Vocale";
 "voice_header_subtitle" = "Tieni premuto il microfono, parla, poi rilascia";
+"action_putback_made" = "Putback realizzato";
+"action_putback_missed" = "Putback sbagliato";
+"action_dunk_made" = "Schiacciata realizzata";
+"action_dunk_missed" = "Schiacciata sbagliata";

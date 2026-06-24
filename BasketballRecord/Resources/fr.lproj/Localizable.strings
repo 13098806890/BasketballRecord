@@ -984,3 +984,7 @@ Format:
 "text_ai_pro_hint" = "Vous pouvez également configurer votre propre clé API dans les Réglages pour des résumés illimités.";
 "voice_header_title" = "Commande Vocale";
 "voice_header_subtitle" = "Maintenez le micro enfonce, parlez, puis relachez";
+"action_putback_made" = "Putback réussi";
+"action_putback_missed" = "Putback manqué";
+"action_dunk_made" = "Dunk réussi";
+"action_dunk_missed" = "Dunk manqué";

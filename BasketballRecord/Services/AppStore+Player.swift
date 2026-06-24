@@ -257,6 +257,8 @@ extension AppStore {
         total.midRangeAttempts += rhs.midRangeAttempts
         total.paintMade += rhs.paintMade
         total.paintAttempts += rhs.paintAttempts
+        total.dunkMade += rhs.dunkMade
+        total.dunkAttempts += rhs.dunkAttempts
         return total
     }
 }

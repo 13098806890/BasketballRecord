@@ -32,7 +32,12 @@
     {"keyword": "panié", "eventPrefix": "stat.two"},
     {"keyword": "bonus", "eventPrefix": "stat.bonus"},
     {"keyword": "et un", "eventPrefix": "stat.bonus"},
-    {"keyword": "et 1", "eventPrefix": "stat.bonus"}
+    {"keyword": "et 1", "eventPrefix": "stat.bonus"},
+    {"keyword": "putback", "eventPrefix": "stat.putback"},
+    {"keyword": "put back", "eventPrefix": "stat.putback"},
+    {"keyword": "dunk", "eventPrefix": "stat.dunk"},
+    {"keyword": "slam dunk", "eventPrefix": "stat.dunk"},
+    {"keyword": "dunker", "eventPrefix": "stat.dunk"}
   ],
   "madeStates": ["réussi", "bon", "dedans", "marqué", "rentré"],
   "missedStates": ["raté", "dehors", "loupé", "contré", "manqué", "bloqué", "non", "airball"],
@@ -84,7 +89,9 @@
     ["fin", "event.game_end"],
     ["fin du match", "event.game_end"],
     ["terminé", "event.game_end"],
-    ["fini", "event.game_end"]
+    ["fini", "event.game_end"],
+    ["undo", "event.undo"],
+    ["redo", "event.redo"]
   ],
   "useLevenshteinMatching": true,
   "levenshteinThresholdShort": 1,

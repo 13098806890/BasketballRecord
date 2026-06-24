@@ -21,7 +21,15 @@
     {"keyword": "散分", "eventPrefix": "stat.three"},
     {"keyword": "三份", "eventPrefix": "stat.three"},
     {"keyword": "法球", "eventPrefix": "stat.freeThrow"},
-    {"keyword": "加法", "eventPrefix": "stat.bonus"}
+    {"keyword": "加法", "eventPrefix": "stat.bonus"},
+    {"keyword": "补篮", "eventPrefix": "stat.putback"},
+    {"keyword": "补进", "eventPrefix": "stat.putback"},
+    {"keyword": "bu lan", "eventPrefix": "stat.putback"},
+    {"keyword": "bu jin", "eventPrefix": "stat.putback"},
+    {"keyword": "扣篮", "eventPrefix": "stat.dunk"},
+    {"keyword": "扣进", "eventPrefix": "stat.dunk"},
+    {"keyword": "kou lan", "eventPrefix": "stat.dunk"},
+    {"keyword": "kou jin", "eventPrefix": "stat.dunk"}
   ],
   "madeStates": ["命中", "进", "得分", "成功"],
   "missedStates": ["未中", "没中", "不中", "不进", "没进", "打铁"],
@@ -75,7 +83,11 @@
     ["停表", "event.pause"],
     ["继续", "event.pause"],
     ["继续比赛", "event.pause"],
-    ["比赛继续", "event.pause"]
+    ["比赛继续", "event.pause"],
+    ["撤销", "event.undo"],
+    ["撤回", "event.undo"],
+    ["重做", "event.redo"],
+    ["恢复", "event.redo"]
   ],
   "fuzzyMap": [
     ["zh", "z"],

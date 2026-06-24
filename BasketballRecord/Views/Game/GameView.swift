@@ -355,6 +355,8 @@ struct GameView: View {
                     case .togglePause: togglePause()
                     case .startPeriod: togglePeriod()
                     case .finishGame: isShowingFinishGameConfirmation = true
+                    case .undo: undo()
+                    case .redo: redo()
                     case .substitution(_, _, _): break
                     }
                 }
@@ -1494,14 +1496,20 @@ struct GameView: View {
             return applyResetGameOperation(keepLiveSession: true)
 
         case .undo:
-            // Try action-based undo first (revert last log)
+            if let previous = undoStack.popLast() {
+                redoStack.append(snapshot)
+                if redoStack.count > 30 { redoStack.removeFirst(redoStack.count - 30) }
+                snapshot = previous
+                ensureSelectedPlayer()
+                autoSaveCurrentGame()
+                return true
+            }
             let now = Date()
             var redoSnapshot = snapshot
             closeActiveStints(in: &redoSnapshot, at: now)
             closeMatchClock(in: &redoSnapshot, at: now)
             closePeriodClock(in: &redoSnapshot, at: now)
             redoStack.append(redoSnapshot)
-
             if revertLastAction() {
                 autoSaveCurrentGame()
                 return true
@@ -1526,6 +1534,10 @@ struct GameView: View {
         let teamID = side == .home ? snapshot.homeTeamID : snapshot.awayTeamID
 
         guard isTeamMode || isOnCourt(playerID, side: side) else { return false }
+
+        if action == .putbackMade || action == .putbackMissed {
+            return applyPutbackOperation(action: action, playerID: playerID, side: side, isTeamMode: isTeamMode, teamID: teamID, at: at, eventMessage: eventMessage)
+        }
 
         mutateSnapshot {
             if isTeamMode, let teamID {
@@ -1553,6 +1565,42 @@ struct GameView: View {
             }
         }
         if action.points > 0, snapshot.periodEndCondition == .byScore {
+            checkAndAutoEndPeriod()
+        }
+        return true
+    }
+
+    private func applyPutbackOperation(action: StatAction, playerID: UUID, side: TeamSide, isTeamMode: Bool, teamID: UUID?, at: Date?, eventMessage: String?) -> Bool {
+        let isMade = action == .putbackMade
+        mutateSnapshot {
+            if isTeamMode, let teamID {
+                var stats = snapshot.teamStatsByID[teamID, default: PlayerStats()]
+                stats.rebounds += 1
+                if isMade {
+                    stats.twoMade += 1; stats.twoAttempts += 1
+                } else {
+                    stats.twoAttempts += 1
+                }
+                snapshot.teamStatsByID[teamID] = stats
+            } else {
+                var stats = snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+                stats.rebounds += 1
+                if isMade {
+                    stats.twoMade += 1; stats.twoAttempts += 1
+                } else {
+                    stats.twoAttempts += 1
+                }
+                snapshot.statsByPlayerID[playerID] = stats
+            }
+            if isMade {
+                applyPlusMinus(points: 2, scoringSide: side)
+            }
+            let eventName = isTeamMode ? (store.team(for: teamID)?.name ?? "?") : name(for: playerID)
+            let shotMsg = isMade ? NSLocalizedString("action_two_made", comment: "") : NSLocalizedString("action_two_missed", comment: "")
+            let combinedMsg = eventMessage ?? "\(eventName) \(NSLocalizedString(isMade ? "action_putback_made" : "action_putback_missed", comment: ""))"
+            addEvent(combinedMsg, playerID: isTeamMode ? nil : playerID, eventCode: action.eventCode, at: at)
+        }
+        if isMade, snapshot.periodEndCondition == .byScore {
             checkAndAutoEndPeriod()
         }
         return true

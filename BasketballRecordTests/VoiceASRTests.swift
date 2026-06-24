@@ -344,6 +344,8 @@ final class VoiceASRTests: XCTestCase {
             case .togglePause: code = "event.pause"
             case .finishGame: code = "event.game_end"
             case .substitution: code = "event.substitution"
+            case .undo: code = "event.undo"
+            case .redo: code = "event.redo"
             }
             exp.fulfill()
         }
@@ -368,6 +370,8 @@ final class VoiceASRTests: XCTestCase {
             case .togglePause: code = "event.pause"
             case .finishGame: code = "event.game_end"
             case .substitution: code = "event.substitution"
+            case .undo: code = "event.undo"
+            case .redo: code = "event.redo"
             }
             exp.fulfill()
         }

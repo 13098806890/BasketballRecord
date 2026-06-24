@@ -679,6 +679,8 @@ struct PlayerStats: Codable, Hashable {
     var midRangeAttempts = 0
     var paintMade = 0
     var paintAttempts = 0
+    var dunkMade = 0
+    var dunkAttempts = 0
     var bonusFreeThrowMade = 0
     var bonusFreeThrowAttempts = 0
     var freeThrowMade = 0
@@ -712,6 +714,7 @@ struct PlayerStats: Codable, Hashable {
         case layupMade, layupAttempts
         case midRangeMade, midRangeAttempts
         case paintMade, paintAttempts
+        case dunkMade, dunkAttempts
     }
 
     init() { }
@@ -740,6 +743,8 @@ struct PlayerStats: Codable, Hashable {
         midRangeAttempts = try container.decodeIfPresent(Int.self, forKey: .midRangeAttempts) ?? 0
         paintMade = try container.decodeIfPresent(Int.self, forKey: .paintMade) ?? 0
         paintAttempts = try container.decodeIfPresent(Int.self, forKey: .paintAttempts) ?? 0
+        dunkMade = try container.decodeIfPresent(Int.self, forKey: .dunkMade) ?? 0
+        dunkAttempts = try container.decodeIfPresent(Int.self, forKey: .dunkAttempts) ?? 0
     }
 
     var totalRebounds: Int { rebounds + offensiveRebounds + defensiveRebounds }

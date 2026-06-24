@@ -994,3 +994,7 @@ Format:
 "text_ai_pro_hint" = "你也可以在設定中配置自己的 API Key，解鎖無限次數生成。";
 "voice_header_title" = "語音控制";
 "voice_header_subtitle" = "按住麥克風說出指令，鬆開後自動識別";
+"action_putback_made" = "補籃命中";
+"action_putback_missed" = "補籃未中";
+"action_dunk_made" = "扣籃命中";
+"action_dunk_missed" = "扣籃未中";

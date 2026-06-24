@@ -26,7 +26,13 @@
     {"keyword": "보나스", "eventPrefix": "stat.bonus"},
     {"keyword": "앤드 원", "eventPrefix": "stat.bonus"},
     {"keyword": "엔드 원", "eventPrefix": "stat.bonus"},
-    {"keyword": "원 플러스 원", "eventPrefix": "stat.bonus"}
+    {"keyword": "원 플러스 원", "eventPrefix": "stat.bonus"},
+    {"keyword": "팟백", "eventPrefix": "stat.putback"},
+    {"keyword": "putback", "eventPrefix": "stat.putback"},
+    {"keyword": "팥백", "eventPrefix": "stat.putback"},
+    {"keyword": "덩크", "eventPrefix": "stat.dunk"},
+    {"keyword": "덩크슛", "eventPrefix": "stat.dunk"},
+    {"keyword": "dunk", "eventPrefix": "stat.dunk"}
   ],
   "madeStates": ["성공", "들어갔다", "득점", "성공했다"],
   "missedStates": ["실패", "빗나감", "블록", "못 넣음", "안 들어감", "놓침"],
@@ -70,7 +76,11 @@
     ["종료", "event.game_end"],
     ["경기종료", "event.game_end"],
     ["끝", "event.game_end"],
-    ["파이널", "event.game_end"]
+    ["파이널", "event.game_end"],
+    ["실행 취소", "event.undo"],
+    ["되돌리기", "event.undo"],
+    ["재실행", "event.redo"],
+    ["다시 실행", "event.redo"]
   ],
   "useLevenshteinMatching": true,
   "levenshteinThresholdShort": 1,
