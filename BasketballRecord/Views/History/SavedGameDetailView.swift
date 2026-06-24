@@ -690,6 +690,7 @@ struct SavedGameDetailView: View {
         var assistStreak: (playerID: UUID, count: Int)?
         var missedShotStreak: (teamIsHome: Bool, count: Int)?
         var personalMissStreak: (playerID: UUID, count: Int)?
+        var bothMissStreak = 0
         var lastScoringCode: String?
         var lastScoringPID: UUID?
 
@@ -791,9 +792,10 @@ struct SavedGameDetailView: View {
             }
 
             // Consecutive missed shots (personal and team)
-            let missedCodes: Set<String> = ["stat.twoMissed", "stat.threeMissed", "stat.freeThrowMissed", "stat.bonusMissed", "stat.layupMissed", "stat.midRangeMissed", "stat.paintMissed"]
+            let missedCodes: Set<String> = ["stat.twoMissed", "stat.threeMissed", "stat.freeThrowMissed", "stat.bonusMissed", "stat.layupMissed", "stat.midRangeMissed", "stat.paintMissed", "stat.dunkMissed", "stat.putbackMissed"]
             if missedCodes.contains(code), let pid = playerID {
                 let isHome = homeIDs.contains(pid)
+                bothMissStreak += 1
                 // Team missed streak
                 if missedShotStreak?.teamIsHome == isHome {
                     missedShotStreak?.count += 1
@@ -850,6 +852,9 @@ struct SavedGameDetailView: View {
         }
         if let pm = personalMissStreak, pm.count >= 3 {
             events.append("  personal_miss_streak:\(idToName[pm.playerID] ?? "?") x\(pm.count)")
+        }
+        if bothMissStreak >= 6 {
+            events.append("  both_miss_streak:x\(bothMissStreak)")
         }
 
         return events.isEmpty ? "- No scoring data" : events.joined(separator: "\n")

@@ -133,6 +133,16 @@ enum BluetoothLiveStatAction: String, Codable, Hashable {
     case block
     case steal
     case turnover
+    case putbackMade
+    case putbackMissed
+    case layupMade
+    case layupMissed
+    case midRangeMade
+    case midRangeMissed
+    case paintMade
+    case paintMissed
+    case dunkMade
+    case dunkMissed
 }
 
 enum BluetoothLiveOperationPayload: Codable, Hashable {

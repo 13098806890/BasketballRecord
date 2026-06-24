@@ -6,6 +6,8 @@ enum StatAction {
     case bonusMade, bonusMissed, freeThrowMade, freeThrowMissed
     case foul, assist, rebound, offensiveRebound, defensiveRebound, block, steal, turnover
     case layupMade, layupMissed, midRangeMade, midRangeMissed, paintMade, paintMissed
+    case putbackMade, putbackMissed
+    case dunkMade, dunkMissed
 
     var eventCode: String {
         switch self {
@@ -31,6 +33,10 @@ enum StatAction {
         case .midRangeMissed: return "stat.midRangeMissed"
         case .paintMade: return "stat.paintMade"
         case .paintMissed: return "stat.paintMissed"
+        case .putbackMade: return "stat.putbackMade"
+        case .putbackMissed: return "stat.putbackMissed"
+        case .dunkMade: return "stat.dunkMade"
+        case .dunkMissed: return "stat.dunkMissed"
         }
     }
 
@@ -58,6 +64,10 @@ enum StatAction {
         case .midRangeMissed: return "action_mid_range_missed"
         case .paintMade: return "action_paint_made"
         case .paintMissed: return "action_paint_missed"
+        case .putbackMade: return "action_putback_made"
+        case .putbackMissed: return "action_putback_missed"
+        case .dunkMade: return "action_dunk_made"
+        case .dunkMissed: return "action_dunk_missed"
         }
     }
 
@@ -67,7 +77,7 @@ enum StatAction {
 
     var points: Int {
         switch self {
-        case .twoMade, .layupMade, .midRangeMade, .paintMade: return 2
+        case .twoMade, .layupMade, .midRangeMade, .paintMade, .putbackMade, .dunkMade: return 2
         case .threeMade: return 3
         case .bonusMade, .freeThrowMade: return 1
         default: return 0
@@ -127,6 +137,18 @@ enum StatAction {
             stats.steals += 1
         case .turnover:
             stats.turnovers += 1
+        case .putbackMade:
+            stats.rebounds += 1
+            stats.twoMade += 1
+            stats.twoAttempts += 1
+        case .putbackMissed:
+            stats.rebounds += 1
+            stats.twoAttempts += 1
+        case .dunkMade:
+            stats.dunkMade += 1; stats.dunkAttempts += 1
+            stats.twoMade += 1; stats.twoAttempts += 1
+        case .dunkMissed:
+            stats.dunkAttempts += 1; stats.twoAttempts += 1
         }
     }
 
@@ -205,6 +227,22 @@ enum StatAction {
         case .paintMissed:
             guard stats.paintAttempts > 0, stats.twoAttempts > 0 else { return false }
             stats.paintAttempts -= 1; stats.twoAttempts -= 1
+        case .dunkMade:
+            guard stats.dunkMade > 0, stats.dunkAttempts > 0, stats.twoMade > 0, stats.twoAttempts > 0 else { return false }
+            stats.dunkMade -= 1; stats.dunkAttempts -= 1
+            stats.twoMade -= 1; stats.twoAttempts -= 1
+        case .dunkMissed:
+            guard stats.dunkAttempts > 0, stats.twoAttempts > 0 else { return false }
+            stats.dunkAttempts -= 1; stats.twoAttempts -= 1
+        case .putbackMade:
+            guard stats.rebounds > 0, stats.twoMade > 0, stats.twoAttempts > 0 else { return false }
+            stats.rebounds -= 1
+            stats.twoMade -= 1
+            stats.twoAttempts -= 1
+        case .putbackMissed:
+            guard stats.rebounds > 0, stats.twoAttempts > 0 else { return false }
+            stats.rebounds -= 1
+            stats.twoAttempts -= 1
         }
         return true
     }
@@ -249,6 +287,16 @@ extension StatAction {
         case .block: self = .block
         case .steal: self = .steal
         case .turnover: self = .turnover
+        case .putbackMade: self = .putbackMade
+        case .putbackMissed: self = .putbackMissed
+        case .layupMade: self = .layupMade
+        case .layupMissed: self = .layupMissed
+        case .midRangeMade: self = .midRangeMade
+        case .midRangeMissed: self = .midRangeMissed
+        case .paintMade: self = .paintMade
+        case .paintMissed: self = .paintMissed
+        case .dunkMade: self = .dunkMade
+        case .dunkMissed: self = .dunkMissed
         }
     }
 
@@ -270,8 +318,16 @@ extension StatAction {
         case .block: return .block
         case .steal: return .steal
         case .turnover: return .turnover
-        case .layupMade, .midRangeMade, .paintMade: return .twoMade
-        case .layupMissed, .midRangeMissed, .paintMissed: return .twoMissed
+        case .layupMade: return .layupMade
+        case .layupMissed: return .layupMissed
+        case .midRangeMade: return .midRangeMade
+        case .midRangeMissed: return .midRangeMissed
+        case .paintMade: return .paintMade
+        case .paintMissed: return .paintMissed
+        case .dunkMade: return .dunkMade
+        case .dunkMissed: return .dunkMissed
+        case .putbackMade: return .putbackMade
+        case .putbackMissed: return .putbackMissed
         }
     }
 }
@@ -280,7 +336,7 @@ extension StatAction: Equatable {}
 
 extension StatAction: CaseIterable {
     static var allCases: [StatAction] {
-        [.twoMade, .twoMissed, .threeMade, .threeMissed, .bonusMade, .bonusMissed, .freeThrowMade, .freeThrowMissed, .foul, .assist, .rebound, .offensiveRebound, .defensiveRebound, .block, .steal, .turnover, .layupMade, .layupMissed, .midRangeMade, .midRangeMissed, .paintMade, .paintMissed]
+        [.twoMade, .twoMissed, .threeMade, .threeMissed, .bonusMade, .bonusMissed, .freeThrowMade, .freeThrowMissed, .foul, .assist, .rebound, .offensiveRebound, .defensiveRebound, .block, .steal, .turnover, .layupMade, .layupMissed, .midRangeMade, .midRangeMissed, .paintMade, .paintMissed, .putbackMade, .putbackMissed, .dunkMade, .dunkMissed]
     }
 }
 

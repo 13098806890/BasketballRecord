@@ -12,7 +12,17 @@
 
 - **去除 `unique()` 重复定义**：LiveCollaborationManager 改用 `private static func deduped` 类方法，消除与 GameView 的 `unique()` 重复。
 
+### 新增
+
+- **补篮和扣篮动作**：新增 `putbackMade/Missed`（补篮命中/不中）和 `dunkMade/Missed`（扣篮命中/不中）两种统计动作。补篮为篮板+两分复合动作；扣篮独立计数。全部 10 种语言语音规则、教程任务（28-31）、语音示例均已支持。
+- **语音撤销/重做**：新增语音命令 `undo`（撤销）和 `redo`（重做），10 种语言对应关键词（撤销/撤回/アンドゥ/실행취소等）。
+- **蓝牙投篮细类传输**：`BluetoothLiveStatAction` 新增 `layupMade/Missed`、`midRangeMade/Missed`、`paintMade/Missed`、`dunkMade/Missed`，蓝牙协同不再丢失上篮/中投/篮下/扣篮的细类数据。
+- **AI 连续投篮不中数据**：预设分析新增两队合计连续投篮不中次数（`both_miss_streak`），阈值 6 次；`missedCodes` 补全 `dunkMissed` 和 `putbackMissed`。
+- **`PlayerStats` 新增扣篮计数**：`dunkMade`/`dunkAttempts` 字段，含 CodingKeys 和 decoder 兼容。
+
 ### 修复
+
+- **蓝牙 `.undo` 撤销 dualAction 不完整**：`applyLiveOperationPayload(.undo)` 改为优先从 undoStack 快照恢复，确保复合操作（助攻+投篮、抢断+失误）的两次统计都能正确回退；无快照时 fallback 到 `revertLastAction()`。
 
 - **`gameScore` 使用 `totalRebounds`**：O/D 篮板模式下 `gameScore` 未计入 `offensiveRebounds`/`defensiveRebounds`，导致 ELO 积分偏差，改用 `totalRebounds` 合计三个篮板字段。
 - **蓝牙 participant dualAction 竞态**：复合语音指令（助攻+投篮、抢断+失误）在 participant 端发两个独立 operation 导致第二个因 version 不匹配被拒绝；合并为单一 `dualAction` operation，原子化发送。

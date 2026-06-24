@@ -984,3 +984,7 @@ Format:
 "text_ai_pro_hint" = "Du kannst auch in den Einstellungen deinen eigenen API-Key hinzufügen, um unbegrenzte Zusammenfassungen zu erhalten.";
 "voice_header_title" = "Sprachsteuerung";
 "voice_header_subtitle" = "Mikrofon gedrückt halten, sprechen, dann loslassen";
+"action_putback_made" = "Putback verwandelt";
+"action_putback_missed" = "Putback verfehlt";
+"action_dunk_made" = "Dunk verwandelt";
+"action_dunk_missed" = "Dunk verfehlt";

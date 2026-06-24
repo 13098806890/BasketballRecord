@@ -33,7 +33,13 @@
     {"keyword": "free thru", "eventPrefix": "stat.freeThrow"},
     {"keyword": "free", "eventPrefix": "stat.freeThrow"},
     {"keyword": "bonus", "eventPrefix": "stat.bonus"},
-    {"keyword": "and one", "eventPrefix": "stat.bonus"}
+    {"keyword": "and one", "eventPrefix": "stat.bonus"},
+    {"keyword": "putback", "eventPrefix": "stat.putback"},
+    {"keyword": "put back", "eventPrefix": "stat.putback"},
+    {"keyword": "dunk", "eventPrefix": "stat.dunk"},
+    {"keyword": "dunk shot", "eventPrefix": "stat.dunk"},
+    {"keyword": "slam dunk", "eventPrefix": "stat.dunk"},
+    {"keyword": "slam", "eventPrefix": "stat.dunk"}
   ],
   "madeStates": ["got", "get"],
   "missedStates": ["missed", "no", "miss", "not", "know", "blocked", "out", "airball", "brick", "short"],
@@ -98,7 +104,9 @@
     ["end", "event.game_end"],
     ["finish", "event.game_end"],
     ["game over", "event.game_end"],
-    ["final", "event.game_end"]
+    ["final", "event.game_end"],
+    ["undo", "event.undo"],
+    ["redo", "event.redo"]
   ],
   "useLevenshteinMatching": true,
   "levenshteinThresholdShort": 1,

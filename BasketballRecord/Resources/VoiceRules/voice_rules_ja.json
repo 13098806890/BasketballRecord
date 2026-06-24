@@ -30,7 +30,13 @@
     {"keyword": "ボナス", "eventPrefix": "stat.bonus"},
     {"keyword": "アンドワン", "eventPrefix": "stat.bonus"},
     {"keyword": "アンドワ", "eventPrefix": "stat.bonus"},
-    {"keyword": "ワンプラスワン", "eventPrefix": "stat.bonus"}
+    {"keyword": "ワンプラスワン", "eventPrefix": "stat.bonus"},
+    {"keyword": "パットバック", "eventPrefix": "stat.putback"},
+    {"keyword": "パットバク", "eventPrefix": "stat.putback"},
+    {"keyword": "putback", "eventPrefix": "stat.putback"},
+    {"keyword": "ダンク", "eventPrefix": "stat.dunk"},
+    {"keyword": "ダンクシュート", "eventPrefix": "stat.dunk"},
+    {"keyword": "dunk", "eventPrefix": "stat.dunk"}
   ],
   "madeStates": ["入った", "成功", "決めた", "決まった"],
   "missedStates": ["外した", "入らない", "ミス", "失敗", "ブロック", "届かない", "はずれ"],
@@ -83,7 +89,11 @@
     ["試合終了", "event.game_end"],
     ["ゲーム終了", "event.game_end"],
     ["終わり", "event.game_end"],
-    ["ファイナル", "event.game_end"]
+    ["ファイナル", "event.game_end"],
+    ["元に戻す", "event.undo"],
+    ["アンドゥ", "event.undo"],
+    ["やり直す", "event.redo"],
+    ["リドゥ", "event.redo"]
   ],
   "useLevenshteinMatching": true,
   "levenshteinThresholdShort": 1,

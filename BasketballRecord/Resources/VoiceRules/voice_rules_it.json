@@ -27,7 +27,12 @@
     {"keyword": "libro", "eventPrefix": "stat.freeThrow"},
     {"keyword": "bonus", "eventPrefix": "stat.bonus"},
     {"keyword": "e uno", "eventPrefix": "stat.bonus"},
-    {"keyword": "e un", "eventPrefix": "stat.bonus"}
+    {"keyword": "e un", "eventPrefix": "stat.bonus"},
+    {"keyword": "putback", "eventPrefix": "stat.putback"},
+    {"keyword": "put back", "eventPrefix": "stat.putback"},
+    {"keyword": "schiacciata", "eventPrefix": "stat.dunk"},
+    {"keyword": "dunk", "eventPrefix": "stat.dunk"},
+    {"keyword": "slam dunk", "eventPrefix": "stat.dunk"}
   ],
   "madeStates": ["segnato", "fatto", "dentro", "buono", "riuscito"],
   "missedStates": ["sbagliato", "fuori", "bloccato", "mancato", "no", "aria"],
@@ -68,7 +73,9 @@
     ["fine", "event.game_end"],
     ["fine partita", "event.game_end"],
     ["finito", "event.game_end"],
-    ["terminato", "event.game_end"]
+    ["terminato", "event.game_end"],
+    ["undo", "event.undo"],
+    ["redo", "event.redo"]
   ],
   "useLevenshteinMatching": true,
   "levenshteinThresholdShort": 1,

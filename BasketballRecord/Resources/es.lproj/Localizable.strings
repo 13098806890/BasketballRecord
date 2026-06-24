@@ -984,3 +984,7 @@ Format:
 "text_ai_pro_hint" = "También puedes configurar tu propia clave API en Ajustes para obtener resúmenes ilimitados.";
 "voice_header_title" = "Control por Voz";
 "voice_header_subtitle" = "Manten presionado el microfono, habla y suelta";
+"action_putback_made" = "Putback anotado";
+"action_putback_missed" = "Putback fallado";
+"action_dunk_made" = "Mate anotado";
+"action_dunk_missed" = "Mate fallado";

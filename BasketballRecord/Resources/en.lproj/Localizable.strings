@@ -1008,3 +1008,7 @@ Format:
 "text_ai_pro_hint" = "You can also configure your own API key in Settings for unlimited summaries.";
 "voice_header_title" = "Voice Control";
 "voice_header_subtitle" = "Hold the mic button, speak a command, then release";
+"action_putback_made" = "Putback Made";
+"action_putback_missed" = "Putback Missed";
+"action_dunk_made" = "Dunk Made";
+"action_dunk_missed" = "Dunk Missed";

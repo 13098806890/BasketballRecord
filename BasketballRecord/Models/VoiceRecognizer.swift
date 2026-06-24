@@ -28,6 +28,8 @@ enum VoiceCommand {
     case togglePause
     case startPeriod
     case finishGame
+    case undo
+    case redo
     case substitution(outgoingID: UUID, incomingID: UUID, side: TeamSide)
 }
 
@@ -1085,6 +1087,8 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 let cmd: VoiceCommand
                 if code == "event.period" { cmd = .startPeriod }
                 else if code == "event.pause" { cmd = .togglePause }
+                else if code == "event.undo" { cmd = .undo }
+                else if code == "event.redo" { cmd = .redo }
                 else { cmd = .finishGame }
                 DispatchQueue.main.async { [weak self] in
                     self?.onCommand?(cmd)

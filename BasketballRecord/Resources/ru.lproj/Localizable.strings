@@ -984,3 +984,7 @@ Format:
 "text_ai_pro_hint" = "Вы также можете добавить свой API-ключ в настройках для неограниченных сводок.";
 "voice_header_title" = "Голосовое управление";
 "voice_header_subtitle" = "Зажмите микрофон, говорите команду, затем отпустите";
+"action_putback_made" = "Путбэк забит";
+"action_putback_missed" = "Путбэк промах";
+"action_dunk_made" = "Данк забит";
+"action_dunk_missed" = "Данк промах";

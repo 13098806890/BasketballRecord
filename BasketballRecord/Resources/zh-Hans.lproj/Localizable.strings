@@ -996,3 +996,7 @@ Format:
 "text_ai_pro_hint" = "你也可以在设置中配置自己的 API Key，解锁无限次数生成。";
 "voice_header_title" = "语音控制";
 "voice_header_subtitle" = "按住麦克风说出指令，松开后自动识别";
+"action_putback_made" = "补篮命中";
+"action_putback_missed" = "补篮未中";
+"action_dunk_made" = "扣篮命中";
+"action_dunk_missed" = "扣篮未中";

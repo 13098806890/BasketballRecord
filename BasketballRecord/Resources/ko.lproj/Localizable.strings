@@ -1012,3 +1012,7 @@ Format:
 "text_ai_pro_hint" = "설정에서 자신의 API Key를 추가하면 무제한으로 사용할 수 있습니다.";
 "voice_header_title" = "음성 제어";
 "voice_header_subtitle" = "마이크를 누르고 말한 후 손을 떼면 인식";
+"action_putback_made" = "팟백 성공";
+"action_putback_missed" = "팟백 실패";
+"action_dunk_made" = "덩크 성공";
+"action_dunk_missed" = "덩크 실패";
