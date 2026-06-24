@@ -106,7 +106,7 @@ struct GameView: View {
                             } label: {
                                 Label(LocalizedStringKey("button_invite_collab"), systemImage: "dot.radiowaves.left.and.right")
                             }
-                            .disabled(currentGameRecordID == nil || needsNewGameSetup || bluetooth.connectedPeers.isEmpty)
+                            .disabled(currentGameRecordID == nil || needsNewGameSetup)
                         }
 
                         Button {
@@ -1575,7 +1575,11 @@ struct GameView: View {
         mutateSnapshot {
             if isTeamMode, let teamID {
                 var stats = snapshot.teamStatsByID[teamID, default: PlayerStats()]
-                stats.rebounds += 1
+                if snapshot.showsOffensiveDefensiveRebound {
+                    stats.offensiveRebounds += 1
+                } else {
+                    stats.rebounds += 1
+                }
                 if isMade {
                     stats.twoMade += 1; stats.twoAttempts += 1
                 } else {
@@ -1584,7 +1588,11 @@ struct GameView: View {
                 snapshot.teamStatsByID[teamID] = stats
             } else {
                 var stats = snapshot.statsByPlayerID[playerID, default: PlayerStats()]
-                stats.rebounds += 1
+                if snapshot.showsOffensiveDefensiveRebound {
+                    stats.offensiveRebounds += 1
+                } else {
+                    stats.rebounds += 1
+                }
                 if isMade {
                     stats.twoMade += 1; stats.twoAttempts += 1
                 } else {
@@ -1596,7 +1604,6 @@ struct GameView: View {
                 applyPlusMinus(points: 2, scoringSide: side)
             }
             let eventName = isTeamMode ? (store.team(for: teamID)?.name ?? "?") : name(for: playerID)
-            let shotMsg = isMade ? NSLocalizedString("action_two_made", comment: "") : NSLocalizedString("action_two_missed", comment: "")
             let combinedMsg = eventMessage ?? "\(eventName) \(NSLocalizedString(isMade ? "action_putback_made" : "action_putback_missed", comment: ""))"
             addEvent(combinedMsg, playerID: isTeamMode ? nil : playerID, eventCode: action.eventCode, at: at)
         }

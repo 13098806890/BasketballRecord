@@ -31,7 +31,10 @@ final class LiveCollaborationManager: ObservableObject {
     }
 
     func sendLiveInvite(to peers: [MCPeerID]) {
-        guard let bluetooth, let store else { return }
+        guard let bluetooth, let store else {
+            onAlert?(NSLocalizedString("collab_invite_send_failed", comment: "Invite send failed message"))
+            return
+        }
         let payload = buildLiveStatePayload()
         liveVersion = 0
         liveStateHash = stateHash(for: payload)

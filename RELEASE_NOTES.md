@@ -5,6 +5,7 @@
 ### 架构
 
 - **VoiceRules JSON 化**：移除 10 个 `VoiceRules_*.swift` 文件，改为 `VoiceRulesData.swift` 内嵌 JSON + `Resources/VoiceRules/` 源文件双源；JSON 数据按语言独立管理，便于编辑和跨平台复用。
+- **VoiceRules 重构为静态实例**：移除 `VoiceRulesData.embeddedJSON` 内嵌 JSON 方式，10 种语言各自独立为 `VoiceRules_{lang}.swift` 静态实例文件，编译期类型检查，改错语法直接报错。
 - **AppStore 中度拆分**：`AppStore.swift`（1451→687 行）拆分为 `AppStore+Player.swift`、`AppStore+Team.swift`、`AppStore+Game.swift` 三个 extension 文件，按 Player/Team/Game 职责分离 CRUD、合并、导入导出逻辑。
 - **GameView 提取 LiveCollaborationManager**：`GameView.swift`（3081→2731 行）中蓝牙直播协作状态和协议处理逻辑提取到独立的 `LiveCollaborationManager`（401 行），通过 `@StateObject` + 回调闭包与 GameView 通信。
 
@@ -35,6 +36,9 @@
 - **`preferredPlayerNumber` 跨调用泄漏**：`processText` 入口提前重置，不依赖 `preprocessEnglishText` 路径。
 - **`GameLogFormatter` 单测覆盖**：新增 7 个测试覆盖 extractEventCode、normalizedMessage、isScoring、periodNumber 等核心方法。
 - **`VoiceRulesData` JSON 有效性测试**：新增测试遍历 10 种语言内嵌 JSON，确保全部解析成功。
+- **O/D 篮板模式展示修复**：球员展示页面的篮板数全面改用 `totalRebounds`（`rebounds + offensiveRebounds + defensiveRebounds`），O/D 模式下不再显示 0。球员卡片分割为篮板卡（总/前/后）和助攻/抢断/盖帽卡。生涯/场均累计补上 O/D 字段。
+- **补篮语音变体增强**：简体/繁体中文新增 `"不来"` 关键词，ASR 将"补篮"识别为"不来"时也可匹配。
+- **蓝牙协同按钮修复**：记分页蓝牙按钮去掉多余的 `.disabled` 条件，未连接设备时点击弹出提示引导用户去设置页连接。
 
 ## 1.27 (2026-06-23)
 

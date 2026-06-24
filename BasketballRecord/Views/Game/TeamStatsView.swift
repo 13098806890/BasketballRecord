@@ -353,7 +353,7 @@ private struct CollapsibleStatsView: View {
                 Spacer()
                 Text(String(format: NSLocalizedString("stats_points_format", comment: "Points format"), stats.points))
                 Text(playingTime)
-                Text(String(format: NSLocalizedString("stats_rebound_short_format", comment: "Rebound short format"), stats.rebounds))
+                Text(String(format: NSLocalizedString("stats_rebound_short_format", comment: "Rebound short format"), stats.totalRebounds))
                 Text(String(format: NSLocalizedString("stats_assist_short_format", comment: "Assist short format"), stats.assists))
                 Text(String(format: NSLocalizedString("stats_foul_short_format", comment: "Foul short format"), stats.fouls))
                 Text(String(format: NSLocalizedString("stats_block_short_format", comment: "Block short format"), stats.blocks))
