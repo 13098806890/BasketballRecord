@@ -598,6 +598,9 @@ final class AppStore: ObservableObject {
                 if let cm = meta.customVoiceMappings { customVoiceMappings = cm }
                 if let vl = meta.voiceLog { voiceLog = vl }
                 showsVoiceButton = meta.showsVoiceButton ?? false
+                showsBluetoothGamesButton = meta.showsBluetoothGamesButton
+                keepsScreenAwake = meta.keepsScreenAwake
+                hiddenCareerStatItems = meta.hiddenCareerStatItems
                 voiceLogEnabled = meta.voiceLogEnabled ?? true
                 if playerGroups.isEmpty, !meta.playerGroups.isEmpty {
                     playerGroups = meta.playerGroups

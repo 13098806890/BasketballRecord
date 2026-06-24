@@ -18,8 +18,6 @@ struct PlayerProfileView: View {
         ZStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    header
-
                     if fixedGame == nil {
                         NavigationLink {
                             PlayerGameSelectionView(games: allPlayerGames, selectedIDs: $selectedGameIDs)
@@ -57,6 +55,8 @@ struct PlayerProfileView: View {
                         }
 
                     }
+
+                    header
 
                     if let fixedGame, fixedGame.snapshot.periodCount > 1 {
                         VStack(alignment: .leading, spacing: 10) {
@@ -278,7 +278,8 @@ struct PlayerProfileView: View {
 
         let pts = StatCell(label: localized("stats_points_format_short"), value: avg?(s.points) ?? "\(s.points)")
         let min = StatCell(label: localized("stats_minutes"), value: mins)
-        let reb = StatCell(label: localized("stats_rebound_assist_steal_block"), value: "\(avg?(s.rebounds) ?? "\(s.rebounds)") / \(avg?(s.assists) ?? "\(s.assists)") / \(avg?(s.steals) ?? "\(s.steals)") / \(avg?(s.blocks) ?? "\(s.blocks)")")
+        let reb = StatCell(label: localized("stats_rebound_detail"), value: "\(avg?(s.totalRebounds) ?? "\(s.totalRebounds)") / \(avg?(s.offensiveRebounds) ?? "\(s.offensiveRebounds)") / \(avg?(s.defensiveRebounds) ?? "\(s.defensiveRebounds)")")
+        let astStlBlk = StatCell(label: localized("stats_assist_steal_block"), value: "\(avg?(s.assists) ?? "\(s.assists)") / \(avg?(s.steals) ?? "\(s.steals)") / \(avg?(s.blocks) ?? "\(s.blocks)")")
         let foul = StatCell(label: localized("stats_foul_turnover") + " / " + localized("stats_plus_minus"), value: "\(avg?(s.fouls) ?? "\(s.fouls)") / \(avg?(s.turnovers) ?? "\(s.turnovers)") / \(pm)")
         let fg = StatCell(label: localized("stats_shooting"), value: "\(avg?(s.made) ?? "\(s.made)")/\(avg?(s.attempts) ?? "\(s.attempts)")\n\(pct(s.fieldGoalRate))")
         let ft = StatCell(label: localized("stat_label_free_throw"), value: "\(avg?(s.allFreeThrowMade) ?? "\(s.allFreeThrowMade)")/\(avg?(s.allFreeThrowAttempts) ?? "\(s.allFreeThrowAttempts)")\n\(pct(s.freeThrowRate))")
@@ -291,23 +292,25 @@ struct PlayerProfileView: View {
         case .game:
             return [
                 StatRow(id: "row1", left: pts, leftSplit: min, right: reb),
-                StatRow(id: "row2", left: fg, leftSplit: ft, right: three, rightSplit: two),
-                StatRow(id: "row3", left: foul, right: pps, rightSplit: efg),
+                StatRow(id: "row2", left: astStlBlk, leftSplit: foul),
+                StatRow(id: "row3", left: fg, leftSplit: ft, right: three, rightSplit: two),
+                StatRow(id: "row4", left: pps, rightSplit: efg),
             ]
         case .career:
             let sb = StatCell(label: "\(localized("stats_games")) / \(localized("stat_label_starter")) / \(localized("stat_label_bench"))", value: "\(filteredGames.count) / \(starterGameCount) / \(benchGameCount)")
             return [
                 StatRow(id: "row1", left: pts, leftSplit: min, rightSplit: sb),
                 StatRow(id: "row2", left: fg, leftSplit: ft, right: three, rightSplit: two),
-                StatRow(id: "row3", left: reb, right: foul),
-                StatRow(id: "row4", left: efg, leftSplit: pps),
+                StatRow(id: "row3", left: reb, right: astStlBlk),
+                StatRow(id: "row4", left: foul, right: efg, rightSplit: pps),
             ]
         case .average:
             let sb = StatCell(label: "\(localized("stats_games")) / \(localized("stat_label_starter")) / \(localized("stat_label_bench"))", value: "\(filteredGames.count) / \(starterGameCount) / \(benchGameCount)")
             return [
                 StatRow(id: "row1", left: pts, leftSplit: min, rightSplit: sb),
                 StatRow(id: "row2", left: fg, leftSplit: ft, right: three, rightSplit: two),
-                StatRow(id: "row3", left: reb, right: foul),
+                StatRow(id: "row3", left: reb, right: astStlBlk),
+                StatRow(id: "row4", left: foul, right: pps, rightSplit: efg),
             ]
         }
     }
@@ -416,6 +419,8 @@ struct PlayerProfileView: View {
             total.freeThrowMade += raw.freeThrowMade
             total.freeThrowAttempts += raw.freeThrowAttempts
             total.rebounds += raw.rebounds
+            total.offensiveRebounds += raw.offensiveRebounds
+            total.defensiveRebounds += raw.defensiveRebounds
             total.assists += raw.assists
             total.fouls += raw.fouls
             total.blocks += raw.blocks
@@ -439,12 +444,14 @@ struct PlayerProfileView: View {
 
     private var totalValues: [(String, String)] {
         let stats = totalStats
-        let misc = "\(stats.rebounds) / \(stats.assists) / \(stats.steals) / \(stats.blocks)"
+        let rebLine = "\(stats.totalRebounds) / \(stats.offensiveRebounds) / \(stats.defensiveRebounds)"
+        let astStlBlkLine = "\(stats.assists) / \(stats.steals) / \(stats.blocks)"
         let fouls = "\(stats.fouls) / \(stats.turnovers)"
         let mins = isFixedPeriodMode ? "--" : String(format: "%.1f", totalMinutes)
         let items: [(String, String)] = [
             (localized("stats_pts_min"), "\(stats.points) / \(mins)"),
-            (localized("stats_rebound_assist_steal_block"), misc),
+            (localized("stats_rebound_detail"), rebLine),
+            (localized("stats_assist_steal_block"), astStlBlkLine),
             (localized("stats_foul_turnover"), fouls),
             (localized("stats_starter_bench"), "\(starterGameCount) / \(benchGameCount)"),
             (localized("stats_plus_minus"), isFixedPeriodMode ? "--" : (totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)")),
@@ -470,7 +477,8 @@ struct PlayerProfileView: View {
             ("\(localized("stat_label_3pt"))", "\(stats.threeMade)/\(stats.threeAttempts)  \(percent(stats.threePointRate))"),
             ("\(localized("stat_label_free_throw"))", "\(stats.allFreeThrowMade)/\(stats.allFreeThrowAttempts)  \(percent(stats.freeThrowRate))"),
             ("\(localized("stats_plus_minus"))", pmText),
-            ("\(localized("stats_rebound_assist_steal_block"))", "\(stats.rebounds) / \(stats.assists) / \(stats.steals) / \(stats.blocks)"),
+            ("\(localized("stats_rebound_detail"))", "\(stats.totalRebounds) / \(stats.offensiveRebounds) / \(stats.defensiveRebounds)"),
+            ("\(localized("stats_assist_steal_block"))", "\(stats.assists) / \(stats.steals) / \(stats.blocks)"),
             ("\(localized("stats_foul_turnover"))", "\(stats.fouls) / \(stats.turnovers)"),
         ]
     }
@@ -480,7 +488,7 @@ struct PlayerProfileView: View {
         let stats = totalStats
         let items: [(CareerStatItem, String)] = [
             (.averagePoints, average(stats.points, games)),
-            (.averageRebounds, average(stats.rebounds, games)),
+            (.averageRebounds, average(stats.totalRebounds, games)),
             (.averageAssists, average(stats.assists, games)),
             (.averageFouls, average(stats.fouls, games)),
             (.averageBlocks, average(stats.blocks, games)),
@@ -503,12 +511,14 @@ struct PlayerProfileView: View {
         let stats = totalStats
         let games = max(1, filteredGames.count)
         let avg = { (val: Int) -> String in String(format: "%.1f", Double(val) / Double(games)) }
-        let misc = "\(avg(stats.rebounds)) / \(avg(stats.assists)) / \(avg(stats.steals)) / \(avg(stats.blocks))"
+        let rebLine = "\(avg(stats.totalRebounds)) / \(avg(stats.offensiveRebounds)) / \(avg(stats.defensiveRebounds))"
+        let astStlBlkLine = "\(avg(stats.assists)) / \(avg(stats.steals)) / \(avg(stats.blocks))"
         let fouls = "\(avg(stats.fouls)) / \(avg(stats.turnovers))"
         let avgMin = String(format: "%.1f", totalMinutes / Double(games))
         return [
             (localized("stats_pts_min"), "\(avg(stats.points)) / \(avgMin)"),
-            (localized("stats_rebound_assist_steal_block"), misc),
+            (localized("stats_rebound_detail"), rebLine),
+            (localized("stats_assist_steal_block"), astStlBlkLine),
             (localized("stats_foul_turnover"), fouls),
             (localized("stats_shooting"), "\(avg(stats.made))/\(avg(stats.attempts))  \(percent(stats.fieldGoalRate))"),
             (localized("stat_label_2pt"), "\(avg(stats.twoMade))/\(avg(stats.twoAttempts))  \(percent(stats.twoPointRate))"),

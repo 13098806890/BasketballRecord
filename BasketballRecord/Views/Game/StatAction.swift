@@ -235,13 +235,23 @@ enum StatAction {
             guard stats.dunkAttempts > 0, stats.twoAttempts > 0 else { return false }
             stats.dunkAttempts -= 1; stats.twoAttempts -= 1
         case .putbackMade:
-            guard stats.rebounds > 0, stats.twoMade > 0, stats.twoAttempts > 0 else { return false }
-            stats.rebounds -= 1
+            guard stats.twoMade > 0, stats.twoAttempts > 0 else { return false }
+            if stats.offensiveRebounds > 0 {
+                stats.offensiveRebounds -= 1
+            } else {
+                guard stats.rebounds > 0 else { return false }
+                stats.rebounds -= 1
+            }
             stats.twoMade -= 1
             stats.twoAttempts -= 1
         case .putbackMissed:
-            guard stats.rebounds > 0, stats.twoAttempts > 0 else { return false }
-            stats.rebounds -= 1
+            guard stats.twoAttempts > 0 else { return false }
+            if stats.offensiveRebounds > 0 {
+                stats.offensiveRebounds -= 1
+            } else {
+                guard stats.rebounds > 0 else { return false }
+                stats.rebounds -= 1
+            }
             stats.twoAttempts -= 1
         }
         return true

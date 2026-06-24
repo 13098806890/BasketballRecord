@@ -277,7 +277,7 @@ struct SavedGameDetailView: View {
                         Text(String(format: NSLocalizedString("career_points_format", comment: "Points format"), stats.points))
                             .font(.subheadline.monospacedDigit().weight(.semibold))
                     }
-                    (Text(String(format: NSLocalizedString("stats_line_format", comment: "Stats line"), playingTime, stats.made, stats.attempts, stats.allFreeThrowMade, stats.allFreeThrowAttempts, stats.rebounds, stats.assists, stats.fouls, stats.blocks, stats.steals, stats.turnovers))
+                    (Text(String(format: NSLocalizedString("stats_line_format", comment: "Stats line"), playingTime, stats.made, stats.attempts, stats.allFreeThrowMade, stats.allFreeThrowAttempts, stats.totalRebounds, stats.assists, stats.fouls, stats.blocks, stats.steals, stats.turnovers))
                     + Text("  \(NSLocalizedString("stats_plus_minus", comment: "")) \(plusMinusText)  \(NSLocalizedString("stats_points_per_shot", comment: "")) \(String(format: "%.2f", stats.pointsPerShot))"))
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
@@ -650,7 +650,7 @@ struct SavedGameDetailView: View {
         if hasHome {
             let ts = homeTeamStats
             let pts = String(format: NSLocalizedString("stats_points_format", comment: "Points"), ts.points)
-            let reb = String(format: NSLocalizedString("stats_rebound_short_format", comment: "Rebounds"), ts.rebounds)
+            let reb = String(format: NSLocalizedString("stats_rebound_short_format", comment: "Rebounds"), ts.totalRebounds)
             let ast = String(format: NSLocalizedString("stats_assist_short_format", comment: "Assists"), ts.assists)
             let foul = String(format: NSLocalizedString("stats_foul_short_format", comment: "Fouls"), ts.fouls)
             let blk = String(format: NSLocalizedString("stats_block_short_format", comment: "Blocks"), ts.blocks)
@@ -661,7 +661,7 @@ struct SavedGameDetailView: View {
         if hasAway {
             let ts = awayTeamStats
             let pts = String(format: NSLocalizedString("stats_points_format", comment: "Points"), ts.points)
-            let reb = String(format: NSLocalizedString("stats_rebound_short_format", comment: "Rebounds"), ts.rebounds)
+            let reb = String(format: NSLocalizedString("stats_rebound_short_format", comment: "Rebounds"), ts.totalRebounds)
             let ast = String(format: NSLocalizedString("stats_assist_short_format", comment: "Assists"), ts.assists)
             let foul = String(format: NSLocalizedString("stats_foul_short_format", comment: "Fouls"), ts.fouls)
             let blk = String(format: NSLocalizedString("stats_block_short_format", comment: "Blocks"), ts.blocks)
@@ -905,7 +905,7 @@ struct SavedGameDetailView: View {
             for pid in sortedPlayers {
                 guard let ps = periodStats[pid], ps.points > 0 else { continue }
                 let name = idToName[pid] ?? "?"
-                periodStatLines.append("  · \(name): \(ps.points)分 \(ps.rebounds)板 \(ps.assists)助")
+                periodStatLines.append("  · \(name): \(ps.points)分 \(ps.totalRebounds)板 \(ps.assists)助")
             }
         }
         let periodStatsText = periodStatLines.joined(separator: "\n")
@@ -923,7 +923,7 @@ struct SavedGameDetailView: View {
             let name = game.playerNamesByID[playerID] ?? playerUnknown
 
             let format = NSLocalizedString("ai_prompt_player_line_format", comment: "Player line format")
-            return String(format: format, side, name, role, minutes, stats.points, stats.rebounds, stats.assists, stats.fouls, stats.blocks, stats.steals, stats.turnovers, stats.made, stats.attempts, stats.threeMade, stats.threeAttempts, stats.allFreeThrowMade, stats.allFreeThrowAttempts, plusMinusText)
+            return String(format: format, side, name, role, minutes, stats.points, stats.totalRebounds, stats.assists, stats.fouls, stats.blocks, stats.steals, stats.turnovers, stats.made, stats.attempts, stats.threeMade, stats.threeAttempts, stats.allFreeThrowMade, stats.allFreeThrowAttempts, plusMinusText)
         }
 
         let noPlayerDataKey = "ai_prompt_no_player_data"
@@ -1293,7 +1293,7 @@ struct SavedGameDetailView: View {
             game.snapshot.statsByPlayerID[$0, default: PlayerStats()].points
         })
         lines.append(metricLine("篮板最多", among: participantIDs, unit: "个", requirePositive: true) {
-            game.snapshot.statsByPlayerID[$0, default: PlayerStats()].rebounds
+            game.snapshot.statsByPlayerID[$0, default: PlayerStats()].totalRebounds
         })
         lines.append(metricLine("助攻最多", among: participantIDs, unit: "次", requirePositive: true) {
             game.snapshot.statsByPlayerID[$0, default: PlayerStats()].assists

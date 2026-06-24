@@ -59,7 +59,7 @@ struct PlayerGameDetailView: View {
             }
 
             Section(LocalizedStringKey("section_other_stats")) {
-                statLine("stat_label_full_misc", String(format: NSLocalizedString("stat_format_full_misc", comment: "Full misc format"), displayStats.rebounds, displayStats.assists, displayStats.fouls, displayStats.blocks, displayStats.steals, displayStats.turnovers))
+                statLine("stat_label_full_misc", String(format: NSLocalizedString("stat_format_full_misc", comment: "Full misc format"), displayStats.totalRebounds, displayStats.assists, displayStats.fouls, displayStats.blocks, displayStats.steals, displayStats.turnovers))
             }
 
             Section(LocalizedStringKey("section_advanced_stats")) {
