@@ -1020,3 +1020,6 @@ Format:
 
 "settings_doc_help_gamelog_item5_title" = "イベント編集（Pro）";
 "settings_doc_help_gamelog_item5_desc" = "試合後にイベントを修正、追加、削除できます。選手、アクション、時間を編集可能。統計は自動的に再計算されます。";
+
+"label_time_error" = "時間が範囲外";
+"message_time_out_of_range" = "時間は試合の開始から終了の間である必要があります";

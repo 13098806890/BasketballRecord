@@ -1033,3 +1033,6 @@ Format:
 
 "settings_doc_help_gamelog_item5_title" = "Edit Events (Pro)";
 "settings_doc_help_gamelog_item5_desc" = "Modify, add, or delete game events after the match. Edit player, action, and time for any event. Recalculate stats automatically.";
+
+"label_time_error" = "Time Out of Range";
+"message_time_out_of_range" = "Time must be between game start and end";

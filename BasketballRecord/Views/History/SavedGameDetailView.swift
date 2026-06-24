@@ -22,10 +22,11 @@ struct SavedGameDetailView: View {
     @State private var shareImage: UIImage?
     @State private var savedToPhotos = false
     @State private var isEditing = false
-    @State private var showEditSheet = false
     @State private var editingSheetEntry: GameLogEntry?
     @State private var expandedPeriods: Set<Int> = []
     @State private var expandedMinutes: [Int: Set<Int>] = [:]
+    @State private var lastExpandedPeriod = 1
+    @State private var lastExpandedMinute = 0
 
 
     init(game: SavedGame, displayMode: DisplayMode = .history) {
@@ -205,7 +206,7 @@ struct SavedGameDetailView: View {
                             }
                             Text(LocalizedStringKey(isEditing ? "button_done" : "button_edit"))
                         }
-                        .foregroundStyle(store.isPro || isEditing ? Color.blue : Color.gray)
+                        .foregroundStyle(store.isPro || isEditing ? Color.primary : Color.gray)
                     }
                 }
             }
@@ -1559,8 +1560,10 @@ struct SavedGameDetailView: View {
                     .font(.headline)
                 Spacer()
                 Button {
-                    editingSheetEntry = nil
-                    showEditSheet = true
+                    var entry = GameLogEntry(timestamp: Date(), message: "", eventCode: nil, playerID: nil)
+                    entry.period = lastExpandedPeriod
+                    entry.periodElapsedSeconds = TimeInterval(lastExpandedMinute * 60)
+                    editingSheetEntry = entry
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.title2)
@@ -1576,7 +1579,7 @@ struct SavedGameDetailView: View {
                     Section {
                         Button {
                             if expandedPeriods.contains(period) { expandedPeriods.remove(period) }
-                            else { expandedPeriods.insert(period) }
+                            else { expandedPeriods.insert(period); lastExpandedPeriod = period }
                         } label: {
                             HStack {
                                 Text(String(format: NSLocalizedString("data_range_period", comment: ""), period))
@@ -1602,7 +1605,7 @@ struct SavedGameDetailView: View {
                                 let isExpanded = expandedMinutes[period, default: []].contains(minute)
                                 Button {
                                     if isExpanded { expandedMinutes[period, default: []].remove(minute) }
-                                    else { expandedMinutes[period, default: []].insert(minute) }
+                                    else { expandedMinutes[period, default: []].insert(minute); lastExpandedPeriod = period; lastExpandedMinute = minute }
                                 } label: {
                                     HStack {
                                         Text("\(String(format: NSLocalizedString("data_range_period", comment: ""), period)) \(minute)\u{2019}")
@@ -1631,13 +1634,12 @@ struct SavedGameDetailView: View {
             .listStyle(.insetGrouped)
         }
         .background(Color(uiColor: .systemGroupedBackground))
-        .sheet(isPresented: $showEditSheet) {
+        .sheet(item: $editingSheetEntry) { entry in
             let events = game.snapshot.logs
             let firstTS = events.first?.timestamp ?? game.savedAt
             let lastTS = events.last?.timestamp ?? game.savedAt
             let gameStart = min(firstTS, lastTS)
-            let editingEntry = editingSheetEntry
-            let existingEntry = editingEntry.flatMap { e in events.first { $0.id == e.id } } ?? editingEntry
+            let isRealEntry = events.contains(where: { $0.id == entry.id })
             let homeStarters = game.snapshot.starterPlayerIDs.filter { game.homePlayerIDs.contains($0) }
             let awayStarters = game.snapshot.starterPlayerIDs.filter { game.awayPlayerIDs.contains($0) }
             return EventLogEditSheet(
@@ -1650,15 +1652,14 @@ struct SavedGameDetailView: View {
                 awayStarterIDs: awayStarters,
                 gameStartTime: gameStart,
                 gameEndTime: max(firstTS, lastTS),
-                defaultNewTimestamp: editingEntry == nil ? gameStart : nil,
-                existingEntry: existingEntry,
-                onSave: { timestamp, playerID, action in
-                    if let existing = editingEntry.flatMap({ e in game.snapshot.logs.first { $0.id == e.id } }) {
+                defaultNewTimestamp: isRealEntry ? nil : gameStart,
+                existingEntry: isRealEntry ? entry : nil,
+                onSave: { timestamp, playerID, action, period in
+                    if let existing = events.first(where: { $0.id == entry.id }) {
                         modifyEvent(existing, timestamp: timestamp, playerID: playerID, action: action)
                     } else {
-                        addEvent(timestamp: timestamp, playerID: playerID, action: action)
+                        addEvent(timestamp: timestamp, playerID: playerID, action: action, period: period)
                     }
-                    editingSheetEntry = nil
                 }
             )
         }
@@ -1676,6 +1677,15 @@ struct SavedGameDetailView: View {
                     Text(log.entry.timestamp, style: .time)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
+                    if let period = log.inferredPeriod {
+                        let start = periodStartTimestamps[period] ?? log.entry.timestamp
+                        let elapsed = Int(log.entry.timestamp.timeIntervalSince(start))
+                        if elapsed >= 0 {
+                            Text(" | \(String(format: NSLocalizedString("data_range_period", comment: ""), period)) \(elapsed / 60):\(String(format: "%02d", elapsed % 60))")
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
                     if let code = log.entry.eventCode {
                         Text(code)
                             .font(.caption2)
@@ -1690,7 +1700,6 @@ struct SavedGameDetailView: View {
             if !isProtected {
                 Button(NSLocalizedString("button_edit", comment: "")) {
                     editingSheetEntry = log.entry
-                    showEditSheet = true
                 }
                 .tint(.blue)
                 Button(NSLocalizedString("label_delete", comment: "")) {
@@ -1701,13 +1710,14 @@ struct SavedGameDetailView: View {
         }
     }
 
-    private func addEvent(timestamp: Date, playerID: UUID, action: StatAction) {
+    private func addEvent(timestamp: Date, playerID: UUID, action: StatAction, period: Int? = nil) {
         let eventCode = action.eventCode
         let entry = GameLogEntry(
             timestamp: timestamp,
             message: "\(store.player(for: playerID)?.name ?? "?") \(action.message) [event:\(eventCode)]",
             eventCode: eventCode,
-            playerID: playerID
+            playerID: playerID,
+            period: period
         )
         guard let gameIndex = store.savedGames.firstIndex(where: { $0.id == game.id }) else { return }
         store.savedGames[gameIndex].snapshot.logs.append(entry)

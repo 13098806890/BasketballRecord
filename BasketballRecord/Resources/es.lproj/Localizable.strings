@@ -1009,3 +1009,6 @@ Format:
 
 "settings_doc_help_gamelog_item5_title" = "Editar eventos (Pro)";
 "settings_doc_help_gamelog_item5_desc" = "Modifique, agregue o elimine eventos del partido después del juego. Edite jugador, acción y hora. Las estadísticas se recalculan automáticamente.";
+
+"label_time_error" = "Hora fuera de rango";
+"message_time_out_of_range" = "La hora debe estar entre el inicio y el final del partido";
