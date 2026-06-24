@@ -10,7 +10,7 @@ struct EventLogEditSheet: View {
     let gameStartTime: Date
     let gameEndTime: Date
     let defaultNewTimestamp: Date
-    let onSave: (Date, UUID, StatAction) -> Void
+    let onSave: (Date, UUID, StatAction, Int?) -> Void
 
     var existingEntry: GameLogEntry?
     @State private var selectedPlayerID: UUID
@@ -98,7 +98,7 @@ struct EventLogEditSheet: View {
     init(allPlayers: [Player], homePlayerIDs: [UUID], awayPlayerIDs: [UUID],
          logs: [GameLogEntry], homeStarterIDs: [UUID], awayStarterIDs: [UUID],
          gameStartTime: Date, gameEndTime: Date, defaultNewTimestamp: Date? = nil,
-         existingEntry: GameLogEntry? = nil, onSave: @escaping (Date, UUID, StatAction) -> Void) {
+         existingEntry: GameLogEntry? = nil, onSave: @escaping (Date, UUID, StatAction, Int?) -> Void) {
         self.allPlayers = allPlayers
         self.homePlayerIDs = homePlayerIDs
         self.awayPlayerIDs = awayPlayerIDs
@@ -119,23 +119,40 @@ struct EventLogEditSheet: View {
         _selectedHour = State(initialValue: Calendar.current.component(.hour, from: ts))
         _selectedMinute = State(initialValue: Calendar.current.component(.minute, from: ts))
         _selectedSecond = State(initialValue: Calendar.current.component(.second, from: ts))
-        _selectedPeriodNumber = State(initialValue: 1)
-        _selectedPeriodMinute = State(initialValue: Calendar.current.component(.minute, from: ts) % 60)
+        _selectedPeriodNumber = State(initialValue: existingEntry?.period ?? 1)
+        let defaultMin: Int
+        if let elapsed = existingEntry?.periodElapsedSeconds, elapsed > 0 {
+            defaultMin = Int(elapsed) / 60
+        } else {
+            defaultMin = Calendar.current.component(.minute, from: ts) % 60
+        }
+        _selectedPeriodMinute = State(initialValue: defaultMin)
         _selectedPeriodSecond = State(initialValue: Calendar.current.component(.second, from: ts) % 60)
     }
 
     private var periodStartTimestamps: [Int: Date] {
         var result: [Int: Date] = [:]
+        var period = 1
         for log in logs.sorted(by: { $0.timestamp < $1.timestamp }) {
-            if let code = log.eventCode, code.hasPrefix("event.period"), let ts = log.timestamp as Date? {
-                let next = result.count + 1
-                result[next] = ts
+            if let code = log.eventCode, (code == "event.period_start" || code == "event.period") {
+                result[period] = log.timestamp
+                period += 1
             }
         }
         return result
     }
 
     private var maxPeriod: Int { max(periodStartTimestamps.keys.max() ?? 1, logs.compactMap { $0.period }.max() ?? 1) }
+
+    private var periodMaxTotalSec: Int {
+        guard let start = periodStartTimestamps[selectedPeriodNumber] else { return 3599 }
+        let end = periodStartTimestamps[selectedPeriodNumber + 1] ?? gameEndTime
+        let duration = end.timeIntervalSince(start)
+        guard duration > 0 else { return 3599 }
+        return min(Int(duration), 3599)
+    }
+
+    private var periodMaxMinute: Int { periodMaxTotalSec / 60 }
 
     var body: some View {
         NavigationStack {
@@ -177,9 +194,14 @@ struct EventLogEditSheet: View {
                                     Text(verbatim: String(format: NSLocalizedString("data_range_period", comment: ""), p)).tag(p)
                                 }
                             }
+                            .onChange(of: selectedPeriodNumber) { _, _ in
+                                if selectedPeriodMinute > periodMaxMinute {
+                                    selectedPeriodMinute = periodMaxMinute
+                                }
+                            }
                             HStack {
                                 Picker(NSLocalizedString("label_minute", comment: ""), selection: $selectedPeriodMinute) {
-                                    ForEach(0..<60, id: \.self) { m in
+                                    ForEach(0...periodMaxMinute, id: \.self) { m in
                                         Text(String(format: "%02d", m)).tag(m)
                                     }
                                 }
@@ -279,20 +301,29 @@ struct EventLogEditSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(NSLocalizedString("button_save", comment: "")) {
                         let ts = existingEntry?.timestamp ?? builtTimestamp
-                        guard ts >= gameStartTime && ts <= gameEndTime else {
+                        if usePeriodTime {
+                            let chosenSec = selectedPeriodMinute * 60 + selectedPeriodSecond
+                            guard chosenSec <= periodMaxTotalSec else {
+                                showTimeError = true
+                                return
+                            }
+                        }
+                        let minTime = usePeriodTime ? (periodStartTimestamps[selectedPeriodNumber] ?? gameStartTime) : gameStartTime
+                        let maxTime = usePeriodTime ? (periodStartTimestamps[selectedPeriodNumber + 1] ?? gameEndTime) : gameEndTime
+                        guard ts >= minTime && ts <= maxTime else {
                             showTimeError = true
                             return
                         }
-                        onSave(ts, selectedPlayerID, selectedAction)
+                        onSave(ts, selectedPlayerID, selectedAction, usePeriodTime ? selectedPeriodNumber : nil)
                         dismiss()
                     }
                 }
             }
         }
-        .alert("Time Out of Range", isPresented: $showTimeError) {
-            Button("OK") { }
+        .alert(NSLocalizedString("label_time_error", comment: ""), isPresented: $showTimeError) {
+            Button(NSLocalizedString("button_ok", comment: "")) { }
         } message: {
-            Text("Time must be between game start and end")
+            Text(NSLocalizedString("message_time_out_of_range", comment: ""))
         }
     }
 

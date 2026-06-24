@@ -1021,3 +1021,6 @@ Format:
 
 "settings_doc_help_gamelog_item5_title" = "编辑事件流（Pro）";
 "settings_doc_help_gamelog_item5_desc" = "赛后修改、新增或删除比赛事件。可编辑球员、动作和时间，自动重算统计数据。";
+
+"label_time_error" = "时间超出范围";
+"message_time_out_of_range" = "时间必须在比赛开始和结束之间";

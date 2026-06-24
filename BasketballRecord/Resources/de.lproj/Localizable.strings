@@ -1009,3 +1009,6 @@ Format:
 
 "settings_doc_help_gamelog_item5_title" = "Ereignisse bearbeiten (Pro)";
 "settings_doc_help_gamelog_item5_desc" = "Ändern, hinzufügen oder löschen Sie Spieleereignisse nach dem Spiel. Bearbeiten Sie Spieler, Aktion und Zeit. Statistiken werden automatisch neu berechnet.";
+
+"label_time_error" = "Zeit außerhalb des Bereichs";
+"message_time_out_of_range" = "Die Zeit muss zwischen Spielbeginn und -ende liegen";

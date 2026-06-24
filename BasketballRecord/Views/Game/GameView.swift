@@ -1759,6 +1759,10 @@ struct GameView: View {
                 closeMatchClock(at: now)
                 closePeriodClock(at: now)
                 snapshot.periodIsRunning = false
+                addEvent(
+                    String(format: NSLocalizedString("event_period_end_format", comment: "Period end event format"), snapshot.currentPeriod),
+                    eventCode: "event.period_end"
+                )
             }
             snapshot.isPaused = false
             snapshot.isComplete = true
