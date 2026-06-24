@@ -988,3 +988,24 @@ Format:
 "action_putback_missed" = "Putback verfehlt";
 "action_dunk_made" = "Dunk verwandelt";
 "action_dunk_missed" = "Dunk verfehlt";
+"label_time" = "Zeit";
+"label_action" = "Aktion";
+"label_type" = "Typ";
+"stats_other" = "Andere Statistiken";
+"label_edit_event" = "Ereignis bearbeiten";
+"label_add_event" = "Ereignis hinzufügen";
+"label_edit_event_log" = "Ereignisverlauf bearbeiten";
+"button_edit" = "Bearbeiten";
+
+"label_date" = "Datum";
+"label_hour" = "Stunde";
+"label_minute" = "Minute";
+"label_second" = "Sekunde";
+
+"label_exact_time" = "Genau Zeit";
+"label_period_time" = "Viertelzeit";
+
+"pro_feature_edit_1" = "Spielereignisprotokolle bearbeiten - Ereignisse nach dem Spiel ändern, hinzufügen oder löschen";
+
+"settings_doc_help_gamelog_item5_title" = "Ereignisse bearbeiten (Pro)";
+"settings_doc_help_gamelog_item5_desc" = "Ändern, hinzufügen oder löschen Sie Spieleereignisse nach dem Spiel. Bearbeiten Sie Spieler, Aktion und Zeit. Statistiken werden automatisch neu berechnet.";

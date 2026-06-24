@@ -409,6 +409,7 @@ struct PlayerProfileView: View {
         var bench = 0
 
         for game in games {
+            guard !playerDidNotPlay(in: game) else { continue }
             let raw = game.snapshot.statsByPlayerID[playerID] ?? PlayerStats()
             total.twoMade += raw.twoMade
             total.twoAttempts += raw.twoAttempts
@@ -434,6 +435,15 @@ struct PlayerProfileView: View {
         }
 
         return PlayerStatsGroup(totalStats: total, totalMinutes: minutes, totalPlusMinus: plusMinus, starterGameCount: starter, benchGameCount: bench)
+    }
+
+    private func playerDidNotPlay(in game: SavedGame) -> Bool {
+        let stats = game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+        guard game.snapshot.playingSecondsByPlayerID[playerID, default: 0] == 0 else { return false }
+        return stats.twoMade == 0 && stats.twoAttempts == 0 && stats.threeMade == 0 && stats.threeAttempts == 0
+            && stats.freeThrowMade == 0 && stats.freeThrowAttempts == 0 && stats.bonusFreeThrowMade == 0 && stats.bonusFreeThrowAttempts == 0
+            && stats.assists == 0 && stats.rebounds == 0 && stats.offensiveRebounds == 0 && stats.defensiveRebounds == 0
+            && stats.blocks == 0 && stats.steals == 0 && stats.fouls == 0 && stats.turnovers == 0
     }
 
     private var totalStats: PlayerStats { statsGroup.totalStats }

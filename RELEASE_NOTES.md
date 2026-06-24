@@ -1,5 +1,30 @@
 # Release Notes
 
+## 1.29 (2026-06-24)
+
+### 新增
+
+- **事件流编辑（Pro）**：比赛详情页新增编辑模式，可查看按节分组的事件流，左滑修改或删除事件。支持新增事件（精确时间/每节时间两种模式），自动重算统计数据、上场时间和正负值。Pro 订阅功能。
+- **球员页面布局优化**：球员卡片拆分为篮板卡（总/前场/后场）和助攻/抢断/盖帽卡；选择比赛场次和筛选移至页面顶部。比赛记录编辑模式下事件按节和分钟分组折叠。
+- **扣篮独立统计**：`PlayerStats` 新增 `dunkMade`/`dunkAttempts` 字段，含 CodingKeys 和 decoder 向后兼容。
+- **补篮 O/D 模式适配**：普通模式补篮加篮板，前场/后场篮板模式加前场篮板。
+- **蓝牙投篮细类传输**：`BluetoothLiveStatAction` 补齐所有投篮细类（layup/midRange/paint/dunk），蓝牙协同不丢失细类数据。
+- **AI 连续不中数据**：预设分析新增两队合计连续投篮不中次数（`both_miss_streak`），阈值 6 次；`missedCodes` 补全 `dunkMissed` 和 `putbackMissed`。
+- **语音撤销/重做**：新增语音命令 `undo`（撤销）、`redo`（重做），10 种语言对应关键词。
+
+### 修复
+
+- **蓝牙 `.undo` 撤销 completeness**：`applyLiveOperationPayload(.undo)` 优先从 undoStack 快照恢复，确保复合操作两次统计正确回退。
+- **O/D 篮板展示修复**：全部球员展示页面改用 `totalRebounds`（`rebounds + offensiveRebounds + defensiveRebounds`），O/D 模式下不再显示 0。生涯/场均累计补上 O/D 字段。
+- **Core Data 偏好设置恢复遗漏**：`StoreMeta` 中 `showsBluetoothGamesButton`、`keepsScreenAwake`、`hiddenCareerStatItems` 在 Core Data 加载路径中补回。
+- **蓝牙协同按钮修复**：记分页蓝牙按钮去掉多余的 `.disabled` 条件，未连接时弹出引导提示。
+- **VoiceRecognizer force-unwrap**：10 处 `Range(...)!` 和 `Int(...)!` 改用 `guard let`。
+- **换人撤销移除文本猜测**：`relatedPlayerID` 在生产路径已确保传入，移除 fallback 文本解析。
+- **`remapDictionary` 碰撞合并**：导入时字典 remapping 使用对应合并策略（求和、min），不再静默覆盖。
+- **`preferredPlayerNumber` 跨调用泄漏**：`processText` 入口提前重置。
+- **补篮语音变体增强**：简体/繁体中文新增 `"不来"` 关键词，ASR 将"补篮"识别为"不来"时也可匹配。
+- **无上场时间/零数据球员过滤**：生涯统计跳过上场 0 分钟且全部数据为 0 的比赛。
+
 ## 1.28 (2026-06-23)
 
 ### 架构

@@ -998,3 +998,24 @@ Format:
 "action_putback_missed" = "補籃未中";
 "action_dunk_made" = "扣籃命中";
 "action_dunk_missed" = "扣籃未中";
+"label_time" = "時間";
+"label_action" = "動作";
+"label_type" = "類型";
+"stats_other" = "其他統計";
+"label_edit_event" = "編輯事件";
+"label_add_event" = "新增事件";
+"label_edit_event_log" = "編輯事件流";
+"button_edit" = "編輯";
+
+"label_date" = "日期";
+"label_hour" = "小時";
+"label_minute" = "分鐘";
+"label_second" = "秒";
+
+"label_exact_time" = "精確時間";
+"label_period_time" = "每節時間";
+
+"pro_feature_edit_1" = "編輯比賽事件流——賽後修改、新增、刪除事件";
+
+"settings_doc_help_gamelog_item5_title" = "編輯事件流（Pro）";
+"settings_doc_help_gamelog_item5_desc" = "賽後修改、新增或刪除比賽事件。可編輯球員、動作和時間，自動重算統計數據。";
