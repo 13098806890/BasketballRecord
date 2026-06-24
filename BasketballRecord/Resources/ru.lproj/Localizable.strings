@@ -988,3 +988,24 @@ Format:
 "action_putback_missed" = "Путбэк промах";
 "action_dunk_made" = "Данк забит";
 "action_dunk_missed" = "Данк промах";
+"label_time" = "Время";
+"label_action" = "Действие";
+"label_type" = "Тип";
+"stats_other" = "Другая статистика";
+"label_edit_event" = "Редактировать событие";
+"label_add_event" = "Добавить событие";
+"label_edit_event_log" = "Редактировать журнал событий";
+"button_edit" = "Редактировать";
+
+"label_date" = "Дата";
+"label_hour" = "Час";
+"label_minute" = "Минута";
+"label_second" = "Секунда";
+
+"label_exact_time" = "Точное время";
+"label_period_time" = "Время четверти";
+
+"pro_feature_edit_1" = "Редактирование журнала событий матча - изменение, добавление или удаление событий после матча";
+
+"settings_doc_help_gamelog_item5_title" = "Редактирование событий (Pro)";
+"settings_doc_help_gamelog_item5_desc" = "Изменяйте, добавляйте или удаляйте события матча после игры. Редактируйте игрока, действие и время. Статистика пересчитывается автоматически.";

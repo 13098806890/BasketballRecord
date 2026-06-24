@@ -1012,3 +1012,24 @@ Format:
 "action_putback_missed" = "Putback Missed";
 "action_dunk_made" = "Dunk Made";
 "action_dunk_missed" = "Dunk Missed";
+"label_time" = "Time";
+"label_action" = "Action";
+"label_type" = "Type";
+"stats_other" = "Other Stats";
+"label_edit_event" = "Edit Event";
+"label_add_event" = "Add Event";
+"label_edit_event_log" = "Edit Event Log";
+"button_edit" = "Edit";
+
+"label_date" = "Date";
+"label_hour" = "Hour";
+"label_minute" = "Minute";
+"label_second" = "Second";
+
+"label_exact_time" = "Exact Time";
+"label_period_time" = "Period Time";
+
+"pro_feature_edit_1" = "Edit game event logs - modify, add, or delete events after the game";
+
+"settings_doc_help_gamelog_item5_title" = "Edit Events (Pro)";
+"settings_doc_help_gamelog_item5_desc" = "Modify, add, or delete game events after the match. Edit player, action, and time for any event. Recalculate stats automatically.";

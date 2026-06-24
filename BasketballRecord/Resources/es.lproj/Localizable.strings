@@ -988,3 +988,24 @@ Format:
 "action_putback_missed" = "Putback fallado";
 "action_dunk_made" = "Mate anotado";
 "action_dunk_missed" = "Mate fallado";
+"label_time" = "Hora";
+"label_action" = "Acción";
+"label_type" = "Tipo";
+"stats_other" = "Otras estadísticas";
+"label_edit_event" = "Editar evento";
+"label_add_event" = "Agregar evento";
+"label_edit_event_log" = "Editar registro de eventos";
+"button_edit" = "Editar";
+
+"label_date" = "Fecha";
+"label_hour" = "Hora";
+"label_minute" = "Minuto";
+"label_second" = "Segundo";
+
+"label_exact_time" = "Hora exacta";
+"label_period_time" = "Tiempo del período";
+
+"pro_feature_edit_1" = "Editar registros de eventos del partido: modificar, agregar o eliminar eventos después del partido";
+
+"settings_doc_help_gamelog_item5_title" = "Editar eventos (Pro)";
+"settings_doc_help_gamelog_item5_desc" = "Modifique, agregue o elimine eventos del partido después del juego. Edite jugador, acción y hora. Las estadísticas se recalculan automáticamente.";

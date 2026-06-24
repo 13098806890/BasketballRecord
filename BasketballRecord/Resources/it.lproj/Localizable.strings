@@ -988,3 +988,24 @@ Format:
 "action_putback_missed" = "Putback sbagliato";
 "action_dunk_made" = "Schiacciata realizzata";
 "action_dunk_missed" = "Schiacciata sbagliata";
+"label_time" = "Ora";
+"label_action" = "Azione";
+"label_type" = "Tipo";
+"stats_other" = "Altre statistiche";
+"label_edit_event" = "Modifica evento";
+"label_add_event" = "Aggiungi evento";
+"label_edit_event_log" = "Modifica registro eventi";
+"button_edit" = "Modifica";
+
+"label_date" = "Data";
+"label_hour" = "Ora";
+"label_minute" = "Minuto";
+"label_second" = "Secondo";
+
+"label_exact_time" = "Ora esatta";
+"label_period_time" = "Tempo del periodo";
+
+"pro_feature_edit_1" = "Modifica i registri degli eventi della partita - modifica, aggiungi o elimina eventi dopo la partita";
+
+"settings_doc_help_gamelog_item5_title" = "Modifica eventi (Pro)";
+"settings_doc_help_gamelog_item5_desc" = "Modifica, aggiungi o elimina eventi della partita dopo la gara. Modifica giocatore, azione e tempo. Le statistiche vengono ricalcolate automaticamente.";

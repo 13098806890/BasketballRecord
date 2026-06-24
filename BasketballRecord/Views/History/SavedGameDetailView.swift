@@ -21,6 +21,11 @@ struct SavedGameDetailView: View {
     @State private var showSummaryExistsAlert = false
     @State private var shareImage: UIImage?
     @State private var savedToPhotos = false
+    @State private var isEditing = false
+    @State private var showEditSheet = false
+    @State private var editingSheetEntry: GameLogEntry?
+    @State private var expandedPeriods: Set<Int> = []
+    @State private var expandedMinutes: [Int: Set<Int>] = [:]
 
 
     init(game: SavedGame, displayMode: DisplayMode = .history) {
@@ -186,9 +191,27 @@ struct SavedGameDetailView: View {
                     } label: {
                         Label(LocalizedStringKey("button_export"), systemImage: TransferSymbol.exportData)
                     }
+                    Button {
+                        if store.isPro || isEditing {
+                            isEditing.toggle()
+                        } else {
+                            isShowingPurchase = true
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            if !store.isPro && !isEditing {
+                                Image(systemName: "lock.fill")
+                                    .font(.caption2)
+                            }
+                            Text(LocalizedStringKey(isEditing ? "button_done" : "button_edit"))
+                        }
+                        .foregroundStyle(store.isPro || isEditing ? Color.blue : Color.gray)
+                    }
                 }
             }
-        }; return l
+        }
+
+        (isEditing ? AnyView(editEventListView) : AnyView(l))
             .onChange(of: store.cloudEnabledGameIDs) { _, _ in
             // UI refreshes automatically via @Published
         }
@@ -414,11 +437,71 @@ struct SavedGameDetailView: View {
     }
 
     private func rebuildPeriodAnalysis() {
-        let analyzer = SavedGameAnalyzer(game: game) { name in
+        guard let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) else { return }
+        let currentGame = store.savedGames[idx]
+        let analyzer = SavedGameAnalyzer(game: currentGame) { name in
             resolvePlayerIDByName(name)
         }
         periodAnalysis = analyzer.analyze()
+        rebuildGameSnapshotStats(gameIndex: idx)
         sanitizeSelectedPeriod()
+    }
+
+    private func rebuildGameSnapshotStats(gameIndex: Int) {
+        let currentGame = store.savedGames[gameIndex]
+        let logs = currentGame.snapshot.logs.sorted { $0.timestamp < $1.timestamp }
+        let homeIDs = Set(currentGame.homePlayerIDs)
+        let awayIDs = Set(currentGame.awayPlayerIDs)
+        let allIDs = homeIDs.union(awayIDs)
+
+        var statsByPlayer: [UUID: PlayerStats] = [:]
+        var playingSeconds: [UUID: TimeInterval] = [:]
+        var plusMinus: [UUID: Int] = [:]
+        var homeOnCourt: Set<UUID> = []
+        var awayOnCourt: Set<UUID> = []
+        var lastTimestamp = logs.first?.timestamp ?? Date()
+
+        // Initialize lineup from starters if set, otherwise empty
+        let homeStarters = Set(currentGame.snapshot.starterPlayerIDs.filter { homeIDs.contains($0) })
+        let awayStarters = Set(currentGame.snapshot.starterPlayerIDs.filter { awayIDs.contains($0) })
+
+        for log in logs {
+            let elapsed = max(0, log.timestamp.timeIntervalSince(lastTimestamp))
+            lastTimestamp = log.timestamp
+
+            for pid in homeOnCourt { playingSeconds[pid, default: 0] += elapsed }
+            for pid in awayOnCourt { playingSeconds[pid, default: 0] += elapsed }
+
+            guard let code = log.eventCode else { continue }
+
+            if code.hasPrefix("event.period") {
+                homeOnCourt = homeStarters
+                awayOnCourt = awayStarters
+                if code == "event.period_start" {
+                    // Period started - ensure lineups are set
+                }
+            } else if code == "event.substitution", let incoming = log.playerID, let outgoing = log.relatedPlayerID {
+                if homeOnCourt.contains(outgoing) { homeOnCourt.remove(outgoing); homeOnCourt.insert(incoming) }
+                if awayOnCourt.contains(outgoing) { awayOnCourt.remove(outgoing); awayOnCourt.insert(incoming) }
+            } else if code == "event.late_arrival", let pid = log.playerID {
+                if homeIDs.contains(pid) { homeOnCourt.insert(pid) }
+                if awayIDs.contains(pid) { awayOnCourt.insert(pid) }
+            } else if let action = StatAction.allCases.first(where: { $0.eventCode == code }),
+                      let pid = log.playerID {
+                var stats = statsByPlayer[pid, default: PlayerStats()]
+                action.apply(to: &stats)
+                statsByPlayer[pid] = stats
+                if action.points > 0 {
+                    let isHome = homeIDs.contains(pid)
+                    for p in awayOnCourt { plusMinus[p, default: 0] -= action.points }
+                    for p in homeOnCourt { plusMinus[p, default: 0] += action.points }
+                }
+            }
+        }
+
+        store.savedGames[gameIndex].snapshot.statsByPlayerID = statsByPlayer
+        store.savedGames[gameIndex].snapshot.playingSecondsByPlayerID = playingSeconds
+        store.savedGames[gameIndex].snapshot.plusMinusByPlayerID = plusMinus
     }
 
     private func sanitizeSelectedPeriod() {
@@ -1450,9 +1533,206 @@ struct SavedGameDetailView: View {
                 .overlay {
                     Text(String((game.playerNamesByID[playerID] ?? "?").prefix(2)))
                         .font(.caption2.weight(.semibold))
-                        .foregroundStyle(Color.accentColor)
+                         .foregroundStyle(Color.accentColor)
                 }
         }
+    }
+
+    private var periodStartTimestamps: [Int: Date] {
+        var result: [Int: Date] = [:]
+        var period = 1
+        for log in game.snapshot.logs.sorted(by: { $0.timestamp < $1.timestamp }) {
+            if let code = log.eventCode, (code == "event.period_start" || code == "event.period") {
+                result[period] = log.timestamp
+                period += 1
+            }
+        }
+        return result
+    }
+
+    // MARK: - Event Log Editing
+
+    private var editEventListView: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(LocalizedStringKey("label_edit_event_log"))
+                    .font(.headline)
+                Spacer()
+                Button {
+                    editingSheetEntry = nil
+                    showEditSheet = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+
+            List {
+                let grouped = Dictionary(grouping: filteredPeriodAwareLogs, by: { $0.inferredPeriod ?? 0 })
+                let sortedPeriods = grouped.keys.sorted()
+                ForEach(sortedPeriods, id: \.self) { period in
+                    Section {
+                        Button {
+                            if expandedPeriods.contains(period) { expandedPeriods.remove(period) }
+                            else { expandedPeriods.insert(period) }
+                        } label: {
+                            HStack {
+                                Text(String(format: NSLocalizedString("data_range_period", comment: ""), period))
+                                    .font(.headline)
+                                    .foregroundStyle(.primary)
+                                Spacer()
+                                Image(systemName: expandedPeriods.contains(period) ? "chevron.down" : "chevron.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+
+                        if expandedPeriods.contains(period) {
+                            let periodStart = periodStartTimestamps[period] ?? game.snapshot.logs.first?.timestamp ?? Date()
+                            let minuteGrouped = Dictionary(grouping: grouped[period] ?? [], by: { log in
+                                let elapsed = log.entry.timestamp.timeIntervalSince(periodStart)
+                                return Int(elapsed / 60)
+                            })
+                            let sortedMinutes = minuteGrouped.keys.sorted()
+                            ForEach(sortedMinutes, id: \.self) { minute in
+                                let isExpanded = expandedMinutes[period, default: []].contains(minute)
+                                Button {
+                                    if isExpanded { expandedMinutes[period, default: []].remove(minute) }
+                                    else { expandedMinutes[period, default: []].insert(minute) }
+                                } label: {
+                                    HStack {
+                                        Text("\(String(format: NSLocalizedString("data_range_period", comment: ""), period)) \(minute)\u{2019}")
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundStyle(.secondary)
+                                        Spacer()
+                                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                                            .font(.caption)
+                                            .foregroundStyle(.tertiary)
+                                    }
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                                .padding(.leading, 16)
+
+                                if isExpanded {
+                                    ForEach(minuteGrouped[minute] ?? []) { log in
+                                        editEventRow(log: log)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .listStyle(.insetGrouped)
+        }
+        .background(Color(uiColor: .systemGroupedBackground))
+        .sheet(isPresented: $showEditSheet) {
+            let events = game.snapshot.logs
+            let firstTS = events.first?.timestamp ?? game.savedAt
+            let lastTS = events.last?.timestamp ?? game.savedAt
+            let gameStart = min(firstTS, lastTS)
+            let editingEntry = editingSheetEntry
+            let existingEntry = editingEntry.flatMap { e in events.first { $0.id == e.id } } ?? editingEntry
+            let homeStarters = game.snapshot.starterPlayerIDs.filter { game.homePlayerIDs.contains($0) }
+            let awayStarters = game.snapshot.starterPlayerIDs.filter { game.awayPlayerIDs.contains($0) }
+            return EventLogEditSheet(
+                allPlayers: game.homePlayerIDs.compactMap { store.player(for: $0) }
+                    + game.awayPlayerIDs.compactMap { store.player(for: $0) },
+                homePlayerIDs: game.homePlayerIDs,
+                awayPlayerIDs: game.awayPlayerIDs,
+                logs: events,
+                homeStarterIDs: homeStarters,
+                awayStarterIDs: awayStarters,
+                gameStartTime: gameStart,
+                gameEndTime: max(firstTS, lastTS),
+                defaultNewTimestamp: editingEntry == nil ? gameStart : nil,
+                existingEntry: existingEntry,
+                onSave: { timestamp, playerID, action in
+                    if let existing = editingEntry.flatMap({ e in game.snapshot.logs.first { $0.id == e.id } }) {
+                        modifyEvent(existing, timestamp: timestamp, playerID: playerID, action: action)
+                    } else {
+                        addEvent(timestamp: timestamp, playerID: playerID, action: action)
+                    }
+                    editingSheetEntry = nil
+                }
+            )
+        }
+    }
+
+    private func editEventRow(log: PeriodAwareLog) -> some View {
+        let code = log.entry.eventCode ?? ""
+        let isProtected = ["event.period_start", "event.period_end", "event.game_end", "event.starters_home", "event.starters_away"].contains(code)
+        return HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(logLineText(for: log))
+                    .font(.caption)
+                    .lineLimit(2)
+                HStack(spacing: 4) {
+                    Text(log.entry.timestamp, style: .time)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    if let code = log.entry.eventCode {
+                        Text(code)
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+            }
+            Spacer()
+        }
+        .contentShape(Rectangle())
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            if !isProtected {
+                Button(NSLocalizedString("button_edit", comment: "")) {
+                    editingSheetEntry = log.entry
+                    showEditSheet = true
+                }
+                .tint(.blue)
+                Button(NSLocalizedString("label_delete", comment: "")) {
+                    deleteEvent(log.entry)
+                }
+                .tint(.red)
+            }
+        }
+    }
+
+    private func addEvent(timestamp: Date, playerID: UUID, action: StatAction) {
+        let eventCode = action.eventCode
+        let entry = GameLogEntry(
+            timestamp: timestamp,
+            message: "\(store.player(for: playerID)?.name ?? "?") \(action.message) [event:\(eventCode)]",
+            eventCode: eventCode,
+            playerID: playerID
+        )
+        guard let gameIndex = store.savedGames.firstIndex(where: { $0.id == game.id }) else { return }
+        store.savedGames[gameIndex].snapshot.logs.append(entry)
+        store.savedGames[gameIndex].snapshot.logs.sort { $0.timestamp < $1.timestamp }
+        rebuildPeriodAnalysis()
+        sanitizeSelectedPeriod()
+    }
+
+    private func modifyEvent(_ entry: GameLogEntry, timestamp: Date, playerID: UUID, action: StatAction) {
+        let eventCode = action.eventCode
+        guard let logIndex = game.snapshot.logs.firstIndex(where: { $0.id == entry.id }),
+              let gameIndex = store.savedGames.firstIndex(where: { $0.id == game.id }) else { return }
+        store.savedGames[gameIndex].snapshot.logs[logIndex].playerID = playerID
+        store.savedGames[gameIndex].snapshot.logs[logIndex].eventCode = eventCode
+        store.savedGames[gameIndex].snapshot.logs[logIndex].message = "\(store.player(for: playerID)?.name ?? "?") \(action.message) [event:\(eventCode)]"
+        rebuildPeriodAnalysis()
+        sanitizeSelectedPeriod()
+    }
+
+    private func deleteEvent(_ entry: GameLogEntry) {
+        guard let logIndex = game.snapshot.logs.firstIndex(where: { $0.id == entry.id }),
+              let gameIndex = store.savedGames.firstIndex(where: { $0.id == game.id }) else { return }
+        store.savedGames[gameIndex].snapshot.logs.remove(at: logIndex)
+        rebuildPeriodAnalysis()
+        sanitizeSelectedPeriod()
     }
 }
 
@@ -1605,6 +1885,7 @@ private struct ExportGameView: View {
             copiedChunkIndex = nil
         }
     }
+
 }
 
 

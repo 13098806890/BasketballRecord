@@ -1000,3 +1000,24 @@ Format:
 "action_putback_missed" = "补篮未中";
 "action_dunk_made" = "扣篮命中";
 "action_dunk_missed" = "扣篮未中";
+"label_time" = "时间";
+"label_action" = "动作";
+"label_type" = "类型";
+"stats_other" = "其他统计";
+"label_edit_event" = "编辑事件";
+"label_add_event" = "新增事件";
+"label_edit_event_log" = "编辑事件流";
+"button_edit" = "编辑";
+
+"label_date" = "日期";
+"label_hour" = "小时";
+"label_minute" = "分钟";
+"label_second" = "秒";
+
+"label_exact_time" = "精确时间";
+"label_period_time" = "每节时间";
+
+"pro_feature_edit_1" = "编辑比赛事件流——赛后修改、新增、删除事件";
+
+"settings_doc_help_gamelog_item5_title" = "编辑事件流（Pro）";
+"settings_doc_help_gamelog_item5_desc" = "赛后修改、新增或删除比赛事件。可编辑球员、动作和时间，自动重算统计数据。";
