@@ -154,4 +154,43 @@ struct CloudShareManager {
         let data = try await retrieve(uuid: uuid)
         return try JSONDecoder().decode(CloudShareBundle.self, from: data)
     }
+
+    static func uploadPhoto(uuid: String, playerID: UUID, data: Data) async throws {
+        guard let url = URL(string: "\(shareServiceBaseURL)/v2/upload/photo/\(uuid)/\(playerID.uuidString)") else {
+            throw CloudShareError.networkError(URLError(.badURL))
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
+        request.httpBody = data
+
+        let (responseData, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw CloudShareError.networkError(URLError(.badServerResponse))
+        }
+        guard httpResponse.statusCode == 201 else {
+            let body = String(data: responseData, encoding: .utf8) ?? "HTTP \(httpResponse.statusCode)"
+            throw CloudShareError.serverError(body)
+        }
+    }
+
+    static func retrievePhoto(uuid: String, playerID: UUID) async throws -> Data {
+        guard let url = URL(string: "\(shareServiceBaseURL)/v2/download/photo/\(uuid)/\(playerID.uuidString)") else {
+            throw CloudShareError.networkError(URLError(.badURL))
+        }
+        let (data, response) = try await URLSession.shared.data(from: url)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw CloudShareError.networkError(URLError(.badServerResponse))
+        }
+        if httpResponse.statusCode == 404 {
+            throw CloudShareError.notFound
+        }
+        guard httpResponse.statusCode == 200 else {
+            let body = String(data: data, encoding: .utf8) ?? "HTTP \(httpResponse.statusCode)"
+            throw CloudShareError.serverError(body)
+        }
+        return data
+    }
 }

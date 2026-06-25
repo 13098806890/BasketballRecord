@@ -373,6 +373,57 @@ def check(uid):
     })
 
 
+@app.route("/v2/upload/photo/<uid>/<pid>", methods=["PUT"])
+def upload_photo(uid, pid):
+    if not COS_BUCKET:
+        return jsonify({"error": "server not configured"}), 500
+
+    try:
+        uuid.UUID(uid)
+        uuid.UUID(pid)
+    except ValueError:
+        return jsonify({"error": "invalid uuid"}), 400
+
+    ip = _get_client_ip()
+    if not _check_rate(ip):
+        return jsonify({"error": "rate limit exceeded"}), 429
+
+    data = request.get_data()
+    if not data:
+        return jsonify({"error": "empty body"}), 400
+
+    key = f"shares/{uid}/photos/{pid}.jpg"
+    try:
+        _cos_request("PUT", key, data=data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    return jsonify({"ok": True}), 201
+
+
+@app.route("/v2/download/photo/<uid>/<pid>", methods=["GET"])
+def download_photo(uid, pid):
+    if not COS_BUCKET:
+        return jsonify({"error": "server not configured"}), 500
+
+    try:
+        uuid.UUID(uid)
+        uuid.UUID(pid)
+    except ValueError:
+        return jsonify({"error": "invalid uuid"}), 400
+
+    key = f"shares/{uid}/photos/{pid}.jpg"
+    if not _check_exists(key):
+        return jsonify({"error": "not found"}), 404
+
+    try:
+        _, data, _ = _cos_request("GET", key)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    return data, 200, {"Content-Type": "application/octet-stream"}
+
+
 @app.route("/v2/cleanup", methods=["POST"])
 def cleanup():
     if not COS_BUCKET:

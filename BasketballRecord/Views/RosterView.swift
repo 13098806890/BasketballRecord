@@ -1221,6 +1221,15 @@ private struct ImportRosterPackageView: View {
                     }
                 }
 
+                let uid = cloudImportUUID.trimmingCharacters(in: .whitespacesAndNewlines)
+                for exportPlayer in bundle.players {
+                    guard let photoData = try? await CloudShareManager.retrievePhoto(uuid: uid, playerID: exportPlayer.id) else { continue }
+                    if var player = store.players.first(where: { $0.id == exportPlayer.id }) {
+                        player.photoData = photoData
+                        store.updatePlayer(player)
+                    }
+                }
+
                 cloudImportUUID = ""
                 cloudImportError = String(format: NSLocalizedString("cloudshare_import_summary_format", comment: "Import summary"), importedPlayers, importedTeams, importedGames)
             } else {
