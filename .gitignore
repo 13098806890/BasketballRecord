@@ -10,3 +10,5 @@ build/
 *.dSYM
 *.p8
 fastlane/report.xml
+__pycache__/
+*.pyc
