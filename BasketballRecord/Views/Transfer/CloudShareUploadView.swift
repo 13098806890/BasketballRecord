@@ -97,12 +97,22 @@ struct CloudShareUploadView: View {
                                     .frame(maxWidth: .infinity)
                             }
                             .buttonStyle(AppSoftProminentButtonStyle())
+
+                        Button {
+                            matchingRecord = nil
+                            uploadedUUID = nil
+                            cloudError = nil
+                        } label: {
+                            Label(NSLocalizedString("cloudshare_upload_new_button", comment: ""), systemImage: "arrow.triangle.2.circlepath")
+                                .frame(maxWidth: .infinity)
                         }
-                        .padding(.vertical, 8)
-                    } header: {
-                        Text(LocalizedStringKey("cloudshare_picker_cloud_label"))
+                        .buttonStyle(.bordered)
                     }
-                } else {
+                    .padding(.vertical, 8)
+                } header: {
+                    Text(LocalizedStringKey("cloudshare_picker_cloud_label"))
+                }
+            } else {
                     uploadFormContent
                 }
             }
@@ -150,22 +160,37 @@ struct CloudShareUploadView: View {
                         .background(Color(.systemGray6))
                         .clipShape(RoundedRectangle(cornerRadius: 8))
 
-                    Button {
-                        UIPasteboard.general.string = uuid
-                        Task {
-                            try? await Task.sleep(for: .seconds(1.2))
-                        }
-                    } label: {
-                        Label(NSLocalizedString("cloudshare_copy_button", comment: ""), systemImage: "doc.on.doc")
-                            .frame(maxWidth: .infinity)
+                    if remainingSeconds > 0 {
+                        Text(String(format: NSLocalizedString("cloudshare_expires_format", comment: ""), formatRemainingTime(remainingSeconds)))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
-                    .buttonStyle(AppSoftProminentButtonStyle())
+
+                    Button {
+                            UIPasteboard.general.string = uuid
+                            Task {
+                                try? await Task.sleep(for: .seconds(1.2))
+                            }
+                        } label: {
+                            Label(NSLocalizedString("cloudshare_copy_button", comment: ""), systemImage: "doc.on.doc")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(AppSoftProminentButtonStyle())
+
+                        Button {
+                            uploadedUUID = nil
+                            cloudError = nil
+                        } label: {
+                            Label(NSLocalizedString("cloudshare_upload_new_button", comment: ""), systemImage: "arrow.triangle.2.circlepath")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .padding(.vertical, 8)
+                } header: {
+                    Text(LocalizedStringKey("cloudshare_picker_cloud_label"))
                 }
-                .padding(.vertical, 8)
-            } header: {
-                Text(LocalizedStringKey("cloudshare_picker_cloud_label"))
-            }
-        } else if let error = cloudError {
+            } else if let error = cloudError {
             Section {
                 VStack(spacing: 12) {
                     Image(systemName: "exclamationmark.icloud.fill")
@@ -398,17 +423,22 @@ struct CloudShareUploadView: View {
             let teamIDs = selectedTeamIDs
             let gameIDs = selectedGameIDs
 
-            let encoded = try await Task.detached(priority: .background) { [self] in
-                let players = self.sortedPlayers.filter { playerIDs.contains($0.id) }.map { p in
-                    var ep = ExportPlayer(player: p)
-                    ep.photoData = nil
-                    return ep
-                }
-                let teams = self.sortedTeams.filter { teamIDs.contains($0.id) }.map { ExportTeam(team: $0) }
-                let games = self.sortedSavedGames.filter { gameIDs.contains($0.id) }.map { game in
-                    ExportedGamePackageV2(legacy: ExportedGamePackage(
-                        players: self.exportPlayers(for: game),
-                        teams: self.exportTeams(for: game),
+            let players = sortedPlayers.filter { playerIDs.contains($0.id) }.map { p in
+                var ep = ExportPlayer(player: p)
+                ep.photoData = nil
+                return ep
+            }
+            let teams = sortedTeams.filter { teamIDs.contains($0.id) }.map { ExportTeam(team: $0) }
+            let selectedGames = sortedSavedGames.filter { gameIDs.contains($0.id) }
+            let allStorePlayers = store.players
+
+            let encoded = try await Task.detached(priority: .background) {
+                let games = selectedGames.map { game in
+                    let exportedPlayers = Self.exportPlayers(for: game, allPlayers: allStorePlayers)
+                    let exportedTeams = Self.exportTeams(for: game, allPlayers: allStorePlayers)
+                    return ExportedGamePackageV2(legacy: ExportedGamePackage(
+                        players: exportedPlayers,
+                        teams: exportedTeams,
                         game: ExportGameRecord(savedGame: game)
                     ))
                 }
@@ -421,13 +451,12 @@ struct CloudShareUploadView: View {
 
             if includePhotos {
                 uploadPhase = NSLocalizedString("cloudshare_compressing_photos", comment: "")
-                let compressTask = Task.detached(priority: .background) { [self] in
-                    let photos: [(UUID, Data)] = self.sortedPlayers
-                        .filter { playerIDs.contains($0.id) }
-                        .compactMap { player in
-                            guard let compressed = self.compressIfNeeded(player.photoData) else { return nil }
-                            return (player.id, compressed)
-                        }
+                let photoPlayers = sortedPlayers.filter { playerIDs.contains($0.id) }
+                let compressTask = Task.detached(priority: .background) {
+                    let photos: [(UUID, Data)] = photoPlayers.compactMap { player in
+                        guard let compressed = Self.compressIfNeeded(player.photoData) else { return nil }
+                        return (player.id, compressed)
+                    }
                     return photos
                 }
                 let photos = try await compressTask.value
@@ -449,22 +478,17 @@ struct CloudShareUploadView: View {
             records.append(record)
             saveRecords(records)
             uploadedUUID = uuid
+            remainingSeconds = 72 * 3600
         } catch {
             cloudError = error.localizedDescription
         }
         isUploading = false
     }
 
-    private func saveRecords(_ records: [CloudShareRecord]) {
-        if let data = try? JSONEncoder().encode(records) {
-            UserDefaults.standard.set(data, forKey: recordsKey)
-        }
-    }
-
-    private func exportPlayers(for game: SavedGame) -> [ExportPlayer] {
+    private static func exportPlayers(for game: SavedGame, allPlayers: [Player]) -> [ExportPlayer] {
         let allIDs = Set(game.homePlayerIDs + game.awayPlayerIDs + game.snapshot.statsByPlayerID.keys)
         return allIDs.compactMap { id in
-            if let player = store.players.first(where: { $0.id == id }) {
+            if let player = allPlayers.first(where: { $0.id == id }) {
                 var ep = ExportPlayer(player: player)
                 ep.photoData = nil
                 return ep
@@ -473,7 +497,7 @@ struct CloudShareUploadView: View {
         }
     }
 
-    private func exportTeams(for game: SavedGame) -> [ExportTeam] {
+    private static func exportTeams(for game: SavedGame, allPlayers: [Player]) -> [ExportTeam] {
         var teams: [ExportTeam] = []
         if let tid = game.snapshot.homeTeamID {
             teams.append(ExportTeam(id: tid, name: game.homeTeamName, playerIDs: game.homePlayerIDs))
@@ -486,6 +510,12 @@ struct CloudShareUploadView: View {
             teams.append(ExportTeam(id: UUID(), name: game.awayTeamName, playerIDs: game.awayPlayerIDs))
         }
         return teams
+    }
+
+    private func saveRecords(_ records: [CloudShareRecord]) {
+        if let data = try? JSONEncoder().encode(records) {
+            UserDefaults.standard.set(data, forKey: recordsKey)
+        }
     }
 
     private func toggleSelection(_ set: inout Set<UUID>, id: UUID) {
@@ -548,7 +578,7 @@ struct CloudShareUploadView: View {
         return "\(minutes)m"
     }
 
-    private func compressIfNeeded(_ data: Data?) -> Data? {
+    private static func compressIfNeeded(_ data: Data?) -> Data? {
         guard let data = data, !data.isEmpty else { return nil }
         guard data.count > maxPhotoSize else { return data }
         guard let image = UIImage(data: data) else { return data }

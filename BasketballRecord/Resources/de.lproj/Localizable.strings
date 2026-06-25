@@ -642,6 +642,7 @@
 "button_overwrite_import" = "Überschreiben";
 "button_continue_import" = "Fortsetzen";
 "button_parse_game_record" = "Spielaufzeichnung parsen";
+"button_import_game" = "Spiel importieren";
 "button_ai_generate_summary" = "Zusammenfassung generieren";
 "button_ai_generating" = "Generiere…";
 "nav_game_history" = "Spielverlauf";
@@ -1021,6 +1022,8 @@ Format:
 "cloudshare_uploading" = "Wird hochgeladen...";
 "cloudshare_uploading_metadata" = "Metadaten werden hochgeladen...";
 "cloudshare_uploading_photos_format" = "Foto %d von %d";
+"cloudshare_upload_new_button" = "Neu hochladen";
+"cloudshare_include_photos" = "Fotos einschließen";
 "cloudshare_compressing_photos" = "Fotos werden komprimiert...";
 "cloudshare_downloading_metadata" = "Metadaten werden heruntergeladen...";
 "cloudshare_downloading_photos_format" = "Foto %d von %d";
@@ -1038,6 +1041,7 @@ Format:
 "cloudshare_error_invalid_response" = "Ungültige Serverantwort";
 "cloudshare_error_network" = "Netzwerkverbindung fehlgeschlagen";
 "cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
+"cloudshare_clipboard_detected_uuid" = "Cloud-Share-UUID in der Zwischenablage erkannt";
 
 "button_retry" = "Retry";
 

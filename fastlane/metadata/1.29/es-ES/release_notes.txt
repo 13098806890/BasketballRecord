@@ -1,4 +1,7 @@
 • Compartir en la nube — barra de progreso con estado foto por foto
+• Compartir en la nube — carga separada de metadatos y fotos para evitar límites de tamaño, con opción de volver a subir
+• Importar desde la nube — detección automática de UUID desde el portapapeles con alerta
 • Tutorial de voz — orden de tareas mejorado, tasa de éxito ahora cuenta todos los intentos
 • Los jugadores del tutorial ya no aparecen en la gestión de jugadores ni en el selector de cloud
+• Detalles del partido — navegación más fluida con indicador de carga asíncrona
 • Corrección de errores y mejoras de rendimiento

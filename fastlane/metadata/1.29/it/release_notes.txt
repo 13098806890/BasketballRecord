@@ -1,4 +1,7 @@
 • Condivisione cloud — barra di avanzamento con stato foto per foto
+• Condivisione cloud — caricamento separato di metadati e foto per evitare limiti di dimensione, con pulsante di ricaricamento
+• Importazione cloud — rilevamento automatico UUID dagli appunti con avviso
 • Tutorial vocale — ordine dei compiti migliorato, percentuale di successo ora conta tutti i tentativi
 • I giocatori del tutorial non appaiono più nella gestione giocatori o nel selettore cloud
+• Dettagli partita — navigazione più fluida con indicatore di caricamento asincrono
 • Correzione bug e miglioramenti delle prestazioni

@@ -548,6 +548,9 @@ private struct ExportTeamPackageView: View {
     @State private var isGenerating = true
     @State private var copiedChunkIndex: Int?
     @State private var copiedChunkFeedbackTask: Task<Void, Never>?
+    @State private var uploadProgress: Double = 0
+    @State private var uploadPhase: String = ""
+    @AppStorage("cloudshare_team_include_photos") private var includePhotos = true
 
     var body: some View {
         NavigationStack {
@@ -565,13 +568,12 @@ private struct ExportTeamPackageView: View {
                 if shareMode == .cloud {
                     CloudShareSection(
                         persistenceKey: "cloud_share_team_\(team.id.uuidString)",
-                        uploadAction: {
-                            let base64 = store.exportTeamBase64(team) ?? ""
-                            guard let data = base64.data(using: .utf8), !data.isEmpty else {
-                                throw CloudShareError.emptyData
-                            }
-                            return try await CloudShareManager.upload(data: data)
-                        })
+                        uploadProgress: $uploadProgress,
+                        uploadPhase: $uploadPhase,
+                        uploadAction: { try await performTeamCloudUpload() })
+                    Toggle(isOn: $includePhotos) {
+                        Text(LocalizedStringKey("cloudshare_include_photos"))
+                    }
                 } else if isGenerating {
                     Section {
                         HStack(spacing: 12) {
@@ -665,7 +667,21 @@ private struct ExportTeamPackageView: View {
                 }
             }
             .task(id: team.id) {
-                await generateBase64()
+                transferID = GameShareChunkCodec.generateTransferID()
+                if shareMode == .text {
+                    await generateBase64()
+                } else {
+                    isGenerating = false
+                }
+            }
+            .onChange(of: shareMode) { _, newMode in
+                if newMode == .text && base64.isEmpty {
+                    isGenerating = true
+                    base64 = ""
+                    chunkLines = []
+                    transferID = GameShareChunkCodec.generateTransferID()
+                    Task { await generateBase64() }
+                }
             }
             .onChange(of: segmentCount) { _, _ in
                 rebuildChunkLines()
@@ -682,7 +698,24 @@ private struct ExportTeamPackageView: View {
         chunkLines = []
         transferID = GameShareChunkCodec.generateTransferID()
         await Task.yield()
-        base64 = store.exportTeamBase64(team) ?? ""
+
+        let allPlayers = team.playerIDs.compactMap { store.player(for: $0) }
+        let teamCopy = team
+
+        let result = try? await Task.detached(priority: .background) {
+            let exportedPlayers = teamCopy.playerIDs.map { pid in
+                if let player = allPlayers.first(where: { $0.id == pid }) {
+                    var ep = ExportPlayer(player: player)
+                    ep.photoData = nil
+                    return ep
+                }
+                return ExportPlayer(id: pid, name: NSLocalizedString("player_unknown_default", comment: "Unknown player"))
+            }
+            let package = ExportedTeamPackage(team: ExportTeam(team: teamCopy), players: exportedPlayers)
+            return TransferCodec.encode(package)
+        }.value
+
+        base64 = result ?? ""
         rebuildChunkLines()
         isGenerating = false
     }
@@ -704,6 +737,62 @@ private struct ExportTeamPackageView: View {
             guard !Task.isCancelled else { return }
             copiedChunkIndex = nil
         }
+    }
+
+    private func performTeamCloudUpload() async throws -> String {
+        uploadProgress = 0
+        uploadPhase = NSLocalizedString("cloudshare_uploading_metadata", comment: "")
+
+        let teamPlayers = team.playerIDs.compactMap { store.player(for: $0) }
+        let teamCopy = team
+
+        let metadata = try await Task.detached(priority: .background) {
+            let exportedPlayers = teamCopy.playerIDs.map { pid in
+                if let player = teamPlayers.first(where: { $0.id == pid }) {
+                    var ep = ExportPlayer(player: player)
+                    ep.photoData = nil
+                    return ep
+                }
+                return ExportPlayer(id: pid, name: NSLocalizedString("player_unknown_default", comment: "Unknown player"))
+            }
+            let bundle = CloudShareBundle(
+                players: exportedPlayers,
+                teams: [ExportTeam(team: teamCopy)],
+                games: []
+            )
+            return try JSONEncoder().encode(bundle)
+        }.value
+
+        let uuid = try await CloudShareManager.upload(data: metadata)
+
+        if includePhotos {
+            uploadPhase = NSLocalizedString("cloudshare_compressing_photos", comment: "")
+            let compressTask = Task.detached(priority: .background) {
+                teamPlayers.compactMap { player -> (UUID, Data)? in
+                    guard let compressed = Self.compressIfNeeded(player.photoData) else { return nil }
+                    return (player.id, compressed)
+                }
+            }
+            let photos = await compressTask.value
+            let total = photos.count
+            for (i, (pid, photoData)) in photos.enumerated() {
+                uploadPhase = String(format: NSLocalizedString("cloudshare_uploading_photos_format", comment: ""), i + 1, total)
+                uploadProgress = Double(i) / Double(max(total, 1))
+                try await CloudShareManager.uploadPhoto(uuid: uuid, playerID: pid, data: photoData)
+            }
+            uploadProgress = 1
+        }
+
+        return uuid
+    }
+
+    private static func compressIfNeeded(_ data: Data?) -> Data? {
+        guard let data = data, !data.isEmpty else { return nil }
+        let maxSize = 200 * 1024
+        guard data.count > maxSize else { return data }
+        guard let image = UIImage(data: data) else { return data }
+        guard let compressed = image.jpegData(compressionQuality: 0.6) else { return data }
+        return compressed.count < data.count ? compressed : data
     }
 }
 
@@ -1088,6 +1177,15 @@ private struct ImportRosterPackageView: View {
             lastAutoFilledClipboardChangeCount = currentChangeCount
             clipboardAutoFillMessage = localized("import_clipboard_player_autofilled_success")
             isShowingClipboardAutoFillAlert = true
+            return
+        }
+
+        if UUID(uuidString: clipboardText) != nil {
+            cloudImportUUID = clipboardText
+            lastAutoFilledClipboardChangeCount = currentChangeCount
+            clipboardAutoFillMessage = NSLocalizedString("cloudshare_clipboard_detected_uuid", comment: "")
+            isShowingClipboardAutoFillAlert = true
+            return
         }
     }
 
@@ -1320,6 +1418,9 @@ private struct ExportPlayerPackageView: View {
     @State private var isGenerating = true
     @State private var copiedChunkIndex: Int?
     @State private var copiedChunkFeedbackTask: Task<Void, Never>?
+    @State private var uploadProgress: Double = 0
+    @State private var uploadPhase: String = ""
+    @AppStorage("cloudshare_player_include_photos") private var includePhotos = true
 
     var body: some View {
         NavigationStack {
@@ -1337,13 +1438,12 @@ private struct ExportPlayerPackageView: View {
                 if shareMode == .cloud {
                     CloudShareSection(
                         persistenceKey: "cloud_share_player_\(player.id.uuidString)",
-                        uploadAction: {
-                            let base64 = store.exportPlayerBase64(player) ?? ""
-                            guard let data = base64.data(using: .utf8), !data.isEmpty else {
-                                throw CloudShareError.emptyData
-                            }
-                            return try await CloudShareManager.upload(data: data)
-                        })
+                        uploadProgress: $uploadProgress,
+                        uploadPhase: $uploadPhase,
+                        uploadAction: { try await performPlayerCloudUpload() })
+                    Toggle(isOn: $includePhotos) {
+                        Text(LocalizedStringKey("cloudshare_include_photos"))
+                    }
                 } else if isGenerating {
                     Section {
                         HStack(spacing: 12) {
@@ -1437,7 +1537,21 @@ private struct ExportPlayerPackageView: View {
                 }
             }
             .task(id: player.id) {
-                await generateBase64()
+                transferID = GameShareChunkCodec.generateTransferID()
+                if shareMode == .text {
+                    await generateBase64()
+                } else {
+                    isGenerating = false
+                }
+            }
+            .onChange(of: shareMode) { _, newMode in
+                if newMode == .text && base64.isEmpty {
+                    isGenerating = true
+                    base64 = ""
+                    chunkLines = []
+                    transferID = GameShareChunkCodec.generateTransferID()
+                    Task { await generateBase64() }
+                }
             }
             .onChange(of: segmentCount) { _, _ in
                 rebuildChunkLines()
@@ -1454,7 +1568,17 @@ private struct ExportPlayerPackageView: View {
         chunkLines = []
         transferID = GameShareChunkCodec.generateTransferID()
         await Task.yield()
-        base64 = store.exportPlayerBase64(player) ?? ""
+
+        let playerCopy = player
+
+        let result = try? await Task.detached(priority: .background) {
+            var ep = ExportPlayer(player: playerCopy)
+            ep.photoData = nil
+            let package = ExportedPlayerPackage(player: ep)
+            return TransferCodec.encode(package)
+        }.value
+
+        base64 = result ?? ""
         rebuildChunkLines()
         isGenerating = false
     }
@@ -1476,6 +1600,49 @@ private struct ExportPlayerPackageView: View {
             guard !Task.isCancelled else { return }
             copiedChunkIndex = nil
         }
+    }
+
+    private func performPlayerCloudUpload() async throws -> String {
+        uploadProgress = 0
+        uploadPhase = NSLocalizedString("cloudshare_uploading_metadata", comment: "")
+
+        let playerCopy = player
+
+        let metadata = try await Task.detached(priority: .background) {
+            var ep = ExportPlayer(player: playerCopy)
+            ep.photoData = nil
+            let bundle = CloudShareBundle(
+                players: [ep],
+                teams: [],
+                games: []
+            )
+            return try JSONEncoder().encode(bundle)
+        }.value
+
+        let uuid = try await CloudShareManager.upload(data: metadata)
+
+        if includePhotos, let photoData = playerCopy.photoData, !photoData.isEmpty {
+            uploadPhase = NSLocalizedString("cloudshare_compressing_photos", comment: "")
+            let compressed = await Task.detached(priority: .background) {
+                Self.compressIfNeeded(photoData)
+            }.value
+            if let compressed = compressed {
+                uploadPhase = String(format: NSLocalizedString("cloudshare_uploading_photos_format", comment: ""), 1, 1)
+                uploadProgress = 0.5
+                try await CloudShareManager.uploadPhoto(uuid: uuid, playerID: playerCopy.id, data: compressed)
+                uploadProgress = 1
+            }
+        }
+
+        return uuid
+    }
+
+    private static func compressIfNeeded(_ data: Data) -> Data? {
+        let maxSize = 200 * 1024
+        guard data.count > maxSize else { return data }
+        guard let image = UIImage(data: data) else { return data }
+        guard let compressed = image.jpegData(compressionQuality: 0.6) else { return data }
+        return compressed.count < data.count ? compressed : data
     }
 }
 

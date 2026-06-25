@@ -645,6 +645,7 @@
 "button_overwrite_import" = "Перезаписать";
 "button_continue_import" = "Продолжить";
 "button_parse_game_record" = "Разобрать код игры";
+"button_import_game" = "Импортировать игру";
 "button_ai_generate_summary" = "Создать обзор";
 "button_ai_generating" = "Генерация…";
 "nav_game_history" = "История игр";
@@ -1021,6 +1022,8 @@ Format:
 "cloudshare_uploading" = "Загрузка...";
 "cloudshare_uploading_metadata" = "Загрузка метаданных...";
 "cloudshare_uploading_photos_format" = "Фото %d из %d";
+"cloudshare_upload_new_button" = "Загрузить новый";
+"cloudshare_include_photos" = "Включить фото";
 "cloudshare_compressing_photos" = "Сжатие фото...";
 "cloudshare_downloading_metadata" = "Скачивание метаданных...";
 "cloudshare_downloading_photos_format" = "Фото %d из %d";
@@ -1038,6 +1041,7 @@ Format:
 "cloudshare_error_invalid_response" = "Неверный ответ сервера";
 "cloudshare_error_network" = "Сетевое соединение не удалось";
 "cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
+"cloudshare_clipboard_detected_uuid" = "UUID облачного обмена обнаружен в буфере обмена";
 
 "button_retry" = "Retry";
 

@@ -252,12 +252,27 @@ struct ImportGameView: View {
         cloudImportError = nil
         do {
             let data = try await CloudShareManager.retrieve(uuid: cloudImportUUID.trimmingCharacters(in: .whitespacesAndNewlines))
-            guard let base64 = String(data: data, encoding: .utf8) else {
-                throw CloudShareError.invalidResponse
+
+            if let bundle = try? JSONDecoder().decode(CloudShareBundle.self, from: data),
+               let gameV2 = bundle.games.first {
+                let legacy = gameV2.legacyPackage
+                for exportPlayer in bundle.players {
+                    let pkg = ExportedPlayerPackage(player: exportPlayer)
+                    store.importPlayerPackage(pkg)
+                }
+                for exportTeam in bundle.teams {
+                    let pkg = ExportedTeamPackage(team: exportTeam, players: bundle.players.filter { exportTeam.playerIDs.contains($0.id) })
+                    store.importTeamPackage(pkg)
+                }
+                applyDecodedPackage(legacy)
+            } else {
+                guard let base64 = String(data: data, encoding: .utf8) else {
+                    throw CloudShareError.invalidResponse
+                }
+                self.base64 = base64
+                self.isChunkedMode = false
+                await decode()
             }
-            self.base64 = base64
-            self.isChunkedMode = false
-            await decode()
         } catch {
             if let shareError = error as? CloudShareError, case .notFound = shareError {
                 cloudImportError = NSLocalizedString("cloudshare_error_not_found", comment: "")
@@ -359,6 +374,8 @@ struct ImportGameView: View {
         if UUID(uuidString: clipboardText) != nil {
             cloudImportUUID = clipboardText
             lastAutoFilledClipboardChangeCount = currentChangeCount
+            clipboardAutoFillMessage = NSLocalizedString("cloudshare_clipboard_detected_uuid", comment: "")
+            isShowingClipboardAutoFillAlert = true
             return
         }
 

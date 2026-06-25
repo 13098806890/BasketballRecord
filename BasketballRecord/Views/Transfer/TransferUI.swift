@@ -68,6 +68,8 @@ enum ExportShareMode: String, CaseIterable {
 struct CloudShareSection: View {
     let uploadAction: () async throws -> String
     let persistenceKey: String?
+    let uploadProgress: Binding<Double>?
+    let uploadPhase: Binding<String>?
     @State private var cloudShareUUID: String?
     @State private var remainingSeconds: Int = 0
     @State private var isVerifying = true
@@ -75,8 +77,10 @@ struct CloudShareSection: View {
     @State private var cloudError: String?
     @State private var cloudCopied = false
 
-    init(persistenceKey: String? = nil, uploadAction: @escaping () async throws -> String) {
+    init(persistenceKey: String? = nil, uploadProgress: Binding<Double>? = nil, uploadPhase: Binding<String>? = nil, uploadAction: @escaping () async throws -> String) {
         self.persistenceKey = persistenceKey
+        self.uploadProgress = uploadProgress
+        self.uploadPhase = uploadPhase
         self.uploadAction = uploadAction
     }
 
@@ -133,6 +137,22 @@ struct CloudShareSection: View {
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(AppSoftProminentButtonStyle())
+
+                        Button {
+                            cloudShareUUID = nil
+                            remainingSeconds = 0
+                            isVerifying = false
+                            if let key = persistenceKey {
+                                UserDefaults.standard.removeObject(forKey: key)
+                            }
+                        } label: {
+                            Label(
+                                NSLocalizedString("cloudshare_upload_new_button", comment: ""),
+                                systemImage: "arrow.triangle.2.circlepath"
+                            )
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
                     }
                     .padding(.vertical, 8)
                 } header: {
@@ -168,12 +188,22 @@ struct CloudShareSection: View {
                 Section {
                     VStack(spacing: 16) {
                         if isCloudUploading {
-                            ProgressView()
-                                .scaleEffect(1.5)
+                            if let uploadProgress, let uploadPhase, uploadProgress.wrappedValue > 0 || !uploadPhase.wrappedValue.isEmpty {
+                                VStack(spacing: 8) {
+                                    ProgressView(value: uploadProgress.wrappedValue)
+                                        .padding(.horizontal)
+                                    Text(uploadPhase.wrappedValue)
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                }
+                            } else {
+                                ProgressView()
+                                    .scaleEffect(1.5)
 
-                            Text(LocalizedStringKey("cloudshare_uploading"))
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
+                                Text(LocalizedStringKey("cloudshare_uploading"))
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
                         } else {
                             Image(systemName: "icloud.and.arrow.up.fill")
                                 .font(.system(size: 40))

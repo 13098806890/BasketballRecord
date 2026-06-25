@@ -516,6 +516,7 @@
 "button_overwrite_import" = "覆蓋匯入";
 "button_continue_import" = "繼續匯入";
 "button_parse_game_record" = "解析比賽記錄";
+"button_import_game" = "導入比賽";
 "button_ai_generate_summary" = "生成比賽總結";
 "button_ai_generating" = "生成中…";
 "nav_game_history" = "比賽記錄";
@@ -1031,6 +1032,8 @@ Format:
 "cloudshare_uploading" = "正在上傳...";
 "cloudshare_uploading_metadata" = "正在上傳元數據...";
 "cloudshare_uploading_photos_format" = "照片 %d/%d";
+"cloudshare_upload_new_button" = "重新上傳";
+"cloudshare_include_photos" = "包含照片";
 "cloudshare_compressing_photos" = "正在壓縮照片...";
 "cloudshare_downloading_metadata" = "正在下載元數據...";
 "cloudshare_downloading_photos_format" = "照片 %d/%d";
@@ -1048,6 +1051,7 @@ Format:
 "cloudshare_error_invalid_response" = "伺服器響應無效";
 "cloudshare_error_network" = "網絡連接失敗";
 "cloudshare_error_too_large" = "數據過大（%d KB），請減少選擇項或關閉匯出照片";
+"cloudshare_clipboard_detected_uuid" = "在剪貼簿中偵測到雲端分享 UUID";
 
 "button_retry" = "重試";
 

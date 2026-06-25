@@ -515,6 +515,7 @@
 "button_overwrite_import" = "Overwrite";
 "button_continue_import" = "Continue";
 "button_parse_game_record" = "Parse Game Record";
+"button_import_game" = "Import Game";
 "button_ai_generate_summary" = "Generate Summary";
 "button_ai_generating" = "Generating…";
 "nav_game_history" = "Game History";
@@ -1049,6 +1050,8 @@ Format:
 "cloudshare_uploading" = "업로드 중...";
 "cloudshare_uploading_metadata" = "메타데이터 업로드 중...";
 "cloudshare_uploading_photos_format" = "사진 %d/%d";
+"cloudshare_upload_new_button" = "새로 업로드";
+"cloudshare_include_photos" = "사진 포함";
 "cloudshare_compressing_photos" = "사진 압축 중...";
 "cloudshare_downloading_metadata" = "메타데이터 다운로드 중...";
 "cloudshare_downloading_photos_format" = "사진 %d/%d";
@@ -1066,6 +1069,7 @@ Format:
 "cloudshare_error_invalid_response" = "서버 응답이 잘못됨";
 "cloudshare_error_network" = "네트워크 연결 실패";
 "cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
+"cloudshare_clipboard_detected_uuid" = "클라우드 공유 UUID가 클립보드에서 감지되었습니다";
 
 "button_retry" = "Retry";
 
