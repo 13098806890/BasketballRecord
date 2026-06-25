@@ -1012,3 +1012,5 @@ Format:
 
 "label_time_error" = "Ora fuori intervallo";
 "message_time_out_of_range" = "L'ora deve essere tra l'inizio e la fine della partita";
+
+"label_deleted_events" = "Eventi eliminati";

@@ -1012,3 +1012,5 @@ Format:
 
 "label_time_error" = "Время вне диапазона";
 "message_time_out_of_range" = "Время должно быть между началом и концом игры";
+
+"label_deleted_events" = "Удаленные события";

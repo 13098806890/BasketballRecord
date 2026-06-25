@@ -1036,3 +1036,5 @@ Format:
 
 "label_time_error" = "Time Out of Range";
 "message_time_out_of_range" = "Time must be between game start and end";
+
+"label_deleted_events" = "Deleted Events";

@@ -1012,3 +1012,5 @@ Format:
 
 "label_time_error" = "Zeit außerhalb des Bereichs";
 "message_time_out_of_range" = "Die Zeit muss zwischen Spielbeginn und -ende liegen";
+
+"label_deleted_events" = "Gelöschte Ereignisse";

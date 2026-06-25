@@ -334,12 +334,28 @@ struct PlayerProfileView: View {
                 ScrollView {
                     LazyVStack(spacing: 4) {
                         ForEach(filteredPlayerLogs) { log in
-                            Text(GameLogFormatter.lineText(for: log))
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(GameLogFormatter.isScoring(log) ? Color.blue : Color.primary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            let eid = log.entry.id
+                            let history = fixedGame?.snapshot.editHistory ?? []
+                            let isNew = history.contains(where: { $0.eventID == eid && $0.action == "add" })
+                            let isEdited = history.contains(where: { $0.eventID == eid && $0.action == "modify" })
+                            let isDel = history.contains(where: { $0.eventID == eid && $0.action == "delete" })
+                            let isRest = history.contains(where: { $0.eventID == eid && $0.action == "restore" })
+                            let isDeleted = isDel && !isRest
+                            if isNew && isDeleted { }
+                            else {
+                                HStack(spacing: 6) {
+                                    if isNew && !isDeleted { Text("NEW").font(.caption2.weight(.bold)).foregroundStyle(.green) }
+                                    if isEdited { Text("EDITED").font(.caption2.weight(.bold)).foregroundStyle(.orange) }
+                                    if isDeleted { Text("DELETED").font(.caption2.weight(.bold)).foregroundStyle(.red) }
+                                    Text(GameLogFormatter.lineText(for: log))
+                                        .font(.caption.monospacedDigit())
+                                        .foregroundStyle(isDeleted ? Color.secondary : (GameLogFormatter.isScoring(log) ? Color.blue : Color.primary))
+                                        .strikethrough(isDeleted)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
                                 .padding(.vertical, 6)
                                 .padding(.horizontal, 12)
+                            }
                         }
                     }
                 }
@@ -592,8 +608,9 @@ struct PlayerProfileView: View {
             return
         }
 
-        let analyzer = SavedGameAnalyzer(game: fixedGame) { name in
-            if let localID = fixedGame.playerNamesByID.first(where: { $0.value == name })?.key {
+        let currentGame = store.savedGames.first(where: { $0.id == fixedGame.id }) ?? fixedGame
+        let analyzer = SavedGameAnalyzer(game: currentGame) { name in
+            if let localID = currentGame.playerNamesByID.first(where: { $0.value == name })?.key {
                 return localID
             }
             return store.players.first(where: { $0.name == name })?.id

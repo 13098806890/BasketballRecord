@@ -1024,3 +1024,5 @@ Format:
 
 "label_time_error" = "时间超出范围";
 "message_time_out_of_range" = "时间必须在比赛开始和结束之间";
+
+"label_deleted_events" = "已删除事件";
