@@ -388,24 +388,13 @@ struct CloudShareUploadView: View {
             let playerIDs = selectedPlayerIDs
             let teamIDs = selectedTeamIDs
             let gameIDs = selectedGameIDs
-            let photoEnabled = includePhotos
 
             let encoded = try await Task.detached(priority: .background) { [self] in
-                let players: [ExportPlayer]
-                if photoEnabled {
-                    players = self.sortedPlayers.filter { playerIDs.contains($0.id) }.map { player in
-                        var export = ExportPlayer(player: player)
-                        export.photoData = self.compressIfNeeded(export.photoData)
-                        return export
-                    }
-                } else {
-                    players = self.sortedPlayers.filter { playerIDs.contains($0.id) }.map(ExportPlayer.init)
-                }
+                let players = self.sortedPlayers.filter { playerIDs.contains($0.id) }.map(ExportPlayer.init)
                 let teams = self.sortedTeams.filter { teamIDs.contains($0.id) }.map { ExportTeam(team: $0) }
                 let games = self.sortedSavedGames.filter { gameIDs.contains($0.id) }.map { game in
-                    let gamePlayers = self.exportPlayers(for: game, includePhotos: photoEnabled)
-                    return ExportedGamePackageV2(legacy: ExportedGamePackage(
-                        players: gamePlayers,
+                    ExportedGamePackageV2(legacy: ExportedGamePackage(
+                        players: self.exportPlayers(for: game),
                         teams: self.exportTeams(for: game),
                         game: ExportGameRecord(savedGame: game)
                     ))
@@ -420,6 +409,22 @@ struct CloudShareUploadView: View {
                 )
             }
             let uuid = try await CloudShareManager.upload(data: encoded)
+
+            if includePhotos {
+                let compressTask = Task.detached(priority: .background) { [self] in
+                    let photos: [(UUID, Data)] = self.sortedPlayers
+                        .filter { playerIDs.contains($0.id) }
+                        .compactMap { player in
+                            guard let compressed = self.compressIfNeeded(player.photoData) else { return nil }
+                            return (player.id, compressed)
+                        }
+                    return photos
+                }
+                let photos = try await compressTask.value
+                for (pid, photoData) in photos {
+                    try await CloudShareManager.uploadPhoto(uuid: uuid, playerID: pid, data: photoData)
+                }
+            }
 
             let record = CloudShareRecord(
                 uuid: uuid,
@@ -442,17 +447,11 @@ struct CloudShareUploadView: View {
         }
     }
 
-    private func exportPlayers(for game: SavedGame, includePhotos: Bool = false) -> [ExportPlayer] {
+    private func exportPlayers(for game: SavedGame) -> [ExportPlayer] {
         let allIDs = Set(game.homePlayerIDs + game.awayPlayerIDs + game.snapshot.statsByPlayerID.keys)
         return allIDs.compactMap { id in
             if let player = store.players.first(where: { $0.id == id }) {
-                var export = ExportPlayer(player: player)
-                if includePhotos {
-                    export.photoData = compressIfNeeded(export.photoData)
-                } else {
-                    export.photoData = nil
-                }
-                return export
+                return ExportPlayer(player: player)
             }
             return ExportPlayer(id: id, name: game.playerNamesByID[id] ?? "Unknown")
         }
