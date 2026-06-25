@@ -1050,3 +1050,5 @@ Format:
 "cloudshare_error_invalid_response" = "服务器响应无效";
 "cloudshare_error_network" = "网络连接失败";
 "cloudshare_error_too_large" = "数据过大（%d KB），请减少选择项或关闭导出照片";
+
+"button_retry" = "重试";

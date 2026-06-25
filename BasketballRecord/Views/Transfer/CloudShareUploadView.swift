@@ -385,27 +385,35 @@ struct CloudShareUploadView: View {
         isUploading = true
         cloudError = nil
         do {
-            let players: [ExportPlayer]
-            if includePhotos {
-                players = sortedPlayers.filter { selectedPlayerIDs.contains($0.id) }.map { player in
-                    var export = ExportPlayer(player: player)
-                    export.photoData = compressIfNeeded(export.photoData)
-                    return export
+            let playerIDs = selectedPlayerIDs
+            let teamIDs = selectedTeamIDs
+            let gameIDs = selectedGameIDs
+            let photoEnabled = includePhotos
+
+            let encoded = try await Task.detached(priority: .background) { [self] in
+                let players: [ExportPlayer]
+                if photoEnabled {
+                    players = self.sortedPlayers.filter { playerIDs.contains($0.id) }.map { player in
+                        var export = ExportPlayer(player: player)
+                        export.photoData = self.compressIfNeeded(export.photoData)
+                        return export
+                    }
+                } else {
+                    players = self.sortedPlayers.filter { playerIDs.contains($0.id) }.map(ExportPlayer.init)
                 }
-            } else {
-                players = sortedPlayers.filter { selectedPlayerIDs.contains($0.id) }.map(ExportPlayer.init)
-            }
-            let teams = sortedTeams.filter { selectedTeamIDs.contains($0.id) }.map { ExportTeam(team: $0) }
-            let games = sortedSavedGames.filter { selectedGameIDs.contains($0.id) }.map { game in
-                let gamePlayers = exportPlayers(for: game, includePhotos: includePhotos)
-                return ExportedGamePackageV2(legacy: ExportedGamePackage(
-                    players: gamePlayers,
-                    teams: exportTeams(for: game),
-                    game: ExportGameRecord(savedGame: game)
-                ))
-            }
-            let bundle = CloudShareBundle(players: players, teams: teams, games: games)
-            let encoded = try JSONEncoder().encode(bundle)
+                let teams = self.sortedTeams.filter { teamIDs.contains($0.id) }.map { ExportTeam(team: $0) }
+                let games = self.sortedSavedGames.filter { gameIDs.contains($0.id) }.map { game in
+                    let gamePlayers = self.exportPlayers(for: game, includePhotos: photoEnabled)
+                    return ExportedGamePackageV2(legacy: ExportedGamePackage(
+                        players: gamePlayers,
+                        teams: self.exportTeams(for: game),
+                        game: ExportGameRecord(savedGame: game)
+                    ))
+                }
+                let bundle = CloudShareBundle(players: players, teams: teams, games: games)
+                return try JSONEncoder().encode(bundle)
+            }.value
+
             guard encoded.count <= maxUploadBodySize else {
                 throw CloudShareError.serverError(
                     String(format: NSLocalizedString("cloudshare_error_too_large", comment: ""), encoded.count / 1024)

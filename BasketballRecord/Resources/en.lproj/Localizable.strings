@@ -1062,3 +1062,5 @@ Format:
 "cloudshare_error_invalid_response" = "Invalid server response";
 "cloudshare_error_network" = "Network connection failed";
 "cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
+
+"button_retry" = "Retry";
