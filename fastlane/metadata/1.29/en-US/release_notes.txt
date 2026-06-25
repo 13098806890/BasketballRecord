@@ -1,4 +1,7 @@
 • Cloud Share — upload/download progress bar with photo-by-photo status
+• Cloud Share — split metadata and photo upload to avoid size limits, with re-upload button
+• Cloud Share Import — clipboard UUID auto-detection with alert
 • Voice Tutorial — improved task ordering, success rate now correctly counts all attempts
 • Tutorial players no longer appear in player management or cloud share picker
+• Game Detail — smoother navigation with async loading indicator
 • Bug fixes and performance improvements

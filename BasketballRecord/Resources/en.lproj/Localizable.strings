@@ -583,6 +583,7 @@
 "button_overwrite_import" = "Overwrite";
 "button_continue_import" = "Continue";
 "button_parse_game_record" = "Parse Game Record";
+"button_import_game" = "Import Game";
 "button_ai_generate_summary" = "Generate Summary";
 "button_ai_generating" = "Generating…";
 "nav_game_history" = "Game History";
@@ -1050,6 +1051,8 @@ Format:
 "cloudshare_uploading" = "Uploading...";
 "cloudshare_uploading_metadata" = "Uploading metadata...";
 "cloudshare_uploading_photos_format" = "Photo %d of %d";
+"cloudshare_upload_new_button" = "Upload New";
+"cloudshare_include_photos" = "Include Photos";
 "cloudshare_compressing_photos" = "Compressing photos...";
 "cloudshare_downloading_metadata" = "Downloading metadata...";
 "cloudshare_downloading_photos_format" = "Photo %d of %d";
@@ -1067,5 +1070,6 @@ Format:
 "cloudshare_error_invalid_response" = "Invalid server response";
 "cloudshare_error_network" = "Network connection failed";
 "cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
+"cloudshare_clipboard_detected_uuid" = "Cloud Share UUID detected in clipboard";
 
 "button_retry" = "Retry";

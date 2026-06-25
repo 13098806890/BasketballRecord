@@ -1,4 +1,7 @@
 • Cloud-Freigabe — Fortschrittsbalken beim Hoch-/Herunterladen mit Foto-für-Foto-Status
+• Cloud-Freigabe — Getrenntes Hochladen von Metadaten und Fotos zur Vermeidung von Größenbeschränkungen, mit erneutem Hochladen
+• Cloud-Freigabe Import — Automatische UUID-Erkennung aus Zwischenablage mit Hinweis
 • Sprach-Tutorial — verbesserte Aufgabenreihenfolge, Erfolgsquote zählt jetzt alle Versuche korrekt
 • Tutorial-Spieler erscheinen nicht mehr in der Spielerverwaltung oder Cloud-Auswahl
+• Spiel-Details — flüssigere Navigation mit asynchronem Ladeindikator
 • Fehlerbehebungen und Leistungsverbesserungen

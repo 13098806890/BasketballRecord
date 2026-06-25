@@ -20,7 +20,13 @@
 - **球员详情页事件流同步**：从比赛记录进入球员详情时，事件流标记（NEW/EDITED/DELETED）与编辑模式保持一致。
 - **云分享 DeviceCheck 验证移除**：暂时跳过 Apple DeviceCheck 验证以恢复上传功能，后续版本再重新接入。
 - **云分享支持球员照片**：上传时可选择是否包含球员照片，大于 500KB 自动压缩。
-- **云分享导入自动粘贴 UUID**：打开导入页面时若剪贴板中有 UUID，自动填入导入框。
+- **云分享上传拆分**：球队、球员、比赛上传将元数据和照片拆分为独立请求，避免 "requesttoolarge" 错误；新增上传进度条（逐张照片状态）。
+- **云分享 Upload New 按钮**：已上传的分享页面新增"重新上传"按钮，可清空旧分享并重新上传。
+- **云分享包含照片开关**：球队/球员云导出可选是否包含照片。
+- **云分享导入修复**：比赛导入页支持解析 `CloudShareBundle` JSON 格式；剪贴板 UUID 自动填入并弹窗提示。
+- **比赛详情页加载优化**：`SavedGameAnalyzer.analyze()` 改为 `.task` 异步计算，导航不再卡顿，加载期间显示指示器。
+- **云分享 Upload New 清空持久化**：重新上传时同时清除 UserDefaults 旧 UUID，防止 .task 重跑误恢复。
+- **国际化新增**：`cloudshare_clipboard_detected_uuid`、`cloudshare_include_photos`、`cloudshare_upload_new_button` 等 key 补齐 10 种语言。
 
 ## 1.28 (2026-06-23)
 

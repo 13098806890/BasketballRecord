@@ -36,11 +36,6 @@ struct SavedGameDetailView: View {
 
         _aiSummary = State(initialValue: game.aiSummary ?? "")
         _selectedGroupID = State(initialValue: game.groupIDs.first)
-
-        let initialAnalyzer = SavedGameAnalyzer(game: game) { name in
-            game.playerNamesByID.first(where: { $0.value == name })?.key
-        }
-        _periodAnalysis = State(initialValue: initialAnalyzer.analyze())
     }
 
     var body: some View {
@@ -214,6 +209,21 @@ struct SavedGameDetailView: View {
         }
 
         (isEditing ? AnyView(editEventListView.id(editRefreshID)) : AnyView(l))
+            .overlay {
+                if periodAnalysis.logs.isEmpty {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                }
+            }
+            .task {
+                guard periodAnalysis.logs.isEmpty else { return }
+                let analyzer = SavedGameAnalyzer(game: game) { name in
+                    game.playerNamesByID.first(where: { $0.value == name })?.key
+                }
+                periodAnalysis = await Task.detached(priority: .userInitiated) {
+                    analyzer.analyze()
+                }.value
+            }
             .onChange(of: store.cloudEnabledGameIDs) { _, _ in
             // UI refreshes automatically via @Published
         }
@@ -1903,6 +1913,8 @@ private struct ExportGameView: View {
     @State private var isGenerating = true
     @State private var copiedChunkIndex: Int?
     @State private var copiedChunkFeedbackTask: Task<Void, Never>?
+    @State private var uploadProgress: Double = 0
+    @State private var uploadPhase: String = ""
 
     var body: some View {
         NavigationStack {
@@ -1928,13 +1940,9 @@ private struct ExportGameView: View {
                 } else {
                     CloudShareSection(
                         persistenceKey: "cloud_share_game_\(game.id.uuidString)",
-                        uploadAction: {
-                            let base64 = store.exportGameBase64(game) ?? ""
-                            guard let data = base64.data(using: .utf8), !data.isEmpty else {
-                                throw CloudShareError.emptyData
-                            }
-                            return try await CloudShareManager.upload(data: data)
-                        })
+                        uploadProgress: $uploadProgress,
+                        uploadPhase: $uploadPhase,
+                        uploadAction: { try await performGameCloudUpload() })
                 }
             }
             .navigationTitle(LocalizedStringKey("nav_export_game"))
@@ -1945,7 +1953,21 @@ private struct ExportGameView: View {
                 }
             }
             .task(id: game.id) {
-                await generateBase64()
+                transferID = GameShareChunkCodec.generateTransferID()
+                if shareMode == .text {
+                    await generateBase64()
+                } else {
+                    isGenerating = false
+                }
+            }
+            .onChange(of: shareMode) { _, newMode in
+                if newMode == .text && base64.isEmpty {
+                    isGenerating = true
+                    base64 = ""
+                    chunkLines = []
+                    transferID = GameShareChunkCodec.generateTransferID()
+                    Task { await generateBase64() }
+                }
             }
             .onChange(of: segmentCount) { _, _ in
                 rebuildChunkLines()
@@ -2040,7 +2062,29 @@ private struct ExportGameView: View {
         chunkLines = []
         transferID = GameShareChunkCodec.generateTransferID()
         await Task.yield()
-        base64 = store.exportGameBase64(game) ?? ""
+
+        let playerIDs = Array(Set(game.homePlayerIDs + game.awayPlayerIDs + Array(game.snapshot.statsByPlayerID.keys)))
+        let allPlayers = playerIDs.compactMap { store.player(for: $0) }
+        let gameCopy = game
+
+        let result = try? await Task.detached(priority: .background) {
+            let exportedPlayers: [ExportPlayer] = playerIDs.map { pid in
+                if let player = allPlayers.first(where: { $0.id == pid }) {
+                    var ep = ExportPlayer(player: player)
+                    ep.photoData = nil
+                    return ep
+                }
+                return ExportPlayer(id: pid, name: gameCopy.playerNamesByID[pid] ?? NSLocalizedString("player_unknown_default", comment: ""))
+            }
+            let exportedTeams = [
+                ExportTeam(id: gameCopy.snapshot.homeTeamID ?? UUID(), name: gameCopy.homeTeamName, playerIDs: gameCopy.homePlayerIDs),
+                ExportTeam(id: gameCopy.snapshot.awayTeamID ?? UUID(), name: gameCopy.awayTeamName, playerIDs: gameCopy.awayPlayerIDs)
+            ]
+            let legacyPackage = ExportedGamePackage(players: exportedPlayers, teams: exportedTeams, game: ExportGameRecord(savedGame: gameCopy))
+            return TransferCodec.encode(ExportedGamePackageV2(legacy: legacyPackage))
+        }.value
+
+        base64 = result ?? ""
         rebuildChunkLines()
         isGenerating = false
     }
@@ -2061,6 +2105,39 @@ private struct ExportGameView: View {
             guard !Task.isCancelled else { return }
             copiedChunkIndex = nil
         }
+    }
+
+    private func performGameCloudUpload() async throws -> String {
+        uploadProgress = 0
+        uploadPhase = NSLocalizedString("cloudshare_uploading_metadata", comment: "")
+
+        let playerIDs = Array(Set(game.homePlayerIDs + game.awayPlayerIDs + Array(game.snapshot.statsByPlayerID.keys)))
+        let allPlayers = playerIDs.compactMap { store.player(for: $0) }
+        let gameCopy = game
+
+        let metadata = try await Task.detached(priority: .background) {
+            let exportedPlayers: [ExportPlayer] = playerIDs.map { pid in
+                if let player = allPlayers.first(where: { $0.id == pid }) {
+                    var ep = ExportPlayer(player: player)
+                    ep.photoData = nil
+                    return ep
+                }
+                return ExportPlayer(id: pid, name: gameCopy.playerNamesByID[pid] ?? NSLocalizedString("player_unknown_default", comment: ""))
+            }
+
+            let exportedTeams = [
+                ExportTeam(id: gameCopy.snapshot.homeTeamID ?? UUID(), name: gameCopy.homeTeamName, playerIDs: gameCopy.homePlayerIDs),
+                ExportTeam(id: gameCopy.snapshot.awayTeamID ?? UUID(), name: gameCopy.awayTeamName, playerIDs: gameCopy.awayPlayerIDs)
+            ]
+
+            let legacyPackage = ExportedGamePackage(players: exportedPlayers, teams: exportedTeams, game: ExportGameRecord(savedGame: gameCopy))
+            let bundle = CloudShareBundle(players: exportedPlayers, teams: exportedTeams, games: [ExportedGamePackageV2(legacy: legacyPackage)])
+            return try JSONEncoder().encode(bundle)
+        }.value
+
+        let uuid = try await CloudShareManager.upload(data: metadata)
+        uploadProgress = 1
+        return uuid
     }
 }
 

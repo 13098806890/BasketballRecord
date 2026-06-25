@@ -522,6 +522,7 @@
 "button_overwrite_import" = "上書き";
 "button_continue_import" = "続行";
 "button_parse_game_record" = "試合記録を解析";
+"button_import_game" = "試合をインポート";
 "button_ai_generate_summary" = "サマリーを生成";
 "button_ai_generating" = "生成中…";
 "nav_game_history" = "試合履歴";
@@ -1032,6 +1033,8 @@ Format:
 "cloudshare_uploading" = "アップロード中...";
 "cloudshare_uploading_metadata" = "メタデータをアップロード中...";
 "cloudshare_uploading_photos_format" = "写真 %d/%d";
+"cloudshare_upload_new_button" = "再アップロード";
+"cloudshare_include_photos" = "写真を含める";
 "cloudshare_compressing_photos" = "写真を圧縮中...";
 "cloudshare_downloading_metadata" = "メタデータをダウンロード中...";
 "cloudshare_downloading_photos_format" = "写真 %d/%d";
@@ -1049,6 +1052,7 @@ Format:
 "cloudshare_error_invalid_response" = "サーバー応答が無効です";
 "cloudshare_error_network" = "ネットワーク接続に失敗しました";
 "cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
+"cloudshare_clipboard_detected_uuid" = "クリップボードにクラウド共有UUIDを検出しました";
 
 "button_retry" = "Retry";
 
