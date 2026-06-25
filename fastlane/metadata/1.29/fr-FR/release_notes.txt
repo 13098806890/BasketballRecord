@@ -1,0 +1,3 @@
+• Édition d'événements (Pro) — voir, ajouter et modifier les événements du match avec recalcul en temps réel
+• Partage cloud — téléchargez joueurs, équipes et matchs dans le cloud et partagez via UUID
+• Corrections de bugs et améliorations de performances

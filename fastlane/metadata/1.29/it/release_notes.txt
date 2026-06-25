@@ -1,0 +1,3 @@
+• Modifica eventi (Pro) — visualizza, aggiungi e modifica eventi della partita con ricalcolo in tempo reale
+• Condivisione cloud — carica giocatori, squadre e partite nel cloud e condividi tramite UUID
+• Correzione bug e miglioramenti delle prestazioni

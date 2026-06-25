@@ -1,0 +1,3 @@
+• Ereignisbearbeitung (Pro) — Spielereignisse anzeigen, hinzufügen und bearbeiten mit automatischer Neuberechnung
+• Cloud-Freigabe — Spieler, Teams und Spiele in die Cloud hochladen und per UUID teilen
+• Fehlerbehebungen und Leistungsverbesserungen

@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 private let recordsKey = "cloud_share_upload_records"
-private let maxPhotoSize = 500 * 1024
+private let maxPhotoSize = 50 * 1024
 
 struct CloudShareUploadView: View {
     @EnvironmentObject private var store: AppStore
@@ -522,10 +522,10 @@ struct CloudShareUploadView: View {
         guard let data = data, !data.isEmpty else { return nil }
         guard data.count > maxPhotoSize else { return data }
         guard let image = UIImage(data: data) else { return data }
-        var quality: CGFloat = 0.8
+        var quality: CGFloat = 0.5
         let step: CGFloat = 0.1
         var compressed = image.jpegData(compressionQuality: quality)
-        while (compressed?.count ?? 0) > maxPhotoSize && quality > 0.2 {
+        while (compressed?.count ?? 0) > maxPhotoSize && quality > 0.1 {
             quality -= step
             compressed = image.jpegData(compressionQuality: quality)
         }
