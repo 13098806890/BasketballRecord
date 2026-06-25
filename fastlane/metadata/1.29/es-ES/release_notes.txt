@@ -1,0 +1,3 @@
+• Edición de eventos (Pro) — ver, añadir y editar eventos del partido con recálculo en tiempo real
+• Compartir en la nube — sube jugadores, equipos y partidos a la nube y compártelos mediante UUID
+• Corrección de errores y mejoras de rendimiento

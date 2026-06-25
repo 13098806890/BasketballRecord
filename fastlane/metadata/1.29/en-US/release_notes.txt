@@ -1,0 +1,3 @@
+• Event Editing (Pro) — view, add, and edit game events with real-time stat recalculation
+• Cloud Share — upload players, teams, and games to the cloud and share via UUID
+• Bug fixes and performance improvements
