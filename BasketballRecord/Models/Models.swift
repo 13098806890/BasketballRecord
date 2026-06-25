@@ -83,6 +83,7 @@ struct ExportPlayer: Identifiable, Codable, Hashable {
     var height: String
     var weight: String
     var number: String
+    var photoData: Data?
 
     init(player: Player) {
         id = player.id
@@ -90,14 +91,16 @@ struct ExportPlayer: Identifiable, Codable, Hashable {
         height = player.height
         weight = player.weight
         number = player.number
+        photoData = player.photoData
     }
 
-    init(id: UUID, name: String, height: String = "", weight: String = "", number: String = "") {
+    init(id: UUID, name: String, height: String = "", weight: String = "", number: String = "", photoData: Data? = nil) {
         self.id = id
         self.name = name
         self.height = height
         self.weight = weight
         self.number = number
+        self.photoData = photoData
     }
 
     var playerWithoutPhoto: Player {
@@ -322,6 +325,7 @@ struct ExportPlayerV2: Codable, Hashable {
     var height: String
     var weight: String
     var number: String
+    var photoData: Data?
 
     enum CodingKeys: String, CodingKey {
         case id = "i"
@@ -329,6 +333,7 @@ struct ExportPlayerV2: Codable, Hashable {
         case height = "h"
         case weight = "w"
         case number = "o"
+        case photoData = "f"
     }
 
     init(legacy: ExportPlayer) {
@@ -337,10 +342,11 @@ struct ExportPlayerV2: Codable, Hashable {
         height = legacy.height
         weight = legacy.weight
         number = legacy.number
+        photoData = legacy.photoData
     }
 
     var legacy: ExportPlayer {
-        ExportPlayer(id: id, name: name, height: height, weight: weight, number: number)
+        ExportPlayer(id: id, name: name, height: height, weight: weight, number: number, photoData: photoData)
     }
 }
 
