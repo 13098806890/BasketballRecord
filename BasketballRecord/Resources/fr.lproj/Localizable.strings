@@ -1012,3 +1012,5 @@ Format:
 
 "label_time_error" = "Heure hors limite";
 "message_time_out_of_range" = "L'heure doit être entre le début et la fin du match";
+
+"label_deleted_events" = "Événements supprimés";

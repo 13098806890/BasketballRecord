@@ -1008,6 +1008,21 @@ enum PeriodEndCondition: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+struct GameLogEditRecord: Codable, Hashable, Identifiable {
+    var id = UUID()
+    var timestamp: Date
+    var action: String  // "add", "modify", "delete"
+    var eventID: UUID
+    var previousMessage: String?
+    var previousEventCode: String?
+    var previousPlayerID: UUID?
+    var previousTimestamp: Date?
+    var previousPeriod: Int?
+    var currentMessage: String?
+    var currentEventCode: String?
+    var currentPlayerID: UUID?
+}
+
 struct GameSnapshot: Codable, Hashable {
     var statsByPlayerID: [UUID: PlayerStats] = [:]
     var logs: [GameLogEntry] = []
@@ -1048,6 +1063,7 @@ struct GameSnapshot: Codable, Hashable {
     var homeTeamStatsMode = false
     var awayTeamStatsMode = false
     var teamStatsByID: [UUID: PlayerStats] = [:]
+    var editHistory: [GameLogEditRecord] = []
 
     init(
         statsByPlayerID: [UUID: PlayerStats] = [:],
@@ -1086,7 +1102,8 @@ struct GameSnapshot: Codable, Hashable {
         periodTimeLimit: Int = 12,
         periodScoreLimit: Int = 30,
         homeTeamStatsMode: Bool = false,
-        awayTeamStatsMode: Bool = false
+        awayTeamStatsMode: Bool = false,
+        editHistory: [GameLogEditRecord] = []
     ) {
         self.statsByPlayerID = statsByPlayerID
         self.logs = logs
@@ -1125,6 +1142,7 @@ struct GameSnapshot: Codable, Hashable {
         self.periodActiveSince = periodActiveSince
         self.homeTeamStatsMode = homeTeamStatsMode
         self.awayTeamStatsMode = awayTeamStatsMode
+        self.editHistory = editHistory
     }
 
     init(from decoder: Decoder) throws {
@@ -1168,6 +1186,7 @@ struct GameSnapshot: Codable, Hashable {
         homeTeamStatsMode = try container.decodeIfPresent(Bool.self, forKey: .homeTeamStatsMode) ?? false
         awayTeamStatsMode = try container.decodeIfPresent(Bool.self, forKey: .awayTeamStatsMode) ?? false
         teamStatsByID = try container.decodeIfPresent([UUID: PlayerStats].self, forKey: .teamStatsByID) ?? [:]
+        editHistory = try container.decodeIfPresent([GameLogEditRecord].self, forKey: .editHistory) ?? []
     }
 }
 

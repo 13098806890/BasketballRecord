@@ -1040,3 +1040,5 @@ Format:
 
 "label_time_error" = "시간 범위 초과";
 "message_time_out_of_range" = "시간은 경기 시작과 종료 사이여야 합니다";
+
+"label_deleted_events" = "삭제된 이벤트";

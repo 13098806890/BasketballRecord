@@ -26,6 +26,7 @@ struct SavedGameDetailView: View {
     @State private var expandedPeriods: Set<Int> = []
     @State private var expandedMinutes: [Int: Set<Int>] = [:]
     @State private var lastExpandedPeriod = 1
+    @State private var editRefreshID = UUID()
     @State private var lastExpandedMinute = 0
 
 
@@ -212,7 +213,7 @@ struct SavedGameDetailView: View {
             }
         }
 
-        (isEditing ? AnyView(editEventListView) : AnyView(l))
+        (isEditing ? AnyView(editEventListView.id(editRefreshID)) : AnyView(l))
             .onChange(of: store.cloudEnabledGameIDs) { _, _ in
             // UI refreshes automatically via @Published
         }
@@ -450,7 +451,12 @@ struct SavedGameDetailView: View {
 
     private func rebuildGameSnapshotStats(gameIndex: Int) {
         let currentGame = store.savedGames[gameIndex]
-        let logs = currentGame.snapshot.logs.sorted { $0.timestamp < $1.timestamp }
+        let eh = currentGame.snapshot.editHistory
+        let addedIDs = Set(eh.filter { $0.action == "add" }.map(\.eventID))
+        let deletedIDs = Set(eh.filter { $0.action == "delete" }.map(\.eventID))
+        let restoredIDs = Set(eh.filter { $0.action == "restore" }.map(\.eventID))
+        let excludedIDs = deletedIDs.subtracting(restoredIDs).union(addedIDs.intersection(deletedIDs))
+        let logs = currentGame.snapshot.logs.sorted { $0.timestamp < $1.timestamp }.filter { !excludedIDs.contains($0.id) }
         let homeIDs = Set(currentGame.homePlayerIDs)
         let awayIDs = Set(currentGame.awayPlayerIDs)
         let allIDs = homeIDs.union(awayIDs)
@@ -500,9 +506,11 @@ struct SavedGameDetailView: View {
             }
         }
 
-        store.savedGames[gameIndex].snapshot.statsByPlayerID = statsByPlayer
-        store.savedGames[gameIndex].snapshot.playingSecondsByPlayerID = playingSeconds
-        store.savedGames[gameIndex].snapshot.plusMinusByPlayerID = plusMinus
+        var savedGame = store.savedGames[gameIndex]
+        savedGame.snapshot.statsByPlayerID = statsByPlayer
+        savedGame.snapshot.playingSecondsByPlayerID = playingSeconds
+        savedGame.snapshot.plusMinusByPlayerID = plusMinus
+        store.savedGames[gameIndex] = savedGame
     }
 
     private func sanitizeSelectedPeriod() {
@@ -1573,7 +1581,13 @@ struct SavedGameDetailView: View {
             .padding(.vertical, 8)
 
             List {
-                let grouped = Dictionary(grouping: filteredPeriodAwareLogs, by: { $0.inferredPeriod ?? 0 })
+                let storeEditHistory = (store.savedGames.first { $0.id == game.id })?.snapshot.editHistory ?? game.snapshot.editHistory
+                let addedIDs = Set(storeEditHistory.filter { $0.action == "add" }.map(\.eventID))
+                let deletedIDs = Set(storeEditHistory.filter { $0.action == "delete" }.map(\.eventID))
+                let restoredIDs = Set(storeEditHistory.filter { $0.action == "restore" }.map(\.eventID))
+                let addedThenDeletedIDs = addedIDs.intersection(deletedIDs).subtracting(restoredIDs)
+                let visibleLogs = filteredPeriodAwareLogs.filter { !addedThenDeletedIDs.contains($0.entry.id) }
+                let grouped = Dictionary(grouping: visibleLogs, by: { $0.inferredPeriod ?? 0 })
                 let sortedPeriods = grouped.keys.sorted()
                 ForEach(sortedPeriods, id: \.self) { period in
                     Section {
@@ -1665,14 +1679,54 @@ struct SavedGameDetailView: View {
         }
     }
 
+    private var addedThenDeletedIDs: Set<UUID> {
+        guard let snapshot = store.savedGames.first(where: { $0.id == game.id })?.snapshot else { return [] }
+        let added = Set(snapshot.editHistory.filter { $0.action == "add" }.map(\.eventID))
+        let deleted = Set(snapshot.editHistory.filter { $0.action == "delete" }.map(\.eventID))
+        let restored = Set(snapshot.editHistory.filter { $0.action == "restore" }.map(\.eventID))
+        return added.intersection(deleted).subtracting(restored)
+    }
+
+    private var deletedEventIDs: Set<UUID> {
+        guard let snapshot = store.savedGames.first(where: { $0.id == game.id })?.snapshot else { return [] }
+        let addedIDs = Set(snapshot.editHistory.filter { $0.action == "add" }.map(\.eventID))
+        let deleteIDs = Set(snapshot.editHistory.filter { $0.action == "delete" }.map(\.eventID))
+        let restoreIDs = Set(snapshot.editHistory.filter { $0.action == "restore" }.map(\.eventID))
+        return deleteIDs.subtracting(restoreIDs).subtracting(addedIDs)
+    }
+
     private func editEventRow(log: PeriodAwareLog) -> some View {
         let code = log.entry.eventCode ?? ""
         let isProtected = ["event.period_start", "event.period_end", "event.game_end", "event.starters_home", "event.starters_away"].contains(code)
+        let storeSnapshot = store.savedGames.first { $0.id == game.id }?.snapshot
+        let editHistory = storeSnapshot?.editHistory ?? game.snapshot.editHistory
+        let isNew = editHistory.contains(where: { $0.eventID == log.entry.id && $0.action == "add" })
+        let isEdited = editHistory.contains(where: { $0.eventID == log.entry.id && $0.action == "modify" })
+        let isDeleted = deletedEventIDs.contains(log.entry.id)
         return HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(logLineText(for: log))
-                    .font(.caption)
-                    .lineLimit(2)
+                HStack(spacing: 6) {
+                    if isNew {
+                        Text("NEW")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.green)
+                    }
+                    if isEdited {
+                        Text("EDITED")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.orange)
+                    }
+                    if isDeleted {
+                        Text("DELETED")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.red)
+                    }
+                    Text(logLineText(for: log))
+                        .font(.caption)
+                        .lineLimit(2)
+                        .foregroundStyle(isDeleted ? .secondary : .primary)
+                        .strikethrough(isDeleted)
+                }
                 HStack(spacing: 4) {
                     Text(log.entry.timestamp, style: .time)
                         .font(.caption2)
@@ -1697,7 +1751,7 @@ struct SavedGameDetailView: View {
         }
         .contentShape(Rectangle())
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-            if !isProtected {
+            if !isProtected && !isDeleted {
                 Button(NSLocalizedString("button_edit", comment: "")) {
                     editingSheetEntry = log.entry
                 }
@@ -1706,6 +1760,18 @@ struct SavedGameDetailView: View {
                     deleteEvent(log.entry)
                 }
                 .tint(.red)
+            }
+            if isEdited {
+                Button(NSLocalizedString("button_undo", comment: "")) {
+                    restoreEditedEvent(for: log.entry.id)
+                }
+                .tint(.green)
+            }
+            if isDeleted {
+                Button(NSLocalizedString("button_undo", comment: "")) {
+                    restoreDeletedEvent(for: log.entry.id)
+                }
+                .tint(.green)
             }
         }
     }
@@ -1720,29 +1786,106 @@ struct SavedGameDetailView: View {
             period: period
         )
         guard let gameIndex = store.savedGames.firstIndex(where: { $0.id == game.id }) else { return }
-        store.savedGames[gameIndex].snapshot.logs.append(entry)
-        store.savedGames[gameIndex].snapshot.logs.sort { $0.timestamp < $1.timestamp }
+        var savedGame = store.savedGames[gameIndex]
+        savedGame.snapshot.logs.append(entry)
+        savedGame.snapshot.logs.sort { $0.timestamp < $1.timestamp }
+        savedGame.snapshot.editHistory.append(GameLogEditRecord(
+            timestamp: Date(),
+            action: "add",
+            eventID: entry.id,
+            previousMessage: nil,
+            previousEventCode: nil,
+            previousPlayerID: nil,
+            currentMessage: entry.message,
+            currentEventCode: entry.eventCode,
+            currentPlayerID: entry.playerID
+        ))
+        store.savedGames[gameIndex] = savedGame
         rebuildPeriodAnalysis()
         sanitizeSelectedPeriod()
+        editRefreshID = UUID()
+        editRefreshID = UUID()
     }
 
     private func modifyEvent(_ entry: GameLogEntry, timestamp: Date, playerID: UUID, action: StatAction) {
         let eventCode = action.eventCode
         guard let logIndex = game.snapshot.logs.firstIndex(where: { $0.id == entry.id }),
               let gameIndex = store.savedGames.firstIndex(where: { $0.id == game.id }) else { return }
-        store.savedGames[gameIndex].snapshot.logs[logIndex].playerID = playerID
-        store.savedGames[gameIndex].snapshot.logs[logIndex].eventCode = eventCode
-        store.savedGames[gameIndex].snapshot.logs[logIndex].message = "\(store.player(for: playerID)?.name ?? "?") \(action.message) [event:\(eventCode)]"
+        var savedGame = store.savedGames[gameIndex]
+        let oldMsg = savedGame.snapshot.logs[logIndex].message
+        let oldCode = savedGame.snapshot.logs[logIndex].eventCode
+        let oldPID = savedGame.snapshot.logs[logIndex].playerID
+        savedGame.snapshot.logs[logIndex].playerID = playerID
+        savedGame.snapshot.logs[logIndex].eventCode = eventCode
+        savedGame.snapshot.logs[logIndex].message = "\(store.player(for: playerID)?.name ?? "?") \(action.message) [event:\(eventCode)]"
+        savedGame.snapshot.editHistory.append(GameLogEditRecord(
+            timestamp: Date(),
+            action: "modify",
+            eventID: entry.id,
+            previousMessage: oldMsg,
+            previousEventCode: oldCode,
+            previousPlayerID: oldPID,
+            currentMessage: savedGame.snapshot.logs[logIndex].message,
+            currentEventCode: eventCode,
+            currentPlayerID: playerID
+        ))
+        store.savedGames[gameIndex] = savedGame
         rebuildPeriodAnalysis()
         sanitizeSelectedPeriod()
+        editRefreshID = UUID()
     }
 
     private func deleteEvent(_ entry: GameLogEntry) {
-        guard let logIndex = game.snapshot.logs.firstIndex(where: { $0.id == entry.id }),
-              let gameIndex = store.savedGames.firstIndex(where: { $0.id == game.id }) else { return }
-        store.savedGames[gameIndex].snapshot.logs.remove(at: logIndex)
+        guard let gameIndex = store.savedGames.firstIndex(where: { $0.id == game.id }) else { return }
+        var savedGame = store.savedGames[gameIndex]
+        savedGame.snapshot.editHistory.append(GameLogEditRecord(
+            timestamp: Date(),
+            action: "delete",
+            eventID: entry.id,
+            previousMessage: entry.message,
+            previousEventCode: entry.eventCode,
+            previousPlayerID: entry.playerID,
+            previousTimestamp: entry.timestamp,
+            previousPeriod: entry.period,
+            currentMessage: nil,
+            currentEventCode: nil,
+            currentPlayerID: nil
+        ))
+        store.savedGames[gameIndex] = savedGame
         rebuildPeriodAnalysis()
         sanitizeSelectedPeriod()
+        editRefreshID = UUID()
+    }
+
+    private func restoreEditedEvent(for eventID: UUID) {
+        guard let gameIndex = store.savedGames.firstIndex(where: { $0.id == game.id }),
+              let logIndex = store.savedGames[gameIndex].snapshot.logs.firstIndex(where: { $0.id == eventID }),
+              let firstRecord = store.savedGames[gameIndex].snapshot.editHistory.first(where: { $0.eventID == eventID && $0.action == "modify" }),
+              let origMsg = firstRecord.previousMessage else { return }
+        var savedGame = store.savedGames[gameIndex]
+        savedGame.snapshot.logs[logIndex].message = origMsg
+        savedGame.snapshot.logs[logIndex].eventCode = firstRecord.previousEventCode
+        savedGame.snapshot.logs[logIndex].playerID = firstRecord.previousPlayerID
+        savedGame.snapshot.editHistory.removeAll { $0.eventID == eventID && $0.action == "modify" }
+        store.savedGames[gameIndex] = savedGame
+        rebuildPeriodAnalysis()
+        sanitizeSelectedPeriod()
+        editRefreshID = UUID()
+    }
+
+    private func restoreDeletedEvent(for eventID: UUID) {
+        guard let gameIndex = store.savedGames.firstIndex(where: { $0.id == game.id }) else { return }
+        var savedGame = store.savedGames[gameIndex]
+        savedGame.snapshot.editHistory.append(GameLogEditRecord(
+            timestamp: Date(), action: "restore", eventID: eventID,
+            previousMessage: nil, previousEventCode: nil, previousPlayerID: nil,
+            previousTimestamp: nil, previousPeriod: nil,
+            currentMessage: nil, currentEventCode: nil, currentPlayerID: nil
+        ))
+        store.savedGames[gameIndex] = savedGame
+        rebuildPeriodAnalysis()
+        sanitizeSelectedPeriod()
+        editRefreshID = UUID()
     }
 }
 

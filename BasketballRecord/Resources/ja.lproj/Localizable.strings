@@ -1023,3 +1023,5 @@ Format:
 
 "label_time_error" = "時間が範囲外";
 "message_time_out_of_range" = "時間は試合の開始から終了の間である必要があります";
+
+"label_deleted_events" = "削除済みイベント";
