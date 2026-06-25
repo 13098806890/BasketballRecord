@@ -1,3 +1,4 @@
-• Modifica eventi (Pro) — visualizza, aggiungi e modifica eventi della partita con ricalcolo in tempo reale
-• Condivisione cloud — carica giocatori, squadre e partite nel cloud e condividi tramite UUID
+• Condivisione cloud — barra di avanzamento con stato foto per foto
+• Tutorial vocale — ordine dei compiti migliorato, percentuale di successo ora conta tutti i tentativi
+• I giocatori del tutorial non appaiono più nella gestione giocatori o nel selettore cloud
 • Correzione bug e miglioramenti delle prestazioni

@@ -1019,6 +1019,11 @@ Format:
 "cloudshare_picker_cloud_label" = "Cloud-Freigabe";
 "cloudshare_upload_button" = "In Cloud hochladen";
 "cloudshare_uploading" = "Wird hochgeladen...";
+"cloudshare_uploading_metadata" = "Metadaten werden hochgeladen...";
+"cloudshare_uploading_photos_format" = "Foto %d von %d";
+"cloudshare_compressing_photos" = "Fotos werden komprimiert...";
+"cloudshare_downloading_metadata" = "Metadaten werden heruntergeladen...";
+"cloudshare_downloading_photos_format" = "Foto %d von %d";
 "cloudshare_uuid_title" = "Freigabelink";
 "cloudshare_copy_button" = "Link kopieren";
 "cloudshare_copied" = "Kopiert";

@@ -1,3 +1,4 @@
-• Edición de eventos (Pro) — ver, añadir y editar eventos del partido con recálculo en tiempo real
-• Compartir en la nube — sube jugadores, equipos y partidos a la nube y compártelos mediante UUID
+• Compartir en la nube — barra de progreso con estado foto por foto
+• Tutorial de voz — orden de tareas mejorado, tasa de éxito ahora cuenta todos los intentos
+• Los jugadores del tutorial ya no aparecen en la gestión de jugadores ni en el selector de cloud
 • Corrección de errores y mejoras de rendimiento

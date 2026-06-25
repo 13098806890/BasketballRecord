@@ -1,3 +1,4 @@
-• Édition d'événements (Pro) — voir, ajouter et modifier les événements du match avec recalcul en temps réel
-• Partage cloud — téléchargez joueurs, équipes et matchs dans le cloud et partagez via UUID
+• Partage cloud — barre de progression avec statut photo par photo
+• Tutoriel vocal — ordre des tâches amélioré, taux de succès compte désormais tous les essais
+• Les joueurs du tutoriel n'apparaissent plus dans la gestion des joueurs ni dans le sélecteur cloud
 • Corrections de bugs et améliorations de performances

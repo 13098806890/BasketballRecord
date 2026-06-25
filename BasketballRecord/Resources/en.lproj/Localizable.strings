@@ -1048,6 +1048,11 @@ Format:
 "cloudshare_picker_cloud_label" = "Cloud Share";
 "cloudshare_upload_button" = "Upload to Cloud";
 "cloudshare_uploading" = "Uploading...";
+"cloudshare_uploading_metadata" = "Uploading metadata...";
+"cloudshare_uploading_photos_format" = "Photo %d of %d";
+"cloudshare_compressing_photos" = "Compressing photos...";
+"cloudshare_downloading_metadata" = "Downloading metadata...";
+"cloudshare_downloading_photos_format" = "Photo %d of %d";
 "cloudshare_uuid_title" = "Share Link";
 "cloudshare_copy_button" = "Copy Link";
 "cloudshare_copied" = "Copied";

@@ -1047,6 +1047,11 @@ Format:
 "cloudshare_picker_cloud_label" = "클라우드 공유";
 "cloudshare_upload_button" = "클라우드에 업로드";
 "cloudshare_uploading" = "업로드 중...";
+"cloudshare_uploading_metadata" = "메타데이터 업로드 중...";
+"cloudshare_uploading_photos_format" = "사진 %d/%d";
+"cloudshare_compressing_photos" = "사진 압축 중...";
+"cloudshare_downloading_metadata" = "메타데이터 다운로드 중...";
+"cloudshare_downloading_photos_format" = "사진 %d/%d";
 "cloudshare_uuid_title" = "공유 링크";
 "cloudshare_copy_button" = "링크 복사";
 "cloudshare_copied" = "복사됨";

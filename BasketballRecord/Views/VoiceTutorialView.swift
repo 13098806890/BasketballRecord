@@ -4,12 +4,7 @@ struct VoiceTutorialView: View {
     @ObservedObject var store: AppStore
     @StateObject private var recognizer = VoiceRecognizer()
 
-    private static let playerIDs: [UUID] = [
-        UUID(uuidString: "E621E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-        UUID(uuidString: "E621E1F8-C36C-495A-93FC-0C247A3E6E50")!,
-        UUID(uuidString: "E621E1F8-C36C-495A-93FC-0C247A3E6E51")!,
-        UUID(uuidString: "E621E1F8-C36C-495A-93FC-0C247A3E6E52")!,
-    ]
+    private static let playerIDs: [UUID] = Array(AppStore.tutorialPlayerIDs)
 
     private let tutorialPlayers: TutorialPlayers
     private let tasks: [TutorialTaskDef]
