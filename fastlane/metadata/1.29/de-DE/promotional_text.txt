@@ -1,0 +1,1 @@
+Cloud-Freigabe: Laden Sie Ihre Teams und Spiele hoch, erstellen Sie einen Freigabelink. Andere importieren mit einer UUID — kein Konto erforderlich.

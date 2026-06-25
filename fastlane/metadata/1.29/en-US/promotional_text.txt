@@ -1,0 +1,1 @@
+Cloud Share: Upload your teams and games to generate a share link. Others import with one UUID — no account needed.
