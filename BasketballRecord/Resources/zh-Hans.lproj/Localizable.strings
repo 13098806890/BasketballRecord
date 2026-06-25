@@ -1026,3 +1026,26 @@ Format:
 "message_time_out_of_range" = "时间必须在比赛开始和结束之间";
 
 "label_deleted_events" = "已删除事件";
+
+"cloudshare_expires_format" = "剩余 %@";
+"cloudshare_import_summary_format" = "已导入：球员 %d 人，球队 %d 支，比赛 %d 场";
+
+"label_game" = "比赛";
+
+"cloudshare_picker_text_label" = "文本分享";
+"cloudshare_picker_cloud_label" = "云端分享";
+"cloudshare_upload_button" = "上传到云端";
+"cloudshare_uploading" = "正在上传...";
+"cloudshare_uuid_title" = "分享链接";
+"cloudshare_copy_button" = "复制链接";
+"cloudshare_copied" = "已复制";
+"cloudshare_import_placeholder" = "输入分享 UUID";
+"cloudshare_import_button" = "从云端导入";
+"cloudshare_import_downloading" = "正在下载...";
+"cloudshare_error_not_configured" = "云服务未配置";
+"cloudshare_error_not_found" = "云端分享不存在";
+"cloudshare_error_empty_data" = "数据为空";
+"cloudshare_error_devicecheck_unsupported" = "此设备不支持验证";
+"cloudshare_error_devicecheck_failed" = "设备验证失败";
+"cloudshare_error_invalid_response" = "服务器响应无效";
+"cloudshare_error_network" = "网络连接失败";

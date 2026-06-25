@@ -1042,3 +1042,26 @@ Format:
 "message_time_out_of_range" = "시간은 경기 시작과 종료 사이여야 합니다";
 
 "label_deleted_events" = "삭제된 이벤트";
+
+"cloudshare_picker_text_label" = "텍스트 공유";
+"cloudshare_picker_cloud_label" = "클라우드 공유";
+"cloudshare_upload_button" = "클라우드에 업로드";
+"cloudshare_uploading" = "업로드 중...";
+"cloudshare_uuid_title" = "공유 링크";
+"cloudshare_copy_button" = "링크 복사";
+"cloudshare_copied" = "복사됨";
+"cloudshare_import_placeholder" = "UUID 입력";
+"cloudshare_import_button" = "클라우드에서 가져오기";
+"cloudshare_import_downloading" = "다운로드 중...";
+"cloudshare_error_not_configured" = "클라우드 서비스가 구성되지 않음";
+"cloudshare_error_not_found" = "클라우드 공유를 찾을 수 없음";
+"cloudshare_error_empty_data" = "데이터가 비어 있음";
+"cloudshare_error_devicecheck_unsupported" = "장치가 인증을 지원하지 않음";
+"cloudshare_error_devicecheck_failed" = "장치 인증 실패";
+"cloudshare_error_invalid_response" = "서버 응답이 잘못됨";
+"cloudshare_error_network" = "네트워크 연결 실패";
+
+"label_game" = "경기";
+
+"cloudshare_expires_format" = "Expires in %@";
+"cloudshare_import_summary_format" = "Imported: %d players, %d teams, %d games";

@@ -1025,3 +1025,26 @@ Format:
 "message_time_out_of_range" = "時間は試合の開始から終了の間である必要があります";
 
 "label_deleted_events" = "削除済みイベント";
+
+"cloudshare_picker_text_label" = "テキスト共有";
+"cloudshare_picker_cloud_label" = "クラウド共有";
+"cloudshare_upload_button" = "クラウドにアップロード";
+"cloudshare_uploading" = "アップロード中...";
+"cloudshare_uuid_title" = "共有リンク";
+"cloudshare_copy_button" = "リンクをコピー";
+"cloudshare_copied" = "コピーしました";
+"cloudshare_import_placeholder" = "UUIDを入力";
+"cloudshare_import_button" = "クラウドからインポート";
+"cloudshare_import_downloading" = "ダウンロード中...";
+"cloudshare_error_not_configured" = "クラウドサービスが設定されていません";
+"cloudshare_error_not_found" = "クラウド共有が見つかりません";
+"cloudshare_error_empty_data" = "データが空です";
+"cloudshare_error_devicecheck_unsupported" = "デバイスが検証をサポートしていません";
+"cloudshare_error_devicecheck_failed" = "デバイス検証に失敗しました";
+"cloudshare_error_invalid_response" = "サーバー応答が無効です";
+"cloudshare_error_network" = "ネットワーク接続に失敗しました";
+
+"label_game" = "試合";
+
+"cloudshare_expires_format" = "Expires in %@";
+"cloudshare_import_summary_format" = "Imported: %d players, %d teams, %d games";

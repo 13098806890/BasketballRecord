@@ -1024,3 +1024,26 @@ Format:
 "message_time_out_of_range" = "時間必須在比賽開始和結束之間";
 
 "label_deleted_events" = "已刪除事件";
+
+"cloudshare_picker_text_label" = "文字分享";
+"cloudshare_picker_cloud_label" = "雲端分享";
+"cloudshare_upload_button" = "上傳到雲端";
+"cloudshare_uploading" = "正在上傳...";
+"cloudshare_uuid_title" = "分享連結";
+"cloudshare_copy_button" = "複製連結";
+"cloudshare_copied" = "已複製";
+"cloudshare_import_placeholder" = "輸入分享 UUID";
+"cloudshare_import_button" = "從雲端導入";
+"cloudshare_import_downloading" = "正在下載...";
+"cloudshare_error_not_configured" = "雲端服務未配置";
+"cloudshare_error_not_found" = "雲端分享不存在";
+"cloudshare_error_empty_data" = "數據為空";
+"cloudshare_error_devicecheck_unsupported" = "此設備不支持驗證";
+"cloudshare_error_devicecheck_failed" = "設備驗證失敗";
+"cloudshare_error_invalid_response" = "伺服器響應無效";
+"cloudshare_error_network" = "網絡連接失敗";
+
+"label_game" = "比賽";
+
+"cloudshare_expires_format" = "Expires in %@";
+"cloudshare_import_summary_format" = "Imported: %d players, %d teams, %d games";

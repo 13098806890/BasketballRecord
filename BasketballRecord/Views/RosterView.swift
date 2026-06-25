@@ -14,6 +14,7 @@ func localizedFormat(_ key: String, _ args: CVarArg...) -> String {
 struct RosterView: View {
     @EnvironmentObject private var store: AppStore
     @State private var showingRosterImport = false
+    @State private var showingCloudUpload = false
     @State private var showingMergeEntry = false
     @State private var showingDeepSeekConfig = false
     @State private var showingSettingsDocument: SettingsDocument?
@@ -150,6 +151,17 @@ struct RosterView: View {
                     }
 
                     Button {
+                        showingCloudUpload = true
+                    } label: {
+                        settingsRow(
+                            title: LocalizedStringKey("cloudshare_upload_button"),
+                            systemImage: "icloud.and.arrow.up.fill",
+                            countText: nil
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
                         showingRosterImport = true
                     } label: {
                         settingsRow(
@@ -240,6 +252,10 @@ struct RosterView: View {
             }
 
             .navigationTitle(LocalizedStringKey("settings_nav_title"))
+            .sheet(isPresented: $showingCloudUpload) {
+                CloudShareUploadView()
+                    .environmentObject(store)
+            }
             .sheet(isPresented: $showingRosterImport) {
                 ImportRosterPackageView()
             }
@@ -522,6 +538,7 @@ private struct ExportTeamPackageView: View {
     @EnvironmentObject private var bluetooth: BluetoothSyncManager
     @Environment(\.dismiss) private var dismiss
     var team: Team
+    @State private var shareMode: ExportShareMode = .cloud
 
     @State private var base64 = ""
     @State private var transferID = GameShareChunkCodec.generateTransferID()
@@ -538,7 +555,23 @@ private struct ExportTeamPackageView: View {
                     Text(team.name)
                 }
 
-                if isGenerating {
+                Picker("", selection: $shareMode) {
+                    Text(LocalizedStringKey("cloudshare_picker_cloud_label")).tag(ExportShareMode.cloud)
+                    Text(LocalizedStringKey("cloudshare_picker_text_label")).tag(ExportShareMode.text)
+                }
+                .pickerStyle(.segmented)
+
+                if shareMode == .cloud {
+                    CloudShareSection(
+                        persistenceKey: "cloud_share_team_\(team.id.uuidString)",
+                        uploadAction: {
+                            let base64 = store.exportTeamBase64(team) ?? ""
+                            guard let data = base64.data(using: .utf8), !data.isEmpty else {
+                                throw CloudShareError.emptyData
+                            }
+                            return try await CloudShareManager.upload(data: data)
+                        })
+                } else if isGenerating {
                     Section {
                         HStack(spacing: 12) {
                             ProgressView()
@@ -676,6 +709,7 @@ private struct ExportTeamPackageView: View {
 private enum RosterImportKind: String, CaseIterable, Identifiable {
     case team
     case player
+    case game
 
     var id: String { rawValue }
 
@@ -685,6 +719,8 @@ private enum RosterImportKind: String, CaseIterable, Identifiable {
             return LocalizedStringKey("label_team")
         case .player:
             return LocalizedStringKey("label_player")
+        case .game:
+            return LocalizedStringKey("label_game")
         }
     }
 
@@ -694,6 +730,8 @@ private enum RosterImportKind: String, CaseIterable, Identifiable {
             return localized("label_team")
         case .player:
             return localized("label_player")
+        case .game:
+            return localized("label_game")
         }
     }
 }
@@ -717,6 +755,11 @@ private struct ImportRosterPackageView: View {
     @State private var hasCheckedClipboard = false
     @State private var isProgrammaticKindSwitch = false
     @State private var isParsing = false
+    @State private var cloudImportUUID = ""
+    @State private var isCloudImporting = false
+    @State private var cloudImportError: String?
+    @State private var isShowingGameImport = false
+    @State private var gamePackageForCloud: ExportedGamePackage?
     @FocusState private var isInputFocused: Bool
 
     private var chunkKeyword: String {
@@ -725,6 +768,8 @@ private struct ImportRosterPackageView: View {
             return GameShareChunkCodec.teamKeyword
         case .player:
             return GameShareChunkCodec.playerKeyword
+        case .game:
+            return GameShareChunkCodec.keyword
         }
     }
 
@@ -745,13 +790,29 @@ private struct ImportRosterPackageView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(LocalizedStringKey("section_import_type")) {
-                    Picker(LocalizedStringKey("section_import_type"), selection: $importKind) {
-                        ForEach(RosterImportKind.allCases) { kind in
-                            Text(kind.localizedTitle).tag(kind)
+                Section(LocalizedStringKey("cloudshare_picker_cloud_label")) {
+                    HStack(spacing: 12) {
+                        TextField(LocalizedStringKey("cloudshare_import_placeholder"), text: $cloudImportUUID)
+                            .font(.body.monospaced())
+                            .autocorrectionDisabled(true)
+                            .textInputAutocapitalization(.never)
+
+                        if isCloudImporting {
+                            ProgressView()
+                        } else {
+                            Button(LocalizedStringKey("cloudshare_import_button")) {
+                                Task { await importFromCloud() }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(cloudImportUUID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         }
                     }
-                    .pickerStyle(.segmented)
+
+                    if let error = cloudImportError {
+                        Text(error)
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                    }
                 }
 
                 Section(LocalizedStringKey("section_paste_share_code")) {
@@ -796,7 +857,7 @@ private struct ImportRosterPackageView: View {
                             .focused($isInputFocused)
                     }
 
-                    Button(importKind == .team ? localized("button_parse_team_data") : localized("button_parse_player_data")) {
+                    Button(LocalizedStringKey("button_parse_team_data")) {
                         isInputFocused = false
                         Task {
                             await decode()
@@ -879,6 +940,10 @@ private struct ImportRosterPackageView: View {
                     }
                 }
             }
+            .sheet(isPresented: $isShowingGameImport) {
+                ImportGameView(prefilledBase64: base64)
+                    .environmentObject(store)
+            }
             .scrollDismissesKeyboard(.immediately)
             .navigationTitle(LocalizedStringKey("nav_import_data"))
             .navigationBarTitleDisplayMode(.inline)
@@ -944,26 +1009,23 @@ private struct ImportRosterPackageView: View {
             sourceText = trimmedInput
         }
 
-        switch importKind {
-        case .team:
-            guard let decoded = store.decodeTeamPackage(from: sourceText) else {
-                teamPackage = nil
-                playerPackage = nil
-                parseSucceeded = false
-                parseResultText = localized("import_parse_failed_team_not_complete")
-                return
-            }
+        if let decoded = store.decodeGamePackage(from: sourceText) {
+            base64 = sourceText
+            gamePackageForCloud = decoded
+            isShowingGameImport = true
+        } else if let decoded = store.decodeTeamPackage(from: sourceText) {
+            isProgrammaticKindSwitch = true
+            importKind = .team
             applyTeamPackage(decoded)
-
-        case .player:
-            guard let decoded = store.decodePlayerPackage(from: sourceText) else {
-                teamPackage = nil
-                playerPackage = nil
-                parseSucceeded = false
-                parseResultText = localized("import_parse_failed_player_not_complete")
-                return
-            }
+        } else if let decoded = store.decodePlayerPackage(from: sourceText) {
+            isProgrammaticKindSwitch = true
+            importKind = .player
             applyPlayerPackage(decoded)
+        } else {
+            teamPackage = nil
+            playerPackage = nil
+            parseSucceeded = false
+            parseResultText = localized("import_parse_failed_team_not_complete")
         }
     }
 
@@ -1128,6 +1190,89 @@ private struct ImportRosterPackageView: View {
         parseResultText = nil
         parseSucceeded = false
     }
+
+    private func importFromCloud() async {
+        isCloudImporting = true
+        cloudImportError = nil
+        do {
+            let data = try await CloudShareManager.retrieve(uuid: cloudImportUUID.trimmingCharacters(in: .whitespacesAndNewlines))
+
+            if let bundle = try? JSONDecoder().decode(CloudShareBundle.self, from: data) {
+                var importedPlayers = 0
+                var importedTeams = 0
+                var importedGames = 0
+
+                for exportPlayer in bundle.players {
+                    let pkg = ExportedPlayerPackage(player: exportPlayer)
+                    store.importPlayerPackage(pkg)
+                    importedPlayers += 1
+                }
+                for exportTeam in bundle.teams {
+                    let pkg = ExportedTeamPackage(team: exportTeam, players: bundle.players.filter { exportTeam.playerIDs.contains($0.id) })
+                    store.importTeamPackage(pkg)
+                    importedTeams += 1
+                }
+                for gameV2 in bundle.games {
+                    let legacy = gameV2.legacyPackage
+                    let disposition = store.importGamePackage(legacy)
+                    switch disposition {
+                    case .inserted: importedGames += 1
+                    case .replacedSameID, .replacedLikelyDuplicate: importedGames += 1
+                    }
+                }
+
+                cloudImportUUID = ""
+                cloudImportError = String(format: NSLocalizedString("cloudshare_import_summary_format", comment: "Import summary"), importedPlayers, importedTeams, importedGames)
+            } else {
+                guard let text = String(data: data, encoding: .utf8) else {
+                    throw CloudShareError.invalidResponse
+                }
+
+                if let gamePackage = store.decodeGamePackage(from: text) {
+                    self.base64 = text
+                    isChunkedMode = false
+                    gamePackageForCloud = gamePackage
+                    isShowingGameImport = true
+                } else if let teamPackage = store.decodeTeamPackage(from: text) {
+                    self.base64 = text
+                    isChunkedMode = false
+                    self.teamPackage = teamPackage
+                    self.playerPackage = nil
+                    parseSucceeded = true
+                    isProgrammaticKindSwitch = true
+                    importKind = .team
+                    parseResultText = localizedFormat(
+                        "import_parse_success_team_detail_format",
+                        teamPackage.team.name,
+                        teamPackage.team.id.uuidString,
+                        teamPackage.players.count
+                    )
+                } else if let playerPackage = store.decodePlayerPackage(from: text) {
+                    self.base64 = text
+                    isChunkedMode = false
+                    self.playerPackage = playerPackage
+                    self.teamPackage = nil
+                    parseSucceeded = true
+                    isProgrammaticKindSwitch = true
+                    importKind = .player
+                    parseResultText = localizedFormat(
+                        "import_parse_success_player_detail_format",
+                        playerPackage.player.name,
+                        playerPackage.player.id.uuidString
+                    )
+                } else {
+                    cloudImportError = NSLocalizedString("cloudshare_error_invalid_response", comment: "")
+                }
+            }
+        } catch {
+            if let shareError = error as? CloudShareError, case .notFound = shareError {
+                cloudImportError = NSLocalizedString("cloudshare_error_not_found", comment: "")
+            } else {
+                cloudImportError = error.localizedDescription
+            }
+        }
+        isCloudImporting = false
+    }
 }
 
 private struct ExportPlayerPackageView: View {
@@ -1135,6 +1280,7 @@ private struct ExportPlayerPackageView: View {
     @EnvironmentObject private var bluetooth: BluetoothSyncManager
     @Environment(\.dismiss) private var dismiss
     var player: Player
+    @State private var shareMode: ExportShareMode = .cloud
 
     @State private var base64 = ""
     @State private var transferID = GameShareChunkCodec.generateTransferID()
@@ -1151,7 +1297,23 @@ private struct ExportPlayerPackageView: View {
                     Text(player.name)
                 }
 
-                if isGenerating {
+                Picker("", selection: $shareMode) {
+                    Text(LocalizedStringKey("cloudshare_picker_cloud_label")).tag(ExportShareMode.cloud)
+                    Text(LocalizedStringKey("cloudshare_picker_text_label")).tag(ExportShareMode.text)
+                }
+                .pickerStyle(.segmented)
+
+                if shareMode == .cloud {
+                    CloudShareSection(
+                        persistenceKey: "cloud_share_player_\(player.id.uuidString)",
+                        uploadAction: {
+                            let base64 = store.exportPlayerBase64(player) ?? ""
+                            guard let data = base64.data(using: .utf8), !data.isEmpty else {
+                                throw CloudShareError.emptyData
+                            }
+                            return try await CloudShareManager.upload(data: data)
+                        })
+                } else if isGenerating {
                     Section {
                         HStack(spacing: 12) {
                             ProgressView()

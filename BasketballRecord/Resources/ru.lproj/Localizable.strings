@@ -1014,3 +1014,26 @@ Format:
 "message_time_out_of_range" = "Время должно быть между началом и концом игры";
 
 "label_deleted_events" = "Удаленные события";
+
+"cloudshare_picker_text_label" = "Текстовый обмен";
+"cloudshare_picker_cloud_label" = "Облачный обмен";
+"cloudshare_upload_button" = "Загрузить в облако";
+"cloudshare_uploading" = "Загрузка...";
+"cloudshare_uuid_title" = "Ссылка для обмена";
+"cloudshare_copy_button" = "Копировать ссылку";
+"cloudshare_copied" = "Скопировано";
+"cloudshare_import_placeholder" = "Введите UUID";
+"cloudshare_import_button" = "Импорт из облака";
+"cloudshare_import_downloading" = "Скачивание...";
+"cloudshare_error_not_configured" = "Облачный сервис не настроен";
+"cloudshare_error_not_found" = "Облачный обмен не найден";
+"cloudshare_error_empty_data" = "Данные пусты";
+"cloudshare_error_devicecheck_unsupported" = "Устройство не поддерживает проверку";
+"cloudshare_error_devicecheck_failed" = "Проверка устройства не удалась";
+"cloudshare_error_invalid_response" = "Неверный ответ сервера";
+"cloudshare_error_network" = "Сетевое соединение не удалось";
+
+"label_game" = "Игра";
+
+"cloudshare_expires_format" = "Expires in %@";
+"cloudshare_import_summary_format" = "Imported: %d players, %d teams, %d games";

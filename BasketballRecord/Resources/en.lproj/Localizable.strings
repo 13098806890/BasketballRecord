@@ -1038,3 +1038,26 @@ Format:
 "message_time_out_of_range" = "Time must be between game start and end";
 
 "label_deleted_events" = "Deleted Events";
+
+"cloudshare_expires_format" = "Expires in %@";
+"cloudshare_import_summary_format" = "Imported: %d players, %d teams, %d games";
+
+"label_game" = "Game";
+
+"cloudshare_picker_text_label" = "Text Share";
+"cloudshare_picker_cloud_label" = "Cloud Share";
+"cloudshare_upload_button" = "Upload to Cloud";
+"cloudshare_uploading" = "Uploading...";
+"cloudshare_uuid_title" = "Share Link";
+"cloudshare_copy_button" = "Copy Link";
+"cloudshare_copied" = "Copied";
+"cloudshare_import_placeholder" = "Enter Share UUID";
+"cloudshare_import_button" = "Import from Cloud";
+"cloudshare_import_downloading" = "Downloading...";
+"cloudshare_error_not_configured" = "Cloud service not configured";
+"cloudshare_error_not_found" = "Cloud share not found";
+"cloudshare_error_empty_data" = "Data is empty";
+"cloudshare_error_devicecheck_unsupported" = "Device does not support verification";
+"cloudshare_error_devicecheck_failed" = "Device verification failed";
+"cloudshare_error_invalid_response" = "Invalid server response";
+"cloudshare_error_network" = "Network connection failed";
