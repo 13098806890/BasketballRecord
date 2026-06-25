@@ -1045,6 +1045,8 @@ Format:
 "cloudshare_error_network" = "ネットワーク接続に失敗しました";
 "cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
 
+"button_retry" = "Retry";
+
 "label_game" = "試合";
 
 "cloudshare_expires_format" = "Expires in %@";

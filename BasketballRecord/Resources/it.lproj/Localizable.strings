@@ -1034,6 +1034,8 @@ Format:
 "cloudshare_error_network" = "Connessione di rete fallita";
 "cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
 
+"button_retry" = "Retry";
+
 "label_game" = "Partita";
 
 "cloudshare_expires_format" = "Expires in %@";
