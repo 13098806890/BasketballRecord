@@ -389,7 +389,11 @@ struct CloudShareUploadView: View {
             let gameIDs = selectedGameIDs
 
             let encoded = try await Task.detached(priority: .background) { [self] in
-                let players = self.sortedPlayers.filter { playerIDs.contains($0.id) }.map(ExportPlayer.init)
+                let players = self.sortedPlayers.filter { playerIDs.contains($0.id) }.map { p in
+                    var ep = ExportPlayer(player: p)
+                    ep.photoData = nil
+                    return ep
+                }
                 let teams = self.sortedTeams.filter { teamIDs.contains($0.id) }.map { ExportTeam(team: $0) }
                 let games = self.sortedSavedGames.filter { gameIDs.contains($0.id) }.map { game in
                     ExportedGamePackageV2(legacy: ExportedGamePackage(
@@ -445,7 +449,9 @@ struct CloudShareUploadView: View {
         let allIDs = Set(game.homePlayerIDs + game.awayPlayerIDs + game.snapshot.statsByPlayerID.keys)
         return allIDs.compactMap { id in
             if let player = store.players.first(where: { $0.id == id }) {
-                return ExportPlayer(player: player)
+                var ep = ExportPlayer(player: player)
+                ep.photoData = nil
+                return ep
             }
             return ExportPlayer(id: id, name: game.playerNamesByID[id] ?? "Unknown")
         }
