@@ -2,8 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 private let recordsKey = "cloud_share_upload_records"
-private let maxPhotoSize = 15 * 1024
-private let maxUploadBodySize = 800 * 1024
+private let maxPhotoSize = 200 * 1024
 
 struct CloudShareUploadView: View {
     @EnvironmentObject private var store: AppStore
@@ -403,11 +402,6 @@ struct CloudShareUploadView: View {
                 return try JSONEncoder().encode(bundle)
             }.value
 
-            guard encoded.count <= maxUploadBodySize else {
-                throw CloudShareError.serverError(
-                    String(format: NSLocalizedString("cloudshare_error_too_large", comment: ""), encoded.count / 1024)
-                )
-            }
             let uuid = try await CloudShareManager.upload(data: encoded)
 
             if includePhotos {
