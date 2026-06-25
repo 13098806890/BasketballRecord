@@ -1042,6 +1042,7 @@ Format:
 "cloudshare_error_devicecheck_failed" = "設備驗證失敗";
 "cloudshare_error_invalid_response" = "伺服器響應無效";
 "cloudshare_error_network" = "網絡連接失敗";
+"cloudshare_error_too_large" = "數據過大（%d KB），請減少選擇項或關閉匯出照片";
 
 "label_game" = "比賽";
 

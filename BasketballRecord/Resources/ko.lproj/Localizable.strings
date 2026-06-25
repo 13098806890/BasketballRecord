@@ -1060,6 +1060,7 @@ Format:
 "cloudshare_error_devicecheck_failed" = "장치 인증 실패";
 "cloudshare_error_invalid_response" = "서버 응답이 잘못됨";
 "cloudshare_error_network" = "네트워크 연결 실패";
+"cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
 
 "label_game" = "경기";
 

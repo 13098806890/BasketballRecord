@@ -1032,6 +1032,7 @@ Format:
 "cloudshare_error_devicecheck_failed" = "Verificación del dispositivo fallida";
 "cloudshare_error_invalid_response" = "Respuesta del servidor inválida";
 "cloudshare_error_network" = "Conexión de red fallida";
+"cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
 
 "label_game" = "Partido";
 
