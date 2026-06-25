@@ -1032,6 +1032,7 @@ Format:
 "cloudshare_error_devicecheck_failed" = "Échec de la vérification de lappareil";
 "cloudshare_error_invalid_response" = "Réponse serveur invalide";
 "cloudshare_error_network" = "Connexion réseau échouée";
+"cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
 
 "label_game" = "Match";
 

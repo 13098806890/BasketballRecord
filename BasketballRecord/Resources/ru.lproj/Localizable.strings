@@ -1032,6 +1032,7 @@ Format:
 "cloudshare_error_devicecheck_failed" = "Проверка устройства не удалась";
 "cloudshare_error_invalid_response" = "Неверный ответ сервера";
 "cloudshare_error_network" = "Сетевое соединение не удалось";
+"cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
 
 "label_game" = "Игра";
 

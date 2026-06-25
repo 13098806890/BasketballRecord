@@ -1043,6 +1043,7 @@ Format:
 "cloudshare_error_devicecheck_failed" = "デバイス検証に失敗しました";
 "cloudshare_error_invalid_response" = "サーバー応答が無効です";
 "cloudshare_error_network" = "ネットワーク接続に失敗しました";
+"cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
 
 "label_game" = "試合";
 

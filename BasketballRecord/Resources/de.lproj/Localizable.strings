@@ -1032,6 +1032,7 @@ Format:
 "cloudshare_error_devicecheck_failed" = "Geräteverifizierung fehlgeschlagen";
 "cloudshare_error_invalid_response" = "Ungültige Serverantwort";
 "cloudshare_error_network" = "Netzwerkverbindung fehlgeschlagen";
+"cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
 
 "label_game" = "Spiel";
 
