@@ -3,8 +3,12 @@ import SwiftUI
 struct ImportGameView: View {
     @EnvironmentObject private var store: AppStore
     @Environment(\.dismiss) private var dismiss
-    @State private var base64 = ""
+    @State private var base64: String
     @State private var isChunkedMode = false
+
+    init(prefilledBase64: String = "") {
+        _base64 = State(initialValue: prefilledBase64)
+    }
     @State private var chunkInputLines: [String] = []
     @State private var chunkTransferID: String?
     @State private var chunkTotalParts = 0
@@ -40,9 +44,38 @@ struct ImportGameView: View {
         return !base64.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    @State private var cloudImportUUID = ""
+    @State private var isCloudImporting = false
+    @State private var cloudImportError: String?
+
     var body: some View {
         NavigationStack {
             Form {
+                Section(LocalizedStringKey("cloudshare_picker_cloud_label")) {
+                    HStack(spacing: 12) {
+                        TextField(LocalizedStringKey("cloudshare_import_placeholder"), text: $cloudImportUUID)
+                            .font(.body.monospaced())
+                            .autocorrectionDisabled(true)
+                            .textInputAutocapitalization(.never)
+
+                        if isCloudImporting {
+                            ProgressView()
+                        } else {
+                            Button(LocalizedStringKey("cloudshare_import_button")) {
+                                Task { await importFromCloud() }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(cloudImportUUID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        }
+                    }
+
+                    if let error = cloudImportError {
+                        Text(error)
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                    }
+                }
+
                 Section(LocalizedStringKey("section_paste_share_code")) {
                     if isChunkedMode {
                         Text(String(format: NSLocalizedString("import_chunk_detected_progress_format", comment: "Chunk detected progress"), filledChunkCount, chunkTotalParts))
@@ -212,6 +245,27 @@ struct ImportGameView: View {
         case .inserted, .none:
             return NSLocalizedString("alert_overwrite_any", comment: "Overwrite any")
         }
+    }
+
+    private func importFromCloud() async {
+        isCloudImporting = true
+        cloudImportError = nil
+        do {
+            let data = try await CloudShareManager.retrieve(uuid: cloudImportUUID.trimmingCharacters(in: .whitespacesAndNewlines))
+            guard let base64 = String(data: data, encoding: .utf8) else {
+                throw CloudShareError.invalidResponse
+            }
+            self.base64 = base64
+            self.isChunkedMode = false
+            await decode()
+        } catch {
+            if let shareError = error as? CloudShareError, case .notFound = shareError {
+                cloudImportError = NSLocalizedString("cloudshare_error_not_found", comment: "")
+            } else {
+                cloudImportError = error.localizedDescription
+            }
+        }
+        isCloudImporting = false
     }
 
     private func decode() async {

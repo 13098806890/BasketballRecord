@@ -278,6 +278,19 @@ struct ExportedPlayerPackage: Codable, Hashable {
     var player: ExportPlayer
 }
 
+struct CloudShareBundle: Codable {
+    var players: [ExportPlayer]
+    var teams: [ExportTeam]
+    var games: [ExportedGamePackageV2]
+}
+
+struct CloudShareRecord: Codable {
+    let uuid: String
+    let playerIDs: [UUID]
+    let teamIDs: [UUID]
+    let gameIDs: [UUID]
+}
+
 struct ExportedGamePackageV2: Codable, Hashable {
     var players: [ExportPlayerV2]
     var teams: [ExportTeamV2]

@@ -1014,3 +1014,26 @@ Format:
 "message_time_out_of_range" = "L'ora deve essere tra l'inizio e la fine della partita";
 
 "label_deleted_events" = "Eventi eliminati";
+
+"cloudshare_picker_text_label" = "Condividi testo";
+"cloudshare_picker_cloud_label" = "Condividi Cloud";
+"cloudshare_upload_button" = "Carica su Cloud";
+"cloudshare_uploading" = "Caricamento...";
+"cloudshare_uuid_title" = "Link condiviso";
+"cloudshare_copy_button" = "Copia link";
+"cloudshare_copied" = "Copiato";
+"cloudshare_import_placeholder" = "Inserisci UUID";
+"cloudshare_import_button" = "Importa da Cloud";
+"cloudshare_import_downloading" = "Download...";
+"cloudshare_error_not_configured" = "Servizio Cloud non configurato";
+"cloudshare_error_not_found" = "Condivisione Cloud non trovata";
+"cloudshare_error_empty_data" = "Dati vuoti";
+"cloudshare_error_devicecheck_unsupported" = "Dispositivo non supporta verifica";
+"cloudshare_error_devicecheck_failed" = "Verifica dispositivo fallita";
+"cloudshare_error_invalid_response" = "Risposta server non valida";
+"cloudshare_error_network" = "Connessione di rete fallita";
+
+"label_game" = "Partita";
+
+"cloudshare_expires_format" = "Expires in %@";
+"cloudshare_import_summary_format" = "Imported: %d players, %d teams, %d games";
