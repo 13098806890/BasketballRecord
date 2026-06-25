@@ -356,6 +356,12 @@ struct ImportGameView: View {
             return
         }
 
+        if UUID(uuidString: clipboardText) != nil {
+            cloudImportUUID = clipboardText
+            lastAutoFilledClipboardChangeCount = currentChangeCount
+            return
+        }
+
         guard let decoded = store.decodeGamePackage(from: clipboardText) else {
             return
         }

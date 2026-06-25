@@ -1,10 +1,14 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 private let recordsKey = "cloud_share_upload_records"
+private let maxPhotoSize = 500 * 1024
 
 struct CloudShareUploadView: View {
     @EnvironmentObject private var store: AppStore
     @Environment(\.dismiss) private var dismiss
+
+    @AppStorage("cloudshare_include_photos") private var includePhotos = true
 
     @State private var includePlayers = true
     @State private var includeTeams = true
@@ -312,6 +316,12 @@ struct CloudShareUploadView: View {
         }
 
         Section {
+            Toggle(isOn: $includePhotos) {
+                Label(NSLocalizedString("label_include_photos_in_sync", comment: ""), systemImage: "photo")
+            }
+        }
+
+        Section {
             Button {
                 Task { await upload() }
             } label: {
@@ -374,11 +384,21 @@ struct CloudShareUploadView: View {
         isUploading = true
         cloudError = nil
         do {
-            let players = sortedPlayers.filter { selectedPlayerIDs.contains($0.id) }.map(ExportPlayer.init)
+            let players: [ExportPlayer]
+            if includePhotos {
+                players = sortedPlayers.filter { selectedPlayerIDs.contains($0.id) }.map { player in
+                    var export = ExportPlayer(player: player)
+                    export.photoData = compressIfNeeded(export.photoData)
+                    return export
+                }
+            } else {
+                players = sortedPlayers.filter { selectedPlayerIDs.contains($0.id) }.map(ExportPlayer.init)
+            }
             let teams = sortedTeams.filter { selectedTeamIDs.contains($0.id) }.map { ExportTeam(team: $0) }
             let games = sortedSavedGames.filter { selectedGameIDs.contains($0.id) }.map { game in
-                ExportedGamePackageV2(legacy: ExportedGamePackage(
-                    players: exportPlayers(for: game),
+                let gamePlayers = exportPlayers(for: game, includePhotos: includePhotos)
+                return ExportedGamePackageV2(legacy: ExportedGamePackage(
+                    players: gamePlayers,
                     teams: exportTeams(for: game),
                     game: ExportGameRecord(savedGame: game)
                 ))
@@ -407,11 +427,17 @@ struct CloudShareUploadView: View {
         }
     }
 
-    private func exportPlayers(for game: SavedGame) -> [ExportPlayer] {
+    private func exportPlayers(for game: SavedGame, includePhotos: Bool = false) -> [ExportPlayer] {
         let allIDs = Set(game.homePlayerIDs + game.awayPlayerIDs + game.snapshot.statsByPlayerID.keys)
         return allIDs.compactMap { id in
             if let player = store.players.first(where: { $0.id == id }) {
-                return ExportPlayer(player: player)
+                var export = ExportPlayer(player: player)
+                if includePhotos {
+                    export.photoData = compressIfNeeded(export.photoData)
+                } else {
+                    export.photoData = nil
+                }
+                return export
             }
             return ExportPlayer(id: id, name: game.playerNamesByID[id] ?? "Unknown")
         }
@@ -490,5 +516,19 @@ struct CloudShareUploadView: View {
             return "\(hours)h \(minutes)m"
         }
         return "\(minutes)m"
+    }
+
+    private func compressIfNeeded(_ data: Data?) -> Data? {
+        guard let data = data, !data.isEmpty else { return nil }
+        guard data.count > maxPhotoSize else { return data }
+        guard let image = UIImage(data: data) else { return data }
+        var quality: CGFloat = 0.8
+        let step: CGFloat = 0.1
+        var compressed = image.jpegData(compressionQuality: quality)
+        while (compressed?.count ?? 0) > maxPhotoSize && quality > 0.2 {
+            quality -= step
+            compressed = image.jpegData(compressionQuality: quality)
+        }
+        return compressed ?? data
     }
 }
