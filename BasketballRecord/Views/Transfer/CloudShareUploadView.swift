@@ -21,11 +21,15 @@ struct CloudShareUploadView: View {
     @State private var remainingSeconds: Int = 0
     @State private var isChecking = true
     @State private var isUploading = false
+    @State private var uploadProgress: Double = 0
+    @State private var uploadPhase: String = ""
     @State private var uploadedUUID: String?
     @State private var cloudError: String?
 
     private var sortedPlayers: [Player] {
-        store.players.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        store.players
+            .filter { !AppStore.tutorialPlayerIDs.contains($0.id) }
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
     private var sortedTeams: [Team] {
@@ -322,20 +326,25 @@ struct CloudShareUploadView: View {
         }
 
         Section {
-            Button {
-                Task { await upload() }
-            } label: {
-                ZStack {
-                    if isUploading {
-                        ProgressView()
-                    } else {
-                        Text(hasSelectedData ? NSLocalizedString("cloudshare_upload_button", comment: "") : NSLocalizedString("cloudshare_error_empty_data", comment: ""))
-                    }
+            if isUploading {
+                VStack(spacing: 6) {
+                    ProgressView(value: uploadProgress, total: 1)
+                        .progressViewStyle(.linear)
+                    Text(uploadPhase)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-                .frame(maxWidth: .infinity)
+                .padding(.vertical, 4)
+            } else {
+                Button {
+                    Task { await upload() }
+                } label: {
+                    Text(hasSelectedData ? NSLocalizedString("cloudshare_upload_button", comment: "") : NSLocalizedString("cloudshare_error_empty_data", comment: ""))
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(AppNeutralProminentButtonStyle())
+                .disabled(!hasSelectedData)
             }
-            .buttonStyle(AppNeutralProminentButtonStyle())
-            .disabled(!hasSelectedData || isUploading)
         }
     }
 
@@ -382,6 +391,7 @@ struct CloudShareUploadView: View {
 
     private func upload() async {
         isUploading = true
+        uploadProgress = 0
         cloudError = nil
         do {
             let playerIDs = selectedPlayerIDs
@@ -406,9 +416,11 @@ struct CloudShareUploadView: View {
                 return try JSONEncoder().encode(bundle)
             }.value
 
+            uploadPhase = NSLocalizedString("cloudshare_uploading_metadata", comment: "")
             let uuid = try await CloudShareManager.upload(data: encoded)
 
             if includePhotos {
+                uploadPhase = NSLocalizedString("cloudshare_compressing_photos", comment: "")
                 let compressTask = Task.detached(priority: .background) { [self] in
                     let photos: [(UUID, Data)] = self.sortedPlayers
                         .filter { playerIDs.contains($0.id) }
@@ -419,9 +431,13 @@ struct CloudShareUploadView: View {
                     return photos
                 }
                 let photos = try await compressTask.value
-                for (pid, photoData) in photos {
+                let total = photos.count
+                for (i, (pid, photoData)) in photos.enumerated() {
+                    uploadPhase = String(format: NSLocalizedString("cloudshare_uploading_photos_format", comment: ""), i + 1, total)
+                    uploadProgress = Double(i) / Double(max(total, 1))
                     try await CloudShareManager.uploadPhoto(uuid: uuid, playerID: pid, data: photoData)
                 }
+                uploadProgress = 1
             }
 
             let record = CloudShareRecord(

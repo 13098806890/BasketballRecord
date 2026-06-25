@@ -1,3 +1,4 @@
-• Ereignisbearbeitung (Pro) — Spielereignisse anzeigen, hinzufügen und bearbeiten mit automatischer Neuberechnung
-• Cloud-Freigabe — Spieler, Teams und Spiele in die Cloud hochladen und per UUID teilen
+• Cloud-Freigabe — Fortschrittsbalken beim Hoch-/Herunterladen mit Foto-für-Foto-Status
+• Sprach-Tutorial — verbesserte Aufgabenreihenfolge, Erfolgsquote zählt jetzt alle Versuche korrekt
+• Tutorial-Spieler erscheinen nicht mehr in der Spielerverwaltung oder Cloud-Auswahl
 • Fehlerbehebungen und Leistungsverbesserungen

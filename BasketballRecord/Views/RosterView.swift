@@ -375,13 +375,14 @@ struct PlayerManagementView: View {
     @State private var selectedPlayerGroupID: UUID?
 
     private var filteredPlayers: [Player] {
-        guard store.isPro, let groupID = selectedPlayerGroupID else { return store.players }
-        return store.players.filter { $0.playerGroupIDs.contains(groupID) }
+        let nonTutorial = store.players.filter { !AppStore.tutorialPlayerIDs.contains($0.id) }
+        guard store.isPro, let groupID = selectedPlayerGroupID else { return nonTutorial }
+        return nonTutorial.filter { $0.playerGroupIDs.contains(groupID) }
     }
 
     var body: some View {
         List {
-            if store.players.isEmpty {
+            if filteredPlayers.isEmpty {
                 ContentUnavailableView(LocalizedStringKey("empty_no_players"), systemImage: "person.crop.circle.badge.plus")
             }
 
@@ -757,7 +758,10 @@ private struct ImportRosterPackageView: View {
     @State private var isParsing = false
     @State private var cloudImportUUID = ""
     @State private var isCloudImporting = false
+    @State private var cloudImportProgress: Double = 0
+    @State private var cloudImportPhase: String = ""
     @State private var cloudImportError: String?
+    @State private var cloudImportSuccessMessage: String?
     @State private var isShowingGameImport = false
     @State private var gamePackageForCloud: ExportedGamePackage?
     @FocusState private var isInputFocused: Bool
@@ -798,7 +802,14 @@ private struct ImportRosterPackageView: View {
                             .textInputAutocapitalization(.never)
 
                         if isCloudImporting {
-                            ProgressView()
+                            VStack(alignment: .trailing, spacing: 4) {
+                                ProgressView(value: cloudImportProgress, total: 1)
+                                    .progressViewStyle(.linear)
+                                    .frame(width: 120)
+                                Text(cloudImportPhase)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
                         } else {
                             Button(LocalizedStringKey("cloudshare_import_button")) {
                                 Task { await importFromCloud() }
@@ -812,6 +823,10 @@ private struct ImportRosterPackageView: View {
                         Text(error)
                             .font(.footnote)
                             .foregroundStyle(.red)
+                    }
+                    if let msg = cloudImportSuccessMessage {
+                        Text(msg)
+                            .font(.footnote)
                     }
                 }
 
@@ -1193,8 +1208,11 @@ private struct ImportRosterPackageView: View {
 
     private func importFromCloud() async {
         isCloudImporting = true
+        cloudImportProgress = 0
         cloudImportError = nil
+        cloudImportSuccessMessage = nil
         do {
+            cloudImportPhase = NSLocalizedString("cloudshare_downloading_metadata", comment: "")
             let data = try await CloudShareManager.retrieve(uuid: cloudImportUUID.trimmingCharacters(in: .whitespacesAndNewlines))
 
             if let bundle = try? JSONDecoder().decode(CloudShareBundle.self, from: data) {
@@ -1222,16 +1240,20 @@ private struct ImportRosterPackageView: View {
                 }
 
                 let uid = cloudImportUUID.trimmingCharacters(in: .whitespacesAndNewlines)
-                for exportPlayer in bundle.players {
+                let total = bundle.players.count
+                for (i, exportPlayer) in bundle.players.enumerated() {
+                    cloudImportPhase = String(format: NSLocalizedString("cloudshare_downloading_photos_format", comment: ""), i + 1, total)
+                    cloudImportProgress = Double(i) / Double(max(total, 1))
                     guard let photoData = try? await CloudShareManager.retrievePhoto(uuid: uid, playerID: exportPlayer.id) else { continue }
                     if var player = store.players.first(where: { $0.id == exportPlayer.id }) {
                         player.photoData = photoData
                         store.updatePlayer(player)
                     }
                 }
+                cloudImportProgress = 1
 
                 cloudImportUUID = ""
-                cloudImportError = String(format: NSLocalizedString("cloudshare_import_summary_format", comment: "Import summary"), importedPlayers, importedTeams, importedGames)
+                cloudImportSuccessMessage = String(format: NSLocalizedString("cloudshare_import_summary_format", comment: "Import summary"), importedPlayers, importedTeams, importedGames)
             } else {
                 guard let text = String(data: data, encoding: .utf8) else {
                     throw CloudShareError.invalidResponse

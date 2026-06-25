@@ -1029,6 +1029,11 @@ Format:
 "cloudshare_picker_cloud_label" = "雲端分享";
 "cloudshare_upload_button" = "上傳到雲端";
 "cloudshare_uploading" = "正在上傳...";
+"cloudshare_uploading_metadata" = "正在上傳元數據...";
+"cloudshare_uploading_photos_format" = "照片 %d/%d";
+"cloudshare_compressing_photos" = "正在壓縮照片...";
+"cloudshare_downloading_metadata" = "正在下載元數據...";
+"cloudshare_downloading_photos_format" = "照片 %d/%d";
 "cloudshare_uuid_title" = "分享連結";
 "cloudshare_copy_button" = "複製連結";
 "cloudshare_copied" = "已複製";

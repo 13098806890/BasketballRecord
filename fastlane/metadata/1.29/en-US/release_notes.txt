@@ -1,3 +1,4 @@
-• Event Editing (Pro) — view, add, and edit game events with real-time stat recalculation
-• Cloud Share — upload players, teams, and games to the cloud and share via UUID
+• Cloud Share — upload/download progress bar with photo-by-photo status
+• Voice Tutorial — improved task ordering, success rate now correctly counts all attempts
+• Tutorial players no longer appear in player management or cloud share picker
 • Bug fixes and performance improvements

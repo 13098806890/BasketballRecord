@@ -1030,6 +1030,11 @@ Format:
 "cloudshare_picker_cloud_label" = "クラウド共有";
 "cloudshare_upload_button" = "クラウドにアップロード";
 "cloudshare_uploading" = "アップロード中...";
+"cloudshare_uploading_metadata" = "メタデータをアップロード中...";
+"cloudshare_uploading_photos_format" = "写真 %d/%d";
+"cloudshare_compressing_photos" = "写真を圧縮中...";
+"cloudshare_downloading_metadata" = "メタデータをダウンロード中...";
+"cloudshare_downloading_photos_format" = "写真 %d/%d";
 "cloudshare_uuid_title" = "共有リンク";
 "cloudshare_copy_button" = "リンクをコピー";
 "cloudshare_copied" = "コピーしました";
