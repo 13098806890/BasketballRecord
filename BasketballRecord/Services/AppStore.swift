@@ -672,33 +672,72 @@ final class AppStore: ObservableObject {
 
     private func migrateTeamStatsMode() {
         print("[Migration] Running migrateTeamStatsMode... savedGames=\(savedGames.count)")
-        var didMigrate = false
+        var didSave = false
         for i in savedGames.indices {
             let game = savedGames[i]
-            print("[Migration] Game \(game.id): homeTeamName='\(game.homeTeamName)' homeTeamStatsMode=\(game.snapshot.homeTeamStatsMode)")
-            guard !game.snapshot.homeTeamStatsMode else {
-                print("[Migration]  ✅ Already in team mode, skip")
-                continue
+
+            let statLogs = game.snapshot.logs.compactMap { entry -> (String, StatAction)? in
+                let msg = entry.message ?? ""
+                let code = entry.eventCode ?? GameLogFormatter.extractEventCode(from: msg)
+                guard let ec = code, let action = StatAction.allCases.first(where: { $0.eventCode == ec })
+                else { return nil }
+                return (msg, action)
             }
-            guard game.homeTeamName.localizedCaseInsensitiveContains("星图") else {
-                print("[Migration]  ❌ '\(game.homeTeamName)' does not contain '星图', skip")
+            guard !statLogs.isEmpty else {
+                print("[Migration] Game \(game.id): '\(game.homeTeamName)' vs '\(game.awayTeamName)' — no stat events, skip")
                 continue
             }
 
-            savedGames[i].snapshot.homeTeamStatsMode = true
-            didMigrate = true
-            print("[Migration] ✅ Set homeTeamStatsMode for game \(game.id): \(game.homeTeamName)")
-        }
-        if didMigrate {
-            dirtyKeys.insert(.savedGames)
-            print("[Migration] dirtyKeys inserted, scheduling save...")
-            DispatchQueue.main.async { [self] in
-                print("[Migration] Async save firing, suppressSave=\(suppressSave)")
-                save()
-                print("[Migration] Save completed")
+            let homeName = game.homeTeamName.lowercased()
+            let awayName = game.awayTeamName.lowercased()
+            var homeTeamEventCount = 0
+            var awayTeamEventCount = 0
+
+            for (msg, _) in statLogs {
+                let lower = msg.lowercased()
+                if lower.hasPrefix(homeName) || lower.hasPrefix("主队") {
+                    homeTeamEventCount += 1
+                } else if lower.hasPrefix(awayName) || lower.hasPrefix("客队") {
+                    awayTeamEventCount += 1
+                }
             }
-        } else {
-            print("[Migration] No games to migrate")
+
+            let isHomeTeamMode = homeTeamEventCount > 0
+            let isAwayTeamMode = awayTeamEventCount > 0
+            guard isHomeTeamMode || isAwayTeamMode else {
+                print("[Migration] Game \(game.id): '\(game.homeTeamName)' vs '\(game.awayTeamName)' — stat events don't match any team name")
+                continue
+            }
+
+            var homeStats = PlayerStats()
+            var awayStats = PlayerStats()
+            for (msg, action) in statLogs {
+                let lower = msg.lowercased()
+                if lower.hasPrefix(homeName) || lower.hasPrefix("主队") {
+                    action.apply(to: &homeStats)
+                } else if lower.hasPrefix(awayName) || lower.hasPrefix("客队") {
+                    action.apply(to: &awayStats)
+                }
+            }
+
+            savedGames[i].snapshot.homeTeamStatsMode = isHomeTeamMode
+            savedGames[i].snapshot.awayTeamStatsMode = isAwayTeamMode
+            if isHomeTeamMode {
+                let tid = game.snapshot.homeTeamID ?? UUID()
+                if game.snapshot.homeTeamID == nil { savedGames[i].snapshot.homeTeamID = tid }
+                savedGames[i].snapshot.teamStatsByID[tid] = homeStats
+            }
+            if isAwayTeamMode {
+                let tid = game.snapshot.awayTeamID ?? UUID()
+                if game.snapshot.awayTeamID == nil { savedGames[i].snapshot.awayTeamID = tid }
+                savedGames[i].snapshot.teamStatsByID[tid] = awayStats
+            }
+            didSave = true
+            print("[Migration] ✅ Game \(game.id): '\(game.homeTeamName)' homeMode=\(isHomeTeamMode) homeStats=\(homeStats.points)pts \(homeStats.totalRebounds)reb awayMode=\(isAwayTeamMode) awayStats=\(awayStats.points)pts \(awayStats.totalRebounds)reb")
+        }
+        if didSave {
+            dirtyKeys.insert(.savedGames)
+            DispatchQueue.main.async { [self] in save() }
         }
     }
 
