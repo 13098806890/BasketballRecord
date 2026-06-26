@@ -591,7 +591,6 @@ final class AppStore: ObservableObject {
             }
             players = restoredPlayers
             hasMigratedToCoreData = true
-            migrateTeamStatsMode()
             print("[LoadCheck] CoreData → players=\(players.count) teams=\(teams.count) gameGroups=\(gameGroups.count) playerGroups=\(playerGroups.count) savedGames=\(savedGames.count)")
 
             // Voice and group metadata is stored in UserDefaults as well
@@ -612,6 +611,7 @@ final class AppStore: ObservableObject {
                     print("[LoadCheck] Fallback UserDefaults → gameGroups=\(meta.gameGroups.count)")
                 }
             }
+            awardAllBadges()
             return
         }
 
@@ -660,7 +660,14 @@ final class AppStore: ObservableObject {
 
         // Migrate loaded data to Core Data
         migrateToCoreData()
-        migrateTeamStatsMode()
+        awardAllBadges()
+    }
+
+    private func awardAllBadges() {
+        guard !savedGames.isEmpty else { return }
+        DispatchQueue.main.async { [self] in
+            BadgeAwarder.scanAllGames(store: self)
+        }
     }
 
     private func migrateToCoreData() {
@@ -668,77 +675,6 @@ final class AppStore: ObservableObject {
         hasMigratedToCoreData = true
         dirtyKeys = [.players, .teams, .gameGroups, .playerGroups, .savedGames]
         save()
-    }
-
-    private func migrateTeamStatsMode() {
-        print("[Migration] Running migrateTeamStatsMode... savedGames=\(savedGames.count)")
-        var didSave = false
-        for i in savedGames.indices {
-            let game = savedGames[i]
-
-            let statLogs = game.snapshot.logs.compactMap { entry -> (String, StatAction)? in
-                let msg = entry.message ?? ""
-                let code = entry.eventCode ?? GameLogFormatter.extractEventCode(from: msg)
-                guard let ec = code, let action = StatAction.allCases.first(where: { $0.eventCode == ec })
-                else { return nil }
-                return (msg, action)
-            }
-            guard !statLogs.isEmpty else {
-                print("[Migration] Game \(game.id): '\(game.homeTeamName)' vs '\(game.awayTeamName)' — no stat events, skip")
-                continue
-            }
-
-            let homeName = game.homeTeamName.lowercased()
-            let awayName = game.awayTeamName.lowercased()
-            var homeTeamEventCount = 0
-            var awayTeamEventCount = 0
-
-            for (msg, _) in statLogs {
-                let lower = msg.lowercased()
-                if lower.hasPrefix(homeName) || lower.hasPrefix("主队") {
-                    homeTeamEventCount += 1
-                } else if lower.hasPrefix(awayName) || lower.hasPrefix("客队") {
-                    awayTeamEventCount += 1
-                }
-            }
-
-            let isHomeTeamMode = homeTeamEventCount > 0
-            let isAwayTeamMode = awayTeamEventCount > 0
-            guard isHomeTeamMode || isAwayTeamMode else {
-                print("[Migration] Game \(game.id): '\(game.homeTeamName)' vs '\(game.awayTeamName)' — stat events don't match any team name")
-                continue
-            }
-
-            var homeStats = PlayerStats()
-            var awayStats = PlayerStats()
-            for (msg, action) in statLogs {
-                let lower = msg.lowercased()
-                if lower.hasPrefix(homeName) || lower.hasPrefix("主队") {
-                    action.apply(to: &homeStats)
-                } else if lower.hasPrefix(awayName) || lower.hasPrefix("客队") {
-                    action.apply(to: &awayStats)
-                }
-            }
-
-            savedGames[i].snapshot.homeTeamStatsMode = isHomeTeamMode
-            savedGames[i].snapshot.awayTeamStatsMode = isAwayTeamMode
-            if isHomeTeamMode {
-                let tid = game.snapshot.homeTeamID ?? UUID()
-                if game.snapshot.homeTeamID == nil { savedGames[i].snapshot.homeTeamID = tid }
-                savedGames[i].snapshot.teamStatsByID[tid] = homeStats
-            }
-            if isAwayTeamMode {
-                let tid = game.snapshot.awayTeamID ?? UUID()
-                if game.snapshot.awayTeamID == nil { savedGames[i].snapshot.awayTeamID = tid }
-                savedGames[i].snapshot.teamStatsByID[tid] = awayStats
-            }
-            didSave = true
-            print("[Migration] ✅ Game \(game.id): '\(game.homeTeamName)' homeMode=\(isHomeTeamMode) homeStats=\(homeStats.points)pts \(homeStats.totalRebounds)reb awayMode=\(isAwayTeamMode) awayStats=\(awayStats.points)pts \(awayStats.totalRebounds)reb")
-        }
-        if didSave {
-            dirtyKeys.insert(.savedGames)
-            DispatchQueue.main.async { [self] in save() }
-        }
     }
 
     private func seedSampleData() {

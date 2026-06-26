@@ -17,12 +17,12 @@ struct BadgeAwarder {
             awarded.append((pid, PlayerBadge(type: .turnoverKing, gameID: game.id)))
         }
 
-        let efficiencyCandidates = playerIDs.filter { statsByID[$0]!.attempts >= 5 }
-        if let (pid, _) = topPlayer(efficiencyCandidates, statsByID: statsByID, value: { Double($0.points) / Double(max($0.attempts, 1)) }) {
+        let efficiencyCandidates = playerIDs.filter { statsByID[$0]!.allShotAttempts >= 5 }
+        if let (pid, _) = topPlayer(efficiencyCandidates, statsByID: statsByID, value: { Double($0.points) / Double(max($0.allShotAttempts, 1)) }) {
             awarded.append((pid, PlayerBadge(type: .efficiencyKing, gameID: game.id)))
         }
 
-        if let (pid, _) = topPlayer(playerIDs, statsByID: statsByID, value: { $0.attempts - $0.made }), (statsByID[pid]!.attempts - statsByID[pid]!.made) > 0 {
+        if let (pid, _) = topPlayer(playerIDs, statsByID: statsByID, value: { $0.allShotAttempts - $0.allShotsMade }), (statsByID[pid]!.allShotAttempts - statsByID[pid]!.allShotsMade) > 0 {
             awarded.append((pid, PlayerBadge(type: .ironKing, gameID: game.id)))
         }
 
@@ -30,7 +30,7 @@ struct BadgeAwarder {
             awarded.append((pid, PlayerBadge(type: .blockKing, gameID: game.id)))
         }
 
-        if let (pid, _) = topPlayer(playerIDs, statsByID: statsByID, value: { $0.threeMade }), statsByID[pid]!.threeMade > 0 {
+        if let pid = bestThreeShooter(playerIDs, statsByID: statsByID) {
             awarded.append((pid, PlayerBadge(type: .threeKing, gameID: game.id)))
         }
 
@@ -69,21 +69,30 @@ struct BadgeAwarder {
         return (sorted[0], top)
     }
 
+    private static func bestThreeShooter(_ ids: [UUID], statsByID: [UUID: PlayerStats]) -> UUID? {
+        let sorted = ids.filter { statsByID[$0]!.threeMade > 0 }.sorted { a, b in
+            let aMade = statsByID[a]!.threeMade
+            let bMade = statsByID[b]!.threeMade
+            if aMade != bMade { return aMade > bMade }
+            let aRate = statsByID[a]!.threeAttempts > 0 ? Double(aMade) / Double(statsByID[a]!.threeAttempts) : 0
+            let bRate = statsByID[b]!.threeAttempts > 0 ? Double(bMade) / Double(statsByID[b]!.threeAttempts) : 0
+            return aRate > bRate
+        }
+        return sorted.first
+    }
+
     private static func findThreeStreak(_ game: SavedGame) -> UUID? {
-        let threeLogs = game.snapshot.logs
-            .filter { $0.eventCode == "stat.threeMade" && $0.playerID != nil }
+        let logs = game.snapshot.logs
+            .filter { $0.eventCode == "stat.threeMade" || $0.eventCode == "stat.threeMissed" }
             .sorted { $0.timestamp < $1.timestamp }
-        for (pid, count) in Dictionary(grouping: threeLogs, by: { $0.playerID! }).mapValues(\.count) {
-            guard count >= 3 else { continue }
-            let playerLogs = threeLogs.filter { $0.playerID == pid }
-            var streak = 0
-            for log in playerLogs {
-                if log.playerID == pid {
-                    streak += 1
-                    if streak >= 3 { return pid }
-                } else {
-                    streak = 0
-                }
+        var streaks: [UUID: Int] = [:]
+        for entry in logs {
+            guard let pid = entry.playerID else { continue }
+            if entry.eventCode == "stat.threeMade" {
+                streaks[pid, default: 0] += 1
+                if streaks[pid]! >= 3 { return pid }
+            } else {
+                streaks[pid] = 0
             }
         }
         return nil
@@ -91,25 +100,35 @@ struct BadgeAwarder {
 
     static func parseMVP(from summary: String?, playerNames: [UUID: String]) -> UUID? {
         guard let summary = summary else { return nil }
+        let candidates = playerNames
+            .map { (id: $0.key, name: $0.value.trimmingCharacters(in: .whitespaces)) }
+            .filter { !$0.name.isEmpty }
+            .sorted { $0.name.count > $1.name.count }
+
         let lines = summary.split(separator: "\n").map(String.init)
-        var inMVPSection = false
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            if trimmed.lowercased().contains("mvp") || trimmed.contains("最有价值") {
-                inMVPSection = true
-                continue
+        for i in lines.indices {
+            let trimmed = lines[i].trimmingCharacters(in: .whitespaces)
+            guard trimmed.lowercased().contains("mvp") || trimmed.contains("最有价值") || trimmed.contains("最有價值") else { continue }
+
+            for candidate in candidates where trimmed.contains(candidate.name) {
+                return candidate.id
             }
-            if inMVPSection && !trimmed.isEmpty && !trimmed.hasPrefix("#") && !trimmed.hasPrefix("-") {
-                let candidates = playerNames
-                    .map { (id: $0.key, name: $0.value.trimmingCharacters(in: .whitespaces)) }
-                    .filter { !$0.name.isEmpty }
-                    .sorted { $0.name.count > $1.name.count }
-                for candidate in candidates where trimmed.contains(candidate.name) {
+
+            for j in (i + 1)..<min(i + 3, lines.count) {
+                let next = lines[j].trimmingCharacters(in: .whitespaces)
+                guard !next.isEmpty else { continue }
+                for candidate in candidates where next.contains(candidate.name) {
                     return candidate.id
                 }
             }
         }
         return nil
+    }
+
+    @MainActor static func scanAllGames(store: AppStore) {
+        for game in store.savedGames {
+            awardBadges(for: game, store: store)
+        }
     }
 
     @MainActor private static func applyAwards(_ awards: [(UUID, PlayerBadge)], store: AppStore) {

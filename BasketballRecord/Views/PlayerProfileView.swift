@@ -59,7 +59,13 @@ struct PlayerProfileView: View {
                     header
 
                     if let player, !player.badges.isEmpty {
-                        badgesSection(player)
+                        if let fg = fixedGame {
+                            if player.badges.contains(where: { $0.gameID == fg.id }) {
+                                badgesSection(player)
+                            }
+                        } else {
+                            badgesSection(player)
+                        }
                     }
 
                     if let fixedGame, fixedGame.snapshot.periodCount > 1 {
@@ -167,26 +173,37 @@ struct PlayerProfileView: View {
     }
 
     private func badgesSection(_ player: Player) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        let filtered = fixedGame.map { game in player.badges.filter { $0.gameID == game.id } } ?? player.badges
+        let grouped = Dictionary(grouping: filtered, by: { $0.type })
+            .mapValues(\.count)
+            .sorted { $0.key.title < $1.key.title }
+        return VStack(alignment: .leading, spacing: 8) {
             Text(NSLocalizedString("label_badges", comment: ""))
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 10) {
-                    ForEach(player.badges) { badge in
+                    ForEach(grouped, id: \.key) { type, count in
                         VStack(spacing: 4) {
-                            Image(badge.type.assetName)
+                            Image(type.assetName)
                                 .resizable()
                                 .frame(width: 44, height: 44)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
-                            Text(badge.title)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                                .fixedSize()
+                            HStack(spacing: 2) {
+                                Text(type.title)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                                    .fixedSize()
+                                if count > 1 {
+                                    Text("×\(count)")
+                                        .font(.caption2.weight(.semibold))
+                                        .foregroundStyle(.primary)
+                                }
+                            }
                         }
-                        .frame(width: 60)
+                        .frame(width: 72)
                     }
                 }
                 .padding(.horizontal)

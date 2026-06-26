@@ -345,14 +345,12 @@ struct PlayerBadge: Identifiable, Codable, Hashable {
     let id: UUID
     let type: BadgeType
     let gameID: UUID
-    let title: String
     let awardedAt: Date
 
-    init(type: BadgeType, gameID: UUID, title: String? = nil) {
+    init(type: BadgeType, gameID: UUID) {
         self.id = UUID()
         self.type = type
         self.gameID = gameID
-        self.title = title ?? type.title
         self.awardedAt = Date()
     }
 }
@@ -749,6 +747,8 @@ struct TransferGameLogEntryV2: Codable, Hashable {
     var playerID: UUID?
     var period: Int?
     var periodElapsedSeconds: TimeInterval?
+    var eventCode: String?
+    var relatedPlayerID: UUID?
 
     enum CodingKeys: String, CodingKey {
         case id = "i"
@@ -757,6 +757,8 @@ struct TransferGameLogEntryV2: Codable, Hashable {
         case playerID = "p"
         case period = "q"
         case periodElapsedSeconds = "e"
+        case eventCode = "r"
+        case relatedPlayerID = "s"
     }
 
     init(legacy: GameLogEntry) {
@@ -766,6 +768,8 @@ struct TransferGameLogEntryV2: Codable, Hashable {
         playerID = legacy.playerID
         period = legacy.period
         periodElapsedSeconds = legacy.periodElapsedSeconds
+        eventCode = legacy.eventCode
+        relatedPlayerID = legacy.relatedPlayerID
     }
 
     var legacy: GameLogEntry {
@@ -773,7 +777,9 @@ struct TransferGameLogEntryV2: Codable, Hashable {
             id: id,
             timestamp: timestamp,
             message: message,
+            eventCode: eventCode,
             playerID: playerID,
+            relatedPlayerID: relatedPlayerID,
             period: period,
             periodElapsedSeconds: periodElapsedSeconds
         )
@@ -862,6 +868,8 @@ struct PlayerStats: Codable, Hashable {
     var totalRebounds: Int { rebounds + offensiveRebounds + defensiveRebounds }
     var made: Int { twoMade + threeMade }
     var attempts: Int { twoAttempts + threeAttempts }
+    var allShotsMade: Int { twoMade + threeMade + layupMade + midRangeMade + paintMade + dunkMade }
+    var allShotAttempts: Int { twoAttempts + threeAttempts + layupAttempts + midRangeAttempts + paintAttempts + dunkAttempts }
     var allFreeThrowMade: Int { bonusFreeThrowMade + freeThrowMade }
     var allFreeThrowAttempts: Int { bonusFreeThrowAttempts + freeThrowAttempts }
     var points: Int { twoMade * 2 + threeMade * 3 + bonusFreeThrowMade + freeThrowMade }
