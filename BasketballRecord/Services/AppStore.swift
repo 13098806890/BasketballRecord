@@ -591,14 +591,8 @@ final class AppStore: ObservableObject {
             }
             players = restoredPlayers
             hasMigratedToCoreData = true
+            migrateTeamStatsMode()
             print("[LoadCheck] CoreData → players=\(players.count) teams=\(teams.count) gameGroups=\(gameGroups.count) playerGroups=\(playerGroups.count) savedGames=\(savedGames.count)")
-            for game in savedGames {
-                let ts = game.snapshot.teamStatsByID
-                let teamPts = ts.values.reduce(0) { $0 + $1.points }
-                if teamPts > 0 || game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode || true {
-                    print("[LoadCheck] Game \(game.id): teamStats=\(ts.count) pts=\(teamPts) homeMode=\(game.snapshot.homeTeamStatsMode) awayMode=\(game.snapshot.awayTeamStatsMode)")
-                }
-            }
 
             // Voice and group metadata is stored in UserDefaults as well
             if let meta: StoreMeta = safeRead(StoreMeta.self, forKey: metaKey) {
@@ -666,6 +660,7 @@ final class AppStore: ObservableObject {
 
         // Migrate loaded data to Core Data
         migrateToCoreData()
+        migrateTeamStatsMode()
     }
 
     private func migrateToCoreData() {
@@ -673,6 +668,38 @@ final class AppStore: ObservableObject {
         hasMigratedToCoreData = true
         dirtyKeys = [.players, .teams, .gameGroups, .playerGroups, .savedGames]
         save()
+    }
+
+    private func migrateTeamStatsMode() {
+        print("[Migration] Running migrateTeamStatsMode... savedGames=\(savedGames.count)")
+        var didMigrate = false
+        for i in savedGames.indices {
+            let game = savedGames[i]
+            print("[Migration] Game \(game.id): homeTeamName='\(game.homeTeamName)' homeTeamStatsMode=\(game.snapshot.homeTeamStatsMode)")
+            guard !game.snapshot.homeTeamStatsMode else {
+                print("[Migration]  ✅ Already in team mode, skip")
+                continue
+            }
+            guard game.homeTeamName.localizedCaseInsensitiveContains("星图") else {
+                print("[Migration]  ❌ '\(game.homeTeamName)' does not contain '星图', skip")
+                continue
+            }
+
+            savedGames[i].snapshot.homeTeamStatsMode = true
+            didMigrate = true
+            print("[Migration] ✅ Set homeTeamStatsMode for game \(game.id): \(game.homeTeamName)")
+        }
+        if didMigrate {
+            dirtyKeys.insert(.savedGames)
+            print("[Migration] dirtyKeys inserted, scheduling save...")
+            DispatchQueue.main.async { [self] in
+                print("[Migration] Async save firing, suppressSave=\(suppressSave)")
+                save()
+                print("[Migration] Save completed")
+            }
+        } else {
+            print("[Migration] No games to migrate")
+        }
     }
 
     private func seedSampleData() {

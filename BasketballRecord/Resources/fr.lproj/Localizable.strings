@@ -1049,3 +1049,15 @@ Format:
 
 "cloudshare_expires_format" = "Expires in %@";
 "cloudshare_import_summary_format" = "Imported: %d players, %d teams, %d games";
+
+"badge_scoring_king" = "得分王";
+"badge_mvp" = "MVP";
+"badge_iron_king" = "打铁王";
+"badge_rebound_king" = "篮板王";
+"badge_assist_king" = "助攻王";
+"badge_three_king" = "三分王";
+"badge_efficiency_king" = "效率王";
+"badge_three_streak" = "连续三分";
+"badge_turnover_king" = "失误王";
+"badge_block_king" = "盖帽王";
+"label_badges" = "Badges";
