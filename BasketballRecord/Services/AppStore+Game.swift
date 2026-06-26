@@ -251,6 +251,7 @@ extension AppStore {
         remapped.playingSecondsByPlayerID = remapDictionary(snapshot.playingSecondsByPlayerID, using: playerIDMap, combine: +)
         remapped.activeSinceByPlayerID = remapDateDictionary(snapshot.activeSinceByPlayerID, using: playerIDMap)
         remapped.plusMinusByPlayerID = remapDictionary(snapshot.plusMinusByPlayerID, using: playerIDMap, combine: +)
+        remapped.teamStatsByID = remapStatsDictionary(snapshot.teamStatsByID, using: teamIDMap)
         return remapped
     }
 

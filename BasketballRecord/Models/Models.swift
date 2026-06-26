@@ -8,6 +8,7 @@ struct Player: Identifiable, Codable, Hashable {
     var number: String = ""
     var photoData: Data?
     var playerGroupIDs: [UUID] = []
+    var badges: [PlayerBadge] = []
 
     init(
         id: UUID = UUID(),
@@ -16,7 +17,8 @@ struct Player: Identifiable, Codable, Hashable {
         weight: String = "",
         number: String = "",
         photoData: Data? = nil,
-        playerGroupIDs: [UUID] = []
+        playerGroupIDs: [UUID] = [],
+        badges: [PlayerBadge] = []
     ) {
         self.id = id
         self.name = name
@@ -25,6 +27,7 @@ struct Player: Identifiable, Codable, Hashable {
         self.number = number
         self.photoData = photoData
         self.playerGroupIDs = playerGroupIDs
+        self.badges = badges
     }
 
     init(from decoder: Decoder) throws {
@@ -36,6 +39,7 @@ struct Player: Identifiable, Codable, Hashable {
         number = try container.decodeIfPresent(String.self, forKey: .number) ?? ""
         photoData = try container.decodeIfPresent(Data.self, forKey: .photoData)
         playerGroupIDs = try container.decodeIfPresent([UUID].self, forKey: .playerGroupIDs) ?? []
+        badges = try container.decodeIfPresent([PlayerBadge].self, forKey: .badges) ?? []
     }
 }
 
@@ -294,6 +298,65 @@ struct CloudShareRecord: Codable {
     let gameIDs: [UUID]
 }
 
+enum BadgeType: String, Codable, CaseIterable {
+    case scoringKing
+    case mvp
+    case ironKing
+    case reboundKing
+    case assistKing
+    case threeKing
+    case efficiencyKing
+    case threeStreak
+    case turnoverKing
+    case blockKing
+
+    var title: String {
+        switch self {
+        case .scoringKing: return NSLocalizedString("badge_scoring_king", comment: "")
+        case .mvp: return NSLocalizedString("badge_mvp", comment: "")
+        case .ironKing: return NSLocalizedString("badge_iron_king", comment: "")
+        case .reboundKing: return NSLocalizedString("badge_rebound_king", comment: "")
+        case .assistKing: return NSLocalizedString("badge_assist_king", comment: "")
+        case .threeKing: return NSLocalizedString("badge_three_king", comment: "")
+        case .efficiencyKing: return NSLocalizedString("badge_efficiency_king", comment: "")
+        case .threeStreak: return NSLocalizedString("badge_three_streak", comment: "")
+        case .turnoverKing: return NSLocalizedString("badge_turnover_king", comment: "")
+        case .blockKing: return NSLocalizedString("badge_block_king", comment: "")
+        }
+    }
+
+    var assetName: String {
+        switch self {
+        case .scoringKing: return "badge_scoring_king"
+        case .mvp: return "badge_mvp"
+        case .ironKing: return "badge_iron_king"
+        case .reboundKing: return "badge_rebound_king"
+        case .assistKing: return "badge_assist_king"
+        case .threeKing: return "badge_three_king"
+        case .efficiencyKing: return "badge_efficiency_king"
+        case .threeStreak: return "badge_three_streak"
+        case .turnoverKing: return "badge_turnover_king"
+        case .blockKing: return "badge_block_king"
+        }
+    }
+}
+
+struct PlayerBadge: Identifiable, Codable, Hashable {
+    let id: UUID
+    let type: BadgeType
+    let gameID: UUID
+    let title: String
+    let awardedAt: Date
+
+    init(type: BadgeType, gameID: UUID, title: String? = nil) {
+        self.id = UUID()
+        self.type = type
+        self.gameID = gameID
+        self.title = title ?? type.title
+        self.awardedAt = Date()
+    }
+}
+
 struct ExportedGamePackageV2: Codable, Hashable {
     var players: [ExportPlayerV2]
     var teams: [ExportTeamV2]
@@ -463,6 +526,12 @@ struct TransferGameSnapshotV2: Codable, Hashable {
     var matchActiveSince: Date?
     var periodElapsedSeconds: TimeInterval?
     var periodActiveSince: Date?
+    var homeTeamStatsMode: Bool?
+    var awayTeamStatsMode: Bool?
+    var teamStatsByID: [UUID: TransferPlayerStatsV2]?
+    var wasBluetoothCollaborated: Bool?
+    var showsOffensiveDefensiveRebound: Bool?
+    var editHistory: [GameLogEditRecord]?
 
     enum CodingKeys: String, CodingKey {
         case statsByPlayerID = "a"
@@ -496,6 +565,12 @@ struct TransferGameSnapshotV2: Codable, Hashable {
         case matchActiveSince = "ac"
         case periodElapsedSeconds = "ad"
         case periodActiveSince = "ae"
+        case homeTeamStatsMode = "af"
+        case awayTeamStatsMode = "ag"
+        case teamStatsByID = "ah"
+        case wasBluetoothCollaborated = "ai"
+        case showsOffensiveDefensiveRebound = "aj"
+        case editHistory = "ak"
     }
 
     init(legacy: GameSnapshot) {
@@ -532,12 +607,23 @@ struct TransferGameSnapshotV2: Codable, Hashable {
         matchActiveSince = legacy.matchActiveSince
         periodElapsedSeconds = legacy.periodElapsedSeconds == 0 ? nil : legacy.periodElapsedSeconds
         periodActiveSince = legacy.periodActiveSince
+        homeTeamStatsMode = legacy.homeTeamStatsMode ? true : nil
+        awayTeamStatsMode = legacy.awayTeamStatsMode ? true : nil
+        teamStatsByID = legacy.teamStatsByID.isEmpty
+            ? nil
+            : Dictionary(uniqueKeysWithValues: legacy.teamStatsByID.map { ($0.key, TransferPlayerStatsV2(legacy: $0.value)) })
+        wasBluetoothCollaborated = legacy.wasBluetoothCollaborated ? true : nil
+        showsOffensiveDefensiveRebound = legacy.showsOffensiveDefensiveRebound ? true : nil
+        editHistory = legacy.editHistory.isEmpty ? nil : legacy.editHistory
     }
 
     var legacy: GameSnapshot {
-        GameSnapshot(
-            statsByPlayerID: Dictionary(uniqueKeysWithValues: (statsByPlayerID ?? [:]).map { ($0.key, $0.value.legacy) }),
-            logs: (logs ?? []).map(\.legacy),
+        let s = statsByPlayerID ?? [:]
+        let l = logs ?? []
+        let ts = teamStatsByID ?? [:]
+        var snap = GameSnapshot(
+            statsByPlayerID: Dictionary(uniqueKeysWithValues: s.map { ($0.key, $0.value.legacy) }),
+            logs: l.map(\.legacy),
             homeTeamID: homeTeamID,
             awayTeamID: awayTeamID,
             periodCount: periodCount ?? 4,
@@ -568,6 +654,13 @@ struct TransferGameSnapshotV2: Codable, Hashable {
             periodElapsedSeconds: periodElapsedSeconds ?? 0,
             periodActiveSince: periodActiveSince
         )
+        snap.homeTeamStatsMode = homeTeamStatsMode ?? false
+        snap.awayTeamStatsMode = awayTeamStatsMode ?? false
+        snap.teamStatsByID = Dictionary(uniqueKeysWithValues: ts.map { ($0.key, $0.value.legacy) })
+        snap.wasBluetoothCollaborated = wasBluetoothCollaborated ?? false
+        snap.showsOffensiveDefensiveRebound = showsOffensiveDefensiveRebound ?? false
+        snap.editHistory = editHistory ?? []
+        return snap
     }
 }
 

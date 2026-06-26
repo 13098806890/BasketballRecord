@@ -1,0 +1,13 @@
+{
+  "images" : [
+    {
+      "filename" : "badge_block_king.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

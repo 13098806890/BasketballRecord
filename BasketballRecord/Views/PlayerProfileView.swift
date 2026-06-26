@@ -58,6 +58,10 @@ struct PlayerProfileView: View {
 
                     header
 
+                    if let player, !player.badges.isEmpty {
+                        badgesSection(player)
+                    }
+
                     if let fixedGame, fixedGame.snapshot.periodCount > 1 {
                         VStack(alignment: .leading, spacing: 10) {
                             Text(LocalizedStringKey("label_data_range"))
@@ -160,6 +164,35 @@ struct PlayerProfileView: View {
             in: RoundedRectangle(cornerRadius: 8)
         )
         .padding(.horizontal)
+    }
+
+    private func badgesSection(_ player: Player) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(NSLocalizedString("label_badges", comment: ""))
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal)
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 10) {
+                    ForEach(player.badges) { badge in
+                        VStack(spacing: 4) {
+                            Image(badge.type.assetName)
+                                .resizable()
+                                .frame(width: 44, height: 44)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                            Text(badge.title)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .fixedSize()
+                        }
+                        .frame(width: 60)
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .frame(height: 72)
+        }
     }
 
     private var playerELO: Double {

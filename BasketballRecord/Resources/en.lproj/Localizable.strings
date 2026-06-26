@@ -1073,3 +1073,15 @@ Format:
 "cloudshare_clipboard_detected_uuid" = "Cloud Share UUID detected in clipboard";
 
 "button_retry" = "Retry";
+
+"badge_scoring_king" = "Scoring King";
+"badge_mvp" = "MVP";
+"badge_iron_king" = "Iron King";
+"badge_rebound_king" = "Rebound King";
+"badge_assist_king" = "Assist King";
+"badge_three_king" = "Three-Point King";
+"badge_efficiency_king" = "Efficiency King";
+"badge_three_streak" = "3PT Streak";
+"badge_turnover_king" = "Turnover King";
+"badge_block_king" = "Block King";
+"label_badges" = "Badges";

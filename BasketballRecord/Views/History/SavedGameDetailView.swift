@@ -249,6 +249,7 @@ struct SavedGameDetailView: View {
         .onAppear {
             editDisplayName = game.displayName
             sanitizeSelectedPeriod()
+            BadgeAwarder.awardBadges(for: game, store: store)
             if displayMode == .history,
                aiSummary.isEmpty,
                let savedSummary = game.aiSummary,
@@ -698,6 +699,9 @@ struct SavedGameDetailView: View {
                 await MainActor.run {
                     aiSummary = normalizedSummary
                     store.updateAISummary(normalizedSummary, for: game.id)
+                    if let updatedGame = store.savedGames.first(where: { $0.id == game.id }) {
+                        BadgeAwarder.awardBadges(for: updatedGame, store: store)
+                    }
                     isGeneratingAISummary = false
                 }
             } catch {
