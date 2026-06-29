@@ -35,7 +35,7 @@ extension VoiceRulesData {
             ShotKeywordData(keyword: "dunking", eventPrefix: "stat.dunk"),
             ShotKeywordData(keyword: "slam dunk", eventPrefix: "stat.dunk")
         ],
-        madeStates: ["getroffen", "drin", "gut", "rein", "erfolg"],
+        madeStates: ["getroffen", "drin", "gut", "erfolg"],
         missedStates: ["verfehlt", "daneben", "blockiert", "nicht", "vorbei", "nein", "miss"],
         statEvents: [
             ["foul", "stat.foul"],
@@ -68,7 +68,10 @@ extension VoiceRulesData {
             ["ballverlust", "stat.turnover"],
             ["ball verlust", "stat.turnover"],
             ["schrittfehler", "stat.turnover"],
-            ["schritt fehler", "stat.turnover"]
+            ["schritt fehler", "stat.turnover"],
+            ["laufen", "stat.turnover"],
+            ["doppel dribbling", "stat.turnover"],
+            ["regelverstoss", "stat.turnover"]
         ],
         substitutionKeywords: ["wechsel", "auswechslung", "ersetzen", "rein", "raus"],
         commandEvents: [
@@ -80,14 +83,18 @@ extension VoiceRulesData {
             ["viertel um", "event.period"],
             ["pause", "event.pause"],
             ["auszeit", "event.pause"],
+            ["stopp", "event.pause"],
             ["weiter", "event.pause"],
             ["weiterspielen", "event.pause"],
+            ["fortsetzen", "event.pause"],
             ["ende", "event.game_end"],
             ["spielende", "event.game_end"],
             ["schluss", "event.game_end"],
             ["fertig", "event.game_end"],
             ["undo", "event.undo"],
-            ["redo", "event.redo"]
+            ["rückgängig", "event.undo"],
+            ["redo", "event.redo"],
+            ["wiederholen", "event.redo"]
         ],
         fuzzyMap: nil,
         surnamePinyinOverrides: nil,
@@ -98,6 +105,8 @@ extension VoiceRulesData {
         levenshteinThresholdLong: 2,
         useAnchorMatching: false,
         anchorWords: [],
-        stealTargetRule: nil
+        stealTargetRule: StealTargetRuleData(
+            prefixesToStrip: ["von "]
+        )
     )
 }

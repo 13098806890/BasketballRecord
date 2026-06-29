@@ -27,6 +27,7 @@ extension VoiceRulesData {
             ShotKeywordData(keyword: "moyenne distance", eventPrefix: "stat.midRange"),
             ShotKeywordData(keyword: "intérieur", eventPrefix: "stat.paint"),
             ShotKeywordData(keyword: "interieur", eventPrefix: "stat.paint"),
+            ShotKeywordData(keyword: "poste bas", eventPrefix: "stat.paint"),
             ShotKeywordData(keyword: "lancer franc", eventPrefix: "stat.freeThrow"),
             ShotKeywordData(keyword: "lancer fran", eventPrefix: "stat.freeThrow"),
             ShotKeywordData(keyword: "lance franc", eventPrefix: "stat.freeThrow"),
@@ -52,19 +53,22 @@ extension VoiceRulesData {
             ["faut", "stat.foul"],
             ["rebond", "stat.rebound"],
             ["rebon", "stat.rebound"],
+            ["rebonds", "stat.rebound"],
             ["rebond offensif", "stat.offensiveRebound"],
             ["rebon offensif", "stat.offensiveRebound"],
+            ["offensif", "stat.offensiveRebound"],
             ["rebond défensif", "stat.defensiveRebound"],
             ["rebond defensif", "stat.defensiveRebound"],
             ["rebon défensif", "stat.defensiveRebound"],
             ["rebon defensif", "stat.defensiveRebound"],
+            ["défensif", "stat.defensiveRebound"],
             ["passe", "stat.assist"],
             ["pas", "stat.assist"],
             ["passe décisive", "stat.assist"],
             ["passe decisive", "stat.assist"],
             ["contre", "stat.block"],
             ["contr", "stat.block"],
-            ["contre-attaque", "stat.block"],
+            ["contrage", "stat.block"],
             ["interception", "stat.steal"],
             ["intersetion", "stat.steal"],
             ["perte de balle", "stat.turnover"],
@@ -87,6 +91,7 @@ extension VoiceRulesData {
             ["pause", "event.pause"],
             ["arrêter", "event.pause"],
             ["temps mort", "event.pause"],
+            ["stop", "event.pause"],
             ["continuer", "event.pause"],
             ["reprise", "event.pause"],
             ["reprendre", "event.pause"],
@@ -95,7 +100,9 @@ extension VoiceRulesData {
             ["terminé", "event.game_end"],
             ["fini", "event.game_end"],
             ["undo", "event.undo"],
-            ["redo", "event.redo"]
+            ["annuler", "event.undo"],
+            ["redo", "event.redo"],
+            ["refaire", "event.redo"]
         ],
         fuzzyMap: nil,
         surnamePinyinOverrides: nil,
@@ -106,6 +113,8 @@ extension VoiceRulesData {
         levenshteinThresholdLong: 2,
         useAnchorMatching: false,
         anchorWords: [],
-        stealTargetRule: nil
+        stealTargetRule: StealTargetRuleData(
+            prefixesToStrip: ["à "]
+        )
     )
 }
