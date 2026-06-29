@@ -1345,6 +1345,53 @@ struct SavedGame: Identifiable, Codable, Hashable {
         return playerPts + (snapshot.teamStatsByID[teamID]?.points ?? 0)
     }
 
+    func playingTimeByPeriod() -> [Int: [UUID: TimeInterval]] {
+        let relevantCodes: Set<String> = ["event.substitution", "event.period_start", "event.period_end"]
+        let events = snapshot.logs.filter { $0.eventCode.map(relevantCodes.contains) ?? false }
+            .sorted { ($0.period ?? 0, $0.periodElapsedSeconds ?? 0) < ($1.period ?? 0, $1.periodElapsedSeconds ?? 0) }
+        guard !events.isEmpty else { return [:] }
+
+        var result: [Int: [UUID: TimeInterval]] = [:]
+        let allPlayerIDs = Set(homePlayerIDs + awayPlayerIDs)
+        let initialCourt: Set<UUID>
+        if snapshot.startersRecorded {
+            initialCourt = Set(snapshot.starterPlayerIDs).intersection(allPlayerIDs)
+        } else {
+            initialCourt = allPlayerIDs
+        }
+        var onCourt = initialCourt
+        var currentPeriod = events[0].period ?? 1
+        var lastElapsed: TimeInterval = 0
+
+        for event in events {
+            let eventPeriod = event.period ?? currentPeriod
+            let eventElapsed = event.periodElapsedSeconds ?? 0
+
+            if eventPeriod == currentPeriod {
+                let elapsed = eventElapsed - lastElapsed
+                if elapsed > 0 {
+                    for pid in onCourt {
+                        result[currentPeriod, default: [:]][pid, default: 0] += elapsed
+                    }
+                }
+            }
+
+            if event.eventCode == "event.period_start" {
+                currentPeriod = eventPeriod
+                onCourt = initialCourt
+                lastElapsed = 0
+            } else if event.eventCode == "event.substitution" {
+                if let incoming = event.playerID { onCourt.insert(incoming) }
+                if let outgoing = event.relatedPlayerID { onCourt.remove(outgoing) }
+                lastElapsed = eventElapsed
+            } else if event.eventCode == "event.period_end" {
+                lastElapsed = 0
+            }
+        }
+
+        return result
+    }
+
     var displayTitle: String {
         if displayName.isEmpty {
             return "\(homeTeamName) vs \(awayTeamName)"

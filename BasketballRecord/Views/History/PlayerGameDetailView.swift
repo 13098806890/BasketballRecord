@@ -93,7 +93,12 @@ struct PlayerGameDetailView: View {
     }
 
     private var playingTimeText: String {
-        guard selectedPeriod == nil else { return "--:--" }
+        if let sp = selectedPeriod {
+            if let periodTime = game.playingTimeByPeriod()[sp]?[playerID], periodTime > 0 {
+                return GameView.durationFormatter(periodTime)
+            }
+            return "--:--"
+        }
         return GameView.durationFormatter(game.snapshot.playingSecondsByPlayerID[playerID, default: 0])
     }
 
