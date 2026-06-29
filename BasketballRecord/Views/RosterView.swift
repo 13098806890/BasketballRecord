@@ -461,7 +461,7 @@ struct CreateRosterItemView: View {
             Form {
                 Section(LocalizedStringKey("section_create_type")) {
                     Picker(LocalizedStringKey("section_create_type"), selection: $kind) {
-                        ForEach(RosterImportKind.allCases) { kind in
+                        ForEach([RosterImportKind.player, .team]) { kind in
                             Text(kind.localizedTitle).tag(kind)
                         }
                     }

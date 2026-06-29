@@ -18,6 +18,7 @@ struct TeamManagementHomeView: View {
                             countText: nil,
                             showsDisclosure: true
                         )
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
 

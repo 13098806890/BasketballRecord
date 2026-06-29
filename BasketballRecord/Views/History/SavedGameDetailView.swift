@@ -281,9 +281,17 @@ struct SavedGameDetailView: View {
 
     private func playerStatRow(for playerID: UUID) -> some View {
         let stats = displayStatsByPlayerID[playerID, default: PlayerStats()]
-        let playingTime = selectedPeriod == nil
-            ? GameView.durationFormatter(game.snapshot.playingSecondsByPlayerID[playerID, default: 0])
-            : "--:--"
+        let playingTime: String
+        if let sp = selectedPeriod {
+            let timeByPeriod = game.playingTimeByPeriod()
+            if let periodTime = timeByPeriod[sp]?[playerID], periodTime > 0 {
+                playingTime = GameView.durationFormatter(periodTime)
+            } else {
+                playingTime = "--:--"
+            }
+        } else {
+            playingTime = GameView.durationFormatter(game.snapshot.playingSecondsByPlayerID[playerID, default: 0])
+        }
         let plusMinus = game.snapshot.plusMinusByPlayerID[playerID, default: 0]
         let plusMinusText = plusMinus > 0 ? "+\(plusMinus)" : "\(plusMinus)"
 
