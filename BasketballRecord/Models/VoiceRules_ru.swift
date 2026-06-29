@@ -8,12 +8,9 @@ extension VoiceRulesData {
         shotKeywords: [
             ShotKeywordData(keyword: "два", eventPrefix: "stat.two"),
             ShotKeywordData(keyword: "двушка", eventPrefix: "stat.two"),
-            ShotKeywordData(keyword: "дла", eventPrefix: "stat.two"),
             ShotKeywordData(keyword: "два очка", eventPrefix: "stat.two"),
-            ShotKeywordData(keyword: "2", eventPrefix: "stat.two"),
             ShotKeywordData(keyword: "три", eventPrefix: "stat.three"),
             ShotKeywordData(keyword: "трёшка", eventPrefix: "stat.three"),
-            ShotKeywordData(keyword: "тли", eventPrefix: "stat.three"),
             ShotKeywordData(keyword: "трешка", eventPrefix: "stat.three"),
             ShotKeywordData(keyword: "3", eventPrefix: "stat.three"),
             ShotKeywordData(keyword: "лей-ап", eventPrefix: "stat.layup"),
@@ -29,6 +26,7 @@ extension VoiceRulesData {
             ShotKeywordData(keyword: "штрафный", eventPrefix: "stat.freeThrow"),
             ShotKeywordData(keyword: "бонус", eventPrefix: "stat.bonus"),
             ShotKeywordData(keyword: "бонас", eventPrefix: "stat.bonus"),
+            ShotKeywordData(keyword: "и один", eventPrefix: "stat.bonus"),
             ShotKeywordData(keyword: "putback", eventPrefix: "stat.putback"),
             ShotKeywordData(keyword: "put back", eventPrefix: "stat.putback"),
             ShotKeywordData(keyword: "данк", eventPrefix: "stat.dunk"),
@@ -40,7 +38,6 @@ extension VoiceRulesData {
         statEvents: [
             ["фол", "stat.foul"],
             ["фал", "stat.foul"],
-            ["вал", "stat.foul"],
             ["фаул", "stat.foul"],
             ["подбор", "stat.rebound"],
             ["потбор", "stat.rebound"],
@@ -58,7 +55,6 @@ extension VoiceRulesData {
             ["блок", "stat.block"],
             ["блок-шот", "stat.block"],
             ["блок шот", "stat.block"],
-            ["плок", "stat.block"],
             ["перехват", "stat.steal"],
             ["пирихват", "stat.steal"],
             ["потеря", "stat.turnover"],
@@ -66,7 +62,9 @@ extension VoiceRulesData {
             ["пробежка", "stat.turnover"],
             ["прабежка", "stat.turnover"],
             ["нарушение", "stat.turnover"],
-            ["нарушенье", "stat.turnover"]
+            ["нарушенье", "stat.turnover"],
+            ["двойное ведение", "stat.turnover"],
+            ["пронос", "stat.turnover"]
         ],
         substitutionKeywords: ["замена", "меняем", "заменить"],
         commandEvents: [
@@ -83,7 +81,9 @@ extension VoiceRulesData {
             ["финал", "event.game_end"],
             ["закончили", "event.game_end"],
             ["undo", "event.undo"],
-            ["redo", "event.redo"]
+            ["отменить", "event.undo"],
+            ["redo", "event.redo"],
+            ["повторить", "event.redo"]
         ],
         fuzzyMap: nil,
         surnamePinyinOverrides: nil,
@@ -94,6 +94,8 @@ extension VoiceRulesData {
         levenshteinThresholdLong: 2,
         useAnchorMatching: false,
         anchorWords: [],
-        stealTargetRule: nil
+        stealTargetRule: StealTargetRuleData(
+            prefixesToStrip: ["у "]
+        )
     )
 }

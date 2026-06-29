@@ -24,6 +24,7 @@ extension VoiceRulesData {
             ShotKeywordData(keyword: "media distansia", eventPrefix: "stat.midRange"),
             ShotKeywordData(keyword: "pintura", eventPrefix: "stat.paint"),
             ShotKeywordData(keyword: "interior", eventPrefix: "stat.paint"),
+            ShotKeywordData(keyword: "postear", eventPrefix: "stat.paint"),
             ShotKeywordData(keyword: "tiro libre", eventPrefix: "stat.freeThrow"),
             ShotKeywordData(keyword: "tiro libra", eventPrefix: "stat.freeThrow"),
             ShotKeywordData(keyword: "libre", eventPrefix: "stat.freeThrow"),
@@ -67,7 +68,9 @@ extension VoiceRulesData {
             ["pasos", "stat.turnover"],
             ["paso", "stat.turnover"],
             ["doble dribble", "stat.turnover"],
-            ["doble drible", "stat.turnover"]
+            ["doble drible", "stat.turnover"],
+            ["pasos", "stat.turnover"],
+            ["violación", "stat.turnover"]
         ],
         substitutionKeywords: ["cambio", "sustitución", "reemplazo", "sustituye"],
         commandEvents: [
@@ -77,6 +80,7 @@ extension VoiceRulesData {
             ["cuarto concluido", "event.period"],
             ["pausa", "event.pause"],
             ["tiempo muerto", "event.pause"],
+            ["stop", "event.pause"],
             ["continuar", "event.pause"],
             ["reanudar", "event.pause"],
             ["final", "event.game_end"],
@@ -84,7 +88,9 @@ extension VoiceRulesData {
             ["terminar", "event.game_end"],
             ["terminado", "event.game_end"],
             ["undo", "event.undo"],
-            ["redo", "event.redo"]
+            ["deshacer", "event.undo"],
+            ["redo", "event.redo"],
+            ["rehacer", "event.redo"]
         ],
         fuzzyMap: nil,
         surnamePinyinOverrides: nil,

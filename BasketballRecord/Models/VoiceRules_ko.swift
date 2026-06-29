@@ -39,7 +39,7 @@ extension VoiceRulesData {
             ShotKeywordData(keyword: "dunk", eventPrefix: "stat.dunk")
         ],
         madeStates: ["성공", "들어갔다", "득점", "성공했다"],
-        missedStates: ["실패", "빗나감", "블록", "못 넣음", "안 들어감", "놓침"],
+        missedStates: ["실패", "빗나감", "블록", "못 넣음", "안 들어감", "놓침", "노", "에어볼"],
         statEvents: [
             ["파울", "stat.foul"],
             ["파올", "stat.foul"],
@@ -75,6 +75,7 @@ extension VoiceRulesData {
             ["쿼터종결", "event.period"],
             ["일시정지", "event.pause"],
             ["타임아웃", "event.pause"],
+            ["스톱", "event.pause"],
             ["재개", "event.pause"],
             ["계속", "event.pause"],
             ["종료", "event.game_end"],

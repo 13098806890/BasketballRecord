@@ -43,7 +43,7 @@ extension VoiceRulesData {
             ShotKeywordData(keyword: "dunk", eventPrefix: "stat.dunk")
         ],
         madeStates: ["入った", "成功", "決めた", "決まった"],
-        missedStates: ["外した", "入らない", "ミス", "失敗", "ブロック", "届かない", "はずれ"],
+        missedStates: ["外した", "入らない", "ミス", "失敗", "ブロック", "届かない", "はずれ", "ない", "ノー", "エアボール"],
         statEvents: [
             ["ファウル", "stat.foul"],
             ["ファール", "stat.foul"],
@@ -81,10 +81,10 @@ extension VoiceRulesData {
             ["スタート", "event.period"],
             ["第1クオーター", "event.period"],
             ["次のクオーター", "event.period"],
-            ["次", "event.period"],
             ["クオーターエンド", "event.period"],
             ["一時停止", "event.pause"],
             ["タイムアウト", "event.pause"],
+            ["ストップ", "event.pause"],
             ["休憩", "event.pause"],
             ["再開", "event.pause"],
             ["リスタート", "event.pause"],
