@@ -1,0 +1,5 @@
+• Medal System — 10 types of medals automatically awarded per game (Scoring King, MVP, Rebound King, etc.)
+• Per-Period Playing Time — now shows per-period minutes for each player
+• Cloud Share Photos — photos uploaded separately to avoid size limits
+• Voice Rules Improvements — fixed false matches in French, German, Russian; added native undo/redo
+• Bug fixes and performance improvements

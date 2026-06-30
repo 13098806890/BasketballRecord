@@ -1,0 +1,5 @@
+• Medaillensystem — 10 Medaillen-Typen werden pro Spiel automatisch vergeben
+• Spielzeit pro Viertel — zeigt die Spielzeit jedes Spielers pro Viertel an
+• Cloud-Share-Fotos — Fotos werden getrennt hochgeladen
+• Sprachbefehle verbessert — falsche Zuordnungen behoben, natives Rückgängig/Wiederholen
+• Fehlerbehebungen und Leistungsverbesserungen
