@@ -1,0 +1,5 @@
+• Sistema di medaglie — 10 tipi di medaglie assegnate automaticamente per partita
+• Tempo giocato per quarto — mostra i minuti di ogni giocatore per quarto
+• Foto della condivisione cloud — foto caricate separatamente
+• Comandi vocali migliorati — correzioni in francese, tedesco, russo; annulla/ripeti nativi
+• Correzione bug e miglioramenti delle prestazioni

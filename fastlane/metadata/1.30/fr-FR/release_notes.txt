@@ -1,0 +1,5 @@
+• Système de médailles — 10 types de médailles attribuées automatiquement par match
+• Temps de jeu par quart-temps — affiche les minutes de chaque joueur par quart-temps
+• Photos du partage cloud — photos téléchargées séparément
+• Commandes vocales améliorées — corrections en français, allemand, russe; annuler/refaire natifs
+• Corrections de bugs et améliorations de performances
