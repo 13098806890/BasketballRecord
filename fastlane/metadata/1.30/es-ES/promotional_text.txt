@@ -1,0 +1,1 @@
+Sistema de medallas: Cada partido otorga automáticamente medallas al máximo anotador, MVP, máximo reboteador y más. Sigue los logros por jugador.

@@ -1,0 +1,1 @@
+Sistema di medaglie: Ogni partita assegna automaticamente medaglie per miglior marcatore, MVP, miglior rimbalzista e altro. Traccia i risultati per giocatore.

@@ -1,0 +1,1 @@
+Medaillensystem: Jedes Spiel vergibt automatisch Medaillen für Scoring King, MVP, Rebound King und mehr. Verfolge Erfolge pro Spieler.

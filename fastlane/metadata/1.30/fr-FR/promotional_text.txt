@@ -1,0 +1,1 @@
+Système de médailles : Chaque match attribue automatiquement des médailles pour le meilleur marqueur, MVP, meilleur rebondeur, etc. Suivez les accomplissements par joueur.

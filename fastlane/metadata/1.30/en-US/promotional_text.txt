@@ -1,0 +1,1 @@
+Medal System: Every game automatically awards medals for Scoring King, MVP, Rebound King, and more. Track achievements per player across all games.
