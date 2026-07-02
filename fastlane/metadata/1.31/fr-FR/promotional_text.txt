@@ -1,1 +1,1 @@
-Événements composites : les passes décisives et les interceptions sont désormais enregistrées comme une seule entrée de journal avec le tir ou la perte correspondant. Support des prolongations avec périodes configurables. Les résumés IA incluent une chronologie des scores et prennent en charge 10 langues.
+Événements composites : passe+tir et interception+perte en un seul. Prolongation. Chronologie IA. ELO par adversaires.

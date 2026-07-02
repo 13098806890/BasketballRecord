@@ -1,1 +1,1 @@
-Verbundene Ereignisse: Assists und Steals werden jetzt als einzelne Logeinträge zusammen mit dem entsprechenden Wurf oder Turnover erfasst. Verlängerung mit konfigurierbaren Vierteln. KI-Zusammenfassungen enthalten jetzt eine Score-Timeline und unterstützen 10 Sprachen.
+Verbundene Ereignisse: Assist+Wurf und Steal+Turnover in einem Eintrag. Verlängerung. KI-Score-Timeline. ELO nach Gegnerwerten.
