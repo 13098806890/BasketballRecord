@@ -47,15 +47,28 @@ struct SavedGameAnalyzer {
             var inferredPeriod = entry.period
 
             if inferredPeriod == nil {
-                inferredPeriod = GameLogFormatter.periodNumber(fromControlMessage: normalizedMessage) ?? currentPeriod
+                inferredPeriod = currentPeriod
             }
 
-            if let startedPeriod = GameLogFormatter.startedPeriodNumber(from: normalizedMessage) {
-                currentPeriod = startedPeriod
-            } else if let endedPeriod = GameLogFormatter.endedPeriodNumber(from: normalizedMessage) {
-                currentPeriod = min(max(endedPeriod + 1, 1), max(game.snapshot.periodCount, 1))
-            } else if let inferredPeriod {
-                currentPeriod = inferredPeriod
+            // Update currentPeriod: eventCode preferred, message fallback for old games
+            if let code = entry.eventCode {
+                if code == "event.period_start" {
+                    currentPeriod = inferredPeriod ?? currentPeriod
+                } else if code == "event.period_end", let ep = inferredPeriod {
+                    currentPeriod = max(ep + 1, 1)
+                } else {
+                    currentPeriod = inferredPeriod ?? currentPeriod
+                }
+            } else {
+                if let startedPeriod = GameLogFormatter.startedPeriodNumber(from: normalizedMessage) {
+                    currentPeriod = startedPeriod
+                    inferredPeriod = startedPeriod
+                } else if let endedPeriod = GameLogFormatter.endedPeriodNumber(from: normalizedMessage) {
+                    currentPeriod = max(endedPeriod + 1, 1)
+                    inferredPeriod = endedPeriod
+                } else {
+                    currentPeriod = inferredPeriod ?? currentPeriod
+                }
             }
 
             let resolvedPlayerID = resolvedPlayerID(entry: entry, normalizedMessage: normalizedMessage)
@@ -69,23 +82,24 @@ struct SavedGameAnalyzer {
 
             guard let period = inferredPeriod else { continue }
 
-            let parsedAction: (playerName: String, action: LoggedAction)?
-            if let code = entry.eventCode {
-                parsedAction = LoggedAction.allCases.first(where: { $0.eventCode == code }).map { ("", $0) }
-            } else {
-                parsedAction = LoggedAction.parse(from: normalizedMessage)
-            }
-            guard let (playerName, action) = parsedAction else { continue }
+            guard let code = entry.eventCode,
+                  let action = LoggedAction.allCases.first(where: { $0.eventCode == code }) else { continue }
 
-            let resolvedByName = playerName.isEmpty ? nil : resolvePlayerIDByName(playerName)
-            guard let playerID = entry.playerID ?? resolvedByName ?? game.resolvedTeamID(from: entry.message) else {
-                continue
-            }
+            guard let playerID = entry.playerID ?? resolvedPlayerID else { continue }
 
             var statsByPlayer = statsByPeriod[period, default: [:]]
             var stats = statsByPlayer[playerID, default: PlayerStats()]
             action.apply(to: &stats)
             statsByPlayer[playerID] = stats
+
+            if let relatedActionCode = action.relatedActionEventCode,
+               let rpid = entry.relatedPlayerID,
+               let relatedAction = LoggedAction.allCases.first(where: { $0.eventCode == relatedActionCode }) {
+                var relatedStats = statsByPlayer[rpid, default: PlayerStats()]
+                relatedAction.apply(to: &relatedStats)
+                statsByPlayer[rpid] = relatedStats
+            }
+
             statsByPeriod[period] = statsByPlayer
         }
 
@@ -97,78 +111,20 @@ struct SavedGameAnalyzer {
             return playerID
         }
 
-        if let (playerName, _) = LoggedAction.parse(from: normalizedMessage),
-           let playerID = resolvePlayerIDByName(playerName) {
-            return playerID
-        }
-
         for candidate in playerNameCandidates where normalizedMessage.contains(candidate.name) {
             return candidate.id
         }
-
-        // Team stats mode: match team name
-        if let tid = game.resolvedTeamID(from: normalizedMessage) { return tid }
 
         return nil
     }
 
     private enum LoggedAction: CaseIterable {
-        case twoMade
-        case twoMissed
-        case threeMade
-        case threeMissed
-        case bonusMade
-        case bonusMissed
-        case freeThrowMade
-        case freeThrowMissed
-        case foul
-        case assist
-        case rebound
-        case block
-        case steal
-        case turnover
-
-        var suffix: String {
-            switch self {
-            case .twoMade: return "2分命中"
-            case .twoMissed: return "2分不中"
-            case .threeMade: return "3分命中"
-            case .threeMissed: return "3分不中"
-            case .bonusMade: return "加罚命中"
-            case .bonusMissed: return "加罚不中"
-            case .freeThrowMade: return "罚篮命中"
-            case .freeThrowMissed: return "罚篮不中"
-            case .foul: return "犯规"
-            case .assist: return "助攻"
-            case .rebound: return "篮板"
-            case .block: return "封盖"
-            case .steal: return "抢断"
-            case .turnover: return "失误"
-            }
-        }
-
-        var englishSuffix: String {
-            switch self {
-            case .twoMade: return "2PT Made"
-            case .twoMissed: return "2PT Missed"
-            case .threeMade: return "3PT Made"
-            case .threeMissed: return "3PT Missed"
-            case .bonusMade: return "And-1 Made"
-            case .bonusMissed: return "And-1 Missed"
-            case .freeThrowMade: return "FT Made"
-            case .freeThrowMissed: return "FT Missed"
-            case .foul: return "Foul"
-            case .assist: return "Assist"
-            case .rebound: return "Rebound"
-            case .block: return "Block"
-            case .steal: return "Steal"
-            case .turnover: return "Turnover"
-            }
-        }
-
-        var suffixCandidates: [String] {
-            [suffix, englishSuffix]
-        }
+        case twoMade, twoMissed, threeMade, threeMissed
+        case bonusMade, bonusMissed, freeThrowMade, freeThrowMissed
+        case foul, assist, rebound, offensiveRebound, defensiveRebound, block, steal, turnover
+        case layupMade, layupMissed, midRangeMade, midRangeMissed, paintMade, paintMissed
+        case putbackMade, putbackMissed, dunkMade, dunkMissed
+        case assistTwoMade, assistThreeMade, stealTurnover
 
         var eventCode: String {
             switch self {
@@ -183,59 +139,52 @@ struct SavedGameAnalyzer {
             case .foul: return "stat.foul"
             case .assist: return "stat.assist"
             case .rebound: return "stat.rebound"
+            case .offensiveRebound: return "stat.offensiveRebound"
+            case .defensiveRebound: return "stat.defensiveRebound"
             case .block: return "stat.block"
             case .steal: return "stat.steal"
             case .turnover: return "stat.turnover"
+            case .layupMade: return "stat.layupMade"
+            case .layupMissed: return "stat.layupMissed"
+            case .midRangeMade: return "stat.midRangeMade"
+            case .midRangeMissed: return "stat.midRangeMissed"
+            case .paintMade: return "stat.paintMade"
+            case .paintMissed: return "stat.paintMissed"
+            case .putbackMade: return "stat.putbackMade"
+            case .putbackMissed: return "stat.putbackMissed"
+            case .dunkMade: return "stat.dunkMade"
+            case .dunkMissed: return "stat.dunkMissed"
+            case .assistTwoMade: return "stat.assistTwoMade"
+            case .assistThreeMade: return "stat.assistThreeMade"
+            case .stealTurnover: return "stat.stealTurnover"
             }
         }
 
-        static func parse(from message: String) -> (playerName: String, action: LoggedAction)? {
-            let normalized = GameLogFormatter.normalizedMessage(message)
-
-            if let code = GameLogFormatter.extractEventCode(from: message),
-               let action = allCases.first(where: { $0.eventCode == code }) {
-                let playerName = extractPlayerName(from: normalized, action: action)
-                return (playerName, action)
+        var relatedActionEventCode: String? {
+            switch self {
+            case .assistTwoMade: return "stat.twoMade"
+            case .assistThreeMade: return "stat.threeMade"
+            case .stealTurnover: return "stat.turnover"
+            default: return nil
             }
-
-            // Fallback: legacy suffix-based parsing (language-dependent)
-            for action in allCases {
-                let playerName = extractPlayerName(from: normalized, action: action)
-                guard !playerName.isEmpty else { return nil }
-                if action.suffixCandidates.contains(where: { normalized.hasSuffix($0) }) {
-                    return (playerName, action)
-                }
-            }
-            return nil
-        }
-
-        private static func extractPlayerName(from normalized: String, action: LoggedAction) -> String {
-            for suffix in action.suffixCandidates where normalized.hasSuffix(suffix) {
-                return String(normalized.dropLast(suffix.count)).trimmingCharacters(in: .whitespacesAndNewlines)
-            }
-            return normalized.trimmingCharacters(in: .whitespacesAndNewlines)
         }
 
         func apply(to stats: inout PlayerStats) {
             switch self {
             case .twoMade:
-                stats.twoMade += 1
-                stats.twoAttempts += 1
+                stats.twoMade += 1; stats.twoAttempts += 1
             case .twoMissed:
                 stats.twoAttempts += 1
             case .threeMade:
-                stats.threeMade += 1
-                stats.threeAttempts += 1
+                stats.threeMade += 1; stats.threeAttempts += 1
             case .threeMissed:
                 stats.threeAttempts += 1
             case .bonusMade:
-                stats.bonusFreeThrowMade += 1
-                stats.bonusFreeThrowAttempts += 1
+                stats.bonusFreeThrowMade += 1; stats.bonusFreeThrowAttempts += 1
             case .bonusMissed:
                 stats.bonusFreeThrowAttempts += 1
             case .freeThrowMade:
-                stats.freeThrowMade += 1
-                stats.freeThrowAttempts += 1
+                stats.freeThrowMade += 1; stats.freeThrowAttempts += 1
             case .freeThrowMissed:
                 stats.freeThrowAttempts += 1
             case .foul:
@@ -244,20 +193,54 @@ struct SavedGameAnalyzer {
                 stats.assists += 1
             case .rebound:
                 stats.rebounds += 1
+            case .offensiveRebound:
+                stats.offensiveRebounds += 1
+            case .defensiveRebound:
+                stats.defensiveRebounds += 1
             case .block:
                 stats.blocks += 1
             case .steal:
                 stats.steals += 1
             case .turnover:
                 stats.turnovers += 1
+            case .layupMade:
+                stats.layupMade += 1; stats.layupAttempts += 1
+                stats.twoMade += 1; stats.twoAttempts += 1
+            case .layupMissed:
+                stats.layupAttempts += 1; stats.twoAttempts += 1
+            case .midRangeMade:
+                stats.midRangeMade += 1; stats.midRangeAttempts += 1
+                stats.twoMade += 1; stats.twoAttempts += 1
+            case .midRangeMissed:
+                stats.midRangeAttempts += 1; stats.twoAttempts += 1
+            case .paintMade:
+                stats.paintMade += 1; stats.paintAttempts += 1
+                stats.twoMade += 1; stats.twoAttempts += 1
+            case .paintMissed:
+                stats.paintAttempts += 1; stats.twoAttempts += 1
+            case .putbackMade:
+                stats.rebounds += 1
+                stats.twoMade += 1; stats.twoAttempts += 1
+            case .putbackMissed:
+                stats.offensiveRebounds += 1
+                stats.twoAttempts += 1
+            case .dunkMade:
+                stats.dunkMade += 1; stats.dunkAttempts += 1
+                stats.twoMade += 1; stats.twoAttempts += 1
+            case .dunkMissed:
+                stats.dunkAttempts += 1; stats.twoAttempts += 1
+            case .assistTwoMade, .assistThreeMade:
+                stats.assists += 1
+            case .stealTurnover:
+                stats.steals += 1
             }
         }
     }
 }
 
 enum GameLogFormatter {
-    static func lineText(for log: PeriodAwareLog) -> String {
-        let periodText = GameView.periodContextText(period: log.inferredPeriod, elapsedSeconds: log.entry.periodElapsedSeconds)
+    static func lineText(for log: PeriodAwareLog, originalPeriodCount: Int = 4) -> String {
+        let periodText = GameView.periodContextText(period: log.inferredPeriod, elapsedSeconds: log.entry.periodElapsedSeconds, originalPeriodCount: originalPeriodCount)
         return [timeString(log.entry.timestamp), periodText, normalizedMessage(log.entry.message)]
             .filter { !$0.isEmpty }
             .joined(separator: "  ")
@@ -306,25 +289,26 @@ enum GameLogFormatter {
         return isScoringMessage(entry.message)
     }
 
+    /// Extract period number from a legacy control message (e.g. "第1节" or "暂停").
     static func periodNumber(fromControlMessage message: String) -> Int? {
         periodNumber(in: message)
     }
 
+    /// Detect period start from message (eventCode preferred, Chinese "节开始" fallback).
     static func startedPeriodNumber(from message: String) -> Int? {
         if extractEventCode(from: message) == "event.period_start" {
             return periodNumber(in: normalizedMessage(message))
         }
-
         let normalized = normalizedMessage(message)
         guard normalized.hasSuffix("节开始") else { return nil }
         return periodNumber(in: normalized)
     }
 
+    /// Detect period end from message (eventCode preferred, Chinese "节结束" fallback).
     static func endedPeriodNumber(from message: String) -> Int? {
         if extractEventCode(from: message) == "event.period_end" {
             return periodNumber(in: normalizedMessage(message))
         }
-
         let normalized = normalizedMessage(message)
         guard normalized.hasSuffix("节结束") else { return nil }
         return periodNumber(in: normalized)
@@ -342,10 +326,9 @@ enum GameLogFormatter {
     }
 
     private static let scoringEventCodes: Set<String> = [
-        "stat.twoMade",
-        "stat.threeMade",
-        "stat.bonusMade",
-        "stat.freeThrowMade"
+        "stat.twoMade", "stat.threeMade", "stat.bonusMade", "stat.freeThrowMade",
+        "stat.layupMade", "stat.midRangeMade", "stat.paintMade", "stat.putbackMade", "stat.dunkMade",
+        "stat.assistTwoMade", "stat.assistThreeMade"
     ]
 
     private static func isScoringMessage(_ message: String) -> Bool {
@@ -354,7 +337,6 @@ enum GameLogFormatter {
                 return true
             }
         }
-
         let normalized = normalizedMessage(message)
         return normalized.contains("2分命中")
             || normalized.contains("3分命中")

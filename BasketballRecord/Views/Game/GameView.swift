@@ -21,6 +21,12 @@ struct GameView: View {
     @State private var isShowingLateArrival = false
     @State private var isShowingNewGameSetup = false
     @State private var isShowingUnfinishedGameAlert = false
+    @State private var isShowingOTSetup = false
+    @State private var isShowingFinishedGameAlert = false
+    @State private var otPeriodCount = 1
+    @State private var otPeriodEndCondition = PeriodEndCondition.byTime
+    @State private var otTimeLimit = 12
+    @State private var otScoreLimit = 30
     @State private var isShowingSimulateConfirmation = false
     @State private var isShowingFinishGameConfirmation = false
     @State private var isShowingResetConfirmation = false
@@ -91,7 +97,9 @@ struct GameView: View {
 
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         Button {
-                            if hasUnfinishedGameToConfirm {
+                            if snapshot.isComplete {
+                                isShowingFinishedGameAlert = true
+                            } else if hasUnfinishedGameToConfirm {
                                 isShowingUnfinishedGameAlert = true
                             } else {
                                 isShowingNewGameSetup = true
@@ -130,6 +138,62 @@ struct GameView: View {
                     initialAwayTeamID: snapshot.awayTeamID,
                     onStart: startNewGame(with:)
                 )
+            }
+            .sheet(isPresented: $isShowingOTSetup) {
+                NavigationStack {
+                    Form {
+                        Section(LocalizedStringKey("section_overtime_settings")) {
+                            Stepper(value: $otPeriodCount, in: 1...10) {
+                                Text(String(format: NSLocalizedString("label_ot_period_count", comment: "OT period count"), otPeriodCount))
+                            }
+                            Picker(LocalizedStringKey("label_period_end_condition"), selection: $otPeriodEndCondition) {
+                                ForEach(PeriodEndCondition.allCases) { condition in
+                                    Text(conditionLabel(condition)).tag(condition)
+                                }
+                            }
+                            if otPeriodEndCondition == .byTime {
+                                HStack {
+                                    Text(LocalizedStringKey("label_period_time_limit"))
+                                    Spacer()
+                                    TextField(value: $otTimeLimit, format: .number) {
+                                        Text("12")
+                                    }
+                                    .keyboardType(.numberPad)
+                                    .frame(width: 60)
+                                    .multilineTextAlignment(.trailing)
+                                    Text(LocalizedStringKey("label_minutes"))
+                                }
+                            }
+                            if otPeriodEndCondition == .byScore {
+                                HStack {
+                                    Text(LocalizedStringKey("label_period_score_limit"))
+                                    Spacer()
+                                    TextField(value: $otScoreLimit, format: .number) {
+                                        Text("30")
+                                    }
+                                    .keyboardType(.numberPad)
+                                    .frame(width: 60)
+                                    .multilineTextAlignment(.trailing)
+                                    Text(LocalizedStringKey("label_points"))
+                                }
+                            }
+                        }
+                    }
+                    .navigationTitle(LocalizedStringKey("overtime_setup_title"))
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button(LocalizedStringKey("button_cancel")) { isShowingOTSetup = false }
+                        }
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button(LocalizedStringKey("button_start_overtime")) { startOvertime() }
+                        }
+                    }
+                    .onAppear {
+                        otTimeLimit = snapshot.periodTimeLimit
+                        otScoreLimit = snapshot.periodScoreLimit
+                    }
+                }
             }
             .sheet(isPresented: $isShowingSubstitution) {
                 SubstitutionView(
@@ -187,12 +251,27 @@ struct GameView: View {
             }
             .alert(LocalizedStringKey("alert_unfinished_game_title"), isPresented: $isShowingUnfinishedGameAlert) {
                 Button(LocalizedStringKey("button_cancel"), role: .cancel) { }
+                Button(LocalizedStringKey("button_overtime")) {
+                    finishGame()
+                    isShowingOTSetup = true
+                }
                 Button(LocalizedStringKey("button_end_current_game")) {
                     finishGame()
                     isShowingNewGameSetup = true
                 }
             } message: {
                 Text(LocalizedStringKey("alert_unfinished_game_message"))
+            }
+            .alert(LocalizedStringKey("alert_finished_game_title"), isPresented: $isShowingFinishedGameAlert) {
+                Button(LocalizedStringKey("button_cancel"), role: .cancel) { }
+                Button(LocalizedStringKey("button_overtime")) {
+                    isShowingOTSetup = true
+                }
+                Button(LocalizedStringKey("button_new_game")) {
+                    isShowingNewGameSetup = true
+                }
+            } message: {
+                Text(LocalizedStringKey("alert_finished_game_message"))
             }
             .alert(LocalizedStringKey("alert_unfinished_game_title"), isPresented: $isShowingSimulateConfirmation) {
                 Button(LocalizedStringKey("button_cancel"), role: .cancel) { }
@@ -332,20 +411,47 @@ struct GameView: View {
                     let pn1 = self.name(for: pid1)
                     let pn2 = self.name(for: pid2)
                     let locale = voiceRecognizer.currentRules.locale
-                    let combinedMsg: String
+
                     if action1 == .steal && action2 == .turnover {
-                        combinedMsg = Self.dualStealMessage(pn1: pn1, pn2: pn2, locale: locale)
+                        let combinedMsg = Self.dualStealMessage(pn1: pn1, pn2: pn2, locale: locale)
+                        _ = liveManager.submitLiveOperation(.dualAction(
+                            action1: .turnover, playerID1: pid1, side1: side1.liveSide,
+                            action2: .turnover, playerID2: pid2, side2: side2.liveSide,
+                            at: now
+                        )) {
+                            self.applyRecordOperation(action: .stealTurnover, playerID: pid1, side: side1, at: now, eventMessage: combinedMsg, relatedPlayerID: pid2)
+                            return true
+                        }
                     } else {
-                        combinedMsg = Self.dualAssistMessage(pn1: pn1, pn2: pn2, shot: action2.message, locale: locale)
-                    }
-                    _ = liveManager.submitLiveOperation(.dualAction(
-                        action1: action1.liveAction, playerID1: pid1, side1: side1.liveSide,
-                        action2: action2.liveAction, playerID2: pid2, side2: side2.liveSide,
-                        at: now
-                    )) {
-                        self.applyRecordOperation(action: action2, playerID: pid2, side: side2, at: now, eventMessage: "")
-                        self.applyRecordOperation(action: action1, playerID: pid1, side: side1, at: now, eventMessage: combinedMsg)
-                        return true
+                        let compositeAction: StatAction
+                        if action2 == .twoMade || action2 == .layupMade || action2 == .midRangeMade || action2 == .paintMade || action2 == .dunkMade || action2 == .putbackMade {
+                            compositeAction = .assistTwoMade
+                        } else if action2 == .threeMade {
+                            compositeAction = .assistThreeMade
+                        } else {
+                            let combinedMsg = Self.dualAssistMessage(pn1: pn1, pn2: pn2, shot: action2.message, locale: locale)
+                            _ = liveManager.submitLiveOperation(.dualAction(
+                                action1: action1.liveAction, playerID1: pid1, side1: side1.liveSide,
+                                action2: action2.liveAction, playerID2: pid2, side2: side2.liveSide,
+                                at: now
+                            )) {
+                                self.applyRecordOperation(action: action2, playerID: pid2, side: side2, at: now)
+                                self.applyRecordOperation(action: action1, playerID: pid1, side: side1, at: now, eventMessage: combinedMsg)
+                                return true
+                            }
+                            voiceMatch = (pid1, side1, action1)
+                            clearVoiceMatchAfterDelay(playerID: pid1)
+                            return
+                        }
+                        let combinedMsg = Self.dualAssistMessage(pn1: pn1, pn2: pn2, shot: action2.message, locale: locale)
+                        _ = liveManager.submitLiveOperation(.dualAction(
+                            action1: action1.liveAction, playerID1: pid1, side1: side1.liveSide,
+                            action2: action2.liveAction, playerID2: pid2, side2: side2.liveSide,
+                            at: now
+                        )) {
+                            self.applyRecordOperation(action: compositeAction, playerID: pid1, side: side1, at: now, eventMessage: combinedMsg, relatedPlayerID: pid2)
+                            return true
+                        }
                     }
                     voiceMatch = (pid1, side1, action1)
                     clearVoiceMatchAfterDelay(playerID: pid1)
@@ -1469,8 +1575,17 @@ struct GameView: View {
         case let .dualAction(action1, playerID1, side1, action2, playerID2, side2, at):
             guard let statAction1 = StatAction(liveAction: action1),
                   let statAction2 = StatAction(liveAction: action2) else { return false }
-            applyRecordOperation(action: statAction2, playerID: playerID2, side: TeamSide(liveSide: side2), at: at, eventMessage: "")
-            return applyRecordOperation(action: statAction1, playerID: playerID1, side: TeamSide(liveSide: side1), at: at)
+            // Merge compatible dual actions into single composite event
+            let side = TeamSide(liveSide: side1)
+            if statAction1 == .steal, statAction2 == .turnover {
+                return applyRecordOperation(action: .stealTurnover, playerID: playerID1, side: side, at: at, relatedPlayerID: playerID2)
+            }
+            if statAction1 == .assist, statAction2.isAssistableShot {
+                let composite: StatAction = statAction2 == .threeMade ? .assistThreeMade : .assistTwoMade
+                return applyRecordOperation(action: composite, playerID: playerID1, side: side, at: at, relatedPlayerID: playerID2)
+            }
+            applyRecordOperation(action: statAction2, playerID: playerID2, side: TeamSide(liveSide: side2), at: at)
+            return applyRecordOperation(action: statAction1, playerID: playerID1, side: side, at: at)
 
         case let .togglePeriod(at):
             return applyTogglePeriodOperation(at: at)
@@ -1529,7 +1644,7 @@ struct GameView: View {
     }
 
     @discardableResult
-    func applyRecordOperation(action: StatAction, playerID: UUID, side: TeamSide, at: Date? = nil, eventMessage: String? = nil) -> Bool {
+    func applyRecordOperation(action: StatAction, playerID: UUID, side: TeamSide, at: Date? = nil, eventMessage: String? = nil, relatedPlayerID: UUID? = nil) -> Bool {
         let isTeamMode = side == .home ? snapshot.homeTeamStatsMode : snapshot.awayTeamStatsMode
         let teamID = side == .home ? snapshot.homeTeamID : snapshot.awayTeamID
 
@@ -1549,6 +1664,14 @@ struct GameView: View {
                 action.apply(to: &stats)
                 snapshot.statsByPlayerID[playerID] = stats
             }
+
+            // Apply related action (scorer points, turnover) for composite events
+            if let related = action.relatedAction, let rpid = relatedPlayerID {
+                var relatedStats = snapshot.statsByPlayerID[rpid, default: PlayerStats()]
+                related.apply(to: &relatedStats)
+                snapshot.statsByPlayerID[rpid] = relatedStats
+            }
+
             if action == .foul {
                 snapshot.currentPeriodFoulsBySide[side.rawValue, default: 0] += 1
             }
@@ -1558,10 +1681,10 @@ struct GameView: View {
             let eventName = isTeamMode ? (store.team(for: teamID)?.name ?? "?") : name(for: playerID)
             if let eventMessage {
                 if !eventMessage.isEmpty {
-                    addEvent(eventMessage, playerID: isTeamMode ? nil : playerID, eventCode: action.eventCode, at: at)
+                    addEvent(eventMessage, playerID: isTeamMode ? nil : playerID, relatedPlayerID: relatedPlayerID, eventCode: action.eventCode, at: at)
                 }
             } else {
-                addEvent("\(eventName) \(action.message)", playerID: isTeamMode ? nil : playerID, eventCode: action.eventCode, at: at)
+                addEvent("\(eventName) \(action.message)", playerID: isTeamMode ? nil : playerID, relatedPlayerID: relatedPlayerID, eventCode: action.eventCode, at: at)
             }
         }
         if action.points > 0, snapshot.periodEndCondition == .byScore {
@@ -2340,6 +2463,34 @@ struct GameView: View {
         }
     }
 
+    private func conditionLabel(_ condition: PeriodEndCondition) -> String {
+        switch condition {
+        case .manual: return NSLocalizedString("period_end_manual", comment: "")
+        case .byTime: return NSLocalizedString("period_end_by_time", comment: "")
+        case .byScore: return NSLocalizedString("period_end_by_score", comment: "")
+        }
+    }
+
+    private func startOvertime() {
+        isShowingOTSetup = false
+        mutateSnapshot {
+            snapshot.isComplete = false
+            snapshot.periodCount += otPeriodCount
+            snapshot.periodEndCondition = otPeriodEndCondition
+            snapshot.periodTimeLimit = otTimeLimit
+            snapshot.periodScoreLimit = otScoreLimit
+            snapshot.currentPeriod += 1
+            snapshot.periodElapsedSeconds = 0
+            snapshot.periodActiveSince = nil
+            snapshot.periodIsRunning = false
+            snapshot.isPaused = false
+            addEvent(
+                String(format: NSLocalizedString("event_overtime_start_format", comment: "Overtime start event format"), otPeriodCount),
+                eventCode: "event.ot_start"
+            )
+        }
+    }
+
     private func mutateSnapshot(pushUndo: Bool = true, _ updates: () -> Void) {
         if pushUndo {
             undoStack.append(snapshot)
@@ -2641,6 +2792,13 @@ struct GameView: View {
             guard action.revert(on: &stats) else { return false }
             snapshot.statsByPlayerID[playerID] = stats
 
+            // Revert related player for composite events
+            if let related = action.relatedAction, let rpid = lastLog.relatedPlayerID {
+                var relatedStats = snapshot.statsByPlayerID[rpid, default: PlayerStats()]
+                guard related.revert(on: &relatedStats) else { return false }
+                snapshot.statsByPlayerID[rpid] = relatedStats
+            }
+
             if action == .foul {
                 let currentFouls = snapshot.currentPeriodFoulsBySide[side.rawValue, default: 0]
                 snapshot.currentPeriodFoulsBySide[side.rawValue] = max(0, currentFouls - 1)
@@ -2756,20 +2914,20 @@ struct GameView: View {
         return String(format: "%02d:%02d", total / 60, total % 60)
     }
 
-    static func periodContextText(period: Int?, elapsedSeconds: TimeInterval?) -> String {
+    static func periodContextText(period: Int?, elapsedSeconds: TimeInterval?, originalPeriodCount: Int = 4) -> String {
         guard let period else { return "" }
-        guard let elapsedSeconds else {
-            return String(format: NSLocalizedString("period_context_only_format", comment: "Period context without elapsed time"), period)
+        let label: String
+        if period > originalPeriodCount {
+            label = "OT\(period - originalPeriodCount)"
+        } else {
+            label = String(format: NSLocalizedString("period_context_only_format", comment: "Period context without elapsed time"), period)
         }
-        return String(
-            format: NSLocalizedString("period_context_with_time_format", comment: "Period context with elapsed time"),
-            period,
-            durationFormatter(elapsedSeconds)
-        )
+        guard let elapsedSeconds else { return label }
+        return "\(label) \(durationFormatter(elapsedSeconds))"
     }
 
     private func logText(for entry: GameLogEntry) -> String {
-        let periodText = Self.periodContextText(period: entry.period, elapsedSeconds: entry.periodElapsedSeconds)
+        let periodText = Self.periodContextText(period: entry.period, elapsedSeconds: entry.periodElapsedSeconds, originalPeriodCount: snapshot.originalPeriodCount)
         return [Self.timeFormatter.string(from: entry.timestamp), periodText, entry.message]
             .filter { !$0.isEmpty }
             .joined(separator: " · ")

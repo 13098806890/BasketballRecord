@@ -505,19 +505,19 @@
 "transfer_keyword_team" = "Basketball Record-Team Export";
 "transfer_keyword_player" = "Basketball Record-Player Export";
 /* AI prompt instructions */
-"ai_prompt_req_1" = "- Output Markdown directly without ```markdown or ``` code fence wrapping.";
-"ai_prompt_req_2" = "- Do not output literal \\n or \\\\n; use actual line breaks.";
-"ai_prompt_req_3" = "- Keep blank lines between titles, paragraphs, and lists for clear formatting.";
-"ai_prompt_req_4" = "- When citing Scoring Run Analysis data, convert open/extend/cut/tie markers to natural language. Example: 'Zhang San hits a 2-pointer, 10-8 → 12-8, leading by 4'. Do NOT output 'extend', 'cut', 'tie' directly. Always include exact scores.";
-"ai_prompt_req_5" = "- Describe highlight moments based on the game event log.";
-"ai_prompt_req_6" = "- Do not invent players or events. All descriptions must come from Event Log, Scoring Run Analysis, Player Stats, or Team Stats. Player per-period scoring must match the data listed under each period in Period Score Summary. Do not calculate or guess. In team stats mode, there are no individual player stats for that team — only use Team Stats data.";
-"ai_prompt_req_7" = "- If no specific event in the log supports a description, do not write that description. Only write content backed by data.";
-"ai_prompt_req_8" = "- Scoring Run Analysis data is system-precomputed. Reference it directly. No need to calculate from raw logs.";
-"ai_prompt_req_9" = "- Only write events that appear in the log. If the log says 'two-point made', write 'two-point made'. Do not rewrite as 'layup' or 'jumper'.";
-"ai_prompt_req_10" = "- Do NOT use uncertain terms like 'possibly', 'likely', 'maybe', 'probably'. If data supports it, state it as fact. If not, don't write it.";
-"ai_prompt_req_11" = "- State facts directly. Do not add 'according to the log', 'based on data', or similar citations.";
-"ai_prompt_req_12" = "- Highlight moments must reference specific plays from the Event Log.";
-"ai_prompt_req_13" = "- When using numeric expressions like 'highest', 'lowest', 'most', 'least', they must match Numeric Validation. Do not modify values.";
+"ai_prompt_req_1" = "- Genera Markdown direttamente senza blocchi di codice ```markdown o ```.";
+"ai_prompt_req_2" = "- Non usare \n o \\n letterali; usa veri interruzioni di riga.";
+"ai_prompt_req_3" = "- Mantieni righe vuote tra titoli, paragrafi ed elenchi per una formattazione chiara.";
+"ai_prompt_req_4" = "- Quando citi i dati dell'analisi delle serie, converti i marcatori open/extend/cut/tie in linguaggio naturale. Esempio: 'Zhang San segna un 2 punti, 10-8 → 12-8, avanti di 4'. Non usare direttamente 'extend', 'cut', 'tie'. Includi sempre il punteggio esatto.";
+"ai_prompt_req_5" = "- Descrivi i momenti salienti basandoti sul registro eventi della partita.";
+"ai_prompt_req_6" = "- Non inventare giocatori o eventi. Tutte le descrizioni devono provenire dal registro eventi, dall'analisi delle serie, dalle statistiche dei giocatori o dalle statistiche di squadra. I punti per periodo devono corrispondere ai dati elencati nel riepilogo dei periodi. In modalità statistiche di squadra, non ci sono dati individuali per quella squadra.";
+"ai_prompt_req_7" = "- Se nessun evento specifico nel registro supporta una descrizione, non scrivere quella descrizione. Scrivi solo contenuti supportati dai dati.";
+"ai_prompt_req_8" = "- I dati dell'analisi delle serie sono precalcolati dal sistema. Riferisciti direttamente ad essi, senza ricalcolare dai registri grezzi.";
+"ai_prompt_req_9" = "- Scrivi solo eventi che appaiono nel registro. Se il registro dice 'tiro da 2 punti realizzato', scrivi 'tiro da 2 punti realizzato'. Non riscriverlo come 'layup' o 'tiro in sospensione'.";
+"ai_prompt_req_10" = "- NON usare termini incerti come 'possibilmente', 'probabilmente', 'forse'. Se i dati lo supportano, affermalo come fatto. Altrimenti, non scriverlo.";
+"ai_prompt_req_11" = "- Afferma i fatti direttamente. Non aggiungere 'secondo il registro', 'basato sui dati' o citazioni simili.";
+"ai_prompt_req_12" = "- I momenti salienti devono fare riferimento a giocate specifiche del registro eventi.";
+"ai_prompt_req_13" = "- Quando usi espressioni numeriche come 'il più alto', 'il più basso', 'il più', 'il meno', devono corrispondere alla validazione numerica. Non modificare i valori.";
 "label_period_end_condition" = "Fine periodo per";
 "period_end_by_time" = "Tempo";
 "period_end_by_score" = "Punteggio";
@@ -806,35 +806,36 @@
 "demo_player_maki" = "Shinichi Maki";
 "ai_system_role" = "You are a professional basketball analyst and commentator. Output in a natural commentary style — not too formal, not too casual. Base every statement strictly on the provided structured data. Do NOT use words like possibly, likely, maybe. Data guide: ·[player +points prevScore->newScore context] = scoring event with score change (open=first score, extend=extend lead, cut=reduce gap, tie=tie game) ·personal_run=consecutive personal scoring ·team_run=consecutive team scoring ·rebound_streak=consecutive rebounds ·assist_streak=consecutive assists ·team_miss_streak=team consecutive missed shots ·personal_miss_streak=personal consecutive missed shots ·and_one=2+1 or 3+1 play. IMPORTANT: Check the Team Stats Mode flag in Game Information. If a team is marked YES, base analysis only on Team Stats data for that team — do NOT analyze individual players from that team. If both teams are in normal mode, analyze individual player data and select MVP normally.";
 "ai_test_connection_prompt" = "Please reply only with: Connection successful";
-"ai_prompt_task_description" = "You will generate a post-game review based on basketball game data. Output strictly in English and follow the Markdown structure below. Do not add other level-1 titles:";
-"ai_prompt_section_summary" = "Game Summary";
-"ai_prompt_section_summary_desc" = "(Detailed period-by-period analysis: ·Use scoring events from Scoring Run Analysis to describe each period's flow ·For each score, state who scored, how many points, and the exact score (refer to pre->post format) ·Analyze the impact of scoring runs and missed-shot streaks ·Consecutive rebounds/assists show player dominance ·Alternating scoring periods indicate a tight game. Conversational tone. At least 5-8 sentences per period)";
+"ai_prompt_task_description" = "Genererai un resoconto post-partita basato su dati di basket. Uscita strettamente in italiano. Segui la struttura Markdown qui sotto. Non aggiungere altri titoli di livello 1:";
+"ai_prompt_section_summary" = "Riepilogo Partita";
+"ai_prompt_section_summary_desc" = "(Analisi dettagliata periodo per periodo: ·Usa gli eventi di punteggio dall'analisi delle serie per descrivere il flusso di ogni periodo ·Per ogni punto, indica chi ha segnato, quanti punti e il punteggio esatto ·Analizza l'impatto delle serie di punti e delle serie di tiri sbagliati ·I rimbalzi/assist consecutivi mostrano il dominio del giocatore ·L'alternanza del vantaggio indica una partita equilibrata. Tono colloquiale. Almeno 5-8 frasi per periodo)";
 "ai_prompt_section_mvp" = "MVP";
-"ai_prompt_section_mvp_desc" = "(Select only 1 player. Use key data from Player Stats and Scoring Run Analysis: the player's scoring contributions, streaks, rebounds, assists, defense, and impact on game momentum during critical moments. At least 3-5 sentences)";
-"ai_prompt_section_highlights" = "Highlight Moments";
-"ai_prompt_section_highlights_desc" = "(Select the 2 most important highlights of the game. Find personal scoring runs or clutch plays from Scoring Run Analysis. For each highlight, clearly state the score at the time, who made the play, and how it changed the game. Conversational tone, not formal)
-Format:
-1. Title
-   Description
-2. Title
-   Description";
-"ai_prompt_extra_requirements" = "Additional Requirements:";
-"ai_prompt_game_info_label" = "【Game Information】";
-"ai_prompt_date_label" = "Date: %@";
-"ai_prompt_matchup_label" = "Matchup: %@ vs %@";
-"ai_prompt_score_label" = "Score: %@ %d : %d %@";
-"ai_prompt_periods_label" = "Periods: %d";
+"ai_prompt_section_mvp_desc" = "(Seleziona solo 1 giocatore. Usa dati chiave dalle statistiche dei giocatori e dall'analisi delle serie: contributi di punti, serie, rimbalzi, assist, difesa e impatto nei momenti critici. Almeno 3-5 frasi)";
+"ai_prompt_section_highlights" = "Momenti Salienti";
+"ai_prompt_section_highlights_desc" = "(Seleziona i 2 momenti più importanti della partita. Trova serie personali di punti o giocate decisive nell'analisi delle serie. Per ogni momento, indica il punteggio, chi ha fatto la giocata e come ha cambiato la partita. Tono naturale.)
+Formato:
+1. Titolo
+   Descrizione
+2. Titolo
+   Descrizione";
+
+"ai_prompt_extra_requirements" = "Requisiti Aggiuntivi:";
+"ai_prompt_game_info_label" = "【Informazioni Partita】";
+"ai_prompt_date_label" = "Data: %@";
+"ai_prompt_matchup_label" = "Incontro: %@ vs %@";
+"ai_prompt_score_label" = "Punteggio: %@ %d : %d %@";
+"ai_prompt_periods_label" = "Periodi: %d";
 "ai_prompt_events_label" = "Events: %d";
-"ai_prompt_players_label" = "【Player Stats】";
+"ai_prompt_players_label" = "【Statistiche Giocatori】";
 "ai_prompt_highlight_clues_label" = "【Highlight Clues (System-extracted from logs)】";
-"ai_prompt_numeric_facts_label" = "【Numeric Validation (Authoritative)】";
+"ai_prompt_numeric_facts_label" = "【Validazione Numerica (Autorevole)】";
 "ai_prompt_event_log_label" = "【Event Log (Max 24 entries, chronological)】";
-"ai_prompt_no_player_data" = "- No available player data";
+"ai_prompt_no_player_data" = "- Nessun dato giocatore disponibile";
 "ai_prompt_no_event_log" = "- No event log";
-"ai_prompt_player_line_format" = "- [%@] %@（%@） Time %@ Points %d Rebounds %d Assists %d Fouls %d Blocks %d Steals %d Turnovers %d Shooting %d/%d 3PT %d/%d FT %d/%d Plus/Minus %@";
-"ai_prompt_side_home" = "Home";
-"ai_prompt_side_away" = "Away";
-"ai_prompt_role_unmarked" = "Unmarked";
+"ai_prompt_player_line_format" = "- [%@] %@ (%@) Tempo %@ Pts %d Reb %d Ass %d Fal %d Stp %d Rub %d Per %d Tiri %d/%d 3PT %d/%d TL %d/%d +/- %@";
+"ai_prompt_side_home" = "Casa";
+"ai_prompt_side_away" = "Trasferta";
+"ai_prompt_role_unmarked" = "Non contrassegnato";
 "game_group_nav_title" = "Gruppi di partite";
 "game_group_section_title" = "Gruppi";
 "game_group_add_button" = "Nuovo gruppo";
@@ -887,7 +888,8 @@ Format:
 "link_privacy_policy" = "Informativa sulla privacy";
 "link_terms_of_eula" = "Termini di utilizzo (EULA)";
 "subscription_auto_renew_info" = "Abbonamento con rinnovo automatico. Annulla in qualsiasi momento nelle impostazioni di App Store.";
-"ai_prompt_req_14" = "- Commentary style between formal and casual: avoid overly written phrases like 'at the commencement of play'. Use natural expressions like 'the first quarter opened with', 'X hits', 'the score becomes XX-XX'. At least 5-8 sentences per period.";
+"ai_prompt_req_14" = "- Stile di commento tra formale e informale: evita espressioni troppo scritte come 'all'inizio del gioco'. Usa espressioni naturali come 'il primo periodo è iniziato con', 'X segna', 'il punteggio diventa XX-XX'. Almeno 5-8 frasi per periodo.";
+"ai_prompt_req_15" = "- I confini dei periodi sono determinati dalle regole del gioco in 【比赛信息】(condizione di fine periodo). In modalità a punti, un periodo termina quando una squadra raggiunge il limite di punti. In modalità a tempo, un periodo termina quando il tempo scade. In modalità manuale, l'utente cambia periodo manualmente. Gli eventi sono raggruppati per periodo in 【事件日志（按节次）】e【比分变化时间线】. Usa questi raggruppamenti per riassunti accurati.";
 
 "button_save_to_photos" = "Salva in Foto";
 
@@ -1061,3 +1063,18 @@ Format:
 "badge_turnover_king" = "失误王";
 "badge_block_king" = "盖帽王";
 "label_badges" = "Medaglie";
+
+// Overtime
+"button_overtime" = "Overtime";
+"overtime_setup_title" = "Overtime Setup";
+"section_overtime_settings" = "Overtime Settings";
+"label_ot_period_count" = "OT Periods: %d";
+"button_start_overtime" = "Start Overtime";
+"event_overtime_start_format" = "Overtime started (%d periods)";
+"alert_finished_game_title" = "Game Finished";
+"alert_finished_game_message" = "Start a new game or add overtime?";
+
+// Win/Loss
+"stats_wins" = "Wins";
+"stats_losses" = "Losses";
+"stats_win_rate" = "Win Rate";

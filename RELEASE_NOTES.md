@@ -1,20 +1,32 @@
 # Release Notes
 
-## 1.30 (2026-06-26)
+## 1.31 (2026-07-02)
 
 ### 新增
 
-- 勋章系统：每场比赛自动评选得分王、MVP、打铁王、篮板王、助攻王、三分王、效率王、连续三分、失误王、盖帽王共 10 种勋章，球员生涯页和比赛详情页均可查看，勋章数量自动累计。
-- 球队模式数据修复：补全 V2 传输格式中缺失的球队模式字段，上传下载不再丢失球队统计数据。
-- 云分享照片分离：照片通过独立 API 上传下载，避免请求体超限。
+- **复合事件系统**：新增 `stat.assistTwoMade`（助攻2分）、`stat.assistThreeMade`（助攻3分）、`stat.stealTurnover`（抢断失误）三种复合 event code。语音识别"xx助攻xx得分"、"xx抢断xx"不再拆成两条独立日志，改为单条自包含的"主谓宾"事件（主语→playerID，宾语→relatedPlayerID）。`relatedAction` 属性自动映射宾语统计（得分者+2/+3分、失误者+1误）。
+- **加时赛**：比赛进行中或结束后点击 "+" 可选"加时赛"，支持设置加时节数（1-10）、每节结束条件（时间/比分/手动）、每节时长/比分上限。加时节显示为 OT1、OT2（所有语言统一）。
+- **AI 总结增强**：新增【比分变化时间线】数据节（按节分组，每条含时间、球员、得分、实时领先方）。SDK 输出模型切换为 DeepSeek Chat，支持 10 种语言 AI Prompt 本地化。`ScoringRunAnalysis` 按 `period_end` 事件划分节次。
+- **ELO 天梯分按场次顺序对手真实积分计算**：每场比赛更新全部参赛球员的天梯分，后续比赛的对手强度基于真实赛后天梯分，不再使用初始 1500。
+- **加时赛节次识别**：`SavedGame` 新增 `originalPeriodCount` 字段，加时节显示为 OT1/OT2 而非第5节/第6节。`periodDisplayName()` 方法统一所有显示位置。
+- **球员生涯胜率**：生涯统计卡片新增胜率显示（Wins / Win Rate）。
+- **过往比赛向后兼容**：恢复 `startedPeriodNumber`/`endedPeriodNumber`（消息文本检测节次）、`isScoringMessage` 等函数，旧比赛（无 eventCode）也能正确按节统计。`originalPeriodCount` decode 兼容旧数据。
 
-### 优化
+### 重构
 
-- 照片压缩：自动压缩到 200KB 以内。
-- 按钮 i18n：button_retry 补充全部 10 种语言翻译。
-- 加载性能：数据编译和图片压缩移至后台线程。
-- 每节上场时间：从比赛日志推导球员每节上场时间，不再显示 --:--。
-- 语音规则优化：修正法语 contre-attaque 错映射、德语 rein 歧义、俄语 4 个误匹配；补全德/法/俄 stealTargetRule；补充各语言缺失的 pause/turnover 关键词及本地化 undo/redo。
+- **去除所有语言依赖的硬编码消息文本解析**：`StatAction.parseLog()`、`LoggedAction.parse(from:)`、`isScoring`、`startedPeriodNumber`/`endedPeriodNumber` 的 fallback 改为彻底基于 `eventCode`。`resolvedTeamID(from:)` 去掉 "主队/客队/zhudui/kedui" 硬编码关键词。`LoggedAction` 去除 `suffix`/`englishSuffix`/`suffixCandidates` 等全部语言相关的硬编码文本。
+- **AI 提示词全量本地化**：全部 10 种语言的 AI prompt（任务描述、逐节分析说明、14 条额外要求等 39 个 key）基于中文版本翻译完毕，`ai_prompt_req_4~15` 补齐。
+- **球员统计卡片可折叠**：本场数据/生涯数据/场均数据三个 Section 使用 `DisclosureGroup`，默认展开，可独立折叠。
+
+### 修复
+
+- **语音双事件得分日志被压制**：`onDualAction` 中得分方的 `eventMessage: ""` 导致 `applyRecordOperation` 不写日志，改为双事件各自独立写入。
+- **每节上场时间页面不显示**：`PlayerProfileView.computeStatsGroup` 选节时改用 `playingTimeByPeriod()` 取值，不再硬编码为 0。去掉 `isFixedPeriodMode ? "--" :` 三元。
+- **SavedGameAnalyzer 缺少 putbackMade 等 12 种事件**：补全 layup/midRange/paint/putback/dunk Made/Missed、offensiveRebound、defensiveRebound 等 `LoggedAction` 事件类型，每节得分与全场保持一致。
+- **AI 连续不中 streaks 不重置**：`bothMissStreak` 得分后未重置，改为得分时触发输出后置零。
+- **AI 比分变化时间线时间负数**：`game.savedAt` 作为时间基准导致所有事件为负值，改为使用首条事件时间戳。
+- **按比分模式不显示时长**：`periodEndCondition == .byScore` 时隐藏"每节时长"输入。
+- **两套独立枚举不同步**：`LoggedAction` 和 `StatAction` 统计逻辑不一致，引发每节得分偏差。`EventLogEditSheet` 新增 `showsAssistButton` 等过滤。
 
 ## 1.29 (2026-06-24)
 

@@ -1149,6 +1149,7 @@ struct GameSnapshot: Codable, Hashable {
     var homeTeamID: UUID?
     var awayTeamID: UUID?
     var periodCount: Int = 4
+    var originalPeriodCount: Int = 4
     var currentPeriod: Int = 1
     var periodIsRunning = false
     var isComplete = false
@@ -1272,6 +1273,7 @@ struct GameSnapshot: Codable, Hashable {
         homeTeamID = try container.decodeIfPresent(UUID.self, forKey: .homeTeamID)
         awayTeamID = try container.decodeIfPresent(UUID.self, forKey: .awayTeamID)
         periodCount = try container.decodeIfPresent(Int.self, forKey: .periodCount) ?? 4
+        originalPeriodCount = try container.decodeIfPresent(Int.self, forKey: .originalPeriodCount) ?? periodCount
         currentPeriod = try container.decodeIfPresent(Int.self, forKey: .currentPeriod) ?? 1
         periodIsRunning = try container.decodeIfPresent(Bool.self, forKey: .periodIsRunning) ?? false
         isComplete = try container.decodeIfPresent(Bool.self, forKey: .isComplete) ?? false
@@ -1331,10 +1333,18 @@ struct SavedGame: Identifiable, Codable, Hashable {
         guard snapshot.homeTeamStatsMode || snapshot.awayTeamStatsMode else { return nil }
         let msg = message.lowercased()
         if snapshot.homeTeamStatsMode, let tid = snapshot.homeTeamID,
-           msg.contains(homeTeamName.lowercased()) || msg.contains("主队") || msg.contains("zhudui") { return tid }
+           msg.contains(homeTeamName.lowercased()) { return tid }
         if snapshot.awayTeamStatsMode, let tid = snapshot.awayTeamID,
-           msg.contains(awayTeamName.lowercased()) || msg.contains("客队") || msg.contains("kedui") { return tid }
+           msg.contains(awayTeamName.lowercased()) { return tid }
         return nil
+    }
+
+    /// Display name for a period (e.g. "第1节", "OT1").
+    func periodDisplayName(_ period: Int) -> String {
+        if period > snapshot.originalPeriodCount {
+            return "OT\(period - snapshot.originalPeriodCount)"
+        }
+        return String(format: NSLocalizedString("label_period_number_format", comment: "Period number format"), period)
     }
 
     /// Total score for a team, including both player-level and team-level stats.

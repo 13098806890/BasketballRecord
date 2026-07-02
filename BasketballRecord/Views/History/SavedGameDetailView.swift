@@ -79,7 +79,7 @@ struct SavedGameDetailView: View {
                     Picker(LocalizedStringKey("picker_period"), selection: $selectedPeriod) {
                         Text(LocalizedStringKey("data_range_full")).tag(Optional<Int>.none)
                         ForEach(availablePeriodOptions, id: \.self) { period in
-                            Text(String(format: NSLocalizedString("data_range_period", comment: "Data range period"), period)).tag(Optional(period))
+                            Text(game.periodDisplayName(period)).tag(Optional(period))
                         }
                     }
                     .pickerStyle(.segmented)
@@ -107,10 +107,6 @@ struct SavedGameDetailView: View {
             if displayMode == .history {
                 Section(LocalizedStringKey("section_ai_game_summary")) {
                     Button {
-                        if hasSummary && aiConfig == nil {
-                            showSummaryExistsAlert = true
-                            return
-                        }
                         if !store.isPro {
                             isShowingPurchase = true
                         } else {
@@ -250,6 +246,19 @@ struct SavedGameDetailView: View {
             editDisplayName = game.displayName
             sanitizeSelectedPeriod()
             BadgeAwarder.awardBadges(for: game, store: store)
+            print("[EVENT_LOG] Game: \(game.homeTeamName) vs \(game.awayTeamName) | Final: \(game.homeTeamName) \(score(for: game.snapshot.homeTeamID)) : \(score(for: game.snapshot.awayTeamID)) \(game.awayTeamName)")
+            print("[EVENT_LOG] periodCount=\(game.snapshot.periodCount) isComplete=\(game.snapshot.isComplete) periodEndCondition=\(game.snapshot.periodEndCondition.rawValue) scoreLimit=\(game.snapshot.periodScoreLimit)")
+            print("[EVENT_LOG] --- ALL EVENTS (\(game.snapshot.logs.count) total) ---")
+            for (i, entry) in game.snapshot.logs.enumerated() {
+                let msg = GameLogFormatter.normalizedMessage(entry.message).prefix(60)
+                let ec = entry.eventCode ?? "nil"
+                let pid = entry.playerID?.uuidString.prefix(8) ?? "nil"
+                let rpid = entry.relatedPlayerID?.uuidString.prefix(8) ?? "nil"
+                let per = entry.period.map { "\($0)" } ?? "nil"
+                let pes = entry.periodElapsedSeconds.map { String(format: "%.0f", $0) } ?? "nil"
+                print("[EVENT_LOG] [\(i)] code=\(ec) period=\(per) elapsed=\(pes) pid=\(pid) related=\(rpid) msg=\(msg)")
+            }
+            print("[EVENT_LOG] --- END EVENTS ---")
             if displayMode == .history,
                aiSummary.isEmpty,
                let savedSummary = game.aiSummary,
@@ -420,7 +429,14 @@ struct SavedGameDetailView: View {
         guard let selectedPeriod else {
             return game.snapshot.statsByPlayerID
         }
-        return statsByPlayerID(for: selectedPeriod)
+        let periodStats = statsByPlayerID(for: selectedPeriod)
+        let homeIDs = Set(game.homePlayerIDs)
+        let homePts = periodStats.filter { homeIDs.contains($0.key) }.values.reduce(0) { $0 + $1.points }
+        let awayPts = periodStats.filter { !homeIDs.contains($0.key) }.values.reduce(0) { $0 + $1.points }
+        let totalHome = game.snapshot.statsByPlayerID.filter { homeIDs.contains($0.key) }.values.reduce(0) { $0 + $1.points }
+        let totalAway = game.snapshot.statsByPlayerID.filter { !homeIDs.contains($0.key) }.values.reduce(0) { $0 + $1.points }
+        print("[SG] selectedPeriod=\(selectedPeriod) period home=\(homePts) away=\(awayPts) | total home=\(totalHome) away=\(totalAway) | match=\(homePts==totalHome && awayPts==totalAway ? "YES" : "DIFFERS")")
+        return periodStats
     }
 
     private var availablePeriodOptions: [Int] {
@@ -429,16 +445,18 @@ struct SavedGameDetailView: View {
     }
 
     private var maxAvailablePeriod: Int {
-        let maxPeriod = max(game.snapshot.periodCount, 1)
+        let maxConfigPeriod = max(game.snapshot.periodCount, 1)
+        let maxStatsPeriod = periodAnalysis.statsByPeriod.keys.max() ?? 0
+        let maxReached = max(maxStatsPeriod, maxConfigPeriod)
+
         if game.snapshot.isComplete {
-            return maxPeriod
+            return maxReached
         }
 
-        let reachedByLogs = periodAnalysis.logs.compactMap(\.inferredPeriod).max() ?? 0
         if game.snapshot.periodIsRunning || game.snapshot.periodElapsedSeconds > 0 {
-            return min(max(reachedByLogs, game.snapshot.currentPeriod), maxPeriod)
+            return min(max(maxReached, game.snapshot.currentPeriod), maxConfigPeriod)
         }
-        return min(reachedByLogs, maxPeriod)
+        return maxReached
     }
 
     private var eventListMaxHeight: CGFloat {
@@ -517,6 +535,12 @@ struct SavedGameDetailView: View {
                 var stats = statsByPlayer[pid, default: PlayerStats()]
                 action.apply(to: &stats)
                 statsByPlayer[pid] = stats
+                if let related = action.relatedAction,
+                   let rpid = log.relatedPlayerID {
+                    var relatedStats = statsByPlayer[rpid, default: PlayerStats()]
+                    related.apply(to: &relatedStats)
+                    statsByPlayer[rpid] = relatedStats
+                }
                 if action.points > 0 {
                     let isHome = homeIDs.contains(pid)
                     for p in awayOnCourt { plusMinus[p, default: 0] -= action.points }
@@ -525,6 +549,12 @@ struct SavedGameDetailView: View {
             }
         }
 
+        let homeIDs2 = Set(currentGame.homePlayerIDs)
+        let rebuiltHome = statsByPlayer.filter { homeIDs2.contains($0.key) }.values.reduce(0) { $0 + $1.points }
+        let rebuiltAway = statsByPlayer.filter { !homeIDs2.contains($0.key) }.values.reduce(0) { $0 + $1.points }
+        let storedHome = currentGame.snapshot.statsByPlayerID.filter { homeIDs2.contains($0.key) }.values.reduce(0) { $0 + $1.points }
+        let storedAway = currentGame.snapshot.statsByPlayerID.filter { !homeIDs2.contains($0.key) }.values.reduce(0) { $0 + $1.points }
+        print("[SG] rebuild: rebuilt home=\(rebuiltHome) away=\(rebuiltAway) | stored home=\(storedHome) away=\(storedAway)")
         var savedGame = store.savedGames[gameIndex]
         savedGame.snapshot.statsByPlayerID = statsByPlayer
         savedGame.snapshot.playingSecondsByPlayerID = playingSeconds
@@ -547,7 +577,7 @@ struct SavedGameDetailView: View {
     }
 
     private func logLineText(for item: PeriodAwareLog) -> String {
-        GameLogFormatter.lineText(for: item)
+        GameLogFormatter.lineText(for: item, originalPeriodCount: game.snapshot.originalPeriodCount)
     }
 
     private var aiConfig: (provider: AIProvider, model: AIModel, apiKey: String)? {
@@ -638,7 +668,6 @@ struct SavedGameDetailView: View {
 
     private var generationBlocked: Bool {
         guard !usingOwnKey else { return false }
-        if hasSummary { return true }
         return dailyGenerationCount >= 10
     }
 
@@ -674,13 +703,13 @@ struct SavedGameDetailView: View {
     }
 
     private func generateAISummary() {
-        if hasSummary && usingOwnKey {
-            aiSummary = game.aiSummary ?? aiSummary
-            return
-        }
         if generationBlocked { return }
 
         let prompt = summaryPrompt()
+        print("[AI_PROMPT] Prompt length: \(prompt.count) chars")
+        print("[AI_PROMPT] System role: \(NSLocalizedString("ai_system_role", comment: "AI system role"))")
+        print("[AI_PROMPT] ---BEGIN PROMPT---\n\(prompt)\n---END PROMPT---")
+
         let systemRole = NSLocalizedString("ai_system_role", comment: "AI system role")
 
         isGeneratingAISummary = true
@@ -729,13 +758,14 @@ struct SavedGameDetailView: View {
         let periodCount = game.snapshot.periodCount
         var lines: [String] = []
 
-        for period in 1...periodCount {
+        let maxAnalysisPeriod = analysis.statsByPeriod.keys.max() ?? periodCount
+        for period in 1...max(maxAnalysisPeriod, periodCount) {
             let periodLogs = analysis.logs(for: period).filter { log in
                 GameLogFormatter.isScoring(log) || log.entry.eventCode == "stat.foul" || log.entry.eventCode == "stat.assist" || log.entry.eventCode == "stat.rebound" || log.entry.eventCode == "stat.block" || log.entry.eventCode == "stat.steal" || log.entry.eventCode == "stat.turnover"
             }
             guard !periodLogs.isEmpty else { continue }
 
-            lines.append("- 第\(period)节事件：")
+            lines.append("- \(game.periodDisplayName(period))：")
             for log in periodLogs.prefix(20) {
                 let msg = GameLogFormatter.normalizedMessage(log.entry.message)
                     .replacingOccurrences(of: "[event:\\w+\\.\\w+]", with: "", options: .regularExpression)
@@ -786,9 +816,53 @@ struct SavedGameDetailView: View {
         return lines.joined(separator: "\n")
     }
 
+    private func scoreTimelineText() -> String {
+        let scoringCodes: Set<String> = ["stat.twoMade", "stat.threeMade", "stat.freeThrowMade", "stat.bonusMade", "stat.assistTwoMade", "stat.assistThreeMade"]
+        let pointMap: [String: Int] = ["stat.twoMade": 2, "stat.threeMade": 3, "stat.freeThrowMade": 1, "stat.bonusMade": 1, "stat.assistTwoMade": 2, "stat.assistThreeMade": 3]
+        var homeIDs = Set(game.homePlayerIDs)
+        if game.snapshot.homeTeamStatsMode, let tid = game.snapshot.homeTeamID { homeIDs.insert(tid) }
+        let allIDs = allPlayerIDsForSummary()
+        let idToName: [UUID: String] = Dictionary(uniqueKeysWithValues: allIDs.compactMap { id in
+            game.playerNamesByID[id].map { (id, $0) }
+        })
+        func resolveTeamID(log: GameLogEntry) -> UUID? {
+            game.resolvedTeamID(from: log.message)
+        }
+
+        var lines: [String] = []
+        var homeScore = 0, awayScore = 0
+        var lastTimelinePeriod = 0
+        let gameStartTime = game.snapshot.logs.first?.timestamp ?? game.savedAt
+        for log in game.snapshot.logs {
+            guard let code = log.eventCode ?? GameLogFormatter.extractEventCode(from: log.message),
+                  scoringCodes.contains(code),
+                  let points = pointMap[code],
+                  let pid = log.playerID ?? resolvedPlayerID(log: log) ?? resolveTeamID(log: log) else { continue }
+            let isHome = homeIDs.contains(pid)
+            let prevHome = homeScore; let prevAway = awayScore
+            if isHome { homeScore += points } else { awayScore += points }
+            let playerName = idToName[pid] ?? (pid == game.snapshot.homeTeamID ? game.homeTeamName : pid == game.snapshot.awayTeamID ? game.awayTeamName : "?")
+            let elapsed = max(0, log.timestamp.timeIntervalSince(gameStartTime))
+            let min = Int(elapsed / 60); let sec = Int(elapsed) % 60
+            let timeStr = String(format: "%02d:%02d", min, sec)
+            let period = log.period ?? 1
+            if period != lastTimelinePeriod {
+                lastTimelinePeriod = period
+                lines.append("- \(game.periodDisplayName(period))：")
+            }
+            let lead = homeScore - awayScore
+            let leadStr: String
+            if lead > 0 { leadStr = "主队领先\(lead)分" }
+            else if lead < 0 { leadStr = "客队领先\(-lead)分" }
+            else { leadStr = "平分" }
+            lines.append("  [\(timeStr)] \(playerName) +\(points) (\(prevHome)：\(prevAway)->\(homeScore)：\(awayScore)，\(leadStr))")
+        }
+        return lines.isEmpty ? "- 无得分记录" : lines.joined(separator: "\n")
+    }
+
     private func scoringRunData() -> String {
-        let scoringCodes: Set<String> = ["stat.twoMade", "stat.threeMade", "stat.freeThrowMade", "stat.bonusMade"]
-        let pointMap: [String: Int] = ["stat.twoMade": 2, "stat.threeMade": 3, "stat.freeThrowMade": 1, "stat.bonusMade": 1]
+        let scoringCodes: Set<String> = ["stat.twoMade", "stat.threeMade", "stat.freeThrowMade", "stat.bonusMade", "stat.assistTwoMade", "stat.assistThreeMade"]
+        let pointMap: [String: Int] = ["stat.twoMade": 2, "stat.threeMade": 3, "stat.freeThrowMade": 1, "stat.bonusMade": 1, "stat.assistTwoMade": 2, "stat.assistThreeMade": 3]
         var homeIDs = Set(game.homePlayerIDs)
         if game.snapshot.homeTeamStatsMode, let tid = game.snapshot.homeTeamID { homeIDs.insert(tid) }
         let allIDs = allPlayerIDsForSummary()
@@ -843,24 +917,6 @@ struct SavedGameDetailView: View {
                     lastScoringPID = nil
                 }
 
-                // Per-scoring-event line with score context
-                let leadChars = abs(homeScore - awayScore)
-                let diffBefore = prevHome - prevAway
-                let diffAfter = homeScore - awayScore
-                var context = ""
-                if diffBefore == 0 {
-                    context = "opening"
-                } else if abs(diffAfter) > abs(diffBefore) {
-                    context = "extend \(leadChars)"
-                } else if diffBefore > 0 && diffAfter <= 0 {
-                    context = "tie"
-                } else if diffBefore < 0 && diffAfter >= 0 {
-                    context = "tie"
-                } else {
-                    context = "cut \(leadChars)"
-                }
-                events.append("[\(playerName) +\(points) \(prevHome)：\(prevAway)->\(homeScore)：\(awayScore) \(context)]")
-
                 // Personal scoring run
                 if personalRun?.playerID == pid {
                     personalRun?.count += 1
@@ -889,6 +945,10 @@ struct SavedGameDetailView: View {
                 assistStreak = nil
                 missedShotStreak = nil
                 personalMissStreak = nil
+                if bothMissStreak >= 6 {
+                    events.append("  both_miss_streak:x\(bothMissStreak)")
+                }
+                bothMissStreak = 0
                 continue
             }
 
@@ -942,6 +1002,19 @@ struct SavedGameDetailView: View {
                     }
                     assistStreak = (pid, 1)
                 }
+                continue
+            }
+
+            // Composite steal/turnover resets non-scoring streaks
+            if code == "stat.stealTurnover" {
+                reboundStreak = nil
+                assistStreak = nil
+                missedShotStreak = nil
+                personalMissStreak = nil
+                if bothMissStreak >= 6 {
+                    events.append("  both_miss_streak:x\(bothMissStreak)")
+                }
+                bothMissStreak = 0
                 continue
             }
         }
@@ -1000,7 +1073,8 @@ struct SavedGameDetailView: View {
         })
         var periodStatLines: [String] = []
         var runningHome = 0, runningAway = 0
-        for period in 1...periodCount {
+        let maxAnalysisPeriod = analysis.statsByPeriod.keys.max() ?? periodCount
+        for period in 1...max(maxAnalysisPeriod, periodCount) {
             let periodStats = analysis.statsByPlayerID(for: period)
             guard !periodStats.isEmpty else { continue }
             var homeIDs = Set(game.homePlayerIDs)
@@ -1011,7 +1085,7 @@ struct SavedGameDetailView: View {
             runningAway += awayPeriodPoints
             let diff = runningHome - runningAway
             let diffStr = diff > 0 ? "主队领先\(diff)分" : diff < 0 ? "客队领先\(-diff)分" : "平分"
-            periodStatLines.append("- 第\(period)节：主队\(homePeriodPoints)分 vs 客队\(awayPeriodPoints)分 | 累计 \(runningHome)：\(runningAway)（\(diffStr)）")
+            periodStatLines.append("- \(game.periodDisplayName(period))：主队\(homePeriodPoints)分 vs 客队\(awayPeriodPoints)分 | 累计 \(runningHome)：\(runningAway)（\(diffStr)）")
             // Per-player stats for this period
             let sortedPlayers = allIDs.filter { periodStats[$0] != nil }.sorted { lhs, rhs in
                 (periodStats[lhs]?.points ?? 0) > (periodStats[rhs]?.points ?? 0)
@@ -1023,6 +1097,7 @@ struct SavedGameDetailView: View {
             }
         }
         let periodStatsText = periodStatLines.joined(separator: "\n")
+        print("[SG] per-period cumulative: home=\(runningHome) away=\(runningAway) | game total from statsByPlayerID: home=\(homeScore) away=\(awayScore)")
 
         let playerLines = allPlayerIDsForSummary().map { playerID in
             let stats = game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
@@ -1065,6 +1140,7 @@ struct SavedGameDetailView: View {
         let req12 = NSLocalizedString("ai_prompt_req_12", comment: "Req 12")
         let req13 = NSLocalizedString("ai_prompt_req_13", comment: "Req 13")
         let req14 = NSLocalizedString("ai_prompt_req_14", comment: "Req 14")
+        let req15 = NSLocalizedString("ai_prompt_req_15", comment: "Req 15")
 
         let gameInfoLabel = NSLocalizedString("ai_prompt_game_info_label", comment: "Game info label")
         let dateLabel = NSLocalizedString("ai_prompt_date_label", comment: "Date label")
@@ -1107,6 +1183,7 @@ struct SavedGameDetailView: View {
         \(req12)
         \(req13)
         \(req14)
+        \(req15)
 
         \(gameInfoLabel)
         \(dateFormatted)
@@ -1114,6 +1191,10 @@ struct SavedGameDetailView: View {
         \(scoreStr)
         \(periodsStr)
         - 球队统计模式：主队=\(game.snapshot.homeTeamStatsMode ? "是" : "否") 客队=\(game.snapshot.awayTeamStatsMode ? "是" : "否")
+        - 场上人数：\(game.snapshot.courtPlayerCount)对\(game.snapshot.courtPlayerCount)
+        - 每节结束条件：\(periodEndConditionLabel(game.snapshot.periodEndCondition))
+        \(game.snapshot.periodEndCondition == .byScore ? "" : "- 每节时长：\(game.snapshot.periodTimeLimit)分钟")
+        - 每节比分上限：\(game.snapshot.periodScoreLimit)分
 
         \(playersLabel)
         \(playersText)
@@ -1125,6 +1206,9 @@ struct SavedGameDetailView: View {
 
         【事件日志（按节次）】
         \(eventsByPeriod)
+
+        【比分变化时间线\(game.homeTeamName) vs \(game.awayTeamName)】
+        \(scoreTimelineText())
 
         【每节得分汇总】
         \(periodStatsText)
@@ -1510,6 +1594,14 @@ struct SavedGameDetailView: View {
 
     private func signedNumberText(_ value: Int) -> String {
         value > 0 ? "+\(value)" : "\(value)"
+    }
+
+    private func periodEndConditionLabel(_ condition: PeriodEndCondition) -> String {
+        switch condition {
+        case .manual: return NSLocalizedString("period_end_manual", comment: "")
+        case .byTime: return NSLocalizedString("period_end_by_time", comment: "")
+        case .byScore: return NSLocalizedString("period_end_by_score", comment: "")
+        }
     }
 
     private func allPlayerIDsForSummary() -> [UUID] {

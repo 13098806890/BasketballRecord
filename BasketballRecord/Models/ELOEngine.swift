@@ -65,52 +65,81 @@ struct ELOEngine {
                 opponentScore = opponentIDs.reduce(0) { $0 + (game.snapshot.statsByPlayerID[$1]?.points ?? 0) }
             }
 
-            for id in myTeamIDs where eloByPlayer[id] == nil {
+            // Initialize all players in this game
+            for id in game.homePlayerIDs + game.awayPlayerIDs where eloByPlayer[id] == nil {
                 eloByPlayer[id] = initialELO
             }
-            for id in opponentIDs where eloByPlayer[id] == nil {
-                eloByPlayer[id] = initialELO
-            }
 
-            let playerWon = myScore > opponentScore
-            let isDraw = myScore == opponentScore
-
-            let opponentELOs = opponentIDs.compactMap { eloByPlayer[$0] }
-            let avgOpponentELO = opponentELOs.isEmpty ? initialELO : opponentELOs.reduce(0, +) / Double(opponentELOs.count)
-
-            let preELO = eloByPlayer[playerID] ?? initialELO
-            let expected = 1.0 / (1.0 + pow(10, (avgOpponentELO - preELO) / 400.0))
-
-            let actual: Double
-            if playerWon { actual = 1.0 }
-            else if isDraw { actual = 0.5 }
-            else { actual = 0.0 }
-
-            let playerStats = game.snapshot.statsByPlayerID[playerID] ?? PlayerStats()
-            let playerGS = playerStats.gameScore
-
-            let allIDs = game.homePlayerIDs + game.awayPlayerIDs
-            let allGS = allIDs.compactMap { game.snapshot.statsByPlayerID[$0]?.gameScore }
+            // Compute and update ELO for EVERY participant in this game
+            let allParticipantIDs = game.homePlayerIDs + game.awayPlayerIDs
+            let homeTeamIDs = Set(game.homePlayerIDs)
+            let allGS = allParticipantIDs.compactMap { game.snapshot.statsByPlayerID[$0]?.gameScore }
             let avgGS = allGS.isEmpty ? 5.0 : allGS.reduce(0, +) / Double(allGS.count)
-            let relativeGS = playerGS - avgGS
-            let perf = tanh(relativeGS / 15.0)
-            let gsFactor: Double
-            if playerWon {
-                gsFactor = 1.0 + perf * 0.5
-            } else {
-                gsFactor = 1.0 - perf * 0.5
-            }
-            let clampedFactor = max(0.3, min(2.0, gsFactor))
-
             let gameCount = sortedGames.count
             let K: Double
             if gameCount < 30 { K = 32 }
             else if gameCount < 100 { K = 24 }
             else { K = 16 }
 
-            let delta = K * (actual - expected) * clampedFactor
-            let postELO = preELO + delta
-            eloByPlayer[playerID] = postELO
+            // First pass: compute all deltas using PRE-game ELOs
+            var computedDeltas: [UUID: Double] = [:]
+            var preELOs: [UUID: Double] = [:]
+            var avgOppELOs: [UUID: Double] = [:]
+            var expectedScores: [UUID: Double] = [:]
+            var clampedFactors: [UUID: Double] = [:]
+            let allWon = myScore > opponentScore
+            let allDraw = myScore == opponentScore
+
+            for pid in allParticipantIDs {
+                let isPidHome = homeTeamIDs.contains(pid)
+                let pidOpponentIDs = isPidHome ? game.awayPlayerIDs : game.homePlayerIDs
+
+                let pidOppELOs = pidOpponentIDs.compactMap { eloByPlayer[$0] }
+                let pidAvgOppELO = pidOppELOs.isEmpty ? initialELO : pidOppELOs.reduce(0, +) / Double(pidOppELOs.count)
+                let pidPreELO = eloByPlayer[pid] ?? initialELO
+
+                preELOs[pid] = pidPreELO
+                avgOppELOs[pid] = pidAvgOppELO
+
+                let pidExpected = 1.0 / (1.0 + pow(10, (pidAvgOppELO - pidPreELO) / 400.0))
+                expectedScores[pid] = pidExpected
+
+                let pidActual: Double
+                if allWon { pidActual = isPidHome == isHome ? 1.0 : 0.0 }
+                else if allDraw { pidActual = 0.5 }
+                else { pidActual = isPidHome == isHome ? 0.0 : 1.0 }
+
+                let pidStats = game.snapshot.statsByPlayerID[pid] ?? PlayerStats()
+                let pidGS = pidStats.gameScore
+                let pidRelativeGS = pidGS - avgGS
+                let pidPerf = tanh(pidRelativeGS / 15.0)
+                let gsFactor: Double
+                if allWon {
+                    gsFactor = (isPidHome == isHome) ? (1.0 + pidPerf * 0.5) : (1.0 - pidPerf * 0.5)
+                } else if allDraw {
+                    gsFactor = 1.0
+                } else {
+                    gsFactor = (isPidHome == isHome) ? (1.0 - pidPerf * 0.5) : (1.0 + pidPerf * 0.5)
+                }
+                let pidClampedFactor = max(0.3, min(2.0, gsFactor))
+                clampedFactors[pid] = pidClampedFactor
+                let pidDelta = K * (pidActual - pidExpected) * pidClampedFactor
+                computedDeltas[pid] = pidDelta
+            }
+
+            // Second pass: apply all deltas
+            for (pid, delta) in computedDeltas {
+                eloByPlayer[pid] = (preELOs[pid] ?? initialELO) + delta
+            }
+
+            // Build history entry for the target player
+            let preELO = preELOs[playerID] ?? initialELO
+            let postELO = eloByPlayer[playerID] ?? initialELO
+            let delta = computedDeltas[playerID] ?? 0
+            let playerWon = myScore > opponentScore
+            let isDraw = myScore == opponentScore
+            let playerStats = game.snapshot.statsByPlayerID[playerID] ?? PlayerStats()
+            let playerGS = playerStats.gameScore
 
             history.append(ELOGameEntry(
                 game: game,
@@ -123,15 +152,15 @@ struct ELOEngine {
                     preELO: preELO,
                     myScore: myScore,
                     opponentScore: opponentScore,
-                    avgOpponentELO: avgOpponentELO,
-                    expected: expected,
-                    actual: actual,
+                    avgOpponentELO: avgOppELOs[playerID] ?? initialELO,
+                    expected: expectedScores[playerID] ?? 0.5,
+                    actual: playerWon ? 1.0 : (isDraw ? 0.5 : 0.0),
                     playerGS: playerGS,
                     avgGS: avgGS,
-                    relativeGS: relativeGS,
-                    perf: perf,
-                    gsFactorRaw: gsFactor,
-                    gsFactorClamped: clampedFactor,
+                    relativeGS: playerGS - avgGS,
+                    perf: tanh((playerGS - avgGS) / 15.0),
+                    gsFactorRaw: playerWon ? (1.0 + tanh((playerGS - avgGS) / 15.0) * 0.5) : (1.0 - tanh((playerGS - avgGS) / 15.0) * 0.5),
+                    gsFactorClamped: clampedFactors[playerID] ?? 1.0,
                     K: K,
                     won: playerWon,
                     isDraw: isDraw
