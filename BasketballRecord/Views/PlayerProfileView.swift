@@ -11,7 +11,7 @@ struct PlayerProfileView: View {
     @State private var selectedPeriod: Int? = nil
     @State private var fixedGameAnalysis = SavedGamePeriodAnalysis()
     @State private var showingELOHistory = false
-    @State private var expandedStatSections: Set<String> = ["game", "career", "average"]
+    @State private var expandedStatSections: Set<String> = ["game", "career", "average", "badges"]
 
     private var player: Player? { store.player(for: playerID) }
 
@@ -62,10 +62,10 @@ struct PlayerProfileView: View {
                     if let player, !player.badges.isEmpty {
                         if let fg = fixedGame {
                             if player.badges.contains(where: { $0.gameID == fg.id }) {
-                                badgesSection(player)
+                                badgeSection(player)
                             }
                         } else {
-                            badgesSection(player)
+                            badgeSection(player)
                         }
                     }
 
@@ -173,16 +173,15 @@ struct PlayerProfileView: View {
         .padding(.horizontal)
     }
 
-    private func badgesSection(_ player: Player) -> some View {
+    private func badgeSection(_ player: Player) -> some View {
         let filtered = fixedGame.map { game in player.badges.filter { $0.gameID == game.id } } ?? player.badges
         let grouped = Dictionary(grouping: filtered, by: { $0.type })
             .mapValues(\.count)
             .sorted { $0.key.title < $1.key.title }
-        return VStack(alignment: .leading, spacing: 8) {
-            Text(NSLocalizedString("label_badges", comment: ""))
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .padding(.horizontal)
+        return DisclosureGroup(NSLocalizedString("label_badges", comment: ""), isExpanded: Binding(
+            get: { expandedStatSections.contains("badges") },
+            set: { if $0 { expandedStatSections.insert("badges") } else { expandedStatSections.remove("badges") } }
+        )) {
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 10) {
                     ForEach(grouped, id: \.key) { type, count in
@@ -211,6 +210,8 @@ struct PlayerProfileView: View {
             }
             .frame(height: 72)
         }
+        .tint(.primary)
+        .padding(.horizontal)
     }
 
     private var playerELO: Double {
@@ -298,6 +299,7 @@ struct PlayerProfileView: View {
                 }
             }
         }
+        .tint(.primary)
         .padding(.horizontal)
     }
 
