@@ -1,1 +1,1 @@
-Composite events: assists and steals are now recorded as single log entries together with the corresponding shot or turnover. Overtime support with configurable periods. AI summaries now include a score timeline and support 10 languages. ELO ratings use real opponent ratings. Win rate added to player career view.
+Composite events: assist+shot and steal+turnover in one entry. Overtime support. AI score timeline. ELO based on real opponent ratings.

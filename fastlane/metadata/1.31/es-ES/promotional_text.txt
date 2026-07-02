@@ -1,1 +1,1 @@
-Eventos compuestos: las asistencias y robos ahora se registran como entradas de registro únicas junto con el tiro o pérdida correspondiente. Soporte de prórroga con períodos configurables. Los resúmenes de IA incluyen una línea de tiempo de puntuación y soporte para 10 idiomas.
+Eventos compuestos: asistencia+tiro y robo+pérdida en uno. Prórroga. Cronología AI. ELO por oponentes reales.

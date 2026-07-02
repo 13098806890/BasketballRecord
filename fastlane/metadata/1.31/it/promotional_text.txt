@@ -1,1 +1,1 @@
-Eventi compositi: assist e recuperi vengono ora registrati come singole voci di log insieme al tiro o alla persa corrispondente. Supporto supplementari con periodi configurabili. I riepiloghi AI includono una cronologia dei punteggi e supportano 10 lingue.
+Eventi compositi: assist+tiro e recupero+perse in uno. Supplementari. Cronologia AI. ELO per avversari reali.
