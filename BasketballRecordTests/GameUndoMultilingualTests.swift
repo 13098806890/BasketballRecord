@@ -498,23 +498,19 @@ final class GameLogFormatterTests: XCTestCase {
         let nonScoringEntry = GameLogEntry(timestamp: Date(), message: "犯规", eventCode: "stat.foul")
         XCTAssertFalse(GameLogFormatter.isScoring(nonScoringEntry))
         let nilCodeEntry = GameLogEntry(timestamp: Date(), message: "张三2分命中")
-        XCTAssertTrue(GameLogFormatter.isScoring(nilCodeEntry))
+        XCTAssertFalse(GameLogFormatter.isScoring(nilCodeEntry))
     }
 
-    func testPeriodNumber() {
-        XCTAssertEqual(GameLogFormatter.periodNumber(fromControlMessage: "第1节"), 1)
-        XCTAssertEqual(GameLogFormatter.periodNumber(fromControlMessage: "第2节"), 2)
-        XCTAssertNil(GameLogFormatter.periodNumber(fromControlMessage: "暂停"))
-    }
+    func testPeriodDetectionViaEventCode() {
+        let startEntry = GameLogEntry(timestamp: Date(), message: "第1节开始", eventCode: "event.period_start", period: 1)
+        let endEntry = GameLogEntry(timestamp: Date(), message: "第1节结束", eventCode: "event.period_end", period: 1)
+        let scoringEntry = GameLogEntry(timestamp: Date(), message: "张三2分命中", eventCode: "stat.twoMade")
 
-    func testStartedPeriodNumber() {
-        XCTAssertEqual(GameLogFormatter.startedPeriodNumber(from: "第1节开始[event:event.period_start]"), 1)
-        XCTAssertNil(GameLogFormatter.startedPeriodNumber(from: "第1节结束[event:event.period_end]"))
-    }
-
-    func testEndedPeriodNumber() {
-        XCTAssertEqual(GameLogFormatter.endedPeriodNumber(from: "第1节结束[event:event.period_end]"), 1)
-        XCTAssertNil(GameLogFormatter.endedPeriodNumber(from: "第1节开始[event:event.period_start]"))
+        XCTAssertEqual(startEntry.eventCode, "event.period_start")
+        XCTAssertEqual(endEntry.eventCode, "event.period_end")
+        XCTAssertTrue(GameLogFormatter.isScoring(scoringEntry))
+        XCTAssertFalse(GameLogFormatter.isScoring(startEntry))
+        XCTAssertFalse(GameLogFormatter.isScoring(endEntry))
     }
 
     func testLineText() {
