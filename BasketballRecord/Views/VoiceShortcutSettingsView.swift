@@ -29,16 +29,16 @@ struct VoiceShortcutSettingsView: View {
         case .freeThrowMade, .freeThrowMissed: return "1.circle"
         case .bonusMade, .bonusMissed: return "plus.circle"
         case .foul: return "exclamationmark.triangle"
-        case .assist: return "hand.raised"
+        case .assist, .assistTwoMade, .assistThreeMade: return "hand.raised"
         case .rebound: return "arrow.up.circle"
         case .offensiveRebound: return "arrow.up.forward.circle"
         case .defensiveRebound: return "arrow.down.backward.circle"
         case .block: return "shield.lefthalf.filled"
-        case .steal: return "hand.raised.fill"
+        case .steal, .stealTurnover: return "hand.raised.fill"
         case .turnover: return "arrow.triangle.2.circlepath"
         case .putbackMade, .putbackMissed: return "arrow.uturn.forward.circle"
         case .dunkMade, .dunkMissed: return "figure.disc.sports"
-        }
+}
     }
 
     var body: some View {

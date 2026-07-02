@@ -927,6 +927,7 @@ Format:
 2. Title
    Description";
 "ai_prompt_req_14" = "- Commentary style between formal and casual: avoid overly written phrases like 'at the commencement of play'. Use natural expressions like 'the first quarter opened with', 'X hits', 'the score becomes XX-XX'. At least 5-8 sentences per period.";
+"ai_prompt_req_15" = "- Period boundaries are determined by the game rules in 【比赛信息】(每节结束条件). For byScore mode, a period ends when a team reaches the score limit. For byTime mode, a period ends when the clock runs out. For manual mode, the user manually controls period transitions. Events are grouped by period in 【事件日志（按节次）】and【比分变化时间线】. Use these groupings to write accurate per-period summaries.";
 
 "button_save_to_photos" = "Save to Photos";
 
@@ -1085,3 +1086,18 @@ Format:
 "badge_turnover_king" = "Turnover King";
 "badge_block_king" = "Block King";
 "label_badges" = "Medals";
+
+// Overtime
+"button_overtime" = "Overtime";
+"overtime_setup_title" = "Overtime Setup";
+"section_overtime_settings" = "Overtime Settings";
+"label_ot_period_count" = "OT Periods: %d";
+"button_start_overtime" = "Start Overtime";
+"event_overtime_start_format" = "Overtime started (%d periods)";
+"alert_finished_game_title" = "Game Finished";
+"alert_finished_game_message" = "Start a new game or add overtime?";
+
+// Win/Loss
+"stats_wins" = "Wins";
+"stats_losses" = "Losses";
+"stats_win_rate" = "Win Rate";

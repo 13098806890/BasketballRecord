@@ -24,7 +24,7 @@ struct PlayerGameDetailView: View {
                     Picker(LocalizedStringKey("picker_period"), selection: $selectedPeriod) {
                         Text(LocalizedStringKey("data_range_full")).tag(Optional<Int>.none)
                         ForEach(1...game.snapshot.periodCount, id: \.self) { period in
-                            Text(String(format: NSLocalizedString("data_range_period", comment: "Data range period"), period)).tag(Optional(period))
+                            Text(game.periodDisplayName(period)).tag(Optional(period))
                         }
                     }
                     .pickerStyle(.segmented)

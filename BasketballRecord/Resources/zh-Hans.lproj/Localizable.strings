@@ -764,31 +764,32 @@
 "ai_test_connection_prompt" = "请仅回复：连接成功";
 "ai_prompt_task_description" = "你将基于一场篮球比赛数据生成赛后复盘。请严格用中文输出，并且严格按照以下 Markdown 结构，不要添加其他一级标题：";
 "ai_prompt_section_summary" = "比赛总结";
-"ai_prompt_section_summary_desc" = "(Detailed period-by-period analysis: ·Use scoring events from Scoring Run Analysis to describe each period's flow ·For each score, state who scored, how many points, and the exact score (refer to pre->post format) ·Analyze the impact of scoring runs and missed-shot streaks ·Consecutive rebounds/assists show player dominance ·Alternating scoring periods indicate a tight game. Conversational tone. At least 5-8 sentences per period)";
+"ai_prompt_section_summary_desc" = "（逐节详细分析：·使用【连续得分分析】中的得分事件描述每节比赛进程 ·每次得分要说明谁得分、得了几分、具体比分是多少 ·分析连续得分和连续不中 streaks 的影响 ·连续篮板/助攻体现球员统治力 ·交替领先说明比赛胶着。语气自然口语化，每节至少5-8句话）";
 "ai_prompt_section_mvp" = "MVP";
-"ai_prompt_section_mvp_desc" = "(Select only 1 player. Use key data from Player Stats and Scoring Run Analysis: the player's scoring contributions, streaks, rebounds, assists, defense, and impact on game momentum during critical moments. At least 3-5 sentences)";
+"ai_prompt_section_mvp_desc" = "（只选1名球员。引用【球员数据】和【连续得分分析】的关键数据：该球员的得分贡献、连续得分、篮板、助攻、防守、以及对比赛关键时刻的影响力。至少3-5句话）";
 "ai_prompt_section_highlights" = "高亮时刻";
-"ai_prompt_section_highlights_desc" = "(Select the 2 most important highlights of the game. Find personal scoring runs or clutch plays from Scoring Run Analysis. For each highlight, clearly state the score at the time, who made the play, and how it changed the game. Conversational tone, not formal)
-Format:
-1. Title
-   Description
-2. Title
-   Description";
+"ai_prompt_section_highlights_desc" = "（选出全场最重要的2个高光时刻。从【连续得分分析】中找个人连续得分或关键球。每个高光要说明当时的比分、是谁做到的、如何改变了比赛。语气自然。）
+格式：
+1. 标题
+   描述
+2. 标题
+   描述";
 "ai_prompt_extra_requirements" = "额外要求：";
 "ai_prompt_req_1" = "- 直接输出 Markdown 正文，不要使用 ```markdown 或 ``` 代码块包裹。";
 "ai_prompt_req_2" = "- 不要输出字面量 \\n 或 \\\\n，请使用真实换行。";
 "ai_prompt_req_3" = "- 各级标题、段落、列表之间保留空行，保证排版清晰。";
-"ai_prompt_req_4" = "- When citing Scoring Run Analysis data, convert open/extend/cut/tie markers to natural language. Example: 'Zhang San hits a 2-pointer, 10-8 → 12-8, leading by 4'. Do NOT output 'extend', 'cut', 'tie' directly. Always include exact scores.";
-"ai_prompt_req_5" = "- Describe highlight moments based on the game event log.";
+"ai_prompt_req_4" = "- 引用【连续得分分析】数据时，将 open/extend/cut/tie 标记转换为自然语言。例如：'张三命中2分，10-8 → 12-8，领先4分'。不要直接输出 'extend' 'cut' 'tie'。始终包含具体比分。";
+"ai_prompt_req_5" = "- 基于比赛事件日志描述高光时刻。";
 "ai_prompt_req_6" = "- 不要虚构未给出的球员或事件。所有描述必须源自【事件日志】【连续得分分析】【球员数据】或【球队统计数据】。球员每节得分以【每节得分汇总】中该节下方列出的数据为准，不要自行计算或推测。注意球队统计模式下该队没有个人球员数据，只能引用【球队统计数据】。";
-"ai_prompt_req_7" = "- If no specific event in the log supports a description, do not write that description. Only write content backed by data.";
-"ai_prompt_req_8" = "- Scoring Run Analysis data is system-precomputed. Reference it directly. No need to calculate from raw logs.";
-"ai_prompt_req_9" = "- Only write events that appear in the log. If the log says 'two-point made', write 'two-point made'. Do not rewrite as 'layup' or 'jumper'.";
-"ai_prompt_req_10" = "- Do NOT use uncertain terms like 'possibly', 'likely', 'maybe', 'probably'. If data supports it, state it as fact. If not, don't write it.";
-"ai_prompt_req_11" = "- State facts directly. Do not add 'according to the log', 'based on data', or similar citations.";
-"ai_prompt_req_12" = "- Highlight moments must reference specific plays from the Event Log.";
-"ai_prompt_req_14" = "- Commentary style between formal and casual: avoid overly written phrases like 'at the commencement of play'. Use natural expressions like 'the first quarter opened with', 'X hits', 'the score becomes XX-XX'. At least 5-8 sentences per period.";
-"ai_prompt_req_13" = "- When using numeric expressions like 'highest', 'lowest', 'most', 'least', they must match Numeric Validation. Do not modify values.";
+"ai_prompt_req_7" = "- 如果日志中没有具体事件支撑某段描述，就不要写那段描述。只写有数据支持的内容。";
+"ai_prompt_req_8" = "- 【连续得分分析】数据是系统预计算的，直接引用即可，不需要从原始日志重新计算。";
+"ai_prompt_req_9" = "- 只写日志中出现的事件。如果日志写的是'两分命中'，就写'两分命中'，不要改写为'上篮'或'跳投'。";
+"ai_prompt_req_10" = "- 不要使用'可能''大概''或许''也许'等不确定措辞。如果数据支持，就作为事实陈述；如果不支持，就不要写。";
+"ai_prompt_req_11" = "- 直接陈述事实，不要加'根据日志''基于数据'之类的引用语。";
+"ai_prompt_req_12" = "- 高光时刻必须引用【事件日志】中的具体回合。";
+"ai_prompt_req_14" = "- 解说风格介于书面和口语之间：避免过于书面化的表达如'比赛伊始'。使用自然的表达如'第一节开局'、'X命中'、'比分来到XX-XX'。每节至少5-8句话。";
+"ai_prompt_req_15" = "- 节次边界由【比赛信息】中的'每节结束条件'决定。按比分模式时，某队达到比分上限则该节结束；按时间模式时，时间到则该节结束；手动模式时由用户手动切换节次。事件已按节次分组在【事件日志（按节次）】和【比分变化时间线】中，使用这些分组来写准确的逐节总结。";
+"ai_prompt_req_13" = "- 使用'最高''最低''最多''最少'等数值表达时，必须与【数值校验】一致，不得修改数值。";
 "ai_prompt_game_info_label" = "【比赛信息】";
 "ai_prompt_date_label" = "日期：%@";
 "ai_prompt_matchup_label" = "对阵：%@ vs %@";
@@ -1073,3 +1074,18 @@ Format:
 "badge_turnover_king" = "失误王";
 "badge_block_king" = "盖帽王";
 "label_badges" = "勋章";
+
+// Overtime
+"button_overtime" = "加时";
+"overtime_setup_title" = "加时设置";
+"section_overtime_settings" = "加时赛设置";
+"label_ot_period_count" = "加时节数：%d";
+"button_start_overtime" = "开始加时";
+"event_overtime_start_format" = "加时赛开始（%d节）";
+"alert_finished_game_title" = "比赛已结束";
+"alert_finished_game_message" = "开始新比赛或添加加时？";
+
+// Win/Loss
+"stats_wins" = "胜";
+"stats_losses" = "负";
+"stats_win_rate" = "胜率";

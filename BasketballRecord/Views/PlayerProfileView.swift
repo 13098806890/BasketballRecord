@@ -11,6 +11,7 @@ struct PlayerProfileView: View {
     @State private var selectedPeriod: Int? = nil
     @State private var fixedGameAnalysis = SavedGamePeriodAnalysis()
     @State private var showingELOHistory = false
+    @State private var expandedStatSections: Set<String> = ["game", "career", "average"]
 
     private var player: Player? { store.player(for: playerID) }
 
@@ -75,7 +76,7 @@ struct PlayerProfileView: View {
                             Picker(LocalizedStringKey("picker_period"), selection: $selectedPeriod) {
                                 Text(LocalizedStringKey("label_full_game")).tag(Optional<Int>.none)
                                 ForEach(1...fixedGame.snapshot.periodCount, id: \.self) { period in
-                                    Text(localizedFormat("label_period_number_format", period)).tag(Optional(period))
+                                    Text(fixedGame.periodDisplayName(period)).tag(Optional(period))
                                 }
                             }
                             .pickerStyle(.segmented)
@@ -85,10 +86,10 @@ struct PlayerProfileView: View {
 
 
                     if fixedGame != nil {
-                        statSection(localized("label_this_game_stats"), rows: buildGameStatRows())
+                        statSection(localized("label_this_game_stats"), rows: buildGameStatRows(), sectionId: "game")
                     } else {
-                        statSection(localized("label_career_stats"), rows: buildCareerStatRows())
-                        statSection(localized("label_average_stats"), rows: buildAverageStatRows())
+                        statSection(localized("label_career_stats"), rows: buildCareerStatRows(), sectionId: "career")
+                        statSection(localized("label_average_stats"), rows: buildAverageStatRows(), sectionId: "average")
                     }
 
                     if fixedGame != nil {
@@ -250,10 +251,12 @@ struct PlayerProfileView: View {
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
     }
 
-    private func statSection(_ title: String, rows: [StatRow]) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title)
-                .font(.headline)
+    private func statSection(_ title: String, rows: [StatRow], sectionId: String = "") -> some View {
+        let isExpanded = Binding(
+            get: { expandedStatSections.contains(sectionId) },
+            set: { if $0 { expandedStatSections.insert(sectionId) } else { expandedStatSections.remove(sectionId) } }
+        )
+        return DisclosureGroup(title, isExpanded: isExpanded) {
             if rows.isEmpty {
                 Text(LocalizedStringKey("text_no_stats_in_group"))
                     .font(.subheadline)
@@ -313,15 +316,15 @@ struct PlayerProfileView: View {
 
         switch style {
         case .game:
-            mins = isFixedPeriodMode ? "--" : String(format: "%.1f", totalMinutes)
+            mins = GameView.durationFormatter(totalMinutes * 60)
             pm = isFixedPeriodMode ? "--" : (totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)")
             avg = nil
         case .career:
-            mins = isFixedPeriodMode ? "--" : String(format: "%.1f", totalMinutes)
+            mins = GameView.durationFormatter(totalMinutes * 60)
             pm = totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)"
             avg = nil
         case .average:
-            mins = String(format: "%.1f", totalMinutes / Double(games))
+            mins = GameView.durationFormatter(totalMinutes / Double(games) * 60)
             pm = String(format: "%.1f", Double(totalPlusMinus) / Double(games))
             avg = { v in String(format: "%.1f", Double(v) / Double(games)) }
         }
@@ -347,7 +350,9 @@ struct PlayerProfileView: View {
                 StatRow(id: "row4", left: pps, rightSplit: efg),
             ]
         case .career:
-            let sb = StatCell(label: "\(localized("stats_games")) / \(localized("stat_label_starter")) / \(localized("stat_label_bench"))", value: "\(filteredGames.count) / \(starterGameCount) / \(benchGameCount)")
+            let totalGames = filteredGames.count
+            let winRate = totalGames > 0 ? String(format: "%.1f%%", Double(statsGroup.winCount) / Double(totalGames) * 100) : "--"
+            let sb = StatCell(label: "\(localized("stats_games")) / \(localized("stat_label_starter")) / \(localized("stat_label_bench")) / \(localized("stats_win_rate"))", value: "\(totalGames) / \(starterGameCount) / \(benchGameCount) / \(winRate)")
             return [
                 StatRow(id: "row1", left: pts, leftSplit: min, rightSplit: sb),
                 StatRow(id: "row2", left: fg, leftSplit: ft, right: three, rightSplit: two),
@@ -397,7 +402,7 @@ struct PlayerProfileView: View {
                                     if isNew && !isDeleted { Text("NEW").font(.caption2.weight(.bold)).foregroundStyle(.green) }
                                     if isEdited { Text("EDITED").font(.caption2.weight(.bold)).foregroundStyle(.orange) }
                                     if isDeleted { Text("DELETED").font(.caption2.weight(.bold)).foregroundStyle(.red) }
-                                    Text(GameLogFormatter.lineText(for: log))
+                                    Text(GameLogFormatter.lineText(for: log, originalPeriodCount: fixedGame?.snapshot.originalPeriodCount ?? 4))
                                         .font(.caption.monospacedDigit())
                                         .foregroundStyle(isDeleted ? Color.secondary : (GameLogFormatter.isScoring(log) ? Color.blue : Color.primary))
                                         .strikethrough(isDeleted)
@@ -456,6 +461,9 @@ struct PlayerProfileView: View {
         let totalPlusMinus: Int
         let starterGameCount: Int
         let benchGameCount: Int
+        let winCount: Int
+        let lossCount: Int
+        let drawCount: Int
     }
 
     private var statsGroup: PlayerStatsGroup {
@@ -463,9 +471,10 @@ struct PlayerProfileView: View {
     }
 
     private func computeStatsGroup(for games: [SavedGame]) -> PlayerStatsGroup {
-        if let selectedPeriod, fixedGame != nil {
-            let stats = fixedGameAnalysis.statsByPlayerID(for: selectedPeriod)[playerID, default: PlayerStats()]
-            return PlayerStatsGroup(totalStats: stats, totalMinutes: 0, totalPlusMinus: 0, starterGameCount: 0, benchGameCount: 0)
+        if let sp = selectedPeriod, let fg = fixedGame {
+            let stats = fixedGameAnalysis.statsByPlayerID(for: sp)[playerID, default: PlayerStats()]
+            let periodSeconds = fg.playingTimeByPeriod()[sp]?[playerID] ?? 0
+            return PlayerStatsGroup(totalStats: stats, totalMinutes: periodSeconds / 60, totalPlusMinus: 0, starterGameCount: 0, benchGameCount: 0, winCount: 0, lossCount: 0, drawCount: 0)
         }
 
         var total = PlayerStats()
@@ -473,9 +482,29 @@ struct PlayerProfileView: View {
         var plusMinus: Int = 0
         var starter = 0
         var bench = 0
+        var wins = 0
+        var losses = 0
+        var draws = 0
 
         for game in games {
             guard !playerDidNotPlay(in: game) else { continue }
+            let isHome = game.homePlayerIDs.contains(playerID)
+            let myScore: Int
+            let oppScore: Int
+            if let myTeamID = (isHome ? game.snapshot.homeTeamID : game.snapshot.awayTeamID),
+               let oppTeamID = (isHome ? game.snapshot.awayTeamID : game.snapshot.homeTeamID) {
+                myScore = game.score(forTeamID: myTeamID)
+                oppScore = game.score(forTeamID: oppTeamID)
+            } else {
+                let isHomePts = game.homePlayerIDs.reduce(0) { $0 + (game.snapshot.statsByPlayerID[$1]?.points ?? 0) }
+                let isAwayPts = game.awayPlayerIDs.reduce(0) { $0 + (game.snapshot.statsByPlayerID[$1]?.points ?? 0) }
+                myScore = isHome ? isHomePts : isAwayPts
+                oppScore = isHome ? isAwayPts : isHomePts
+            }
+            if myScore > oppScore { wins += 1 }
+            else if myScore < oppScore { losses += 1 }
+            else { draws += 1 }
+
             let raw = game.snapshot.statsByPlayerID[playerID] ?? PlayerStats()
             total.twoMade += raw.twoMade
             total.twoAttempts += raw.twoAttempts
@@ -500,7 +529,7 @@ struct PlayerProfileView: View {
             else if role == .bench { bench += 1 }
         }
 
-        return PlayerStatsGroup(totalStats: total, totalMinutes: minutes, totalPlusMinus: plusMinus, starterGameCount: starter, benchGameCount: bench)
+        return PlayerStatsGroup(totalStats: total, totalMinutes: minutes, totalPlusMinus: plusMinus, starterGameCount: starter, benchGameCount: bench, winCount: wins, lossCount: losses, drawCount: draws)
     }
 
     private func playerDidNotPlay(in game: SavedGame) -> Bool {
@@ -513,7 +542,7 @@ struct PlayerProfileView: View {
     }
 
     private var totalStats: PlayerStats { statsGroup.totalStats }
-    private var totalMinutes: Double { isFixedPeriodMode ? 0 : statsGroup.totalMinutes }
+    private var totalMinutes: Double { statsGroup.totalMinutes }
     private var totalPlusMinus: Int { isFixedPeriodMode ? 0 : statsGroup.totalPlusMinus }
     private var starterGameCount: Int { statsGroup.starterGameCount }
     private var benchGameCount: Int { statsGroup.benchGameCount }
@@ -523,7 +552,7 @@ struct PlayerProfileView: View {
         let rebLine = "\(stats.totalRebounds) / \(stats.offensiveRebounds) / \(stats.defensiveRebounds)"
         let astStlBlkLine = "\(stats.assists) / \(stats.steals) / \(stats.blocks)"
         let fouls = "\(stats.fouls) / \(stats.turnovers)"
-        let mins = isFixedPeriodMode ? "--" : String(format: "%.1f", totalMinutes)
+        let mins = GameView.durationFormatter(totalMinutes * 60)
         let items: [(String, String)] = [
             (localized("stats_pts_min"), "\(stats.points) / \(mins)"),
             (localized("stats_rebound_detail"), rebLine),
@@ -543,7 +572,7 @@ struct PlayerProfileView: View {
     private var careerSummaryValues: [(String, String)] {
         let stats = totalStats
         let games = filteredGames.count
-        let mins = isFixedPeriodMode ? "--" : String(format: "%.1f", totalMinutes)
+        let mins = GameView.durationFormatter(totalMinutes * 60)
         let pmText = totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)"
         return [
             ("\(localized("label_games_count"))", "\(games) (\(localized("stat_label_starter")) \(starterGameCount)/\(localized("stat_label_bench")) \(benchGameCount))"),
@@ -570,7 +599,7 @@ struct PlayerProfileView: View {
             (.averageBlocks, average(stats.blocks, games)),
             (.averageSteals, average(stats.steals, games)),
             (.averageTurnovers, average(stats.turnovers, games)),
-            (.averageMinutes, String(format: "%.1f", totalMinutes / Double(games))),
+            (.averageMinutes, GameView.durationFormatter(totalMinutes / Double(games) * 60)),
             (.averagePlusMinus, String(format: "%.1f", Double(totalPlusMinus) / Double(games))),
             (.averageTwoMade, average(stats.twoMade, games)),
             (.averageThreeMade, average(stats.threeMade, games)),
@@ -590,7 +619,7 @@ struct PlayerProfileView: View {
         let rebLine = "\(avg(stats.totalRebounds)) / \(avg(stats.offensiveRebounds)) / \(avg(stats.defensiveRebounds))"
         let astStlBlkLine = "\(avg(stats.assists)) / \(avg(stats.steals)) / \(avg(stats.blocks))"
         let fouls = "\(avg(stats.fouls)) / \(avg(stats.turnovers))"
-        let avgMin = String(format: "%.1f", totalMinutes / Double(games))
+        let avgMin = GameView.durationFormatter(totalMinutes / Double(games) * 60)
         return [
             (localized("stats_pts_min"), "\(avg(stats.points)) / \(avgMin)"),
             (localized("stats_rebound_detail"), rebLine),

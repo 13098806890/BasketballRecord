@@ -697,30 +697,30 @@
 "ai_test_connection_prompt" = "請僅回覆：連接成功";
 "ai_prompt_task_description" = "你將基於一場籃球比賽資料生成賽後復盤。請嚴格用繁體中文輸出，並且嚴格按照以下 Markdown 結構，不要添加其他一級標題：";
 "ai_prompt_section_summary" = "比賽總結";
-"ai_prompt_section_summary_desc" = "(Detailed period-by-period analysis: ·Use scoring events from Scoring Run Analysis to describe each period's flow ·For each score, state who scored, how many points, and the exact score (refer to pre->post format) ·Analyze the impact of scoring runs and missed-shot streaks ·Consecutive rebounds/assists show player dominance ·Alternating scoring periods indicate a tight game. Conversational tone. At least 5-8 sentences per period)";
+"ai_prompt_section_summary_desc" = "（逐節詳細分析：·使用【連續得分分析】中的得分事件描述每節比賽進程 ·每次得分要說明誰得分、得了幾分、具體比分是多少 ·分析連續得分和連續不中 streaks 的影響 ·連續籃板/助攻體現球員統治力 ·交替領先說明比賽膠著。語氣自然口語化，每節至少5-8句話）";
 "ai_prompt_section_mvp" = "MVP";
-"ai_prompt_section_mvp_desc" = "(Select only 1 player. Use key data from Player Stats and Scoring Run Analysis: the player's scoring contributions, streaks, rebounds, assists, defense, and impact on game momentum during critical moments. At least 3-5 sentences)";
+"ai_prompt_section_mvp_desc" = "（只選1名球員。引用【球員數據】和【連續得分分析】的關鍵數據：該球員的得分貢獻、連續得分、籃板、助攻、防守、以及對比賽關鍵時刻的影響力。至少3-5句話）";
 "ai_prompt_section_highlights" = "高光時刻";
-"ai_prompt_section_highlights_desc" = "(Select the 2 most important highlights of the game. Find personal scoring runs or clutch plays from Scoring Run Analysis. For each highlight, clearly state the score at the time, who made the play, and how it changed the game. Conversational tone, not formal)
-Format:
-1. Title
-   Description
-2. Title
-   Description";
+"ai_prompt_section_highlights_desc" = "（選出全場最重要的2個高光時刻。從【連續得分分析】中找個人連續得分或關鍵球。每個高光要說明當時的比分、是誰做到的、如何改變了比賽。語氣自然。）
+格式：
+1. 標題
+   描述
+2. 標題
+   描述";
 "ai_prompt_extra_requirements" = "額外要求：";
 "ai_prompt_req_1" = "- 直接輸出 Markdown 正文，不要使用 ```markdown 或 ``` 代碼塊包裹。";
 "ai_prompt_req_2" = "- 不要輸出字面量 \\n 或 \\\\n，請使用真實換行。";
 "ai_prompt_req_3" = "- 各級標題、段落、列表之間保留空行，保證排版清晰。";
-"ai_prompt_req_4" = "- When citing Scoring Run Analysis data, convert open/extend/cut/tie markers to natural language. Example: 'Zhang San hits a 2-pointer, 10-8 → 12-8, leading by 4'. Do NOT output 'extend', 'cut', 'tie' directly. Always include exact scores.";
-"ai_prompt_req_5" = "- Describe highlight moments based on the game event log.";
+"ai_prompt_req_4" = "- 引用【連續得分分析】數據時，將 open/extend/cut/tie 標記轉換為自然語言。例如：'張三命中2分，10-8 → 12-8，領先4分'。不要直接輸出 'extend' 'cut' 'tie'。始終包含具體比分。";
+"ai_prompt_req_5" = "- 基於比賽事件日誌描述高光時刻。";
 "ai_prompt_req_6" = "- 不要虛構未給出的球員或事件。所有描述必須源自【事件日誌】【連續得分分析】【球員數據】或【球隊統計數據】。球員每節得分以【每節得分匯總】中該節下方列出的數據為準，不要自行計算或推測。注意球隊統計模式下該隊沒有個人球員數據，只能引用【球隊統計數據】。";
-"ai_prompt_req_7" = "- If no specific event in the log supports a description, do not write that description. Only write content backed by data.";
-"ai_prompt_req_8" = "- Scoring Run Analysis data is system-precomputed. Reference it directly. No need to calculate from raw logs.";
-"ai_prompt_req_9" = "- Only write events that appear in the log. If the log says 'two-point made', write 'two-point made'. Do not rewrite as 'layup' or 'jumper'.";
-"ai_prompt_req_10" = "- Do NOT use uncertain terms like 'possibly', 'likely', 'maybe', 'probably'. If data supports it, state it as fact. If not, don't write it.";
-"ai_prompt_req_11" = "- State facts directly. Do not add 'according to the log', 'based on data', or similar citations.";
-"ai_prompt_req_12" = "- Highlight moments must reference specific plays from the Event Log.";
-"ai_prompt_req_13" = "- When using numeric expressions like 'highest', 'lowest', 'most', 'least', they must match Numeric Validation. Do not modify values.";
+"ai_prompt_req_7" = "- 如果日誌中沒有具體事件支撐某段描述，就不要寫那段描述。只寫有數據支援的內容。";
+"ai_prompt_req_8" = "- 【連續得分分析】數據是系統預計算的，直接引用即可，不需要從原始日誌重新計算。";
+"ai_prompt_req_9" = "- 只寫日誌中出現的事件。如果日誌寫的是'兩分命中'，就寫'兩分命中'，不要改寫為'上籃'或'跳投'。";
+"ai_prompt_req_10" = "- 不要使用'可能''大概''或許''也許'等不確定措辭。如果數據支援，就作為事實陳述；如果不支援，就不要寫。";
+"ai_prompt_req_11" = "- 直接陳述事實，不要加'根據日誌''基於數據'之類的引用語。";
+"ai_prompt_req_12" = "- 高光時刻必須引用【事件日誌】中的具體回合。";
+"ai_prompt_req_13" = "- 使用'最高''最低''最多''最少'等數值表達時，必須與【數值校驗】一致，不得修改數值。";
 "ai_prompt_game_info_label" = "【比賽資訊】";
 "ai_prompt_date_label" = "日期：%@";
 "ai_prompt_matchup_label" = "對陣：%@ vs %@";
@@ -897,7 +897,8 @@ Format:
 "link_privacy_policy" = "隱私政策";
 "link_terms_of_eula" = "使用條款 (EULA)";
 "subscription_auto_renew_info" = "自動續期訂閱。可隨時在 App Store 設定中取消。";
-"ai_prompt_req_14" = "- Commentary style between formal and casual: avoid overly written phrases like 'at the commencement of play'. Use natural expressions like 'the first quarter opened with', 'X hits', 'the score becomes XX-XX'. At least 5-8 sentences per period.";
+"ai_prompt_req_14" = "- 解說風格介於書面和口語之間：避免過於書面化的表達如'比賽伊始'。使用自然的表達如'第一節開局'、'X命中'、'比分來到XX-XX'。每節至少5-8句話。";
+"ai_prompt_req_15" = "- 節次邊界由【比賽信息】中的'每節結束條件'決定。按比分模式時，某隊達到比分上限則該節結束；按時間模式時，時間到則該節結束；手動模式時由用戶手動切換節次。事件已按節次分組在【事件日誌（按節次）】和【比分變化時間線】中，使用這些分組來寫準確的逐節總結。";
 
 "button_save_to_photos" = "儲存到相簿";
 
@@ -1071,3 +1072,18 @@ Format:
 "badge_turnover_king" = "失误王";
 "badge_block_king" = "盖帽王";
 "label_badges" = "勳章";
+
+// Overtime
+"button_overtime" = "Overtime";
+"overtime_setup_title" = "Overtime Setup";
+"section_overtime_settings" = "Overtime Settings";
+"label_ot_period_count" = "OT Periods: %d";
+"button_start_overtime" = "Start Overtime";
+"event_overtime_start_format" = "Overtime started (%d periods)";
+"alert_finished_game_title" = "Game Finished";
+"alert_finished_game_message" = "Start a new game or add overtime?";
+
+// Win/Loss
+"stats_wins" = "Wins";
+"stats_losses" = "Losses";
+"stats_win_rate" = "Win Rate";
