@@ -459,7 +459,7 @@ struct CloudShareUploadView: View {
                     }
                     return photos
                 }
-                let photos = try await compressTask.value
+                let photos = await compressTask.value
                 let total = photos.count
                 for (i, (pid, photoData)) in photos.enumerated() {
                     uploadPhase = String(format: NSLocalizedString("cloudshare_uploading_photos_format", comment: ""), i + 1, total)
@@ -485,7 +485,7 @@ struct CloudShareUploadView: View {
         isUploading = false
     }
 
-    private static func exportPlayers(for game: SavedGame, allPlayers: [Player]) -> [ExportPlayer] {
+    nonisolated private static func exportPlayers(for game: SavedGame, allPlayers: [Player]) -> [ExportPlayer] {
         let allIDs = Set(game.homePlayerIDs + game.awayPlayerIDs + game.snapshot.statsByPlayerID.keys)
         return allIDs.compactMap { id in
             if let player = allPlayers.first(where: { $0.id == id }) {
@@ -497,7 +497,7 @@ struct CloudShareUploadView: View {
         }
     }
 
-    private static func exportTeams(for game: SavedGame, allPlayers: [Player]) -> [ExportTeam] {
+    nonisolated private static func exportTeams(for game: SavedGame, allPlayers: [Player]) -> [ExportTeam] {
         var teams: [ExportTeam] = []
         if let tid = game.snapshot.homeTeamID {
             teams.append(ExportTeam(id: tid, name: game.homeTeamName, playerIDs: game.homePlayerIDs))
@@ -578,7 +578,7 @@ struct CloudShareUploadView: View {
         return "\(minutes)m"
     }
 
-    private static func compressIfNeeded(_ data: Data?) -> Data? {
+    nonisolated private static func compressIfNeeded(_ data: Data?) -> Data? {
         guard let data = data, !data.isEmpty else { return nil }
         guard data.count > maxPhotoSize else { return data }
         guard let image = UIImage(data: data) else { return data }

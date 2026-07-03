@@ -51,7 +51,7 @@ final class GameUndoMultilingualTests: XCTestCase {
             }
             return true
         default:
-            let parsed = StatAction.parseLog(normalized)
+            let parsed = StatAction.parseLog(normalized) ?? StatAction.parseFromSuffix(normalized)
             guard let action = StatAction.allCases.first(where: { $0.eventCode == eventCode }) ?? parsed?.action else {
                 return false
             }
@@ -498,7 +498,7 @@ final class GameLogFormatterTests: XCTestCase {
         let nonScoringEntry = GameLogEntry(timestamp: Date(), message: "犯规", eventCode: "stat.foul")
         XCTAssertFalse(GameLogFormatter.isScoring(nonScoringEntry))
         let nilCodeEntry = GameLogEntry(timestamp: Date(), message: "张三2分命中")
-        XCTAssertFalse(GameLogFormatter.isScoring(nilCodeEntry))
+        XCTAssertTrue(GameLogFormatter.isScoring(nilCodeEntry))
     }
 
     func testPeriodDetectionViaEventCode() {

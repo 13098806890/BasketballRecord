@@ -1,5 +1,4 @@
 import Foundation
-import SwiftUI
 
 enum StatAction {
     case twoMade, twoMissed, threeMade, threeMissed
@@ -44,44 +43,6 @@ enum StatAction {
         }
     }
 
-    var messageKey: String {
-        switch self {
-        case .twoMade: return "action_two_made"
-        case .twoMissed: return "action_two_missed"
-        case .threeMade: return "action_three_made"
-        case .threeMissed: return "action_three_missed"
-        case .bonusMade: return "action_bonus_made"
-        case .bonusMissed: return "action_bonus_missed"
-        case .freeThrowMade: return "action_free_made"
-        case .freeThrowMissed: return "action_free_missed"
-        case .foul: return "action_foul"
-        case .assist: return "action_assist"
-        case .rebound: return "action_rebound"
-        case .offensiveRebound: return "action_offensive_rebound"
-        case .defensiveRebound: return "action_defensive_rebound"
-        case .block: return "action_block"
-        case .steal: return "action_steal"
-        case .turnover: return "action_turnover"
-        case .layupMade: return "action_layup_made"
-        case .layupMissed: return "action_layup_missed"
-        case .midRangeMade: return "action_mid_range_made"
-        case .midRangeMissed: return "action_mid_range_missed"
-        case .paintMade: return "action_paint_made"
-        case .paintMissed: return "action_paint_missed"
-        case .putbackMade: return "action_putback_made"
-        case .putbackMissed: return "action_putback_missed"
-        case .dunkMade: return "action_dunk_made"
-        case .dunkMissed: return "action_dunk_missed"
-        case .assistTwoMade: return "action_assist_two_made"
-        case .assistThreeMade: return "action_assist_three_made"
-        case .stealTurnover: return "action_steal_turnover"
-        }
-    }
-
-    var message: String {
-        NSLocalizedString(messageKey, comment: "")
-    }
-
     var points: Int {
         switch self {
         case .twoMade, .layupMade, .midRangeMade, .paintMade, .putbackMade, .dunkMade, .assistTwoMade: return 2
@@ -91,7 +52,6 @@ enum StatAction {
         }
     }
 
-    /// For composite actions, the action to apply to `relatedPlayerID`.
     var relatedAction: StatAction? {
         switch self {
         case .assistTwoMade: return .twoMade
@@ -100,6 +60,99 @@ enum StatAction {
         default: return nil
         }
     }
+
+    var isAssistableShot: Bool {
+        switch self {
+        case .twoMade, .threeMade, .layupMade, .midRangeMade, .paintMade, .putbackMade, .dunkMade:
+            return true
+        default:
+            return false
+        }
+    }
+
+    var suffix: String {
+        switch self {
+        case .twoMade: return "2分命中"
+        case .twoMissed: return "2分不中"
+        case .threeMade: return "3分命中"
+        case .threeMissed: return "3分不中"
+        case .bonusMade: return "加罚命中"
+        case .bonusMissed: return "加罚不中"
+        case .freeThrowMade: return "罚篮命中"
+        case .freeThrowMissed: return "罚篮不中"
+        case .foul: return "犯规"
+        case .assist: return "助攻"
+        case .rebound: return "篮板"
+        case .offensiveRebound: return "前场板"
+        case .defensiveRebound: return "后场板"
+        case .block: return "封盖"
+        case .steal: return "抢断"
+        case .turnover: return "失误"
+        case .layupMade: return "上篮命中"
+        case .layupMissed: return "上篮不中"
+        case .midRangeMade: return "中投命中"
+        case .midRangeMissed: return "中投不中"
+        case .paintMade: return "篮下命中"
+        case .paintMissed: return "篮下不中"
+        case .putbackMade: return "补篮命中"
+        case .putbackMissed: return "补篮不中"
+        case .dunkMade: return "扣篮命中"
+        case .dunkMissed: return "扣篮不中"
+        case .assistTwoMade: return ""
+        case .assistThreeMade: return ""
+        case .stealTurnover: return ""
+        }
+    }
+
+    var englishSuffix: String {
+        switch self {
+        case .twoMade: return "2PT Made"
+        case .twoMissed: return "2PT Missed"
+        case .threeMade: return "3PT Made"
+        case .threeMissed: return "3PT Missed"
+        case .bonusMade: return "And-1 Made"
+        case .bonusMissed: return "And-1 Missed"
+        case .freeThrowMade: return "FT Made"
+        case .freeThrowMissed: return "FT Missed"
+        case .foul: return "Foul"
+        case .assist: return "Assist"
+        case .rebound: return "Rebound"
+        case .offensiveRebound: return "OREB"
+        case .defensiveRebound: return "DREB"
+        case .block: return "Block"
+        case .steal: return "Steal"
+        case .turnover: return "Turnover"
+        case .layupMade: return "Layup Made"
+        case .layupMissed: return "Layup Missed"
+        case .midRangeMade: return "Mid-range Made"
+        case .midRangeMissed: return "Mid-range Missed"
+        case .paintMade: return "Paint Made"
+        case .paintMissed: return "Paint Missed"
+        case .putbackMade: return "Putback Made"
+        case .putbackMissed: return "Putback Missed"
+        case .dunkMade: return "Dunk Made"
+        case .dunkMissed: return "Dunk Missed"
+        case .assistTwoMade: return ""
+        case .assistThreeMade: return ""
+        case .stealTurnover: return ""
+        }
+    }
+
+    var suffixCandidates: [String] {
+        [suffix, englishSuffix]
+    }
+
+    static let scoringEventCodes: Set<String> = [
+        "stat.twoMade", "stat.threeMade", "stat.bonusMade", "stat.freeThrowMade",
+        "stat.layupMade", "stat.midRangeMade", "stat.paintMade", "stat.putbackMade", "stat.dunkMade",
+        "stat.assistTwoMade", "stat.assistThreeMade"
+    ]
+
+    static let pointMap: [String: Int] = [
+        "stat.twoMade": 2, "stat.threeMade": 3, "stat.bonusMade": 1, "stat.freeThrowMade": 1,
+        "stat.layupMade": 2, "stat.midRangeMade": 2, "stat.paintMade": 2, "stat.putbackMade": 2, "stat.dunkMade": 2,
+        "stat.assistTwoMade": 2, "stat.assistThreeMade": 3
+    ]
 
     func apply(to stats: inout PlayerStats) {
         switch self {
@@ -159,11 +212,11 @@ enum StatAction {
         case .turnover:
             stats.turnovers += 1
         case .putbackMade:
-            stats.rebounds += 1
+            stats.offensiveRebounds += 1
             stats.twoMade += 1
             stats.twoAttempts += 1
         case .putbackMissed:
-            stats.rebounds += 1
+            stats.offensiveRebounds += 1
             stats.twoAttempts += 1
         case .dunkMade:
             stats.dunkMade += 1; stats.dunkAttempts += 1
@@ -283,94 +336,6 @@ enum StatAction {
         }
         return true
     }
-
-    static func parseLog(_ message: String, eventCode: String? = nil) -> (playerName: String, action: StatAction)? {
-        guard let code = eventCode ?? GameLogFormatter.extractEventCode(from: message),
-              let action = allCases.first(where: { $0.eventCode == code }) else { return nil }
-        let normalized = GameLogFormatter.normalizedMessage(message)
-        let name = String(normalized.dropLast(action.message.count)).trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !name.isEmpty else { return nil }
-        return (name, action)
-    }
-}
-
-extension StatAction {
-    init?(liveAction: BluetoothLiveStatAction) {
-        switch liveAction {
-        case .twoMade: self = .twoMade
-        case .twoMissed: self = .twoMissed
-        case .threeMade: self = .threeMade
-        case .threeMissed: self = .threeMissed
-        case .bonusMade: self = .bonusMade
-        case .bonusMissed: self = .bonusMissed
-        case .freeThrowMade: self = .freeThrowMade
-        case .freeThrowMissed: self = .freeThrowMissed
-        case .foul: self = .foul
-        case .assist: self = .assist
-        case .rebound: self = .rebound
-        case .offensiveRebound: self = .offensiveRebound
-        case .defensiveRebound: self = .defensiveRebound
-        case .block: self = .block
-        case .steal: self = .steal
-        case .turnover: self = .turnover
-        case .putbackMade: self = .putbackMade
-        case .putbackMissed: self = .putbackMissed
-        case .layupMade: self = .layupMade
-        case .layupMissed: self = .layupMissed
-        case .midRangeMade: self = .midRangeMade
-        case .midRangeMissed: self = .midRangeMissed
-        case .paintMade: self = .paintMade
-        case .paintMissed: self = .paintMissed
-        case .dunkMade: self = .dunkMade
-        case .dunkMissed: self = .dunkMissed
-        default: return nil
-        }
-    }
-
-    var liveAction: BluetoothLiveStatAction {
-        switch self {
-        case .twoMade: return .twoMade
-        case .twoMissed: return .twoMissed
-        case .threeMade: return .threeMade
-        case .threeMissed: return .threeMissed
-        case .bonusMade: return .bonusMade
-        case .bonusMissed: return .bonusMissed
-        case .freeThrowMade: return .freeThrowMade
-        case .freeThrowMissed: return .freeThrowMissed
-        case .foul: return .foul
-        case .assist: return .assist
-        case .rebound: return .rebound
-        case .offensiveRebound: return .offensiveRebound
-        case .defensiveRebound: return .defensiveRebound
-        case .block: return .block
-        case .steal: return .steal
-        case .turnover: return .turnover
-        case .layupMade: return .layupMade
-        case .layupMissed: return .layupMissed
-        case .midRangeMade: return .midRangeMade
-        case .midRangeMissed: return .midRangeMissed
-        case .paintMade: return .paintMade
-        case .paintMissed: return .paintMissed
-        case .dunkMade: return .dunkMade
-        case .dunkMissed: return .dunkMissed
-        case .putbackMade: return .putbackMade
-        case .putbackMissed: return .putbackMissed
-        case .assistTwoMade: return .twoMade
-        case .assistThreeMade: return .threeMade
-        case .stealTurnover: return .turnover
-        }
-    }
-}
-
-extension StatAction {
-    var isAssistableShot: Bool {
-        switch self {
-        case .twoMade, .threeMade, .layupMade, .midRangeMade, .paintMade, .putbackMade, .dunkMade:
-            return true
-        default:
-            return false
-        }
-    }
 }
 
 extension StatAction: Equatable {}
@@ -380,4 +345,3 @@ extension StatAction: CaseIterable {
         [.twoMade, .twoMissed, .threeMade, .threeMissed, .bonusMade, .bonusMissed, .freeThrowMade, .freeThrowMissed, .foul, .assist, .rebound, .offensiveRebound, .defensiveRebound, .block, .steal, .turnover, .layupMade, .layupMissed, .midRangeMade, .midRangeMissed, .paintMade, .paintMissed, .putbackMade, .putbackMissed, .dunkMade, .dunkMissed, .assistTwoMade, .assistThreeMade, .stealTurnover]
     }
 }
-

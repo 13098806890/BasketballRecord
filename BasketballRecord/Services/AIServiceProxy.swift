@@ -3,11 +3,8 @@ import OSLog
 import StoreKit
 
 private let scfBaseURL = "https://1443094980-bwq2035uwg.ap-shanghai.tencentscf.com"
-private var scfChatURL: URL {
-    guard let url = URL(string: "\(scfBaseURL)/v1/chat") else {
-        fatalError("Invalid SCF chat URL")
-    }
-    return url
+private var scfChatURL: URL? {
+    URL(string: "\(scfBaseURL)/v1/chat")
 }
 private let aiLog = OSLog(subsystem: Bundle.main.bundleIdentifier ?? "BasketballRecord", category: "AIService")
 
@@ -52,7 +49,10 @@ struct AIServiceProxy {
             "maxTokens": maxTokens
         ]
 
-        var request = URLRequest(url: scfChatURL)
+        guard let chatURL = scfChatURL else {
+            throw AIServiceProxyError.notConfigured
+        }
+        var request = URLRequest(url: chatURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
