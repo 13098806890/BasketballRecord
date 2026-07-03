@@ -3,23 +3,14 @@ import OSLog
 import DeviceCheck
 
 private let shareServiceBaseURL = "https://1443094980-e9pcdbf48s.ap-shanghai.tencentscf.com"
-private var shareUploadURL: URL {
-    guard let url = URL(string: "\(shareServiceBaseURL)/v2/upload") else {
-        fatalError("Invalid share upload URL")
-    }
-    return url
+private var shareUploadURL: URL? {
+    URL(string: "\(shareServiceBaseURL)/v2/upload")
 }
-private var shareDownloadURL: URL {
-    guard let url = URL(string: "\(shareServiceBaseURL)/v2/download") else {
-        fatalError("Invalid share download URL")
-    }
-    return url
+private var shareDownloadURL: URL? {
+    URL(string: "\(shareServiceBaseURL)/v2/download")
 }
-private var shareCheckURL: URL {
-    guard let url = URL(string: "\(shareServiceBaseURL)/v2/check") else {
-        fatalError("Invalid share check URL")
-    }
-    return url
+private var shareCheckURL: URL? {
+    URL(string: "\(shareServiceBaseURL)/v2/check")
 }
 private let shareLog = OSLog(subsystem: Bundle.main.bundleIdentifier ?? "BasketballRecord", category: "CloudShare")
 
@@ -90,7 +81,10 @@ struct CloudShareManager {
             throw CloudShareError.emptyData
         }
 
-        var request = URLRequest(url: shareUploadURL)
+        guard let uploadURL = shareUploadURL else {
+            throw CloudShareError.notConfigured
+        }
+        var request = URLRequest(url: uploadURL)
         request.httpMethod = "PUT"
         request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
         request.httpBody = data
@@ -110,7 +104,10 @@ struct CloudShareManager {
     }
 
     static func retrieve(uuid: String) async throws -> Data {
-        var request = URLRequest(url: shareDownloadURL)
+        guard let downloadURL = shareDownloadURL else {
+            throw CloudShareError.notConfigured
+        }
+        var request = URLRequest(url: downloadURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let body: [String: String] = ["uuid": uuid]
@@ -132,7 +129,10 @@ struct CloudShareManager {
     }
 
     static func check(uuid: String) async throws -> (exists: Bool, remainingSeconds: Int) {
-        guard var components = URLComponents(url: shareCheckURL, resolvingAgainstBaseURL: false) else {
+        guard let checkURL = shareCheckURL else {
+            throw CloudShareError.notConfigured
+        }
+        guard var components = URLComponents(url: checkURL, resolvingAgainstBaseURL: false) else {
             throw CloudShareError.invalidResponse
         }
         components.path = "/v2/check/\(uuid)"

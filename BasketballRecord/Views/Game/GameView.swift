@@ -1,7 +1,13 @@
+//
+//  GameView.swift
+//  BasketballRecord
+//
+//  Created by Xie, Dongze on 2026/7/3.
+//
+
+
 import SwiftUI
-#if canImport(UIKit)
 import UIKit
-#endif
 import MultipeerConnectivity
 import CryptoKit
 
@@ -9,10 +15,7 @@ struct GameView: View {
     @EnvironmentObject private var store: AppStore
     @EnvironmentObject private var bluetooth: BluetoothSyncManager
 
-    @State private var snapshot = GameSnapshot()
-    @State private var undoStack: [GameSnapshot] = []
-    @State private var redoStack: [GameSnapshot] = []
-    @State private var hasMigratedUndo = false
+    @StateObject private var gameVM = GameViewModel()
     @State private var currentGameRecordID: UUID?
     @State private var hasRestoredLatestGame = false
     @State private var selectedPlayerID: UUID?
@@ -30,6 +33,8 @@ struct GameView: View {
     @State private var isShowingSimulateConfirmation = false
     @State private var isShowingFinishGameConfirmation = false
     @State private var isShowingResetConfirmation = false
+    @State private var isShowingManualEndPeriodConfirmation = false
+    @State private var manualEndPeriodMessage = ""
     @State private var substitutionSide: TeamSide = .home
     @State private var lateArrivalSide: TeamSide = .home
     @State private var outgoingPlayerID: UUID?
@@ -92,12 +97,12 @@ struct GameView: View {
                         } label: {
                             Image(systemName: "flag.checkered.circle.fill")
                         }
-                        .disabled(snapshot.isComplete || snapshot.logs.isEmpty)
+                        .disabled(gameVM.snapshot.isComplete || gameVM.snapshot.logs.isEmpty)
                     }
 
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         Button {
-                            if snapshot.isComplete {
+                            if gameVM.snapshot.isComplete {
                                 isShowingFinishedGameAlert = true
                             } else if hasUnfinishedGameToConfirm {
                                 isShowingUnfinishedGameAlert = true
@@ -122,7 +127,7 @@ struct GameView: View {
                         } label: {
                             Label(LocalizedStringKey("button_save_history"), systemImage: "clock.badge.checkmark")
                         }
-                        .disabled(snapshot.logs.isEmpty)
+                        .disabled(gameVM.snapshot.logs.isEmpty)
                     }
                 }
         }
@@ -134,8 +139,8 @@ struct GameView: View {
                 NewGameSetupView(
                     teams: store.teams,
                     playersForTeam: players(in:),
-                    initialHomeTeamID: snapshot.homeTeamID,
-                    initialAwayTeamID: snapshot.awayTeamID,
+                    initialHomeTeamID: gameVM.snapshot.homeTeamID,
+                    initialAwayTeamID: gameVM.snapshot.awayTeamID,
                     onStart: startNewGame(with:)
                 )
             }
@@ -190,8 +195,8 @@ struct GameView: View {
                         }
                     }
                     .onAppear {
-                        otTimeLimit = snapshot.periodTimeLimit
-                        otScoreLimit = snapshot.periodScoreLimit
+                        otTimeLimit = gameVM.snapshot.periodTimeLimit
+                        otScoreLimit = gameVM.snapshot.periodScoreLimit
                     }
                 }
             }
@@ -200,11 +205,11 @@ struct GameView: View {
                     side: $substitutionSide,
                     outgoingPlayerID: $outgoingPlayerID,
                     incomingPlayerID: $incomingPlayerID,
-                    homeTeamName: store.team(for: snapshot.homeTeamID)?.name ?? NSLocalizedString("team_home_default", comment: "Default home team name"),
-                    awayTeamName: store.team(for: snapshot.awayTeamID)?.name ?? NSLocalizedString("team_away_default", comment: "Default away team name"),
-                    homeOnCourtPlayers: players(in: snapshot.homeTeamID).filter { snapshot.homeOnCourtPlayerIDs.contains($0.id) },
+                    homeTeamName: store.team(for: gameVM.snapshot.homeTeamID)?.name ?? NSLocalizedString("team_home_default", comment: "Default home team name"),
+                    awayTeamName: store.team(for: gameVM.snapshot.awayTeamID)?.name ?? NSLocalizedString("team_away_default", comment: "Default away team name"),
+                    homeOnCourtPlayers: players(in: gameVM.snapshot.homeTeamID).filter { gameVM.snapshot.homeOnCourtPlayerIDs.contains($0.id) },
                     homeBenchPlayers: benchPlayers(for: .home),
-                    awayOnCourtPlayers: players(in: snapshot.awayTeamID).filter { snapshot.awayOnCourtPlayerIDs.contains($0.id) },
+                    awayOnCourtPlayers: players(in: gameVM.snapshot.awayTeamID).filter { gameVM.snapshot.awayOnCourtPlayerIDs.contains($0.id) },
                     awayBenchPlayers: benchPlayers(for: .away),
                     onConfirm: performSubstitution
                 )
@@ -213,8 +218,8 @@ struct GameView: View {
                 LateArrivalEntryView(
                     side: $lateArrivalSide,
                     incomingPlayerID: $lateArrivalIncomingPlayerID,
-                    homeTeamName: store.team(for: snapshot.homeTeamID)?.name ?? NSLocalizedString("team_home_default", comment: "Default home team name"),
-                    awayTeamName: store.team(for: snapshot.awayTeamID)?.name ?? NSLocalizedString("team_away_default", comment: "Default away team name"),
+                    homeTeamName: store.team(for: gameVM.snapshot.homeTeamID)?.name ?? NSLocalizedString("team_home_default", comment: "Default home team name"),
+                    awayTeamName: store.team(for: gameVM.snapshot.awayTeamID)?.name ?? NSLocalizedString("team_away_default", comment: "Default away team name"),
                     homeUnregisteredPlayers: unregisteredPlayers(for: .home),
                     awayUnregisteredPlayers: unregisteredPlayers(for: .away),
                     onConfirm: performLateArrival
@@ -248,6 +253,17 @@ struct GameView: View {
                 }
             } message: {
                 Text(LocalizedStringKey("alert_finish_game_message"))
+            }
+            .alert(LocalizedStringKey("alert_manual_end_period_title"), isPresented: $isShowingManualEndPeriodConfirmation) {
+                Button(LocalizedStringKey("button_cancel"), role: .cancel) { }
+                Button(LocalizedStringKey("button_ok")) {
+                    let now = Date()
+                    _ = liveManager.submitLiveOperation(.togglePeriod(at: now)) {
+                        applyTogglePeriodOperation(at: now)
+                    }
+                }
+            } message: {
+                Text(manualEndPeriodMessage)
             }
             .alert(LocalizedStringKey("alert_unfinished_game_title"), isPresented: $isShowingUnfinishedGameAlert) {
                 Button(LocalizedStringKey("button_cancel"), role: .cancel) { }
@@ -320,29 +336,29 @@ struct GameView: View {
             }
             .onReceive(matchClockTicker) { date in
                 clockNow = date
-                if snapshot.periodEndCondition == .byTime {
+                if gameVM.snapshot.periodEndCondition == .byTime {
                     checkAndAutoEndPeriod()
                 }
             }
             .onAppear { [self] in
                 liveManager.bluetooth = bluetooth
                 liveManager.store = store
-                liveManager.onBuildStatePayload = { [self] in
-                    (snapshot, undoStack, currentGameRecordID)
-                }
+               liveManager.onBuildStatePayload = { [self] in
+                    (gameVM.snapshot, gameVM.undoStack, currentGameRecordID)
+               }
                 liveManager.onApplyOperation = { [self] payload in
                     applyLiveOperationPayload(payload)
                 }
                 liveManager.onStateChanged = { [self] snapshot, undoStack, redo, gameID in
-                    self.snapshot = snapshot
-                    self.undoStack = undoStack
-                    self.redoStack = redo
+                    gameVM.snapshot = snapshot
+                    gameVM.undoStack = undoStack
+                    gameVM.redoStack = redo
                     self.currentGameRecordID = gameID
                     trimInvalidLineups()
                     ensureSelectedPlayer()
                     autoSaveCurrentGame()
-                    let currentLogID = self.snapshot.logs.last?.id
-                    if let previousLogID = self.snapshot.logs.dropLast().last?.id,
+                    let currentLogID = gameVM.snapshot.logs.last?.id
+                    if let previousLogID = gameVM.snapshot.logs.dropLast().last?.id,
                        currentLogID != previousLogID, let currentLogID {
                         highlightLatestLog(currentLogID)
                     }
@@ -369,16 +385,16 @@ struct GameView: View {
                     clearVoiceFlashAfterDelay()
                 }
                 voiceRecognizer.onAction = { [self] action, playerID, side in
-                    guard !snapshot.isComplete else {
+                    guard !gameVM.snapshot.isComplete else {
                         statAlertMessage = NSLocalizedString("stat_game_already_finished", comment: "")
                         return
                     }
-                    guard !snapshot.isPaused else {
+                    guard !gameVM.snapshot.isPaused else {
                         statAlertMessage = NSLocalizedString("stat_game_paused", comment: "")
                         return
                     }
-                    guard snapshot.periodIsRunning else {
-                        statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: ""), snapshot.currentPeriod)
+                    guard gameVM.snapshot.periodIsRunning else {
+                        statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: ""), gameVM.snapshot.currentPeriod)
                         return
                     }
                     let now = Date()
@@ -395,16 +411,16 @@ struct GameView: View {
                     clearVoiceMatchAfterDelay(playerID: playerID)
                 }
                 voiceRecognizer.onDualAction = { [self] action1, pid1, side1, action2, pid2, side2 in
-                    guard !snapshot.isComplete else {
+                    guard !gameVM.snapshot.isComplete else {
                         statAlertMessage = NSLocalizedString("stat_game_already_finished", comment: "")
                         return
                     }
-                    guard !snapshot.isPaused else {
+                    guard !gameVM.snapshot.isPaused else {
                         statAlertMessage = NSLocalizedString("stat_game_paused", comment: "")
                         return
                     }
-                    guard snapshot.periodIsRunning else {
-                        statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: ""), snapshot.currentPeriod)
+                    guard gameVM.snapshot.periodIsRunning else {
+                        statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: ""), gameVM.snapshot.currentPeriod)
                         return
                     }
                     let now = Date()
@@ -473,7 +489,7 @@ struct GameView: View {
                     }
                 }
             }
-            .onChange(of: snapshot) { _, newValue in
+            .onChange(of: gameVM.snapshot) { _, newValue in
                 voiceRecognizer.currentSnapshot = newValue
             }
             .onChange(of: bluetooth.latestLiveSnapshot?.id) { _, _ in
@@ -619,64 +635,64 @@ struct GameView: View {
                 HStack(spacing: 8) {
                     CompactTeamRow(
                         side: .home,
-                        team: store.team(for: snapshot.homeTeamID),
+                        team: store.team(for: gameVM.snapshot.homeTeamID),
                         players: onCourtPlayers(for: .home),
-                        score: score(for: snapshot.homeTeamID),
+                        score: score(for: gameVM.snapshot.homeTeamID),
                         isScorePulsing: scorePulseSide == .home,
                         fouls: displayedTeamFouls(for: .home),
-                        foulLabel: snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
-                        onCourtPlayerIDs: snapshot.homeOnCourtPlayerIDs,
+                        foulLabel: gameVM.snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
+                        onCourtPlayerIDs: gameVM.snapshot.homeOnCourtPlayerIDs,
                         selectedPlayerID: selectedPlayerID,
                         selectedSide: selectedSide,
                         onSelect: selectPlayer,
-                        teamStatsMode: snapshot.homeTeamStatsMode
+                        teamStatsMode: gameVM.snapshot.homeTeamStatsMode
                     )
 
                     CompactTeamRow(
                         side: .away,
-                        team: store.team(for: snapshot.awayTeamID),
+                        team: store.team(for: gameVM.snapshot.awayTeamID),
                         players: onCourtPlayers(for: .away),
-                        score: score(for: snapshot.awayTeamID),
+                        score: score(for: gameVM.snapshot.awayTeamID),
                         isScorePulsing: scorePulseSide == .away,
                         fouls: displayedTeamFouls(for: .away),
-                        foulLabel: snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
-                        onCourtPlayerIDs: snapshot.awayOnCourtPlayerIDs,
+                        foulLabel: gameVM.snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
+                        onCourtPlayerIDs: gameVM.snapshot.awayOnCourtPlayerIDs,
                         selectedPlayerID: selectedPlayerID,
                         selectedSide: selectedSide,
                         onSelect: selectPlayer,
-                        teamStatsMode: snapshot.awayTeamStatsMode
+                        teamStatsMode: gameVM.snapshot.awayTeamStatsMode
                     )
                 }
             } else {
                 VStack(spacing: 6) {
                     CompactTeamRow(
                         side: .home,
-                        team: store.team(for: snapshot.homeTeamID),
+                        team: store.team(for: gameVM.snapshot.homeTeamID),
                         players: onCourtPlayers(for: .home),
-                        score: score(for: snapshot.homeTeamID),
+                        score: score(for: gameVM.snapshot.homeTeamID),
                         isScorePulsing: scorePulseSide == .home,
                         fouls: displayedTeamFouls(for: .home),
-                        foulLabel: snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
-                        onCourtPlayerIDs: snapshot.homeOnCourtPlayerIDs,
+                        foulLabel: gameVM.snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
+                        onCourtPlayerIDs: gameVM.snapshot.homeOnCourtPlayerIDs,
                         selectedPlayerID: selectedPlayerID,
                         selectedSide: selectedSide,
                         onSelect: selectPlayer,
-                        teamStatsMode: snapshot.homeTeamStatsMode
+                        teamStatsMode: gameVM.snapshot.homeTeamStatsMode
                     )
 
                     CompactTeamRow(
                         side: .away,
-                        team: store.team(for: snapshot.awayTeamID),
+                        team: store.team(for: gameVM.snapshot.awayTeamID),
                         players: onCourtPlayers(for: .away),
-                        score: score(for: snapshot.awayTeamID),
+                        score: score(for: gameVM.snapshot.awayTeamID),
                         isScorePulsing: scorePulseSide == .away,
                         fouls: displayedTeamFouls(for: .away),
-                        foulLabel: snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
-                        onCourtPlayerIDs: snapshot.awayOnCourtPlayerIDs,
+                        foulLabel: gameVM.snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
+                        onCourtPlayerIDs: gameVM.snapshot.awayOnCourtPlayerIDs,
                         selectedPlayerID: selectedPlayerID,
                         selectedSide: selectedSide,
                         onSelect: selectPlayer,
-                        teamStatsMode: snapshot.awayTeamStatsMode
+                        teamStatsMode: gameVM.snapshot.awayTeamStatsMode
                     )
                 }
             }
@@ -797,38 +813,38 @@ struct GameView: View {
             }
 
             HStack(spacing: 8) {
-                if snapshot.showsAssistButton {
+                if gameVM.snapshot.showsAssistButton {
                     actionButton(LocalizedStringKey("action_assist"), systemImage: "person.2.fill", style: .assist) { record(.assist) }
                 }
-                if snapshot.showsOffensiveDefensiveRebound {
+                if gameVM.snapshot.showsOffensiveDefensiveRebound {
                     actionButton(LocalizedStringKey("action_offensive_rebound"), systemImage: "arrow.up.forward.circle.fill", style: .rebound) { record(.offensiveRebound) }
                     actionButton(LocalizedStringKey("action_defensive_rebound"), systemImage: "arrow.down.backward.circle.fill", style: .rebound) { record(.defensiveRebound) }
-                } else if snapshot.showsReboundButton {
+                } else if gameVM.snapshot.showsReboundButton {
                     actionButton(LocalizedStringKey("action_rebound"), systemImage: "arrow.up.circle.fill", style: .rebound) { record(.rebound) }
                 }
-                if snapshot.showsBlockButton {
+                if gameVM.snapshot.showsBlockButton {
                     actionButton(LocalizedStringKey("action_block"), systemImage: "shield.lefthalf.filled", style: .rebound) { record(.block) }
                 }
-                if !snapshot.showsOffensiveDefensiveRebound, snapshot.showsStealButton {
+                if !gameVM.snapshot.showsOffensiveDefensiveRebound, gameVM.snapshot.showsStealButton {
                     actionButton(LocalizedStringKey("action_steal"), systemImage: "hand.raised.fill", style: .assist) { record(.steal) }
                 }
             }
 
             HStack(spacing: 8) {
-                if snapshot.showsOffensiveDefensiveRebound, snapshot.showsStealButton {
+                if gameVM.snapshot.showsOffensiveDefensiveRebound, gameVM.snapshot.showsStealButton {
                     actionButton(LocalizedStringKey("action_steal"), systemImage: "hand.raised.fill", style: .assist) { record(.steal) }
                 }
-                if snapshot.showsFoulButton {
+                if gameVM.snapshot.showsFoulButton {
                     actionButton(LocalizedStringKey("action_foul"), systemImage: "exclamationmark.triangle", style: .warning) { record(.foul) }
                 }
-                if snapshot.showsTurnoverButton {
+                if gameVM.snapshot.showsTurnoverButton {
                     actionButton(LocalizedStringKey("action_turnover"), systemImage: "arrow.triangle.2.circlepath", style: .warning) { record(.turnover) }
                 }
                 Button {
                     togglePause()
                 } label: {
                     HStack(spacing: 3) {
-                        Image(systemName: snapshot.isPaused ? "play.fill" : "pause.fill")
+                        Image(systemName: gameVM.snapshot.isPaused ? "play.fill" : "pause.fill")
                         Text(pauseButtonTitle)
                     }
                     .font(.caption.weight(.semibold))
@@ -837,7 +853,7 @@ struct GameView: View {
                     .frame(maxWidth: .infinity, minHeight: 34)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .pause))
-                .disabled(snapshot.isComplete)
+                .disabled(gameVM.snapshot.isComplete)
             }
 
             HStack(spacing: 8) {
@@ -847,7 +863,7 @@ struct GameView: View {
                     pulseActionButton("period-toggle")
                 } label: {
                     HStack(spacing: 3) {
-                        Image(systemName: snapshot.periodIsRunning ? "stop.circle" : "play.circle")
+                        Image(systemName: gameVM.snapshot.periodIsRunning ? "stop.circle" : "play.circle")
                         Text(LocalizedStringKey(periodButtonTitle))
                     }
                     .font(.caption.weight(.semibold))
@@ -855,10 +871,10 @@ struct GameView: View {
                     .minimumScaleFactor(0.7)
                     .frame(maxWidth: .infinity, minHeight: 34)
                 }
-                .buttonStyle(PastelActionButtonStyle(style: snapshot.periodIsRunning ? .periodEnd : .period))
+                .buttonStyle(PastelActionButtonStyle(style: gameVM.snapshot.periodIsRunning ? .periodEnd : .period))
                 .scaleEffect(actionButtonPulseKey == "period-toggle" ? 1.09 : 1)
                 .animation(.spring(response: 0.2, dampingFraction: 0.68), value: actionButtonPulseKey == "period-toggle")
-                .disabled(snapshot.isComplete)
+                .disabled(gameVM.snapshot.isComplete)
 
                 Button {
                     openSubstitution(selectedSide)
@@ -903,7 +919,7 @@ struct GameView: View {
                     .frame(maxWidth: .infinity, minHeight: 34)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .neutral))
-                .disabled(undoStack.isEmpty)
+                .disabled(gameVM.undoStack.isEmpty)
 
                 Button {
                     redo()
@@ -916,7 +932,7 @@ struct GameView: View {
                     .frame(maxWidth: .infinity, minHeight: 34)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .neutral))
-                .disabled(redoStack.isEmpty)
+                .disabled(gameVM.redoStack.isEmpty)
             }
         }
     }
@@ -927,18 +943,18 @@ struct GameView: View {
                 Text(LocalizedStringKey("label_events"))
                     .font(.subheadline.weight(.semibold))
                 Spacer()
-                Text("\(snapshot.logs.count)")
+                Text("\(gameVM.snapshot.logs.count)")
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
 
-            if snapshot.logs.isEmpty {
+            if gameVM.snapshot.logs.isEmpty {
                 ContentUnavailableView(LocalizedStringKey("text_no_events"), systemImage: "list.bullet.clipboard")
                     .frame(maxWidth: .infinity, minHeight: 120)
             } else {
                 ScrollView {
                     LazyVStack(spacing: 0) {
-                        ForEach(snapshot.logs.reversed()) { entry in
+                        ForEach(gameVM.snapshot.logs.reversed()) { entry in
                             Text(logText(for: entry))
                                 .font(highlightedLogID == entry.id ? .footnote.monospacedDigit().weight(.bold) : .footnote.monospacedDigit())
                                 .lineLimit(2)
@@ -1065,7 +1081,7 @@ struct GameView: View {
     }
 
     private var currentLiveSavedGame: SavedGame {
-        var snapshotForDisplay = snapshot
+        var snapshotForDisplay = gameVM.snapshot
         if snapshotForDisplay.periodIsRunning,
            !snapshotForDisplay.isPaused {
             let now = Date()
@@ -1117,62 +1133,62 @@ struct GameView: View {
     }
 
     private var needsNewGameSetup: Bool {
-        guard snapshot.homeTeamID != nil, snapshot.awayTeamID != nil else { return true }
-        if !snapshot.homeTeamStatsMode, snapshot.homeOnCourtPlayerIDs.isEmpty { return true }
-        if !snapshot.awayTeamStatsMode, snapshot.awayOnCourtPlayerIDs.isEmpty { return true }
+        guard gameVM.snapshot.homeTeamID != nil, gameVM.snapshot.awayTeamID != nil else { return true }
+        if !gameVM.snapshot.homeTeamStatsMode, gameVM.snapshot.homeOnCourtPlayerIDs.isEmpty { return true }
+        if !gameVM.snapshot.awayTeamStatsMode, gameVM.snapshot.awayOnCourtPlayerIDs.isEmpty { return true }
         return false
     }
 
     private var hasUnfinishedGameToConfirm: Bool {
-        currentGameRecordID != nil && !snapshot.isComplete
+        currentGameRecordID != nil && !gameVM.snapshot.isComplete
     }
 
     private var canEditTeamSelection: Bool {
-        snapshot.logs.isEmpty && currentGameRecordID == nil
+        gameVM.snapshot.logs.isEmpty && currentGameRecordID == nil
     }
 
     private var periodSummary: String {
-        if snapshot.isComplete { return NSLocalizedString("period_summary_finished", comment: "Period summary when game finished") }
-        if snapshot.periodIsRunning {
-            return snapshot.isPaused
-                ? String(format: NSLocalizedString("period_summary_paused_format", comment: "Period paused format"), snapshot.currentPeriod, snapshot.periodCount)
-                : String(format: NSLocalizedString("period_summary_in_progress_format", comment: "Period in progress format"), snapshot.currentPeriod, snapshot.periodCount)
+        if gameVM.snapshot.isComplete { return NSLocalizedString("period_summary_finished", comment: "Period summary when game finished") }
+        if gameVM.snapshot.periodIsRunning {
+            return gameVM.snapshot.isPaused
+                ? String(format: NSLocalizedString("period_summary_paused_format", comment: "Period paused format"), gameVM.snapshot.currentPeriod, gameVM.snapshot.periodCount)
+                : String(format: NSLocalizedString("period_summary_in_progress_format", comment: "Period in progress format"), gameVM.snapshot.currentPeriod, gameVM.snapshot.periodCount)
         }
-        return String(format: NSLocalizedString("period_summary_format", comment: "Period summary format"), snapshot.currentPeriod, snapshot.periodCount)
+        return String(format: NSLocalizedString("period_summary_format", comment: "Period summary format"), gameVM.snapshot.currentPeriod, gameVM.snapshot.periodCount)
     }
 
     private var periodButtonTitle: String {
-        if snapshot.isComplete { return NSLocalizedString("period_button_finished", comment: "Period button title when game finished") }
-        let action = snapshot.periodIsRunning ? NSLocalizedString("period_button_action_end", comment: "Period button action end") : NSLocalizedString("period_button_action_start", comment: "Period button action start")
-        return String(format: NSLocalizedString("period_button_toggle_format", comment: "Period button format"), snapshot.currentPeriod, action)
+        if gameVM.snapshot.isComplete { return NSLocalizedString("period_button_finished", comment: "Period button title when game finished") }
+        let action = gameVM.snapshot.periodIsRunning ? NSLocalizedString("period_button_action_end", comment: "Period button action end") : NSLocalizedString("period_button_action_start", comment: "Period button action start")
+        return String(format: NSLocalizedString("period_button_toggle_format", comment: "Period button format"), gameVM.snapshot.currentPeriod, action)
     }
 
     private var currentMatchElapsedSeconds: TimeInterval {
-        guard snapshot.periodIsRunning,
-              !snapshot.isPaused,
-              let activeSince = snapshot.matchActiveSince else {
-            return snapshot.matchElapsedSeconds
+        guard gameVM.snapshot.periodIsRunning,
+              !gameVM.snapshot.isPaused,
+              let activeSince = gameVM.snapshot.matchActiveSince else {
+            return gameVM.snapshot.matchElapsedSeconds
         }
 
-        return snapshot.matchElapsedSeconds + max(0, clockNow.timeIntervalSince(activeSince))
+        return gameVM.snapshot.matchElapsedSeconds + max(0, clockNow.timeIntervalSince(activeSince))
     }
 
     private var currentPeriodElapsedSeconds: TimeInterval {
-        guard snapshot.periodIsRunning,
-              !snapshot.isPaused,
-              let activeSince = snapshot.periodActiveSince else {
-            return snapshot.periodElapsedSeconds
+        guard gameVM.snapshot.periodIsRunning,
+              !gameVM.snapshot.isPaused,
+              let activeSince = gameVM.snapshot.periodActiveSince else {
+            return gameVM.snapshot.periodElapsedSeconds
         }
 
-        return snapshot.periodElapsedSeconds + max(0, clockNow.timeIntervalSince(activeSince))
+        return gameVM.snapshot.periodElapsedSeconds + max(0, clockNow.timeIntervalSince(activeSince))
     }
 
     private var pauseButtonTitle: LocalizedStringKey {
-        snapshot.isPaused ? LocalizedStringKey("button_continue") : LocalizedStringKey("button_pause")
+        gameVM.snapshot.isPaused ? LocalizedStringKey("button_continue") : LocalizedStringKey("button_pause")
     }
 
     private var isRecordingActive: Bool {
-        snapshot.periodIsRunning && !snapshot.isPaused && !snapshot.isComplete
+        gameVM.snapshot.periodIsRunning && !gameVM.snapshot.isPaused && !gameVM.snapshot.isComplete
     }
 
     private var recordingIndicator: some View {
@@ -1240,35 +1256,35 @@ struct GameView: View {
 
     private func score(for teamID: UUID?) -> Int {
         guard let side = side(for: teamID), let teamID else { return 0 }
-        if (side == .home && snapshot.homeTeamStatsMode) || (side == .away && snapshot.awayTeamStatsMode) {
-            return snapshot.teamStatsByID[teamID, default: PlayerStats()].points
+        if (side == .home && gameVM.snapshot.homeTeamStatsMode) || (side == .away && gameVM.snapshot.awayTeamStatsMode) {
+            return gameVM.snapshot.teamStatsByID[teamID, default: PlayerStats()].points
         }
         return gamePlayerIDs(for: side).reduce(0) { total, playerID in
-            total + snapshot.statsByPlayerID[playerID, default: PlayerStats()].points
+            total + gameVM.snapshot.statsByPlayerID[playerID, default: PlayerStats()].points
         }
     }
 
     private func teamFouls(for teamID: UUID?) -> Int {
         guard let side = side(for: teamID), let teamID else { return 0 }
-        let teamFouls = snapshot.teamStatsByID[teamID, default: PlayerStats()].fouls
+        let teamFouls = gameVM.snapshot.teamStatsByID[teamID, default: PlayerStats()].fouls
         let playerFouls = gamePlayerIDs(for: side).reduce(0) { total, playerID in
-            total + snapshot.statsByPlayerID[playerID, default: PlayerStats()].fouls
+            total + gameVM.snapshot.statsByPlayerID[playerID, default: PlayerStats()].fouls
         }
         return teamFouls + playerFouls
     }
 
     private func displayedTeamFouls(for side: TeamSide) -> Int {
-        if snapshot.resetsTeamFoulsEachPeriod {
-            return snapshot.currentPeriodFoulsBySide[side.rawValue, default: 0]
+        if gameVM.snapshot.resetsTeamFoulsEachPeriod {
+            return gameVM.snapshot.currentPeriodFoulsBySide[side.rawValue, default: 0]
         }
-        return teamFouls(for: side == .home ? snapshot.homeTeamID : snapshot.awayTeamID)
+        return teamFouls(for: side == .home ? gameVM.snapshot.homeTeamID : gameVM.snapshot.awayTeamID)
     }
 
     private func aggregateStats(for teamID: UUID?) -> PlayerStats {
         guard let side = side(for: teamID) else { return PlayerStats() }
         return gamePlayerIDs(for: side).reduce(PlayerStats()) { partial, playerID in
             var total = partial
-            let stats = snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+            let stats = gameVM.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
             total.twoMade += stats.twoMade
             total.twoAttempts += stats.twoAttempts
             total.threeMade += stats.threeMade
@@ -1290,11 +1306,11 @@ struct GameView: View {
     }
 
     private func onCourtIDs(for side: TeamSide) -> [UUID] {
-        side == .home ? snapshot.homeOnCourtPlayerIDs : snapshot.awayOnCourtPlayerIDs
+        side == .home ? gameVM.snapshot.homeOnCourtPlayerIDs : gameVM.snapshot.awayOnCourtPlayerIDs
     }
 
     private func gamePlayerIDs(for side: TeamSide) -> [UUID] {
-        let explicitIDs = side == .home ? snapshot.homeAvailablePlayerIDs : snapshot.awayAvailablePlayerIDs
+        let explicitIDs = side == .home ? gameVM.snapshot.homeAvailablePlayerIDs : gameVM.snapshot.awayAvailablePlayerIDs
         if !explicitIDs.isEmpty {
             return explicitIDs
         }
@@ -1302,24 +1318,24 @@ struct GameView: View {
         if !fallback.isEmpty {
             return fallback
         }
-        let teamID = side == .home ? snapshot.homeTeamID : snapshot.awayTeamID
+        let teamID = side == .home ? gameVM.snapshot.homeTeamID : gameVM.snapshot.awayTeamID
         return players(in: teamID).map(\.id)
     }
 
     private func setGamePlayerIDs(_ ids: [UUID], for side: TeamSide) {
         let uniqueIDs = unique(ids)
         if side == .home {
-            snapshot.homeAvailablePlayerIDs = uniqueIDs
+            gameVM.snapshot.homeAvailablePlayerIDs = uniqueIDs
         } else {
-            snapshot.awayAvailablePlayerIDs = uniqueIDs
+            gameVM.snapshot.awayAvailablePlayerIDs = uniqueIDs
         }
     }
 
     private func setOnCourtIDs(_ ids: [UUID], for side: TeamSide) {
         if side == .home {
-            snapshot.homeOnCourtPlayerIDs = ids
+            gameVM.snapshot.homeOnCourtPlayerIDs = ids
         } else {
-            snapshot.awayOnCourtPlayerIDs = ids
+            gameVM.snapshot.awayOnCourtPlayerIDs = ids
         }
     }
 
@@ -1328,8 +1344,8 @@ struct GameView: View {
     }
 
     private func side(for teamID: UUID?) -> TeamSide? {
-        if teamID == snapshot.homeTeamID { return .home }
-        if teamID == snapshot.awayTeamID { return .away }
+        if teamID == gameVM.snapshot.homeTeamID { return .home }
+        if teamID == gameVM.snapshot.awayTeamID { return .away }
         return nil
     }
 
@@ -1341,15 +1357,15 @@ struct GameView: View {
     }
 
     private func unregisteredPlayers(for side: TeamSide) -> [Player] {
-        let teamID = side == .home ? snapshot.homeTeamID : snapshot.awayTeamID
+        let teamID = side == .home ? gameVM.snapshot.homeTeamID : gameVM.snapshot.awayTeamID
         let registered = Set(gamePlayerIDs(for: side))
         return players(in: teamID).filter { !registered.contains($0.id) }
     }
 
     private func playingSeconds(for playerID: UUID, now: Date = Date()) -> TimeInterval {
-        let stored = snapshot.playingSecondsByPlayerID[playerID, default: 0]
-        guard snapshot.periodIsRunning else { return stored }
-        guard let activeSince = snapshot.activeSinceByPlayerID[playerID] else { return stored }
+        let stored = gameVM.snapshot.playingSecondsByPlayerID[playerID, default: 0]
+        guard gameVM.snapshot.periodIsRunning else { return stored }
+        guard let activeSince = gameVM.snapshot.activeSinceByPlayerID[playerID] else { return stored }
         return stored + max(0, now.timeIntervalSince(activeSince))
     }
 
@@ -1359,11 +1375,11 @@ struct GameView: View {
     }
 
     private func ensureInitialSelection() {
-        if snapshot.homeTeamID == nil {
-            snapshot.homeTeamID = store.teams.first?.id
+        if gameVM.snapshot.homeTeamID == nil {
+            gameVM.snapshot.homeTeamID = store.teams.first?.id
         }
-        if snapshot.awayTeamID == nil {
-            snapshot.awayTeamID = store.teams.dropFirst().first?.id ?? store.teams.first?.id
+        if gameVM.snapshot.awayTeamID == nil {
+            gameVM.snapshot.awayTeamID = store.teams.dropFirst().first?.id ?? store.teams.first?.id
         }
         trimInvalidLineups()
         ensureSelectedPlayer()
@@ -1374,17 +1390,17 @@ struct GameView: View {
     }
 
     private func trimInvalidLineups() {
-        let homeTeamIDs = Set(players(in: snapshot.homeTeamID).map(\.id))
-        let awayTeamIDs = Set(players(in: snapshot.awayTeamID).map(\.id))
+        let homeTeamIDs = Set(players(in: gameVM.snapshot.homeTeamID).map(\.id))
+        let awayTeamIDs = Set(players(in: gameVM.snapshot.awayTeamID).map(\.id))
 
-        let homeRegistered = unique((snapshot.homeAvailablePlayerIDs + snapshot.homeOnCourtPlayerIDs).filter { homeTeamIDs.contains($0) })
-        let awayRegistered = unique((snapshot.awayAvailablePlayerIDs + snapshot.awayOnCourtPlayerIDs).filter { awayTeamIDs.contains($0) })
+        let homeRegistered = unique((gameVM.snapshot.homeAvailablePlayerIDs + gameVM.snapshot.homeOnCourtPlayerIDs).filter { homeTeamIDs.contains($0) })
+        let awayRegistered = unique((gameVM.snapshot.awayAvailablePlayerIDs + gameVM.snapshot.awayOnCourtPlayerIDs).filter { awayTeamIDs.contains($0) })
 
-        var homeOnCourt = unique(snapshot.homeOnCourtPlayerIDs.filter { homeRegistered.contains($0) })
-        var awayOnCourt = unique(snapshot.awayOnCourtPlayerIDs.filter { awayRegistered.contains($0) })
+        var homeOnCourt = unique(gameVM.snapshot.homeOnCourtPlayerIDs.filter { homeRegistered.contains($0) })
+        var awayOnCourt = unique(gameVM.snapshot.awayOnCourtPlayerIDs.filter { awayRegistered.contains($0) })
 
-        let maxHomeOnCourt = min(snapshot.courtPlayerCount, homeRegistered.count)
-        let maxAwayOnCourt = min(snapshot.courtPlayerCount, awayRegistered.count)
+        let maxHomeOnCourt = min(gameVM.snapshot.courtPlayerCount, homeRegistered.count)
+        let maxAwayOnCourt = min(gameVM.snapshot.courtPlayerCount, awayRegistered.count)
 
         if homeOnCourt.count < maxHomeOnCourt {
             let supplement = homeRegistered.filter { !homeOnCourt.contains($0) }
@@ -1395,10 +1411,10 @@ struct GameView: View {
             awayOnCourt.append(contentsOf: supplement.prefix(maxAwayOnCourt - awayOnCourt.count))
         }
 
-        snapshot.homeAvailablePlayerIDs = homeRegistered
-        snapshot.awayAvailablePlayerIDs = awayRegistered
-        snapshot.homeOnCourtPlayerIDs = Array(homeOnCourt.prefix(snapshot.courtPlayerCount))
-        snapshot.awayOnCourtPlayerIDs = Array(awayOnCourt.prefix(snapshot.courtPlayerCount))
+        gameVM.snapshot.homeAvailablePlayerIDs = homeRegistered
+        gameVM.snapshot.awayAvailablePlayerIDs = awayRegistered
+        gameVM.snapshot.homeOnCourtPlayerIDs = Array(homeOnCourt.prefix(gameVM.snapshot.courtPlayerCount))
+        gameVM.snapshot.awayOnCourtPlayerIDs = Array(awayOnCourt.prefix(gameVM.snapshot.courtPlayerCount))
     }
 
     private func ensureSelectedPlayer() {
@@ -1417,19 +1433,19 @@ struct GameView: View {
     }
 
     private func record(_ action: StatAction) {
-        guard !snapshot.isComplete else {
+        guard !gameVM.snapshot.isComplete else {
             statAlertMessage = NSLocalizedString("stat_game_already_finished", comment: "Game already finished message")
             return
         }
-        guard !snapshot.isPaused else {
+        guard !gameVM.snapshot.isPaused else {
             statAlertMessage = NSLocalizedString("stat_game_paused", comment: "Game paused message")
             return
         }
-        guard snapshot.periodIsRunning else {
-            statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: "Period not started message"), snapshot.currentPeriod)
+        guard gameVM.snapshot.periodIsRunning else {
+            statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: "Period not started message"), gameVM.snapshot.currentPeriod)
             return
         }
-        let isTeamMode = selectedSide == .home ? snapshot.homeTeamStatsMode : snapshot.awayTeamStatsMode
+        let isTeamMode = selectedSide == .home ? gameVM.snapshot.homeTeamStatsMode : gameVM.snapshot.awayTeamStatsMode
         guard let pid = selectedPlayerID else {
             statAlertMessage = NSLocalizedString("stat_select_player_first", comment: "Please select a player message")
             return
@@ -1482,22 +1498,22 @@ struct GameView: View {
     }
 
     private func checkAndAutoEndPeriod() {
-        guard snapshot.periodIsRunning, !snapshot.isPaused, !snapshot.isComplete else { return }
+        guard gameVM.snapshot.periodIsRunning, !gameVM.snapshot.isPaused, !gameVM.snapshot.isComplete else { return }
 
-        switch snapshot.periodEndCondition {
+        switch gameVM.snapshot.periodEndCondition {
         case .manual:
             return
         case .byTime:
-            let limit = TimeInterval(snapshot.periodTimeLimit * 60)
+            let limit = TimeInterval(gameVM.snapshot.periodTimeLimit * 60)
             guard currentPeriodElapsedSeconds >= limit else { return }
-            autoEndAlertMessage = String(format: NSLocalizedString("alert_period_auto_ended_time_format", comment: "Period ended by time"), snapshot.currentPeriod)
+            autoEndAlertMessage = String(format: NSLocalizedString("alert_period_auto_ended_time_format", comment: "Period ended by time"), gameVM.snapshot.currentPeriod)
 
         case .byScore:
-            let homeScore = score(for: snapshot.homeTeamID)
-            let awayScore = score(for: snapshot.awayTeamID)
-            let scoreThreshold = snapshot.periodScoreLimit * snapshot.currentPeriod
+            let homeScore = score(for: gameVM.snapshot.homeTeamID)
+            let awayScore = score(for: gameVM.snapshot.awayTeamID)
+            let scoreThreshold = gameVM.snapshot.periodScoreLimit * gameVM.snapshot.currentPeriod
             guard homeScore >= scoreThreshold || awayScore >= scoreThreshold else { return }
-            autoEndAlertMessage = String(format: NSLocalizedString("alert_period_auto_ended_score_format", comment: "Period ended by score"), snapshot.currentPeriod)
+            autoEndAlertMessage = String(format: NSLocalizedString("alert_period_auto_ended_score_format", comment: "Period ended by score"), gameVM.snapshot.currentPeriod)
         }
 
         let now = Date()
@@ -1544,6 +1560,28 @@ struct GameView: View {
             isShowingNewGameSetup = true
             return
         }
+        if gameVM.snapshot.periodIsRunning && !gameVM.snapshot.isComplete {
+            switch gameVM.snapshot.periodEndCondition {
+            case .manual:
+                break
+            case .byTime:
+                let limit = TimeInterval(gameVM.snapshot.periodTimeLimit * 60)
+                if currentPeriodElapsedSeconds < limit {
+                    manualEndPeriodMessage = String(format: NSLocalizedString("alert_manual_end_period_time_format", comment: "Manual end period time warning"), gameVM.snapshot.currentPeriod, gameVM.snapshot.periodTimeLimit)
+                    isShowingManualEndPeriodConfirmation = true
+                    return
+                }
+            case .byScore:
+                let homeScore = score(for: gameVM.snapshot.homeTeamID)
+                let awayScore = score(for: gameVM.snapshot.awayTeamID)
+                let scoreThreshold = gameVM.snapshot.periodScoreLimit * gameVM.snapshot.currentPeriod
+                if homeScore < scoreThreshold && awayScore < scoreThreshold {
+                    manualEndPeriodMessage = String(format: NSLocalizedString("alert_manual_end_period_score_format", comment: "Manual end period score warning"), gameVM.snapshot.currentPeriod, scoreThreshold)
+                    isShowingManualEndPeriodConfirmation = true
+                    return
+                }
+            }
+        }
         let now = Date()
         _ = liveManager.submitLiveOperation(.togglePeriod(at: now)) {
             applyTogglePeriodOperation(at: now)
@@ -1551,12 +1589,12 @@ struct GameView: View {
     }
 
     private func togglePause() {
-        guard !snapshot.isComplete else {
+        guard !gameVM.snapshot.isComplete else {
             statAlertMessage = NSLocalizedString("stat_game_already_finished", comment: "Game already finished message")
             return
         }
-        guard snapshot.periodIsRunning else {
-            statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: "Period not started message"), snapshot.currentPeriod)
+        guard gameVM.snapshot.periodIsRunning else {
+            statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: "Period not started message"), gameVM.snapshot.currentPeriod)
             return
         }
         let now = Date()
@@ -1611,32 +1649,32 @@ struct GameView: View {
             return applyResetGameOperation(keepLiveSession: true)
 
         case .undo:
-            if let previous = undoStack.popLast() {
-                redoStack.append(snapshot)
-                if redoStack.count > 30 { redoStack.removeFirst(redoStack.count - 30) }
-                snapshot = previous
+            if let previous = gameVM.undoStack.popLast() {
+                gameVM.redoStack.append(gameVM.snapshot)
+                if gameVM.redoStack.count > 30 { gameVM.redoStack.removeFirst(gameVM.redoStack.count - 30) }
+                gameVM.snapshot = previous
                 ensureSelectedPlayer()
                 autoSaveCurrentGame()
                 return true
             }
             let now = Date()
-            var redoSnapshot = snapshot
+            var redoSnapshot = gameVM.snapshot
             closeActiveStints(in: &redoSnapshot, at: now)
             closeMatchClock(in: &redoSnapshot, at: now)
             closePeriodClock(in: &redoSnapshot, at: now)
-            redoStack.append(redoSnapshot)
+            gameVM.redoStack.append(redoSnapshot)
             if revertLastAction() {
                 autoSaveCurrentGame()
                 return true
             }
-            redoStack.removeLast()
+            gameVM.redoStack.removeLast()
             return false
 
         case .redo:
-            guard let next = redoStack.popLast() else { return false }
-            undoStack.append(snapshot)
-            if undoStack.count > 30 { undoStack.removeFirst(undoStack.count - 30) }
-            snapshot = next
+            guard let next = gameVM.redoStack.popLast() else { return false }
+            gameVM.undoStack.append(gameVM.snapshot)
+            if gameVM.undoStack.count > 30 { gameVM.undoStack.removeFirst(gameVM.undoStack.count - 30) }
+            gameVM.snapshot = next
             ensureSelectedPlayer()
             autoSaveCurrentGame()
             return true
@@ -1645,8 +1683,8 @@ struct GameView: View {
 
     @discardableResult
     func applyRecordOperation(action: StatAction, playerID: UUID, side: TeamSide, at: Date? = nil, eventMessage: String? = nil, relatedPlayerID: UUID? = nil) -> Bool {
-        let isTeamMode = side == .home ? snapshot.homeTeamStatsMode : snapshot.awayTeamStatsMode
-        let teamID = side == .home ? snapshot.homeTeamID : snapshot.awayTeamID
+        let isTeamMode = side == .home ? gameVM.snapshot.homeTeamStatsMode : gameVM.snapshot.awayTeamStatsMode
+        let teamID = side == .home ? gameVM.snapshot.homeTeamID : gameVM.snapshot.awayTeamID
 
         guard isTeamMode || isOnCourt(playerID, side: side) else { return false }
 
@@ -1656,24 +1694,24 @@ struct GameView: View {
 
         mutateSnapshot {
             if isTeamMode, let teamID {
-                var stats = snapshot.teamStatsByID[teamID, default: PlayerStats()]
+                var stats = gameVM.snapshot.teamStatsByID[teamID, default: PlayerStats()]
                 action.apply(to: &stats)
-                snapshot.teamStatsByID[teamID] = stats
+                gameVM.snapshot.teamStatsByID[teamID] = stats
             } else {
-                var stats = snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+                var stats = gameVM.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
                 action.apply(to: &stats)
-                snapshot.statsByPlayerID[playerID] = stats
+                gameVM.snapshot.statsByPlayerID[playerID] = stats
             }
 
             // Apply related action (scorer points, turnover) for composite events
             if let related = action.relatedAction, let rpid = relatedPlayerID {
-                var relatedStats = snapshot.statsByPlayerID[rpid, default: PlayerStats()]
+                var relatedStats = gameVM.snapshot.statsByPlayerID[rpid, default: PlayerStats()]
                 related.apply(to: &relatedStats)
-                snapshot.statsByPlayerID[rpid] = relatedStats
+                gameVM.snapshot.statsByPlayerID[rpid] = relatedStats
             }
 
             if action == .foul {
-                snapshot.currentPeriodFoulsBySide[side.rawValue, default: 0] += 1
+                gameVM.snapshot.currentPeriodFoulsBySide[side.rawValue, default: 0] += 1
             }
             if action.points > 0 {
                 applyPlusMinus(points: action.points, scoringSide: side)
@@ -1681,13 +1719,13 @@ struct GameView: View {
             let eventName = isTeamMode ? (store.team(for: teamID)?.name ?? "?") : name(for: playerID)
             if let eventMessage {
                 if !eventMessage.isEmpty {
-                    addEvent(eventMessage, playerID: isTeamMode ? nil : playerID, relatedPlayerID: relatedPlayerID, eventCode: action.eventCode, at: at)
+                    gameVM.addEvent(eventMessage, playerID: isTeamMode ? nil : playerID, relatedPlayerID: relatedPlayerID, eventCode: action.eventCode, at: at)
                 }
             } else {
-                addEvent("\(eventName) \(action.message)", playerID: isTeamMode ? nil : playerID, relatedPlayerID: relatedPlayerID, eventCode: action.eventCode, at: at)
+                gameVM.addEvent("\(eventName) \(action.message)", playerID: isTeamMode ? nil : playerID, relatedPlayerID: relatedPlayerID, eventCode: action.eventCode, at: at)
             }
         }
-        if action.points > 0, snapshot.periodEndCondition == .byScore {
+        if action.points > 0, gameVM.snapshot.periodEndCondition == .byScore {
             checkAndAutoEndPeriod()
         }
         return true
@@ -1697,8 +1735,8 @@ struct GameView: View {
         let isMade = action == .putbackMade
         mutateSnapshot {
             if isTeamMode, let teamID {
-                var stats = snapshot.teamStatsByID[teamID, default: PlayerStats()]
-                if snapshot.showsOffensiveDefensiveRebound {
+                var stats = gameVM.snapshot.teamStatsByID[teamID, default: PlayerStats()]
+                if gameVM.snapshot.showsOffensiveDefensiveRebound {
                     stats.offensiveRebounds += 1
                 } else {
                     stats.rebounds += 1
@@ -1708,10 +1746,10 @@ struct GameView: View {
                 } else {
                     stats.twoAttempts += 1
                 }
-                snapshot.teamStatsByID[teamID] = stats
+                gameVM.snapshot.teamStatsByID[teamID] = stats
             } else {
-                var stats = snapshot.statsByPlayerID[playerID, default: PlayerStats()]
-                if snapshot.showsOffensiveDefensiveRebound {
+                var stats = gameVM.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+                if gameVM.snapshot.showsOffensiveDefensiveRebound {
                     stats.offensiveRebounds += 1
                 } else {
                     stats.rebounds += 1
@@ -1721,16 +1759,16 @@ struct GameView: View {
                 } else {
                     stats.twoAttempts += 1
                 }
-                snapshot.statsByPlayerID[playerID] = stats
+                gameVM.snapshot.statsByPlayerID[playerID] = stats
             }
             if isMade {
                 applyPlusMinus(points: 2, scoringSide: side)
             }
             let eventName = isTeamMode ? (store.team(for: teamID)?.name ?? "?") : name(for: playerID)
             let combinedMsg = eventMessage ?? "\(eventName) \(NSLocalizedString(isMade ? "action_putback_made" : "action_putback_missed", comment: ""))"
-            addEvent(combinedMsg, playerID: isTeamMode ? nil : playerID, eventCode: action.eventCode, at: at)
+            gameVM.addEvent(combinedMsg, playerID: isTeamMode ? nil : playerID, eventCode: action.eventCode, at: at)
         }
-        if isMade, snapshot.periodEndCondition == .byScore {
+        if isMade, gameVM.snapshot.periodEndCondition == .byScore {
             checkAndAutoEndPeriod()
         }
         return true
@@ -1739,53 +1777,53 @@ struct GameView: View {
     @discardableResult
     private func applyTogglePeriodOperation(at now: Date) -> Bool {
         mutateSnapshot {
-            if snapshot.periodIsRunning {
+            if gameVM.snapshot.periodIsRunning {
                 closeActiveStints(at: now)
                 closeMatchClock(at: now)
                 closePeriodClock(at: now)
-                addEvent(
-                    String(format: NSLocalizedString("event_period_end_format", comment: "Period end event format"), snapshot.currentPeriod),
+                gameVM.addEvent(
+                    String(format: NSLocalizedString("event_period_end_format", comment: "Period end event format"), gameVM.snapshot.currentPeriod),
                     eventCode: "event.period_end"
                 )
-                snapshot.periodIsRunning = false
-                snapshot.isPaused = false
-                if snapshot.currentPeriod >= snapshot.periodCount {
-                    snapshot.isComplete = true
-                    addEvent(NSLocalizedString("event_game_end", comment: "Game end event"), eventCode: "event.game_end")
+                gameVM.snapshot.periodIsRunning = false
+                gameVM.snapshot.isPaused = false
+                if gameVM.snapshot.currentPeriod >= gameVM.snapshot.periodCount {
+                    gameVM.snapshot.isComplete = true
+                    gameVM.addEvent(NSLocalizedString("event_game_end", comment: "Game end event"), eventCode: "event.game_end")
                 } else {
-                    snapshot.currentPeriod += 1
-                    snapshot.periodElapsedSeconds = 0
-                    snapshot.periodActiveSince = nil
+                    gameVM.snapshot.currentPeriod += 1
+                    gameVM.snapshot.periodElapsedSeconds = 0
+                    gameVM.snapshot.periodActiveSince = nil
                 }
             } else {
                 trimInvalidLineups()
-                if snapshot.resetsTeamFoulsEachPeriod {
-                    snapshot.currentPeriodFoulsBySide[TeamSide.home.rawValue] = 0
-                    snapshot.currentPeriodFoulsBySide[TeamSide.away.rawValue] = 0
+                if gameVM.snapshot.resetsTeamFoulsEachPeriod {
+                    gameVM.snapshot.currentPeriodFoulsBySide[TeamSide.home.rawValue] = 0
+                    gameVM.snapshot.currentPeriodFoulsBySide[TeamSide.away.rawValue] = 0
                 }
-                if !snapshot.startersRecorded {
-                    snapshot.starterPlayerIDs = unique(snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs)
-                    addEvent(
-                        String(format: NSLocalizedString("event_starters_home_format", comment: "Home starters event format"), names(for: snapshot.homeOnCourtPlayerIDs)),
+                if !gameVM.snapshot.startersRecorded {
+                    gameVM.snapshot.starterPlayerIDs = unique(gameVM.snapshot.homeOnCourtPlayerIDs + gameVM.snapshot.awayOnCourtPlayerIDs)
+                    gameVM.addEvent(
+                        String(format: NSLocalizedString("event_starters_home_format", comment: "Home starters event format"), names(for: gameVM.snapshot.homeOnCourtPlayerIDs)),
                         eventCode: "event.starters_home"
                     )
-                    addEvent(
-                        String(format: NSLocalizedString("event_starters_away_format", comment: "Away starters event format"), names(for: snapshot.awayOnCourtPlayerIDs)),
+                    gameVM.addEvent(
+                        String(format: NSLocalizedString("event_starters_away_format", comment: "Away starters event format"), names(for: gameVM.snapshot.awayOnCourtPlayerIDs)),
                         eventCode: "event.starters_away"
                     )
-                    snapshot.startersRecorded = true
+                    gameVM.snapshot.startersRecorded = true
                 }
-                snapshot.periodElapsedSeconds = 0
-                snapshot.periodActiveSince = nil
-                addEvent(
-                    String(format: NSLocalizedString("event_period_start_format", comment: "Period start event format"), snapshot.currentPeriod),
+                gameVM.snapshot.periodElapsedSeconds = 0
+                gameVM.snapshot.periodActiveSince = nil
+                gameVM.addEvent(
+                    String(format: NSLocalizedString("event_period_start_format", comment: "Period start event format"), gameVM.snapshot.currentPeriod),
                     eventCode: "event.period_start"
                 )
                 startMatchClock(at: now)
                 startPeriodClock(at: now)
                 startActiveStints(at: now)
-                snapshot.periodIsRunning = true
-                snapshot.isPaused = false
+                gameVM.snapshot.periodIsRunning = true
+                gameVM.snapshot.isPaused = false
             }
         }
         return true
@@ -1793,21 +1831,21 @@ struct GameView: View {
 
     @discardableResult
     private func applyTogglePauseOperation(at now: Date) -> Bool {
-        guard snapshot.periodIsRunning, !snapshot.isComplete else { return false }
+        guard gameVM.snapshot.periodIsRunning, !gameVM.snapshot.isComplete else { return false }
 
         mutateSnapshot {
-            if snapshot.isPaused {
-                snapshot.isPaused = false
+            if gameVM.snapshot.isPaused {
+                gameVM.snapshot.isPaused = false
                 startMatchClock(at: now)
                 startPeriodClock(at: now)
                 startActiveStints(at: now)
-                addEvent(NSLocalizedString("event_game_resumed", comment: "Game resumed event"), eventCode: "event.resume")
+                gameVM.addEvent(NSLocalizedString("event_game_resumed", comment: "Game resumed event"), eventCode: "event.resume")
             } else {
                 closeActiveStints(at: now)
                 closeMatchClock(at: now)
                 closePeriodClock(at: now)
-                snapshot.isPaused = true
-                addEvent(NSLocalizedString("event_game_paused", comment: "Game paused event"), eventCode: "event.pause")
+                gameVM.snapshot.isPaused = true
+                gameVM.addEvent(NSLocalizedString("event_game_paused", comment: "Game paused event"), eventCode: "event.pause")
             }
         }
         return true
@@ -1833,12 +1871,12 @@ struct GameView: View {
             }
             setOnCourtIDs(ids, for: side)
 
-            if snapshot.periodIsRunning && !snapshot.isPaused {
+            if gameVM.snapshot.periodIsRunning && !gameVM.snapshot.isPaused {
                 closeStint(for: outgoingPlayerID, at: now)
                 startStint(for: incomingPlayerID, at: now)
             }
 
-            addEvent(
+            gameVM.addEvent(
                 String(
                     format: NSLocalizedString("event_substitution_format", comment: "Substitution event format"),
                     name(for: incomingPlayerID),
@@ -1863,7 +1901,7 @@ struct GameView: View {
             guard !registered.contains(playerID) else { return }
             registered.append(playerID)
             setGamePlayerIDs(registered, for: side)
-            addEvent(
+            gameVM.addEvent(
                 String(format: NSLocalizedString("event_late_arrival_format", comment: "Late arrival event format"), name(for: playerID)),
                 eventCode: "event.late_arrival"
             )
@@ -1874,22 +1912,22 @@ struct GameView: View {
 
     @discardableResult
     private func applyFinishGameOperation(at now: Date) -> Bool {
-        guard !snapshot.isComplete else { return false }
+        guard !gameVM.snapshot.isComplete else { return false }
 
         mutateSnapshot {
-            if snapshot.periodIsRunning {
+            if gameVM.snapshot.periodIsRunning {
                 closeActiveStints(at: now)
                 closeMatchClock(at: now)
                 closePeriodClock(at: now)
-                snapshot.periodIsRunning = false
-                addEvent(
-                    String(format: NSLocalizedString("event_period_end_format", comment: "Period end event format"), snapshot.currentPeriod),
+                gameVM.snapshot.periodIsRunning = false
+                gameVM.addEvent(
+                    String(format: NSLocalizedString("event_period_end_format", comment: "Period end event format"), gameVM.snapshot.currentPeriod),
                     eventCode: "event.period_end"
                 )
             }
-            snapshot.isPaused = false
-            snapshot.isComplete = true
-            addEvent(NSLocalizedString("event_game_end", comment: "Game end event"), eventCode: "event.game_end")
+            gameVM.snapshot.isPaused = false
+            gameVM.snapshot.isComplete = true
+            gameVM.addEvent(NSLocalizedString("event_game_end", comment: "Game end event"), eventCode: "event.game_end")
         }
         return true
     }
@@ -1900,22 +1938,22 @@ struct GameView: View {
             liveManager.resetSession()
         }
 
-        undoStack.removeAll()
-        redoStack.removeAll()
+        gameVM.undoStack.removeAll()
+        gameVM.redoStack.removeAll()
         currentGameRecordID = keepLiveSession ? currentGameRecordID : nil
-        snapshot = GameSnapshot(
-            homeTeamID: snapshot.homeTeamID,
-            awayTeamID: snapshot.awayTeamID,
-            periodCount: snapshot.periodCount,
-            courtPlayerCount: snapshot.courtPlayerCount,
-            resetsTeamFoulsEachPeriod: snapshot.resetsTeamFoulsEachPeriod,
-            showsReboundButton: snapshot.showsReboundButton,
-            showsOffensiveDefensiveRebound: snapshot.showsOffensiveDefensiveRebound,
-            showsAssistButton: snapshot.showsAssistButton,
-            showsFoulButton: snapshot.showsFoulButton,
-            showsBlockButton: snapshot.showsBlockButton,
-            showsStealButton: snapshot.showsStealButton,
-            showsTurnoverButton: snapshot.showsTurnoverButton
+        gameVM.snapshot = GameSnapshot(
+            homeTeamID: gameVM.snapshot.homeTeamID,
+            awayTeamID: gameVM.snapshot.awayTeamID,
+            periodCount: gameVM.snapshot.periodCount,
+            courtPlayerCount: gameVM.snapshot.courtPlayerCount,
+            resetsTeamFoulsEachPeriod: gameVM.snapshot.resetsTeamFoulsEachPeriod,
+            showsReboundButton: gameVM.snapshot.showsReboundButton,
+            showsOffensiveDefensiveRebound: gameVM.snapshot.showsOffensiveDefensiveRebound,
+            showsAssistButton: gameVM.snapshot.showsAssistButton,
+            showsFoulButton: gameVM.snapshot.showsFoulButton,
+            showsBlockButton: gameVM.snapshot.showsBlockButton,
+            showsStealButton: gameVM.snapshot.showsStealButton,
+            showsTurnoverButton: gameVM.snapshot.showsTurnoverButton
         )
         ensureSelectedPlayer()
         autoSaveCurrentGame()
@@ -1924,10 +1962,10 @@ struct GameView: View {
 
     private func startNewGame(with config: GameSetupConfig) {
         liveManager.resetSession()
-        undoStack.removeAll()
-        redoStack.removeAll()
+        gameVM.undoStack.removeAll()
+        gameVM.redoStack.removeAll()
         currentGameRecordID = UUID()
-        snapshot = GameSnapshot(
+        gameVM.snapshot = GameSnapshot(
             homeTeamID: config.homeTeamID,
             awayTeamID: config.awayTeamID,
             periodCount: config.periodCount,
@@ -1950,7 +1988,7 @@ struct GameView: View {
             homeTeamStatsMode: config.homeTeamStatsMode,
             awayTeamStatsMode: config.awayTeamStatsMode
         )
-        voiceRecognizer.currentSnapshot = snapshot
+        voiceRecognizer.currentSnapshot = gameVM.snapshot
         selectedPlayerID = nil
         selectedSide = .home
         ensureSelectedPlayer()
@@ -1958,19 +1996,19 @@ struct GameView: View {
     }
 
     private func saveCurrentGame() {
-        var snapshotForSaving = snapshot
+        var snapshotForSaving = gameVM.snapshot
         let now = Date()
         closeActiveStints(in: &snapshotForSaving, at: now)
         closeMatchClock(in: &snapshotForSaving, at: now)
         closePeriodClock(in: &snapshotForSaving, at: now)
         snapshotForSaving.periodIsRunning = false
-        currentGameRecordID = store.autoSaveGame(snapshotForSaving, gameID: currentGameRecordID, undoSnapshots: undoStack)
+        currentGameRecordID = store.autoSaveGame(snapshotForSaving, gameID: currentGameRecordID, undoSnapshots: gameVM.undoStack)
         store.saveIfNeeded()
         saveConfirmation = NSLocalizedString("game_saved_to_history", comment: "Saved to history confirmation")
     }
 
     private func finishGame() {
-        guard !snapshot.isComplete else { return }
+        guard !gameVM.snapshot.isComplete else { return }
         let now = Date()
         _ = liveManager.submitLiveOperation(.finishGame(at: now)) {
             applyFinishGameOperation(at: now)
@@ -1978,7 +2016,7 @@ struct GameView: View {
     }
 
     private func prepareSubstitutionDefaults() {
-        let onCourt = substitutionSide == .home ? snapshot.homeOnCourtPlayerIDs : snapshot.awayOnCourtPlayerIDs
+        let onCourt = substitutionSide == .home ? gameVM.snapshot.homeOnCourtPlayerIDs : gameVM.snapshot.awayOnCourtPlayerIDs
         let bench = gamePlayerIDs(for: substitutionSide).filter { !onCourt.contains($0) }
         outgoingPlayerID = onCourt.first
         incomingPlayerID = bench.first
@@ -2049,8 +2087,8 @@ struct GameView: View {
             return
         }
 
-        let periodCount = min(max(snapshot.periodCount, 1), 8)
-        let courtCount = max(1, min(snapshot.courtPlayerCount, context.homeRosterIDs.count, context.awayRosterIDs.count))
+        let periodCount = min(max(gameVM.snapshot.periodCount, 1), 8)
+        let courtCount = max(1, min(gameVM.snapshot.courtPlayerCount, context.homeRosterIDs.count, context.awayRosterIDs.count))
         let homeAvailable = context.homeRosterIDs.shuffled()
         let awayAvailable = context.awayRosterIDs.shuffled()
 
@@ -2059,14 +2097,14 @@ struct GameView: View {
             awayTeamID: context.awayTeam.id,
             periodCount: periodCount,
             courtPlayerCount: courtCount,
-            resetsTeamFoulsEachPeriod: snapshot.resetsTeamFoulsEachPeriod,
-            showsReboundButton: snapshot.showsReboundButton,
-            showsOffensiveDefensiveRebound: snapshot.showsOffensiveDefensiveRebound,
-            showsAssistButton: snapshot.showsAssistButton,
-            showsFoulButton: snapshot.showsFoulButton,
-            showsBlockButton: snapshot.showsBlockButton,
-            showsStealButton: snapshot.showsStealButton,
-            showsTurnoverButton: snapshot.showsTurnoverButton,
+            resetsTeamFoulsEachPeriod: gameVM.snapshot.resetsTeamFoulsEachPeriod,
+            showsReboundButton: gameVM.snapshot.showsReboundButton,
+            showsOffensiveDefensiveRebound: gameVM.snapshot.showsOffensiveDefensiveRebound,
+            showsAssistButton: gameVM.snapshot.showsAssistButton,
+            showsFoulButton: gameVM.snapshot.showsFoulButton,
+            showsBlockButton: gameVM.snapshot.showsBlockButton,
+            showsStealButton: gameVM.snapshot.showsStealButton,
+            showsTurnoverButton: gameVM.snapshot.showsTurnoverButton,
             homeOnCourtPlayerIDs: Array(homeAvailable.prefix(courtCount)),
             awayOnCourtPlayerIDs: Array(awayAvailable.prefix(courtCount)),
             homeAvailablePlayerIDs: homeAvailable,
@@ -2243,7 +2281,7 @@ struct GameView: View {
             }
 
             if isMade,
-               snapshot.showsAssistButton,
+               gameVM.snapshot.showsAssistButton,
                Double.random(in: 0...1) < 0.35,
                let assistID = randomTeammateID(side: side, excluding: shooterID) {
                 var assistStats = simulated.statsByPlayerID[assistID, default: PlayerStats()]
@@ -2270,7 +2308,7 @@ struct GameView: View {
                 }
             }
 
-            if !isMade, snapshot.showsReboundButton, Double.random(in: 0...1) < 0.58 {
+            if !isMade, gameVM.snapshot.showsReboundButton, Double.random(in: 0...1) < 0.58 {
                 let reboundSide: TeamSide = Double.random(in: 0...1) < 0.25 ? side : (side == .home ? .away : .home)
                 addReboundEvent(preferredSide: reboundSide)
             }
@@ -2323,15 +2361,15 @@ struct GameView: View {
                     addShotEvent()
                 } else if roll < 0.82 {
                     addFoulEvent()
-                } else if roll < 0.88, snapshot.showsStealButton {
+                } else if roll < 0.88, gameVM.snapshot.showsStealButton {
                     addStealEvent()
-                } else if roll < 0.93, snapshot.showsBlockButton {
+                } else if roll < 0.93, gameVM.snapshot.showsBlockButton {
                     addBlockEvent()
-                } else if roll < 0.97, snapshot.showsTurnoverButton {
+                } else if roll < 0.97, gameVM.snapshot.showsTurnoverButton {
                     addTurnoverEvent()
                 } else if roll < 0.99 {
                     addSubstitutionEvent()
-                } else if snapshot.showsReboundButton {
+                } else if gameVM.snapshot.showsReboundButton {
                     addReboundEvent()
                 }
             }
@@ -2364,11 +2402,11 @@ struct GameView: View {
         eventTime.addTimeInterval(10)
         appendEvent(NSLocalizedString("event_game_end", comment: "Game end event"), eventCode: "event.game_end")
 
-        undoStack.removeAll()
-        redoStack.removeAll()
+        gameVM.undoStack.removeAll()
+        gameVM.redoStack.removeAll()
         currentGameRecordID = UUID()
-        snapshot = simulated
-        selectedPlayerID = snapshot.homeOnCourtPlayerIDs.first
+        gameVM.snapshot = simulated
+        selectedPlayerID = gameVM.snapshot.homeOnCourtPlayerIDs.first
         selectedSide = .home
         ensureSelectedPlayer()
         autoSaveCurrentGame()
@@ -2389,10 +2427,10 @@ struct GameView: View {
             return unique(validIDs)
         }
 
-        let preferredHomeRoster = rosterIDs(for: snapshot.homeTeamID)
-        let preferredAwayRoster = rosterIDs(for: snapshot.awayTeamID)
-        if let homeTeam = store.team(for: snapshot.homeTeamID),
-           let awayTeam = store.team(for: snapshot.awayTeamID),
+        let preferredHomeRoster = rosterIDs(for: gameVM.snapshot.homeTeamID)
+        let preferredAwayRoster = rosterIDs(for: gameVM.snapshot.awayTeamID)
+        if let homeTeam = store.team(for: gameVM.snapshot.homeTeamID),
+           let awayTeam = store.team(for: gameVM.snapshot.awayTeamID),
            homeTeam.id != awayTeam.id,
            !preferredHomeRoster.isEmpty,
            !preferredAwayRoster.isEmpty {
@@ -2430,14 +2468,10 @@ struct GameView: View {
             applyLateArrivalOperation(playerID: incomingPlayerID, side: lateArrivalSide)
         }
     }
-
     private func undo() {
-        guard !undoStack.isEmpty else { return }
+        guard !gameVM.undoStack.isEmpty else { return }
         _ = liveManager.submitLiveOperation(.undo) {
-            guard let previous = undoStack.popLast() else { return false }
-            redoStack.append(snapshot)
-            if redoStack.count > 30 { redoStack.removeFirst(redoStack.count - 30) }
-            snapshot = previous
+            gameVM.undo()
             ensureSelectedPlayer()
             autoSaveCurrentGame()
             return true
@@ -2445,12 +2479,9 @@ struct GameView: View {
     }
 
     private func redo() {
-        guard !redoStack.isEmpty else { return }
+        guard !gameVM.redoStack.isEmpty else { return }
         _ = liveManager.submitLiveOperation(.redo) {
-            guard let next = redoStack.popLast() else { return false }
-            undoStack.append(snapshot)
-            if undoStack.count > 30 { undoStack.removeFirst(undoStack.count - 30) }
-            snapshot = next
+            gameVM.redo()
             ensureSelectedPlayer()
             autoSaveCurrentGame()
             return true
@@ -2463,6 +2494,7 @@ struct GameView: View {
         }
     }
 
+
     private func conditionLabel(_ condition: PeriodEndCondition) -> String {
         switch condition {
         case .manual: return NSLocalizedString("period_end_manual", comment: "")
@@ -2474,48 +2506,26 @@ struct GameView: View {
     private func startOvertime() {
         isShowingOTSetup = false
         mutateSnapshot {
-            snapshot.isComplete = false
-            snapshot.periodCount += otPeriodCount
-            snapshot.periodEndCondition = otPeriodEndCondition
-            snapshot.periodTimeLimit = otTimeLimit
-            snapshot.periodScoreLimit = otScoreLimit
-            snapshot.currentPeriod += 1
-            snapshot.periodElapsedSeconds = 0
-            snapshot.periodActiveSince = nil
-            snapshot.periodIsRunning = false
-            snapshot.isPaused = false
-            addEvent(
+            gameVM.snapshot.isComplete = false
+            gameVM.snapshot.periodCount += otPeriodCount
+            gameVM.snapshot.periodEndCondition = otPeriodEndCondition
+            gameVM.snapshot.periodTimeLimit = otTimeLimit
+            gameVM.snapshot.periodScoreLimit = otScoreLimit
+            gameVM.snapshot.currentPeriod += 1
+            gameVM.snapshot.periodElapsedSeconds = 0
+            gameVM.snapshot.periodActiveSince = nil
+            gameVM.snapshot.periodIsRunning = false
+            gameVM.snapshot.isPaused = false
+            gameVM.addEvent(
                 String(format: NSLocalizedString("event_overtime_start_format", comment: "Overtime start event format"), otPeriodCount),
                 eventCode: "event.ot_start"
             )
         }
     }
 
-    private func mutateSnapshot(pushUndo: Bool = true, _ updates: () -> Void) {
-        if pushUndo {
-            undoStack.append(snapshot)
-            if undoStack.count > 30 { undoStack.removeFirst(undoStack.count - 30) }
-        }
-        redoStack.removeAll()
-        updates()
-        autoSaveCurrentGame()
-    }
 
-    private func addEvent(_ message: String, playerID: UUID? = nil, relatedPlayerID: UUID? = nil, eventCode: String? = nil, at: Date? = nil) {
-        let context = eventPeriodContext(for: message, eventCode: eventCode)
-        let fullMessage = "\(message) \(scoreSuffix)"
-        let logEntry = GameLogEntry(
-            timestamp: at ?? Date(),
-            message: fullMessage,
-            eventCode: eventCode,
-            playerID: playerID,
-            relatedPlayerID: relatedPlayerID,
-            period: context.period,
-            periodElapsedSeconds: context.periodElapsedSeconds
-        )
-        snapshot.logs.append(logEntry)
-        highlightLatestLog(logEntry.id)
-    }
+
+
 
     private func highlightLatestLog(_ logID: UUID) {
         withAnimation(.spring(response: 0.24, dampingFraction: 0.72)) {
@@ -2571,40 +2581,19 @@ struct GameView: View {
         }
     }
 
-    private func eventPeriodContext(for message: String, eventCode: String?) -> (period: Int?, periodElapsedSeconds: TimeInterval?) {
-        let nonPeriodEventCodes: Set<String> = ["event.game_end", "event.game_saved"]
-        let nonPeriodMessages: Set<String> = [
-            NSLocalizedString("event_game_end", comment: "Game end event"),
-            NSLocalizedString("event_game_saved", comment: "Game saved event")
-        ]
 
-        if let eventCode,
-           nonPeriodEventCodes.contains(eventCode) {
-            return (nil, nil)
-        }
-
-        guard !nonPeriodMessages.contains(message), snapshot.currentPeriod > 0 else {
-            return (nil, nil)
-        }
-
-        let elapsed: TimeInterval
-        if snapshot.periodIsRunning,
-           !snapshot.isPaused,
-           let activeSince = snapshot.periodActiveSince {
-            elapsed = snapshot.periodElapsedSeconds + max(0, Date().timeIntervalSince(activeSince))
-        } else {
-            elapsed = snapshot.periodElapsedSeconds
-        }
-
-        return (snapshot.currentPeriod, max(0, elapsed))
-    }
 
     private var scoreSuffix: String {
-        "(\(score(for: snapshot.homeTeamID)):\(score(for: snapshot.awayTeamID)))"
+        "(\(score(for: gameVM.snapshot.homeTeamID)):\(score(for: gameVM.snapshot.awayTeamID)))"
+    }
+
+    private func mutateSnapshot(pushUndo: Bool = true, _ updates: () -> Void) {
+        gameVM.mutateSnapshot(pushUndo: pushUndo, updates)
+        autoSaveCurrentGame()
     }
 
     private func autoSaveCurrentGame() {
-        var snapshotForSaving = snapshot
+        var snapshotForSaving = gameVM.snapshot
         if liveManager.activeLiveSessionID != nil {
             snapshotForSaving.wasBluetoothCollaborated = true
         }
@@ -2613,10 +2602,10 @@ struct GameView: View {
                   store.savedGames.contains(where: { $0.id == currentGameRecordID }) else {
                 return
             }
-            self.currentGameRecordID = store.autoSaveGame(snapshotForSaving, gameID: currentGameRecordID, undoSnapshots: undoStack)
+            self.currentGameRecordID = store.autoSaveGame(snapshotForSaving, gameID: currentGameRecordID, undoSnapshots: gameVM.undoStack)
             return
         }
-        currentGameRecordID = store.autoSaveGame(snapshotForSaving, gameID: currentGameRecordID, undoSnapshots: undoStack)
+        currentGameRecordID = store.autoSaveGame(snapshotForSaving, gameID: currentGameRecordID, undoSnapshots: gameVM.undoStack)
     }
 
     private func restoreLatestGameIfNeeded() {
@@ -2624,10 +2613,10 @@ struct GameView: View {
         hasRestoredLatestGame = true
 
         if let latest = store.latestUnfinishedGame() {
-            snapshot = latest.snapshot
-            voiceRecognizer.currentSnapshot = snapshot
-            undoStack = []
-            redoStack.removeAll()
+            gameVM.snapshot = latest.snapshot
+            voiceRecognizer.currentSnapshot = gameVM.snapshot
+            gameVM.undoStack = []
+            gameVM.redoStack.removeAll()
             currentGameRecordID = latest.id
             trimInvalidLineups()
             ensureSelectedPlayer()
@@ -2638,31 +2627,31 @@ struct GameView: View {
     }
 
     private func startActiveStints(at date: Date) {
-        (snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs).forEach { playerID in
+        (gameVM.snapshot.homeOnCourtPlayerIDs + gameVM.snapshot.awayOnCourtPlayerIDs).forEach { playerID in
             startStint(for: playerID, at: date)
         }
     }
 
     private func startMatchClock(at date: Date) {
-        if snapshot.matchActiveSince == nil {
-            snapshot.matchActiveSince = date
+        if gameVM.snapshot.matchActiveSince == nil {
+            gameVM.snapshot.matchActiveSince = date
         }
     }
 
     private func startPeriodClock(at date: Date) {
-        if snapshot.periodActiveSince == nil {
-            snapshot.periodActiveSince = date
+        if gameVM.snapshot.periodActiveSince == nil {
+            gameVM.snapshot.periodActiveSince = date
         }
     }
 
     private func startStint(for playerID: UUID, at date: Date) {
-        if snapshot.activeSinceByPlayerID[playerID] == nil {
-            snapshot.activeSinceByPlayerID[playerID] = date
+        if gameVM.snapshot.activeSinceByPlayerID[playerID] == nil {
+            gameVM.snapshot.activeSinceByPlayerID[playerID] = date
         }
     }
 
     private func closeActiveStints(at date: Date) {
-        closeActiveStints(in: &snapshot, at: date)
+        closeActiveStints(in: &gameVM.snapshot, at: date)
     }
 
     private func closeActiveStints(in target: inout GameSnapshot, at date: Date) {
@@ -2673,7 +2662,7 @@ struct GameView: View {
     }
 
     private func closeMatchClock(at date: Date) {
-        closeMatchClock(in: &snapshot, at: date)
+        closeMatchClock(in: &gameVM.snapshot, at: date)
     }
 
     private func closeMatchClock(in target: inout GameSnapshot, at date: Date) {
@@ -2683,7 +2672,7 @@ struct GameView: View {
     }
 
     private func closePeriodClock(at date: Date) {
-        closePeriodClock(in: &snapshot, at: date)
+        closePeriodClock(in: &gameVM.snapshot, at: date)
     }
 
     private func closePeriodClock(in target: inout GameSnapshot, at date: Date) {
@@ -2693,13 +2682,13 @@ struct GameView: View {
     }
 
     private func closeStint(for playerID: UUID, at date: Date) {
-        guard let startedAt = snapshot.activeSinceByPlayerID[playerID] else { return }
-        snapshot.playingSecondsByPlayerID[playerID, default: 0] += max(0, date.timeIntervalSince(startedAt))
-        snapshot.activeSinceByPlayerID[playerID] = nil
+        guard let startedAt = gameVM.snapshot.activeSinceByPlayerID[playerID] else { return }
+        gameVM.snapshot.playingSecondsByPlayerID[playerID, default: 0] += max(0, date.timeIntervalSince(startedAt))
+        gameVM.snapshot.activeSinceByPlayerID[playerID] = nil
     }
 
     private func applyPlusMinus(points: Int, scoringSide: TeamSide) {
-        applyPlusMinus(points: points, scoringSide: scoringSide, in: &snapshot)
+        applyPlusMinus(points: points, scoringSide: scoringSide, in: &gameVM.snapshot)
     }
 
     private func applyPlusMinus(points: Int, scoringSide: TeamSide, in target: inout GameSnapshot) {
@@ -2709,26 +2698,26 @@ struct GameView: View {
         defendingIDs.forEach { target.plusMinusByPlayerID[$0, default: 0] -= points }
     }
 
-    /// Revert the last action directly on the current snapshot. Returns true if successful.
+    /// Revert the last action directly on the current gameVM.snapshot. Returns true if successful.
     @discardableResult
     private func revertLastAction() -> Bool {
-        guard let lastLog = snapshot.logs.last else { return false }
+        guard let lastLog = gameVM.snapshot.logs.last else { return false }
         let normalizedMessage = normalizedLogMessage(lastLog.message)
         let lastEventCode = lastLog.eventCode ?? GameLogFormatter.extractEventCode(from: lastLog.message)
 
-        snapshot.logs.removeLast()
+        gameVM.snapshot.logs.removeLast()
 
         switch lastEventCode {
         case "event.game_saved":
             return true
 
         case "event.game_end":
-            snapshot.isComplete = false
+            gameVM.snapshot.isComplete = false
             return true
 
         case "event.substitution":
             guard let incomingID = lastLog.playerID else { return false }
-            guard let side = sideOfPlayer(incomingID, in: snapshot) else { return false }
+            guard let side = sideOfPlayer(incomingID, in: gameVM.snapshot) else { return false }
             let outgoingID: UUID
             if let storedOutgoingID = lastLog.relatedPlayerID {
                 outgoingID = storedOutgoingID
@@ -2737,14 +2726,14 @@ struct GameView: View {
             }
             // Swap back: remove incoming, add outgoing
             if side == .home {
-                snapshot.homeOnCourtPlayerIDs.removeAll { $0 == incomingID }
-                if !snapshot.homeOnCourtPlayerIDs.contains(outgoingID) {
-                    snapshot.homeOnCourtPlayerIDs.append(outgoingID)
+                gameVM.snapshot.homeOnCourtPlayerIDs.removeAll { $0 == incomingID }
+                if !gameVM.snapshot.homeOnCourtPlayerIDs.contains(outgoingID) {
+                    gameVM.snapshot.homeOnCourtPlayerIDs.append(outgoingID)
                 }
             } else {
-                snapshot.awayOnCourtPlayerIDs.removeAll { $0 == incomingID }
-                if !snapshot.awayOnCourtPlayerIDs.contains(outgoingID) {
-                    snapshot.awayOnCourtPlayerIDs.append(outgoingID)
+                gameVM.snapshot.awayOnCourtPlayerIDs.removeAll { $0 == incomingID }
+                if !gameVM.snapshot.awayOnCourtPlayerIDs.contains(outgoingID) {
+                    gameVM.snapshot.awayOnCourtPlayerIDs.append(outgoingID)
                 }
             }
             return true
@@ -2754,25 +2743,25 @@ struct GameView: View {
             closeActiveStints(at: now)
             closeMatchClock(at: now)
             closePeriodClock(at: now)
-            snapshot.periodIsRunning = false
-            snapshot.isPaused = false
+            gameVM.snapshot.periodIsRunning = false
+            gameVM.snapshot.isPaused = false
             return true
 
         case "event.period_end":
             // Revert ending a period: period was running, mark it running again
-            if snapshot.currentPeriod > 1 {
-                snapshot.currentPeriod -= 1
+            if gameVM.snapshot.currentPeriod > 1 {
+                gameVM.snapshot.currentPeriod -= 1
             }
-            snapshot.periodIsRunning = true
+            gameVM.snapshot.periodIsRunning = true
             return true
 
         case "event.late_arrival":
             // Remove the late-arriving player from team roster
             guard let playerID = lastLog.playerID else { return false }
-            if snapshot.homeAvailablePlayerIDs.contains(playerID) {
-                snapshot.homeAvailablePlayerIDs.removeAll { $0 == playerID }
-            } else if snapshot.awayAvailablePlayerIDs.contains(playerID) {
-                snapshot.awayAvailablePlayerIDs.removeAll { $0 == playerID }
+            if gameVM.snapshot.homeAvailablePlayerIDs.contains(playerID) {
+                gameVM.snapshot.homeAvailablePlayerIDs.removeAll { $0 == playerID }
+            } else if gameVM.snapshot.awayAvailablePlayerIDs.contains(playerID) {
+                gameVM.snapshot.awayAvailablePlayerIDs.removeAll { $0 == playerID }
             }
             return true
 
@@ -2783,29 +2772,29 @@ struct GameView: View {
             }
 
             guard let playerID = lastLog.playerID
-                    ?? parsed.flatMap({ playerID(for: $0.playerName, action: action, in: snapshot) }),
-                  let side = sideOfPlayer(playerID, in: snapshot) else {
+                    ?? parsed.flatMap({ playerID(for: $0.playerName, action: action, in: gameVM.snapshot) }),
+                  let side = sideOfPlayer(playerID, in: gameVM.snapshot) else {
                 return false
             }
 
-            var stats = snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+            var stats = gameVM.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
             guard action.revert(on: &stats) else { return false }
-            snapshot.statsByPlayerID[playerID] = stats
+            gameVM.snapshot.statsByPlayerID[playerID] = stats
 
             // Revert related player for composite events
             if let related = action.relatedAction, let rpid = lastLog.relatedPlayerID {
-                var relatedStats = snapshot.statsByPlayerID[rpid, default: PlayerStats()]
+                var relatedStats = gameVM.snapshot.statsByPlayerID[rpid, default: PlayerStats()]
                 guard related.revert(on: &relatedStats) else { return false }
-                snapshot.statsByPlayerID[rpid] = relatedStats
+                gameVM.snapshot.statsByPlayerID[rpid] = relatedStats
             }
 
             if action == .foul {
-                let currentFouls = snapshot.currentPeriodFoulsBySide[side.rawValue, default: 0]
-                snapshot.currentPeriodFoulsBySide[side.rawValue] = max(0, currentFouls - 1)
+                let currentFouls = gameVM.snapshot.currentPeriodFoulsBySide[side.rawValue, default: 0]
+                gameVM.snapshot.currentPeriodFoulsBySide[side.rawValue] = max(0, currentFouls - 1)
             }
 
             if action.points > 0 {
-                applyPlusMinus(points: -action.points, scoringSide: side, in: &snapshot)
+                applyPlusMinus(points: -action.points, scoringSide: side, in: &gameVM.snapshot)
             }
 
             return true
@@ -2927,7 +2916,7 @@ struct GameView: View {
     }
 
     private func logText(for entry: GameLogEntry) -> String {
-        let periodText = Self.periodContextText(period: entry.period, elapsedSeconds: entry.periodElapsedSeconds, originalPeriodCount: snapshot.originalPeriodCount)
+        let periodText = Self.periodContextText(period: entry.period, elapsedSeconds: entry.periodElapsedSeconds, originalPeriodCount: gameVM.snapshot.originalPeriodCount)
         return [Self.timeFormatter.string(from: entry.timestamp), periodText, entry.message]
             .filter { !$0.isEmpty }
             .joined(separator: " · ")
@@ -2939,4 +2928,3 @@ struct GameView: View {
         return formatter
     }()
 }
-

@@ -174,12 +174,31 @@ struct CoreDataStore {
     func fetchAllSavedGames() -> [SavedGame] {
         let request = NSFetchRequest<NSManagedObject>(entityName: "CDSavedGame")
         request.sortDescriptors = [NSSortDescriptor(key: "savedAt", ascending: false)]
-        guard let results = try? context.fetch(request) else { return [] }
+        let results: [NSManagedObject]
+        do {
+            results = try context.fetch(request)
+        } catch {
+            print("[CoreData] Failed to fetch saved games: \(error)")
+            return []
+        }
         return results.compactMap { obj -> SavedGame? in
             guard let id = obj.value(forKey: "id") as? UUID,
-                  let savedAt = obj.value(forKey: "savedAt") as? Date else { return nil }
+                  let savedAt = obj.value(forKey: "savedAt") as? Date else {
+                print("[CoreData] Skipping saved game with missing id or savedAt")
+                return nil
+            }
             let snapshotData = obj.value(forKey: "snapshotData") as? Data
-            let snapshot = snapshotData.flatMap { try? JSONDecoder().decode(GameSnapshot.self, from: $0) } ?? GameSnapshot()
+            let snapshot: GameSnapshot
+            if let data = snapshotData {
+                do {
+                    snapshot = try JSONDecoder().decode(GameSnapshot.self, from: data)
+                } catch {
+                    print("[CoreData] Failed to decode GameSnapshot for game \(id): \(error)")
+                    snapshot = GameSnapshot()
+                }
+            } else {
+                snapshot = GameSnapshot()
+            }
             let homePlayerIDsData = obj.value(forKey: "homePlayerIDsData") as? Data
             let awayPlayerIDsData = obj.value(forKey: "awayPlayerIDsData") as? Data
             let playerNamesData = obj.value(forKey: "playerNamesData") as? Data
@@ -211,12 +230,6 @@ struct CoreDataStore {
         obj.setValue(game.id, forKey: "id")
         obj.setValue(game.savedAt, forKey: "savedAt")
         let encodedSnap = try? JSONEncoder().encode(game.snapshot)
-        if game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode || !game.snapshot.teamStatsByID.isEmpty {
-            print("[CoreData] Saving snapshot: \(encodedSnap?.count ?? 0) bytes")
-            if let data = encodedSnap, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                print("[CoreData] Snapshot has homeTeamStatsMode=\(json["homeTeamStatsMode"] != nil) teamStatsByID=\(json["teamStatsByID"] != nil)")
-            }
-        }
         obj.setValue(encodedSnap, forKey: "snapshotData")
         obj.setValue(game.homeTeamName, forKey: "homeTeamName")
         obj.setValue(game.awayTeamName, forKey: "awayTeamName")
@@ -253,6 +266,13 @@ struct CoreDataStore {
     func hasData() -> Bool {
         let request = NSFetchRequest<NSManagedObject>(entityName: "CDSavedGame")
         return (try? context.count(for: request)) ?? 0 > 0
+    }
+
+    func fetchAllSavedGameIDs() -> Set<UUID> {
+        let request = NSFetchRequest<NSManagedObject>(entityName: "CDSavedGame")
+        request.propertiesToFetch = ["id"]
+        guard let results = try? context.fetch(request) else { return [] }
+        return Set(results.compactMap { $0.value(forKey: "id") as? UUID })
     }
 
     func deleteAllSavedGames() {

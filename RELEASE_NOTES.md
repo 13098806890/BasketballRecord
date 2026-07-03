@@ -1,5 +1,27 @@
 # Release Notes
 
+## 1.32 (2026-07-03)
+
+### 新增
+
+- **文件拆分与 ViewModel 重构**：GameView、SavedGameDetailView、RosterView 等大文件拆分为独立子文件，GameView 核心状态提取到 GameViewModel。
+- **AI prompt 多语言本地化**：新增 45 个 i18n key，所有 10 种语言 AI 提示词不再含硬编码中文。
+- **手动结束节次确认**：时间/比分条件未满足时结束节次会弹出确认 alert。
+- **统计系统安全性提升**：CoreData 存储改用 diff+upsert 避免全删全插风险，fatalError 改为 throw，关键路径添加错误日志。
+
+### 修复
+
+- putbackMade/putbackMissed 篮板改为前场篮板计法
+- scoringCodes/pointMap 补齐 5 种投篮类型
+- resolvedPlayerID 排序不一致导致匹配错人
+- analyzer.analyze() 重复计算缓存
+- putbackMissed 篮板统计一致性
+- AnyView 改为 @ViewBuilder 提升性能
+- 多语言 .strings 文件重复条目清理
+- 自动保存修复、结束节次确认 alert
+
+---
+
 ## 1.31 (2026-07-02)
 
 ### 新增

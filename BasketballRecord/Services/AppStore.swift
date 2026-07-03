@@ -441,14 +441,11 @@ final class AppStore: ObservableObject {
             data = encoded
         }
 
-        print("[Storage] Writing \(key): \(data.count) bytes")
         if data.count >= 3_000_000 {
             let fileURL = documentsDir.appendingPathComponent("\(key).json")
             try? data.write(to: fileURL, options: .atomic)
-            print("[Storage] Wrote \(key) to file instead of UserDefaults")
         } else {
             UserDefaults.standard.set(data, forKey: key)
-            print("[Storage] Wrote \(key) to UserDefaults OK")
         }
     }
 
@@ -456,16 +453,27 @@ final class AppStore: ObservableObject {
         let data = readRawData(forKey: key)
         guard let data else { return nil }
 
-        if key.hasPrefix("game_"), var game = try? JSONDecoder().decode(SavedGame.self, from: data) {
-            if game.undoSnapshots.count > 30 {
-                print("[Storage] Trimming undo stack on load: \(game.undoSnapshots.count) -> 30")
-                game.undoSnapshots = Array(game.undoSnapshots.suffix(30))
+        if key.hasPrefix("game_") {
+            do {
+                var game = try JSONDecoder().decode(SavedGame.self, from: data)
+                if game.undoSnapshots.count > 30 {
+                    print("[Storage] Trimming undo stack on load: \(game.undoSnapshots.count) -> 30")
+                    game.undoSnapshots = Array(game.undoSnapshots.suffix(30))
+                }
+                game.previousSnapshot = nil
+                return game as? T
+            } catch {
+                print("[Storage] Failed to decode game \(key): \(error)")
+                return nil
             }
-            game.previousSnapshot = nil
-            return game as? T
         }
 
-        return try? JSONDecoder().decode(type, from: data)
+        do {
+            return try JSONDecoder().decode(type, from: data)
+        } catch {
+            print("[Storage] Failed to decode \(key): \(error)")
+            return nil
+        }
     }
 
     private func readRawData(forKey key: String) -> Data? {
@@ -473,7 +481,12 @@ final class AppStore: ObservableObject {
             return data
         }
         let fileURL = documentsDir.appendingPathComponent("\(key).json")
-        return try? Data(contentsOf: fileURL)
+        do {
+            return try Data(contentsOf: fileURL)
+        } catch {
+            print("[Storage] Failed to read file \(key): \(error)")
+            return nil
+        }
     }
 
     func saveIfNeeded() {
@@ -515,24 +528,12 @@ final class AppStore: ObservableObject {
             voiceLogEnabled: voiceLogEnabled
         )
         safeWrite(meta, forKey: metaKey)
-        print("[SaveCheck] UserDefaults → players=\(players.count) teams=\(teams.count) gameGroups=\(gameGroups.count) playerGroups=\(playerGroups.count)")
 
         // Save each game individually (only if games changed)
         if dirtyKeys.contains(.savedGames) {
             let gameIDs = savedGames.map(\.id)
             safeWrite(gameIDs, forKey: gamesIndexKey)
             for game in savedGames {
-                let ts = game.snapshot.teamStatsByID
-                let teamPts = ts.values.reduce(0) { $0 + $1.points }
-                if teamPts > 0 || game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode {
-                    print("[Storage] Saving game \(game.id): teamStats=\(ts.count) keys=\(Array(ts.keys)) pts=\(teamPts) homeMode=\(game.snapshot.homeTeamStatsMode) awayMode=\(game.snapshot.awayTeamStatsMode)")
-                    // Verify encoding includes the new fields
-                    if let data = try? JSONEncoder().encode(game.snapshot),
-                       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                        print("[Storage] Encoded keys: \(Array(json.keys))")
-                        print("[Storage] Has homeTeamStatsMode=\(json["homeTeamStatsMode"] != nil) awayTeamStatsMode=\(json["awayTeamStatsMode"] != nil) teamStatsByID=\(json["teamStatsByID"] != nil)")
-                    }
-                }
                 safeWrite(game, forKey: gameKey(for: game.id))
             }
         }
@@ -542,11 +543,15 @@ final class AppStore: ObservableObject {
         if dirtyKeys.contains(.teams) { coreDataStore.saveTeams(teams) }
         if dirtyKeys.contains(.gameGroups) { coreDataStore.saveGameGroups(gameGroups) }
         if dirtyKeys.contains(.playerGroups) { coreDataStore.savePlayerGroups(playerGroups) }
-        print("[SaveCheck] CoreData → players=\(players.count) teams=\(teams.count) gameGroups=\(gameGroups.count) playerGroups=\(playerGroups.count)")
         if dirtyKeys.contains(.savedGames) {
-            coreDataStore.deleteAllSavedGames()
+            let existingIDs = coreDataStore.fetchAllSavedGameIDs()
+            let newIDs = Set(savedGames.map(\.id))
+            let toDelete = existingIDs.subtracting(newIDs)
             for game in savedGames {
                 coreDataStore.upsertSavedGame(game)
+            }
+            for id in toDelete {
+                coreDataStore.deleteSavedGame(id: id)
             }
         }
         coreDataStore.flush()
