@@ -891,6 +891,20 @@ Format:
 "ai_prompt_req_14" = "- Kommentarstil zwischen formell und locker: Vermeide übermäßig schriftliche Ausdrücke wie 'zu Beginn des Spiels'. Verwende natürliche Ausdrücke wie 'das erste Viertel begann mit', 'X trifft', 'der Spielstand wird XX-XX'. Mindestens 5-8 Sätze pro Viertel.";
 "ai_prompt_req_15" = "- Viertelgrenzen werden durch die Spielregeln in 【比赛信息】(Endbedingung pro Viertel) bestimmt. Im Punktemodus endet ein Viertel, wenn ein Team das Punkte-Limit erreicht. Im Zeitmodus endet ein Viertel, wenn die Zeit abläuft. Im manuellen Modus schaltet der Benutzer manuell um. Ereignisse sind nach Vierteln gruppiert in 【事件日志（按节次）】und【比分变化时间线】. Verwende diese Gruppierungen für genaue Zusammenfassungen.";
 
+"ai_prompt_req_16" = "- Markiere Ergebnisse immer mit beiden Teamnamen (Heimteam zuerst), z.B. 'HomeTeam 8-4 AwayTeam'. Schreibe nicht nur '8-4'.";
+
+"ai_prompt_scoring_run" = "%@ Punktserie: +%d Pkt in %d Besitze";
+"ai_prompt_both_miss_streak" = "Beide verfehlen x%d";
+"ai_prompt_rebound_streak" = "%@ Rebounds-Serie x%d";
+"ai_prompt_miss_streak" = "%@ Fehlwurf-Serie x%d";
+"ai_prompt_assist_streak" = "%@ Vorlagen-Serie x%d";
+"ai_prompt_and_one" = "%@ And-One (%d+1)";
+"ai_prompt_lead_format" = "%@ führt mit %d";
+
+"ai_prompt_req_17" = "- Passe den Kommentarstil an den Spielmodus an. Wenn die Periodenendbedingung nicht 'byTime' ist (Punkte- oder manueller Modus), erwähne keine spezifischen Zeitpunkte. Konzentriere dich auf Punktserien, Momentumwechsel und Spielerleistungen.";
+
+"ai_prompt_req_18" = "- Zähle NICHT jedes Scoring-Ereignis chronologisch auf. Gruppiere Ereignisse stattdessen nach Punktserien und Momentumwechseln. Pro Viertel: Fokussiere auf 2-4 Schlüsselerzählungen - wer erzielte Serien, wann wechselte das Momentum, was waren die Wendepunkte. Halte die Zusammenfassung pro Viertel prägnant (2-4 Sätze). Synthetisiere die detaillierte Timeline zu einer übergeordneten Erzählung.";
+
 "button_save_to_photos" = "In Fotos speichern";
 
 "button_saved" = "Gespeichert";

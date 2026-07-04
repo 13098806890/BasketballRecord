@@ -21,6 +21,12 @@
 - 自动保存修复、结束节次确认 alert
 - **球队记分模式每节统计为 0**：GameView 中 team mode 的 `addEvent` 传入 `playerID: nil`，导致日志丢失球队 UUID，SavedGameAnalyzer 无法按节归类。修复：传入 teamID 代替 nil，Analyzer 增加 `game.resolvedTeamID(from:)` 文本反查兜底，`aggregateStats`/`fouls`/`score` 按节从 `periodAnalysis` 读取数据
 - **导入 UUID 重映射遗漏**：`remappedSnapshot` 仅查 `playerIDMap`，团队 UUID 存于 `playerID` 的日志无法被 `teamIDMap` 重映射。修复：同时查 `teamIDMap` 和 `playerIDMap`，并将 `relatedPlayerID` 也加入重映射
+- **AI prompt 中文硬编码全部 i18n**：scoringRunEvents() 中 20 处硬编码中文替换为 7 个新 i18n key（scoring_run / both_miss_streak / rebound_streak / miss_streak / assist_streak / and_one / lead_format），10 语言全覆盖。
+- **连续得分合并到比分时间线**：scoringRunEvents() 改为返回带时间戳的结构化数据，所有连续得分/连续不中事件合并到统一时间线，移除独立「连续得分分析」section。
+- **比分时间线加队名**：每个分差值都带主客队名。
+- **AI 规则 req_16/17/18**：req_16（每次比分带队名）、req_17（非时间模式不提及具体时间点）、req_18（不按时间枚举得分，按连续得分和势头分组，每节 2-4 句）。
+- **比赛模式感知解说**：AI 根据每节结束条件调整风格，比分/手动模式自动省略时间点。
+- **AI prompt debug prints**：添加 [AI_PROMPT] 和 [AI_SUMMARY] 调试输出。
 
 ---
 

@@ -89,6 +89,17 @@ struct AISummaryView: View {
                 }
             }
         }
+        .onChange(of: periodAnalysis.statsByPeriod.isEmpty) { _, isEmpty in
+            guard !isEmpty else { return }
+            let prompt = summaryPrompt()
+            print("[AI_PROMPT] Prompt length: \(prompt.count) chars")
+            print("[AI_PROMPT] ---BEGIN PROMPT---\n\(prompt)\n---END PROMPT---")
+            if let saved = game.aiSummary, !saved.isEmpty {
+                print("[AI_SUMMARY] ---BEGIN SUMMARY---\n\(saved)\n---END SUMMARY---")
+            } else {
+                print("[AI_SUMMARY] (no summary yet)")
+            }
+        }
         .alert(LocalizedStringKey("alert_ai_summary_exists_title"), isPresented: $showSummaryExistsAlert) {
             Button(LocalizedStringKey("button_ok")) { }
         } message: {
@@ -247,6 +258,7 @@ struct AISummaryView: View {
                     await MainActor.run { incrementGenerationCount() }
                 }
                 let normalizedSummary = normalizeAISummary(summary)
+                print("[AI_SUMMARY] ---BEGIN SUMMARY---\n\(normalizedSummary)\n---END SUMMARY---")
                 await MainActor.run {
                     aiSummary = normalizedSummary
                     store.updateAISummary(normalizedSummary, for: game.id)
@@ -279,7 +291,7 @@ struct AISummaryView: View {
             lines.append("- \(game.periodDisplayName(period))：")
             for log in periodLogs.prefix(20) {
                 let msg = GameLogFormatter.normalizedMessage(log.entry.message)
-                    .replacingOccurrences(of: "[event:\\w+\\.\\w+]", with: "", options: .regularExpression)
+                    .replacingOccurrences(of: "\\[event:\\w+(\\.\\w+)*\\]", with: "", options: .regularExpression)
                     .trimmingCharacters(in: .whitespaces)
                 if !msg.isEmpty {
                     lines.append("  - \(msg)")
@@ -327,7 +339,7 @@ struct AISummaryView: View {
         return lines.joined(separator: "\n")
     }
     
-    private func scoreTimelineText() -> String {
+    private func combinedTimelineText() -> String {
         let scoringCodes = StatAction.scoringEventCodes
         let pointMap = StatAction.pointMap
         var homeIDs = Set(game.homePlayerIDs)
@@ -339,53 +351,115 @@ struct AISummaryView: View {
         func resolveTeamID(log: GameLogEntry) -> UUID? {
             game.resolvedTeamID(from: log.message)
         }
-        
-        var lines: [String] = []
-        var homeScore = 0, awayScore = 0
-        var lastTimelinePeriod = 0
+
+        let nonScoringEventCodes: Set<String> = ["stat.foul", "stat.assist", "stat.rebound", "stat.block", "stat.steal", "stat.turnover"]
         let gameStartTime = game.snapshot.logs.first?.timestamp ?? game.savedAt
+
+        struct TimelineEntry {
+            let timeStr: String
+            let line: String
+            let period: Int
+            let sortKey: Date
+        }
+        var entries: [TimelineEntry] = []
+        var homeScore = 0, awayScore = 0
+
         for log in game.snapshot.logs {
-            guard let code = log.eventCode ?? GameLogFormatter.extractEventCode(from: log.message),
-                  scoringCodes.contains(code),
-                  let points = pointMap[code],
-                  let pid = log.playerID ?? resolvedPlayerID(log: log) ?? resolveTeamID(log: log) else { continue }
-            let isHome = homeIDs.contains(pid)
-            let prevHome = homeScore; let prevAway = awayScore
-            if isHome { homeScore += points } else { awayScore += points }
-            let playerName = idToName[pid] ?? (pid == game.snapshot.homeTeamID ? game.homeTeamName : pid == game.snapshot.awayTeamID ? game.awayTeamName : "?")
             let elapsed = max(0, log.timestamp.timeIntervalSince(gameStartTime))
             let min = Int(elapsed / 60); let sec = Int(elapsed) % 60
             let timeStr = String(format: "%02d:%02d", min, sec)
             let period = log.period ?? 1
-            if period != lastTimelinePeriod {
-                lastTimelinePeriod = period
-                lines.append("- \(game.periodDisplayName(period)):")
+            let code = log.eventCode ?? GameLogFormatter.extractEventCode(from: log.message)
+
+            // Scoring event
+            if let code, scoringCodes.contains(code), let points = pointMap[code] {
+                let resolvedPid = log.playerID ?? resolvedPlayerID(log: log) ?? resolveTeamID(log: log)
+                let isCompositeAssist = code == "stat.assistTwoMade" || code == "stat.assistThreeMade"
+                let pid = isCompositeAssist ? (log.relatedPlayerID ?? resolvedPid) : resolvedPid
+                if let pid {
+                    let isHome = homeIDs.contains(pid)
+                    let prevHome = homeScore; let prevAway = awayScore
+                    if isHome { homeScore += points } else { awayScore += points }
+                    let playerName = idToName[pid] ?? (pid == game.snapshot.homeTeamID ? game.homeTeamName : pid == game.snapshot.awayTeamID ? game.awayTeamName : "?")
+                    let lead = homeScore - awayScore
+                    let leadStr: String
+                    if lead > 0 {
+                        leadStr = String(format: NSLocalizedString("ai_prompt_lead_format", comment: ""), game.homeTeamName, lead)
+                    } else if lead < 0 {
+                        leadStr = String(format: NSLocalizedString("ai_prompt_lead_format", comment: ""), game.awayTeamName, -lead)
+                    } else {
+                        leadStr = NSLocalizedString("ai_prompt_diff_tied", comment: "Tied")
+                    }
+                    let msg = GameLogFormatter.normalizedMessage(log.message)
+                        .replacingOccurrences(of: "\\[event:\\w+(\\.\\w+)*\\]", with: "", options: .regularExpression)
+                        .trimmingCharacters(in: .whitespaces)
+                    let desc = msg.isEmpty ? "" : " - \(msg)"
+                    let line = "  [\(timeStr)] \(playerName) +\(points) (\(game.homeTeamName) \(prevHome):\(prevAway) \(game.awayTeamName)->\(game.homeTeamName) \(homeScore):\(awayScore) \(game.awayTeamName), \(leadStr))\(desc)"
+                    entries.append(TimelineEntry(timeStr: timeStr, line: line, period: period, sortKey: log.timestamp))
+                }
+                continue
             }
-            let lead = homeScore - awayScore
-            let leadStr: String
-            if lead > 0 {
-                leadStr = String(format: NSLocalizedString("ai_prompt_diff_lead_home", comment: "Home leads by N"), lead)
-            } else if lead < 0 {
-                leadStr = String(format: NSLocalizedString("ai_prompt_diff_lead_away", comment: "Away leads by N"), -lead)
-            } else {
-                leadStr = NSLocalizedString("ai_prompt_diff_tied", comment: "Tied")
+
+            // Non-scoring tracked event
+            if let code, nonScoringEventCodes.contains(code) {
+                let pid = log.playerID ?? resolvedPlayerID(log: log) ?? resolveTeamID(log: log)
+                let playerName: String
+                if let pid {
+                    playerName = idToName[pid] ?? (pid == game.snapshot.homeTeamID ? game.homeTeamName : pid == game.snapshot.awayTeamID ? game.awayTeamName : "?")
+                } else {
+                    playerName = "?"
+                }
+                let msg = GameLogFormatter.normalizedMessage(log.message)
+                    .replacingOccurrences(of: "\\[event:\\w+(\\.\\w+)*\\]", with: "", options: .regularExpression)
+                    .trimmingCharacters(in: .whitespaces)
+                let displayMsg = msg.isEmpty ? code : msg
+                let line = "  [\(timeStr)] \(playerName) - \(displayMsg)"
+                entries.append(TimelineEntry(timeStr: timeStr, line: line, period: period, sortKey: log.timestamp))
             }
-            lines.append("  [\(timeStr)] \(playerName) +\(points) (\(prevHome):\(prevAway)->\(homeScore):\(awayScore), \(leadStr))")
+        }
+
+        entries.sort { $0.sortKey < $1.sortKey }
+
+        // Merge scoring run events into the timeline
+        let runEvents = scoringRunEvents()
+        for (ts, period, line) in runEvents {
+            let elapsed = max(0, ts.timeIntervalSince(gameStartTime))
+            let min = Int(elapsed / 60); let sec = Int(elapsed) % 60
+            let timeStr = String(format: "%02d:%02d", min, sec)
+            entries.append(TimelineEntry(timeStr: timeStr, line: "  [\(timeStr)]\(line)", period: period, sortKey: ts))
+        }
+
+        entries.sort { $0.sortKey < $1.sortKey }
+
+        var lines: [String] = []
+        var lastPeriod = 0
+        for entry in entries {
+            if entry.period != lastPeriod {
+                lastPeriod = entry.period
+                lines.append("- \(game.periodDisplayName(entry.period)):")
+            }
+            lines.append(entry.line)
         }
         return lines.isEmpty ? NSLocalizedString("ai_prompt_no_scoring_record", comment: "No scoring") : lines.joined(separator: "\n")
     }
     
-    private func scoringRunData() -> String {
+    private func scoringRunEvents() -> [(Date, Int, String)] {
         let scoringCodes = StatAction.scoringEventCodes
         let pointMap = StatAction.pointMap
         var homeIDs = Set(game.homePlayerIDs)
         if game.snapshot.homeTeamStatsMode, let tid = game.snapshot.homeTeamID { homeIDs.insert(tid) }
         let allIDs = allPlayerIDsForSummary()
-        let idToName: [UUID: String] = Dictionary(uniqueKeysWithValues: allIDs.compactMap { id in
+        var idToName: [UUID: String] = Dictionary(uniqueKeysWithValues: allIDs.compactMap { id in
             game.playerNamesByID[id].map { (id, $0) }
         })
-        
-        var events: [String] = []
+        if game.snapshot.homeTeamStatsMode, let tid = game.snapshot.homeTeamID {
+            idToName[tid] = game.homeTeamName
+        }
+        if game.snapshot.awayTeamStatsMode, let tid = game.snapshot.awayTeamID {
+            idToName[tid] = game.awayTeamName
+        }
+
+        var events: [(Date, Int, String)] = []
         var homeScore = 0, awayScore = 0
         var personalRun: (playerID: UUID, count: Int, points: Int)?
         var teamRun: (isHome: Bool, count: Int, points: Int)?
@@ -396,31 +470,36 @@ struct AISummaryView: View {
         var bothMissStreak = 0
         var lastScoringCode: String?
         var lastScoringPID: UUID?
-        
-        // Helper: resolve team ID from log for team stats mode
+        var lastTimestamp: Date = game.savedAt
+        var lastPeriod: Int = 1
+
         func resolveTeamID(log: GameLogEntry) -> UUID? {
             game.resolvedTeamID(from: log.message)
         }
-        
+
+        func makeName(for pid: UUID?) -> String {
+            guard let pid else { return "?" }
+            return idToName[pid] ?? (pid == game.snapshot.homeTeamID ? game.homeTeamName : pid == game.snapshot.awayTeamID ? game.awayTeamName : "?")
+        }
+
         for log in game.snapshot.logs {
+            lastTimestamp = log.timestamp
+            lastPeriod = log.period ?? 1
             guard let code = log.eventCode ?? GameLogFormatter.extractEventCode(from: log.message) else { continue }
-            let playerID = log.playerID ?? resolvedPlayerID(log: log) ?? resolveTeamID(log: log)
-            let playerName: String
-            if let pid = playerID {
-                playerName = idToName[pid] ?? (pid == game.snapshot.homeTeamID ? game.homeTeamName : pid == game.snapshot.awayTeamID ? game.awayTeamName : "?")
-            } else {
-                playerName = "?"
-            }
-            
-           if scoringCodes.contains(code), let points = pointMap[code], let pid = playerID {
-               let isHome = homeIDs.contains(pid)
-               if isHome { homeScore += points } else { awayScore += points }
-                
-                // And-one (2+1 / 3+1) detection
+            let rawPlayerID = log.playerID ?? resolvedPlayerID(log: log) ?? resolveTeamID(log: log)
+            let isCompositeAssist = code == "stat.assistTwoMade" || code == "stat.assistThreeMade"
+            let playerID = isCompositeAssist ? (log.relatedPlayerID ?? rawPlayerID) : rawPlayerID
+
+            if scoringCodes.contains(code), let points = pointMap[code], let pid = playerID {
+                let isHome = homeIDs.contains(pid)
+                if isHome { homeScore += points } else { awayScore += points }
+
+                // And-one detection
                 if code == "stat.bonusMade", let lastCode = lastScoringCode, let lastPid = lastScoringPID, lastPid == pid {
                     let basePoints = lastCode == "stat.threeMade" ? 3 : 2
                     let totalPoints = basePoints + 1
-                    events.append(String(format: NSLocalizedString("ai_prompt_and_one_format", comment: "And-one"), playerName, basePoints, totalPoints))
+                    let name = makeName(for: pid)
+                    events.append((log.timestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_and_one", comment: ""), name, basePoints)))
                 }
                 if code == "stat.twoMade" || code == "stat.threeMade" {
                     lastScoringCode = code
@@ -429,18 +508,19 @@ struct AISummaryView: View {
                     lastScoringCode = nil
                     lastScoringPID = nil
                 }
-                
+
                 // Personal scoring run
                 if personalRun?.playerID == pid {
                     personalRun?.count += 1
                     personalRun?.points += points
                 } else {
                     if let run = personalRun, run.count >= 2 {
-                        events.append("  personal_run:\(idToName[run.playerID] ?? "?") +\(run.points)pt in \(run.count)poss")
+                        let name = makeName(for: run.playerID)
+                        events.append((log.timestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_scoring_run", comment: ""), name, run.points, run.count)))
                     }
                     personalRun = (pid, 1, points)
                 }
-                
+
                 // Team scoring run
                 if teamRun?.isHome == isHome {
                     teamRun?.count += 1
@@ -448,37 +528,38 @@ struct AISummaryView: View {
                 } else {
                     if let run = teamRun, run.count >= 2, run.points >= 6 {
                         let tName = run.isHome ? game.homeTeamName : game.awayTeamName
-                        events.append("  team_run:\(tName) +\(run.points)pt in \(run.count)poss")
+                        events.append((log.timestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_scoring_run", comment: ""), tName, run.points, run.count)))
                     }
                     teamRun = (isHome, 1, points)
                 }
-                
-                // Reset non-scoring streaks on scoring events
+
+                // Reset non-scoring streaks
                 reboundStreak = nil
                 assistStreak = nil
                 missedShotStreak = nil
                 personalMissStreak = nil
                 if bothMissStreak >= 6 {
-                    events.append("  both_miss_streak:x\(bothMissStreak)")
+                    events.append((log.timestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_both_miss_streak", comment: ""), bothMissStreak)))
                 }
                 bothMissStreak = 0
                 continue
             }
-            
+
             // Consecutive rebounds
             if code == "stat.rebound", let pid = playerID {
                 if reboundStreak?.playerID == pid {
                     reboundStreak?.count += 1
                 } else {
                     if let rs = reboundStreak, rs.count >= 3 {
-                        events.append("  rebound_streak:\(idToName[rs.playerID] ?? "?") x\(rs.count)")
+                        let name = makeName(for: rs.playerID)
+                        events.append((log.timestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_rebound_streak", comment: ""), name, rs.count)))
                     }
                     reboundStreak = (pid, 1)
                 }
                 continue
             }
-            
-            // Consecutive missed shots (personal and team)
+
+            // Consecutive missed shots
             let missedCodes: Set<String> = ["stat.twoMissed", "stat.threeMissed", "stat.freeThrowMissed", "stat.bonusMissed", "stat.layupMissed", "stat.midRangeMissed", "stat.paintMissed", "stat.dunkMissed", "stat.putbackMissed"]
             if missedCodes.contains(code), let pid = playerID {
                 let isHome = homeIDs.contains(pid)
@@ -489,7 +570,7 @@ struct AISummaryView: View {
                 } else {
                     if let ms = missedShotStreak, ms.count >= 4 {
                         let tName = ms.teamIsHome ? game.homeTeamName : game.awayTeamName
-                        events.append("  team_miss_streak:\(tName) x\(ms.count)")
+                        events.append((log.timestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_miss_streak", comment: ""), tName, ms.count)))
                     }
                     missedShotStreak = (isHome, 1)
                 }
@@ -498,26 +579,28 @@ struct AISummaryView: View {
                     personalMissStreak?.count += 1
                 } else {
                     if let pm = personalMissStreak, pm.count >= 3 {
-                        events.append("  personal_miss_streak:\(idToName[pm.playerID] ?? "?") x\(pm.count)")
+                        let name = makeName(for: pm.playerID)
+                        events.append((log.timestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_miss_streak", comment: ""), name, pm.count)))
                     }
                     personalMissStreak = (pid, 1)
                 }
                 continue
             }
-            
+
             // Consecutive assists
             if code == "stat.assist", let pid = playerID {
                 if assistStreak?.playerID == pid {
                     assistStreak?.count += 1
                 } else {
                     if let as_ = assistStreak, as_.count >= 3 {
-                        events.append("  assist_streak:\(idToName[as_.playerID] ?? "?") x\(as_.count)")
+                        let name = makeName(for: as_.playerID)
+                        events.append((log.timestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_assist_streak", comment: ""), name, as_.count)))
                     }
                     assistStreak = (pid, 1)
                 }
                 continue
             }
-            
+
             // Composite steal/turnover resets non-scoring streaks
             if code == "stat.stealTurnover" {
                 reboundStreak = nil
@@ -525,39 +608,43 @@ struct AISummaryView: View {
                 missedShotStreak = nil
                 personalMissStreak = nil
                 if bothMissStreak >= 6 {
-                    events.append("  both_miss_streak:x\(bothMissStreak)")
+                    events.append((log.timestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_both_miss_streak", comment: ""), bothMissStreak)))
                 }
                 bothMissStreak = 0
                 continue
             }
         }
-        
+
         // Flush remaining streaks
         if let run = personalRun, run.count >= 2 {
-            events.append("  personal_run:\(idToName[run.playerID] ?? "?") +\(run.points)pt in \(run.count)poss")
+            let name = makeName(for: run.playerID)
+            events.append((lastTimestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_scoring_run", comment: ""), name, run.points, run.count)))
         }
         if let run = teamRun, run.count >= 2, run.points >= 6 {
             let tName = run.isHome ? game.homeTeamName : game.awayTeamName
-            events.append("  team_run:\(tName) +\(run.points)pt in \(run.count)poss")
+            events.append((lastTimestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_scoring_run", comment: ""), tName, run.points, run.count)))
         }
         if let rs = reboundStreak, rs.count >= 3 {
-            events.append("  rebound_streak:\(idToName[rs.playerID] ?? "?") x\(rs.count)")
+            let name = makeName(for: rs.playerID)
+            events.append((lastTimestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_rebound_streak", comment: ""), name, rs.count)))
         }
         if let as_ = assistStreak, as_.count >= 3 {
-            events.append("  assist_streak:\(idToName[as_.playerID] ?? "?") x\(as_.count)")
+            let name = makeName(for: as_.playerID)
+            events.append((lastTimestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_assist_streak", comment: ""), name, as_.count)))
         }
         if let ms = missedShotStreak, ms.count >= 4 {
             let tName = ms.teamIsHome ? game.homeTeamName : game.awayTeamName
-            events.append("  team_miss_streak:\(tName) x\(ms.count)")
+            events.append((lastTimestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_miss_streak", comment: ""), tName, ms.count)))
         }
         if let pm = personalMissStreak, pm.count >= 3 {
-            events.append("  personal_miss_streak:\(idToName[pm.playerID] ?? "?") x\(pm.count)")
+            let name = makeName(for: pm.playerID)
+            events.append((lastTimestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_miss_streak", comment: ""), name, pm.count)))
         }
         if bothMissStreak >= 6 {
-            events.append("  both_miss_streak:x\(bothMissStreak)")
+            events.append((lastTimestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_both_miss_streak", comment: ""), bothMissStreak)))
         }
-        
-        return events.isEmpty ? "- No scoring data" : events.joined(separator: "\n")
+
+        return events
     }
     
     private func resolvedPlayerID(log: GameLogEntry) -> UUID? {
@@ -576,15 +663,27 @@ struct AISummaryView: View {
         let homeScore = score(for: game.snapshot.homeTeamID)
         let awayScore = score(for: game.snapshot.awayTeamID)
         let numericFacts = numericFactsText()
-        let eventsByPeriod = periodEventsText()
         
         // Per-period team & player scores for AI analysis
         let analysis = periodAnalysis
         let periodCount = game.snapshot.periodCount
         let allIDs = allPlayerIDsForSummary()
-        let idToName: [UUID: String] = Dictionary(uniqueKeysWithValues: allIDs.compactMap { id in
+        var teamIncludedIDs = Set(allIDs)
+        if game.snapshot.homeTeamStatsMode, let tid = game.snapshot.homeTeamID {
+            teamIncludedIDs.insert(tid)
+        }
+        if game.snapshot.awayTeamStatsMode, let tid = game.snapshot.awayTeamID {
+            teamIncludedIDs.insert(tid)
+        }
+        var idToName: [UUID: String] = Dictionary(uniqueKeysWithValues: allIDs.compactMap { id in
             game.playerNamesByID[id].map { (id, $0) }
         })
+        if game.snapshot.homeTeamStatsMode, let tid = game.snapshot.homeTeamID {
+            idToName[tid] = game.homeTeamName
+        }
+        if game.snapshot.awayTeamStatsMode, let tid = game.snapshot.awayTeamID {
+            idToName[tid] = game.awayTeamName
+        }
         var periodStatLines: [String] = []
         var runningHome = 0, runningAway = 0
         let maxAnalysisPeriod = analysis.statsByPeriod.keys.max() ?? periodCount
@@ -600,15 +699,15 @@ struct AISummaryView: View {
             let diff = runningHome - runningAway
             let diffStr: String
             if diff > 0 {
-                diffStr = String(format: NSLocalizedString("ai_prompt_diff_lead_home", comment: "Home leads by N"), diff)
+                diffStr = String(format: NSLocalizedString("ai_prompt_lead_format", comment: ""), game.homeTeamName, diff)
             } else if diff < 0 {
-                diffStr = String(format: NSLocalizedString("ai_prompt_diff_lead_away", comment: "Away leads by N"), -diff)
+                diffStr = String(format: NSLocalizedString("ai_prompt_lead_format", comment: ""), game.awayTeamName, -diff)
             } else {
                 diffStr = NSLocalizedString("ai_prompt_diff_tied", comment: "Tied")
             }
             periodStatLines.append(String(format: NSLocalizedString("ai_prompt_period_summary_line", comment: "Period summary"), game.periodDisplayName(period), homePeriodPoints, awayPeriodPoints, runningHome, runningAway, diffStr))
             // Per-player stats for this period
-            let sortedPlayers = allIDs.filter { periodStats[$0] != nil }.sorted { lhs, rhs in
+            let sortedPlayers = teamIncludedIDs.filter { periodStats[$0] != nil }.sorted { lhs, rhs in
                 (periodStats[lhs]?.points ?? 0) > (periodStats[rhs]?.points ?? 0)
             }
             for pid in sortedPlayers {
@@ -662,6 +761,9 @@ struct AISummaryView: View {
         let req13 = NSLocalizedString("ai_prompt_req_13", comment: "Req 13")
         let req14 = NSLocalizedString("ai_prompt_req_14", comment: "Req 14")
         let req15 = NSLocalizedString("ai_prompt_req_15", comment: "Req 15")
+        let req16 = NSLocalizedString("ai_prompt_req_16", comment: "Req 16")
+        let req17 = NSLocalizedString("ai_prompt_req_17", comment: "Req 17")
+        let req18 = NSLocalizedString("ai_prompt_req_18", comment: "Req 18")
         
         let gameInfoLabel = NSLocalizedString("ai_prompt_game_info_label", comment: "Game info label")
         let dateLabel = NSLocalizedString("ai_prompt_date_label", comment: "Date label")
@@ -705,6 +807,9 @@ struct AISummaryView: View {
         \(req13)
         \(req14)
         \(req15)
+        \(req16)
+        \(req17)
+        \(req18)
         
         \(gameInfoLabel)
         \(dateFormatted)
@@ -725,17 +830,11 @@ struct AISummaryView: View {
         \(numericFactsLabel)
         \(numericFacts)
         
-        \(NSLocalizedString("ai_prompt_section_event_log", comment: "Event log header"))
-        \(eventsByPeriod)
-        
         \(String(format: NSLocalizedString("ai_prompt_section_score_timeline", comment: "Score timeline header"), game.homeTeamName, game.awayTeamName))
-        \(scoreTimelineText())
+        \(combinedTimelineText())
         
         \(NSLocalizedString("ai_prompt_section_period_scores", comment: "Period scores header"))
         \(periodStatsText)
-        
-        \(NSLocalizedString("ai_prompt_section_scoring_runs", comment: "Scoring runs header"))
-        \(scoringRunData())
         """
     }
     
@@ -991,7 +1090,7 @@ struct AISummaryView: View {
 
     private func score(for teamID: UUID?) -> Int {
         guard let teamID else { return 0 }
-        return game.snapshot.teamStatsByID[teamID, default: PlayerStats()].points
+        return game.score(forTeamID: teamID)
     }
 
     private func numericFactsText() -> String {
