@@ -1,6 +1,6 @@
 # Release Notes
 
-## 1.32 (2026-07-03)
+## 1.32 (2026-07-04)
 
 ### 新增
 
@@ -19,6 +19,8 @@
 - AnyView 改为 @ViewBuilder 提升性能
 - 多语言 .strings 文件重复条目清理
 - 自动保存修复、结束节次确认 alert
+- **球队记分模式每节统计为 0**：GameView 中 team mode 的 `addEvent` 传入 `playerID: nil`，导致日志丢失球队 UUID，SavedGameAnalyzer 无法按节归类。修复：传入 teamID 代替 nil，Analyzer 增加 `game.resolvedTeamID(from:)` 文本反查兜底，`aggregateStats`/`fouls`/`score` 按节从 `periodAnalysis` 读取数据
+- **导入 UUID 重映射遗漏**：`remappedSnapshot` 仅查 `playerIDMap`，团队 UUID 存于 `playerID` 的日志无法被 `teamIDMap` 重映射。修复：同时查 `teamIDMap` 和 `playerIDMap`，并将 `relatedPlayerID` 也加入重映射
 
 ---
 

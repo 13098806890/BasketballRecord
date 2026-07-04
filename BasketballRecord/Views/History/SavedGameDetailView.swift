@@ -388,11 +388,21 @@ struct SavedGameDetailView: View {
 
     private func score(for teamID: UUID?) -> Int {
         guard let teamID else { return 0 }
+        if let period = selectedPeriod {
+            let ps = periodAnalysis.statsByPeriod[period, default: [:]]
+            return (ps[teamID]?.points ?? 0) + playerIDs(for: teamID).reduce(0) { $0 + (ps[$1]?.points ?? 0) }
+        }
         return game.score(forTeamID: teamID)
     }
 
     private func fouls(for teamID: UUID?) -> Int {
         guard let teamID else { return 0 }
+        if let period = selectedPeriod {
+            let ps = periodAnalysis.statsByPeriod[period, default: [:]]
+            let teamFouls = ps[teamID]?.fouls ?? 0
+            let playerFouls = playerIDs(for: teamID).reduce(0) { $0 + (ps[$1]?.fouls ?? 0) }
+            return teamFouls + playerFouls
+        }
         let teamFouls = game.snapshot.teamStatsByID[teamID, default: PlayerStats()].fouls
         let playerFouls = playerIDs(for: teamID).reduce(0) { total, playerID in
             total + displayStatsByPlayerID[playerID, default: PlayerStats()].fouls
@@ -402,7 +412,12 @@ struct SavedGameDetailView: View {
 
     private func aggregateStats(for teamID: UUID?) -> PlayerStats {
         guard let teamID else { return PlayerStats() }
-        var total = game.snapshot.teamStatsByID[teamID, default: PlayerStats()]
+        var total: PlayerStats
+        if let period = selectedPeriod {
+            total = periodAnalysis.statsByPeriod[period]?[teamID] ?? PlayerStats()
+        } else {
+            total = game.snapshot.teamStatsByID[teamID, default: PlayerStats()]
+        }
         for playerID in playerIDs(for: teamID) {
             let stats = displayStatsByPlayerID[playerID, default: PlayerStats()]
             total.twoMade += stats.twoMade

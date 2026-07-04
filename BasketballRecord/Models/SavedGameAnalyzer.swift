@@ -95,7 +95,7 @@ struct SavedGameAnalyzer {
             guard let code = resolvedCode,
                   let action = StatAction.allCases.first(where: { $0.eventCode == code }) else { continue }
 
-            guard let playerID = entry.playerID ?? resolvedPlayerID else { continue }
+            guard let playerID = entry.playerID ?? resolvedPlayerID ?? game.resolvedTeamID(from: entry.message) else { continue }
 
             var statsByPlayer = statsByPeriod[period, default: [:]]
             var stats = statsByPlayer[playerID, default: PlayerStats()]

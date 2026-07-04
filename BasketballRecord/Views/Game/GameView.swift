@@ -1717,12 +1717,13 @@ struct GameView: View {
                 applyPlusMinus(points: action.points, scoringSide: side)
             }
             let eventName = isTeamMode ? (store.team(for: teamID)?.name ?? "?") : name(for: playerID)
+            let eventPlayerID = isTeamMode ? teamID : playerID
             if let eventMessage {
                 if !eventMessage.isEmpty {
-                    gameVM.addEvent(eventMessage, playerID: isTeamMode ? nil : playerID, relatedPlayerID: relatedPlayerID, eventCode: action.eventCode, at: at)
+                    gameVM.addEvent(eventMessage, playerID: eventPlayerID, relatedPlayerID: relatedPlayerID, eventCode: action.eventCode, at: at)
                 }
             } else {
-                gameVM.addEvent("\(eventName) \(action.message)", playerID: isTeamMode ? nil : playerID, relatedPlayerID: relatedPlayerID, eventCode: action.eventCode, at: at)
+                gameVM.addEvent("\(eventName) \(action.message)", playerID: eventPlayerID, relatedPlayerID: relatedPlayerID, eventCode: action.eventCode, at: at)
             }
         }
         if action.points > 0, gameVM.snapshot.periodEndCondition == .byScore {
@@ -1766,7 +1767,7 @@ struct GameView: View {
             }
             let eventName = isTeamMode ? (store.team(for: teamID)?.name ?? "?") : name(for: playerID)
             let combinedMsg = eventMessage ?? "\(eventName) \(NSLocalizedString(isMade ? "action_putback_made" : "action_putback_missed", comment: ""))"
-            gameVM.addEvent(combinedMsg, playerID: isTeamMode ? nil : playerID, eventCode: action.eventCode, at: at)
+            gameVM.addEvent(combinedMsg, playerID: isTeamMode ? teamID : playerID, eventCode: action.eventCode, at: at)
         }
         if isMade, gameVM.snapshot.periodEndCondition == .byScore {
             checkAndAutoEndPeriod()

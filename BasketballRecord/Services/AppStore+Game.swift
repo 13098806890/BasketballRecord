@@ -238,7 +238,10 @@ extension AppStore {
         remapped.logs = snapshot.logs.map { entry in
             var mapped = entry
             if let playerID = entry.playerID {
-                mapped.playerID = playerIDMap[playerID] ?? playerID
+                mapped.playerID = teamIDMap[playerID] ?? playerIDMap[playerID] ?? playerID
+            }
+            if let relatedPlayerID = entry.relatedPlayerID {
+                mapped.relatedPlayerID = teamIDMap[relatedPlayerID] ?? playerIDMap[relatedPlayerID] ?? relatedPlayerID
             }
             return mapped
         }
