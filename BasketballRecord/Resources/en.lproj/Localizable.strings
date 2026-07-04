@@ -923,6 +923,20 @@ Format:
 "ai_prompt_req_14" = "- Commentary style between formal and casual: avoid overly written phrases like 'at the commencement of play'. Use natural expressions like 'the first quarter opened with', 'X hits', 'the score becomes XX-XX'. At least 5-8 sentences per period.";
 "ai_prompt_req_15" = "- Period boundaries are determined by the game rules in 【比赛信息】(每节结束条件). For byScore mode, a period ends when a team reaches the score limit. For byTime mode, a period ends when the clock runs out. For manual mode, the user manually controls period transitions. Events are grouped by period in 【事件日志（按节次）】and【比分变化时间线】. Use these groupings to write accurate per-period summaries.";
 
+"ai_prompt_req_16" = "- Always label scores with both team names when mentioning them (home team first), e.g. 'HomeTeam 8-4 AwayTeam'. Never write just '8-4'.";
+
+"ai_prompt_scoring_run" = "%@ scoring run: +%dpt in %dposs";
+"ai_prompt_both_miss_streak" = "Both missed x%d";
+"ai_prompt_rebound_streak" = "%@ rebound streak x%d";
+"ai_prompt_miss_streak" = "%@ miss streak x%d";
+"ai_prompt_assist_streak" = "%@ assist streak x%d";
+"ai_prompt_and_one" = "%@ and-one (%d+1)";
+"ai_prompt_lead_format" = "%@ leads by %d";
+
+"ai_prompt_req_17" = "- Adjust commentary style based on the game mode. If the period end condition is not 'byTime' (i.e. byScore or manual mode), do not mention specific time points. Focus on scoring runs, momentum shifts, and player performances instead.";
+
+"ai_prompt_req_18" = "- Do NOT enumerate every scoring event chronologically. Group events by scoring runs and momentum shifts instead. Per period, focus on 2-4 key storylines: who went on runs, when did momentum shift, what were the turning points. Keep per-period summaries concise (2-4 sentences). Synthesize the timeline into a broader narrative.";
+
 "button_save_to_photos" = "Save to Photos";
 
 "button_saved" = "Saved";

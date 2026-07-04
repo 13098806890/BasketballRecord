@@ -891,6 +891,20 @@ Formato:
 "ai_prompt_req_14" = "- Stile di commento tra formale e informale: evita espressioni troppo scritte come 'all'inizio del gioco'. Usa espressioni naturali come 'il primo periodo è iniziato con', 'X segna', 'il punteggio diventa XX-XX'. Almeno 5-8 frasi per periodo.";
 "ai_prompt_req_15" = "- I confini dei periodi sono determinati dalle regole del gioco in 【比赛信息】(condizione di fine periodo). In modalità a punti, un periodo termina quando una squadra raggiunge il limite di punti. In modalità a tempo, un periodo termina quando il tempo scade. In modalità manuale, l'utente cambia periodo manualmente. Gli eventi sono raggruppati per periodo in 【事件日志（按节次）】e【比分变化时间线】. Usa questi raggruppamenti per riassunti accurati.";
 
+"ai_prompt_req_16" = "- Etichetta sempre i punteggi con i nomi di entrambe le squadre (casa prima), es. 'HomeTeam 8-4 AwayTeam'. Non scrivere solo '8-4'.";
+
+"ai_prompt_scoring_run" = "%@ striscia punti: +%dpt in %dposs";
+"ai_prompt_both_miss_streak" = "Entrambe sbagliano x%d";
+"ai_prompt_rebound_streak" = "%@ striscia rimbalzi x%d";
+"ai_prompt_miss_streak" = "%@ striscia errori x%d";
+"ai_prompt_assist_streak" = "%@ striscia assist x%d";
+"ai_prompt_and_one" = "%@ and-one (%d+1)";
+"ai_prompt_lead_format" = "%@ conduce di %d";
+
+"ai_prompt_req_17" = "- Adatta lo stile di commento in base alla modalità di gioco. Se la condizione di fine periodo non è 'a tempo' (modalità a punti o manuale), non menzionare momenti specifici. Concentrati su strisce di punti, cambi di slancio e prestazioni dei giocatori.";
+
+"ai_prompt_req_18" = "- NON elencare ogni singolo evento di punteggio in ordine cronologico. Raggruppa gli eventi per strisce di punti e cambi di slancio. Per periodo, concentrati su 2-4 storie chiave: chi ha segnato in serie, quando è cambiato lo slancio, quali sono stati i punti di svolta. Mantieni i riepiloghi per periodo concisi (2-4 frasi). Sintetizza la timeline dettagliata in una narrazione più ampia.";
+
 "button_save_to_photos" = "Salva in Foto";
 
 "button_saved" = "Salvato";

@@ -891,6 +891,20 @@ Format :
 "ai_prompt_req_14" = "- Style de commentaire entre formel et décontracté : évite les expressions trop écrites comme 'au commencement du jeu'. Utilise des expressions naturelles comme 'le premier quartier a débuté avec', 'X marque', 'le score devient XX-XX'. Au moins 5-8 phrases par quartier.";
 "ai_prompt_req_15" = "- Les limites des quartiers sont déterminées par les règles du jeu dans 【比赛信息】(condition de fin de quartier). En mode par score, un quartier se termine quand une équipe atteint la limite de points. En mode par temps, un quartier se termine quand le temps est écoulé. En mode manuel, l'utilisateur change de quartier manuellement. Les événements sont groupés par quartier dans 【事件日志（按节次）】et【比分变化时间线】. Utilise ces groupements pour des résumés précis.";
 
+"ai_prompt_req_16" = "- Toujours étiqueter les scores avec les noms des deux équipes (locaux en premier), ex. 'HomeTeam 8-4 AwayTeam'. N'écrivez pas seulement '8-4'.";
+
+"ai_prompt_scoring_run" = "%@ série de points: +%dpts en %dposs";
+"ai_prompt_both_miss_streak" = "Les deux ratent x%d";
+"ai_prompt_rebound_streak" = "%@ série de rebonds x%d";
+"ai_prompt_miss_streak" = "%@ série d'échecs x%d";
+"ai_prompt_assist_streak" = "%@ série de passes x%d";
+"ai_prompt_and_one" = "%@ and-one (%d+1)";
+"ai_prompt_lead_format" = "%@ mène par %d";
+
+"ai_prompt_req_17" = "- Adapte le style de commentaire en fonction du mode de jeu. Si la condition de fin de période n'est pas 'par temps' (mode par score ou manuel), ne mentionne pas de moments précis. Concentre-toi sur les séries de points, les changements d'élan et les performances des joueurs.";
+
+"ai_prompt_req_18" = "- N'énumère PAS chaque événement de score chronologiquement. Regroupe les événements par séries de points et changements d'élan. Par période, concentre-toi sur 2-4 récits clés : qui a enchaîné les points, quand l'élan a changé, quels ont été les tournants. Garde les résumés par période concis (2-4 phrases). Synthétise la chronologie détaillée en un récit plus large.";
+
 "button_save_to_photos" = "Enregistrer dans Photos";
 
 "button_saved" = "Enregistré";

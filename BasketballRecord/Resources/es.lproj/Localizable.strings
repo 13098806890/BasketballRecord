@@ -891,6 +891,20 @@ Formato:
 "ai_prompt_req_14" = "- Estilo de comentario entre formal e informal: evita frases demasiado escritas como 'al comienzo del juego'. Usa expresiones naturales como 'el primer período comenzó con', 'X anota', 'el marcador queda XX-XX'. Al menos 5-8 oraciones por período.";
 "ai_prompt_req_15" = "- Los límites de los períodos están determinados por las reglas del juego en 【比赛信息】(condición de fin de período). En modo por puntuación, un período termina cuando un equipo alcanza el límite de puntos. En modo por tiempo, un período termina cuando se acaba el tiempo. En modo manual, el usuario cambia de período manualmente. Los eventos están agrupados por período en 【事件日志（按节次）】y【比分变化时间线】. Usa estas agrupaciones para resúmenes precisos.";
 
+"ai_prompt_req_16" = "- Siempre etiqueta los marcadores con los nombres de ambos equipos (local primero), ej. 'HomeTeam 8-4 AwayTeam'. No escribas solo '8-4'.";
+
+"ai_prompt_scoring_run" = "%@ racha anotadora: +%dpts en %dposes";
+"ai_prompt_both_miss_streak" = "Ambos fallan x%d";
+"ai_prompt_rebound_streak" = "%@ racha reboteadora x%d";
+"ai_prompt_miss_streak" = "%@ racha fallando x%d";
+"ai_prompt_assist_streak" = "%@ racha asistiendo x%d";
+"ai_prompt_and_one" = "%@ and-one (%d+1)";
+"ai_prompt_lead_format" = "%@ lidera por %d";
+
+"ai_prompt_req_17" = "- Ajusta el estilo de comentario según el modo de juego. Si la condición de fin de período no es 'por tiempo' (modo por puntuación o manual), no menciones momentos específicos. Concéntrate en rachas anotadoras, cambios de ritmo y rendimiento de jugadores.";
+
+"ai_prompt_req_18" = "- NO enumeres cada evento de anotación cronológicamente. Agrupa los eventos por rachas anotadoras y cambios de ritmo. Por período, enfócate en 2-4 historias clave: quién tuvo rachas, cuándo cambió el ritmo, cuáles fueron los puntos de inflexión. Mantén los resúmenes por período concisos (2-4 oraciones). Sintetiza la línea de tiempo detallada en una narrativa más amplia.";
+
 "button_save_to_photos" = "Guardar en Fotos";
 
 "button_saved" = "Guardado";

@@ -925,6 +925,20 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 
 "ai_prompt_req_15" = "- 쿼터 경계는 【比赛信息】의 '쿼터 종료 조건'에 의해 결정됩니다. 점수 모드에서는 팀이 점수 제한에 도달하면 쿼터가 종료됩니다. 시간 모드에서는 시간이 다 되면 쿼터가 종료됩니다. 수동 모드에서는 사용자가 수동으로 쿼터를 전환합니다. 이벤트는 【事件日志（按节次）】와 【比分变化时间线】에서 쿼터별로 그룹화되어 있습니다. 이러한 그룹화를 사용하여 정확한 요약을 작성하십시오.";
 
+"ai_prompt_req_16" = "- 점수를 언급할 때는 항상 두 팀 이름을 함께 표기하세요 (홈팀이 먼저). 예: 'HomeTeam 8-4 AwayTeam'. '8-4'와 같은 숫자만 표기하지 마세요.";
+
+"ai_prompt_scoring_run" = "%@연속 득점: +%d점/%d포제션";
+"ai_prompt_both_miss_streak" = "양팀 연속 실패 x%d";
+"ai_prompt_rebound_streak" = "%@연속 리바운드 x%d";
+"ai_prompt_miss_streak" = "%@연속 실패 x%d";
+"ai_prompt_assist_streak" = "%@연속 어시스트 x%d";
+"ai_prompt_and_one" = "%@앤드원(%d+1)";
+"ai_prompt_lead_format" = "%@가 %d점 리드";
+
+"ai_prompt_req_17" = "- 게임 모드에 따라 해설 스타일을 조정하세요. 쿼터 종료 조건이 시간 모드가 아닌 경우(점수 모드 또는 수동 모드), 구체적인 시간을 언급하지 말고 연속 득점, 흐름 변화, 선수 성과에 집중하세요.";
+
+"ai_prompt_req_18" = "- 득점 이벤트를 시간 순서대로 하나씩 나열하지 마세요. 연속 득점과 흐름 변화별로 그룹화하여 설명하세요. 각 쿼터는 2-4개의 핵심 스토리(누가 연속 득점했는지, 언제 흐름이 바뀌었는지, 전환점은 무엇인지)에 집중하세요. 각 쿼터는 간결하게 (2-4문장). 상세한 타임라인을 참고하여 더 포괄적인 내러티브로 종합하세요.";
+
 "button_save_to_photos" = "사진 앨범에 저장";
 
 "button_saved" = "저장됨";
