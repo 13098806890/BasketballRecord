@@ -250,10 +250,8 @@ struct NewGameSetupView: View {
         return homeTeamID != nil
             && awayTeamID != nil
             && homeTeamID != awayTeamID
-            && homeStarterIDs.count == requiredHomeCount
-            && awayStarterIDs.count == requiredAwayCount
-            && requiredHomeCount > 0
-            && requiredAwayCount > 0
+            && (homeTeamStatsMode || (homeStarterIDs.count == requiredHomeCount && requiredHomeCount > 0))
+            && (awayTeamStatsMode || (awayStarterIDs.count == requiredAwayCount && requiredAwayCount > 0))
     }
 
     private func starterSection(title: String, players: [Player], selectedIDs: Binding<[UUID]>, requiredCount: Int) -> some View {
