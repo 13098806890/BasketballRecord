@@ -1,0 +1,1 @@
+Major refactoring, AI prompt fully localized in 10 languages, team mode per-period stats fixed, scoring runs merged with timeline, improved AI commentary rules.

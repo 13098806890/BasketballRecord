@@ -1,0 +1,1 @@
+Grande refactoring, prompt AI localizzato in 10 lingue, statistiche modalità squadra corrette, strisce punti integrate nella cronologia, regole AI migliorate.

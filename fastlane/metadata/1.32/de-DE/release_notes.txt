@@ -1,0 +1,8 @@
+• Große Dateistruktur-Refaktorisierung — GameView, SavedGameDetailView, RosterView in kleinere Dateien aufgeteilt
+• KI-Prompt vollständig lokalisiert — Hartcodiertes Chinesisch ersetzt, 7 neue i18n-Keys in 10 Sprachen
+• Manuelle Viertelende-Bestätigung — Bestätigungsdialog vor vorzeitigem Viertelende
+• Team-Modus Viertelstatistiken repariert
+• UUID-Neuzuordnung bei Import repariert
+• Punkteseriendaten in Timeline integriert mit Teamnamen
+• KI-Regeln verbessert: prägnante Kommentare, Teamnamen in Ergebnissen, modusangepasster Stil
+• Fehlerbehebungen und Leistungsverbesserungen

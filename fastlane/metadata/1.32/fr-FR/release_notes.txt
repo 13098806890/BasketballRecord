@@ -1,0 +1,8 @@
+• Grande refonte de la structure des fichiers — GameView, SavedGameDetailView, RosterView divisés en fichiers plus petits
+• Invite IA entièrement localisée — Chinois codé en dur remplacé, 7 nouvelles clés i18n dans 10 langues
+• Confirmation de fin de période manuelle — Alerte avant de terminer une période prématurément
+• Statistiques par période en mode équipe corrigées
+• Réaffectation des UUID lors de l'importation corrigée
+• Données de séries de points intégrées à la chronologie avec noms d'équipes
+• Règles IA améliorées : commentaires concis, noms d'équipes dans les scores, style adaptatif
+• Corrections de bugs et améliorations des performances

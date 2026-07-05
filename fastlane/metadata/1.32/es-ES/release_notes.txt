@@ -1,0 +1,8 @@
+• Gran refactorización de estructura — GameView, SavedGameDetailView, RosterView divididos en archivos más pequeños
+• Prompt de AI completamente localizado — Chino hardcodeado reemplazado, 7 nuevos keys i18n en 10 idiomas
+• Confirmación de fin de período manual — Alerta antes de terminar un período antes de tiempo
+• Estadísticas por período en modo equipo corregidas
+• Reasignación de UUID en importaciones corregida
+• Datos de rachas de puntos integrados en la cronología con nombres de equipos
+• Reglas AI mejoradas: comentarios concisos, nombres de equipos en resultados, estilo adaptativo
+• Correcciones de errores y mejoras de rendimiento
