@@ -1,0 +1,1 @@
+Gran refactorización, prompt AI localizado en 10 idiomas, estadísticas modo equipo corregidas, rachas integradas en cronología, reglas AI mejoradas.
