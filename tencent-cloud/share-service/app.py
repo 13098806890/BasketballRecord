@@ -296,6 +296,23 @@ def debug():
     })
 
 
+MANIFEST_KEY = "shares/_manifest.json"
+
+
+def _load_manifest():
+    try:
+        _, data, _ = _cos_request("GET", MANIFEST_KEY)
+        if data:
+            return json.loads(data.decode())
+    except Exception:
+        pass
+    return []
+
+
+def _save_manifest(entries):
+    _cos_request("PUT", MANIFEST_KEY, data=json.dumps(entries).encode())
+
+
 @app.route("/v2/upload", methods=["PUT"])
 def upload():
     if not COS_BUCKET:
@@ -314,6 +331,9 @@ def upload():
 
     try:
         _cos_request("PUT", key, data=data)
+        manifest = _load_manifest()
+        manifest.append({"uuid": uid, "created_at": time.time()})
+        _save_manifest(manifest)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -424,82 +444,52 @@ def download_photo(uid, pid):
     return data, 200, {"Content-Type": "application/octet-stream"}
 
 
-@app.route("/v2/cleanup", methods=["POST"])
-def cleanup():
+def _do_cleanup():
     if not COS_BUCKET:
-        return jsonify({"error": "server not configured"}), 500
+        return {"deleted": 0, "errors": 0}
 
     TTL = 72 * 3600
     now = time.time()
-    host = f"{COS_BUCKET}.cos.{COS_REGION}.myqcloud.com"
     deleted = 0
     errors = 0
-    marker = ""
 
-    try:
-        while True:
-            query = urllib.parse.urlencode({
-                "prefix": "shares/",
-                "marker": marker,
-                "max-keys": "1000",
-            })
-            sign_headers = {"Host": host}
-            auth = _v5_sign("GET", "/", sign_headers, params=query)
+    manifest = _load_manifest()
+    remaining = []
 
-            req = urllib.request.Request(
-                f"https://{host}/?{query}",
-                headers={"Authorization": auth, "Host": host},
-                method="GET",
-            )
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                xml_data = resp.read()
+    for entry in manifest:
+        uid = entry.get("uuid", "")
+        created = entry.get("created_at", 0)
+        if now - created > TTL:
+            try:
+                key = _generate_key(uid)
+                _cos_request("DELETE", key)
+                deleted += 1
+            except Exception:
+                errors += 1
+        else:
+            remaining.append(entry)
 
-            root = ET.fromstring(xml_data)
-            ns = "http://cos.xml.mylqcloud.com/"
-            contents = root.findall(f"{{{ns}}}Contents")
+    if remaining != manifest:
+        _save_manifest(remaining)
 
-            for content in contents:
-                key_el = content.find(f"{{{ns}}}Key")
-                last_el = content.find(f"{{{ns}}}LastModified")
-                if key_el is None or last_el is None or key_el.text is None or last_el.text is None:
-                    continue
+    return {"deleted": deleted, "errors": errors}
 
-                try:
-                    parsed = email_utils.parsedate_tz(last_el.text)
-                    if parsed is None:
-                        continue
-                    created = int(email_utils.mktime_tz(parsed))
-                    if now - created > TTL:
-                        del_path = f"/{urllib.parse.quote(key_el.text, safe='')}"
-                        del_headers = {"Host": host}
-                        del_auth = _v5_sign("DELETE", del_path, del_headers)
-                        del_req = urllib.request.Request(
-                            f"https://{host}{del_path}",
-                            headers={"Authorization": del_auth, "Host": host},
-                            method="DELETE",
-                        )
-                        with urllib.request.urlopen(del_req, timeout=10):
-                            deleted += 1
-                except Exception:
-                    errors += 1
+    return {"deleted": deleted, "errors": errors}
 
-            is_truncated = root.findtext(f"{{{ns}}}IsTruncated") or ""
-            if is_truncated.strip().lower() != "true":
-                break
 
-            next_marker = root.findtext(f"{{{ns}}}NextMarker") or ""
-            if not next_marker or next_marker == marker:
-                break
-            marker = next_marker
-    except Exception:
-        pass
-
-    return jsonify({"deleted": deleted, "errors": errors})
+@app.route("/v2/cleanup", methods=["POST"])
+def cleanup():
+    return jsonify(_do_cleanup())
 
 
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok"})
+
+
+@app.route("/v2/debug/manifest", methods=["GET"])
+def debug_manifest():
+    return jsonify({"entries": _load_manifest(), "count": len(_load_manifest())})
 
 
 if __name__ == "__main__":
