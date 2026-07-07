@@ -91,14 +91,6 @@ struct AISummaryView: View {
         }
         .onChange(of: periodAnalysis.statsByPeriod.isEmpty) { _, isEmpty in
             guard !isEmpty else { return }
-            let prompt = summaryPrompt()
-            print("[AI_PROMPT] Prompt length: \(prompt.count) chars")
-            print("[AI_PROMPT] ---BEGIN PROMPT---\n\(prompt)\n---END PROMPT---")
-            if let saved = game.aiSummary, !saved.isEmpty {
-                print("[AI_SUMMARY] ---BEGIN SUMMARY---\n\(saved)\n---END SUMMARY---")
-            } else {
-                print("[AI_SUMMARY] (no summary yet)")
-            }
         }
         .alert(LocalizedStringKey("alert_ai_summary_exists_title"), isPresented: $showSummaryExistsAlert) {
             Button(LocalizedStringKey("button_ok")) { }
@@ -231,9 +223,6 @@ struct AISummaryView: View {
         if generationBlocked { return }
         
         let prompt = summaryPrompt()
-        print("[AI_PROMPT] Prompt length: \(prompt.count) chars")
-        print("[AI_PROMPT] System role: \(NSLocalizedString("ai_system_role", comment: "AI system role"))")
-        print("[AI_PROMPT] ---BEGIN PROMPT---\n\(prompt)\n---END PROMPT---")
         
         let systemRole = NSLocalizedString("ai_system_role", comment: "AI system role")
         
@@ -258,7 +247,6 @@ struct AISummaryView: View {
                     await MainActor.run { incrementGenerationCount() }
                 }
                 let normalizedSummary = normalizeAISummary(summary)
-                print("[AI_SUMMARY] ---BEGIN SUMMARY---\n\(normalizedSummary)\n---END SUMMARY---")
                 await MainActor.run {
                     aiSummary = normalizedSummary
                     store.updateAISummary(normalizedSummary, for: game.id)
@@ -717,8 +705,7 @@ struct AISummaryView: View {
             }
         }
         let periodStatsText = periodStatLines.joined(separator: "\n")
-        print("[SG] per-period cumulative: home=\(runningHome) away=\(runningAway) | game total from statsByPlayerID: home=\(homeScore) away=\(awayScore)")
-        
+
         let playerLines = allPlayerIDsForSummary().map { playerID in
             let stats = game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
             let sideKey = game.homePlayerIDs.contains(playerID) ? "ai_prompt_side_home" : "ai_prompt_side_away"

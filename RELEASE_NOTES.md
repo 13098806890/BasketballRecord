@@ -18,6 +18,7 @@
 ### 改进
 
 - **去调试输出**：移除 AI 分析 prompt/summary debug print 和统计重建 debug print。
+- **事件日志编辑 pass selectedPeriods**：GameEventLogEditorView 支持多节日志过滤。
 
 ## 1.32 (2026-07-09)
 
