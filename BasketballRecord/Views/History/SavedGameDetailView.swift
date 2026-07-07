@@ -10,7 +10,7 @@ struct SavedGameDetailView: View {
     var game: SavedGame
     var displayMode: DisplayMode = .history
     @State private var isShowingExport = false
-   @State private var selectedPeriod: Int? = nil
+    @State private var selectedPeriods: Set<Int> = []
    @State private var periodAnalysis = SavedGamePeriodAnalysis()
     @State private var cachedPlayingTimeByPeriod: [Int: [UUID: TimeInterval]] = [:]
     @State private var selectedGroupID: UUID?
@@ -56,9 +56,19 @@ struct SavedGameDetailView: View {
                 HStack {
                     teamSummary(.home)
                     Spacer()
-                    Text(LocalizedStringKey("label_vs"))
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.secondary)
+                    VStack(spacing: 2) {
+                        Text(LocalizedStringKey("label_vs"))
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(.secondary)
+                        if let duration = gameDurationText {
+                            HStack(spacing: 1) {
+                                Image(systemName: "clock")
+                                Text(duration)
+                            }
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        }
+                    }
                     Spacer()
                     teamSummary(.away)
                 }
@@ -66,13 +76,12 @@ struct SavedGameDetailView: View {
 
             if game.snapshot.periodCount > 1, !availablePeriodOptions.isEmpty {
                 Section(LocalizedStringKey("section_data_range")) {
-                    Picker(LocalizedStringKey("picker_period"), selection: $selectedPeriod) {
-                        Text(LocalizedStringKey("data_range_full")).tag(Optional<Int>.none)
-                        ForEach(availablePeriodOptions, id: \.self) { period in
-                            Text(game.periodDisplayName(period)).tag(Optional(period))
-                        }
-                    }
-                    .pickerStyle(.segmented)
+                    let allPeriods = availablePeriodOptions
+                    let allSelected = selectedPeriods == Set(allPeriods)
+
+                    segmentedMultiPicker(allPeriods: allPeriods, allSelected: allSelected)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                 }
             }
 
@@ -149,7 +158,7 @@ struct SavedGameDetailView: View {
                 GameEventLogEditorView(
                     game: game,
                     periodAnalysis: periodAnalysis,
-                    selectedPeriod: selectedPeriod,
+                    selectedPeriod: selectedPeriods.isEmpty ? nil : selectedPeriods.first,
                     isEditing: $isEditing,
                     onRebuildAnalysis: {
                         rebuildPeriodAnalysis()
@@ -226,9 +235,6 @@ struct SavedGameDetailView: View {
                 .lineLimit(1)
             Text("\(score(for: teamID))")
                 .font(.largeTitle.monospacedDigit().weight(.bold))
-            Text(String(format: NSLocalizedString("foul_count_format", comment: "Foul count"), fouls(for: teamID)))
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.orange)
         }
         .frame(maxWidth: .infinity)
     }
@@ -236,13 +242,12 @@ struct SavedGameDetailView: View {
     private func playerStatRow(for playerID: UUID) -> some View {
         let stats = displayStatsByPlayerID[playerID, default: PlayerStats()]
         let playingTime: String
-        if let sp = selectedPeriod {
+        if !selectedPeriods.isEmpty {
             let timeByPeriod = cachedPlayingTimeByPeriod
-            if let periodTime = timeByPeriod[sp]?[playerID], periodTime > 0 {
-                playingTime = GameView.durationFormatter(periodTime)
-            } else {
-                playingTime = "--:--"
+            let total = selectedPeriods.reduce(0) { sum, period in
+                sum + (timeByPeriod[period]?[playerID] ?? 0)
             }
+            playingTime = total > 0 ? GameView.durationFormatter(total) : "--:--"
         } else {
             playingTime = GameView.durationFormatter(game.snapshot.playingSecondsByPlayerID[playerID, default: 0])
         }
@@ -329,20 +334,22 @@ struct SavedGameDetailView: View {
 
     private func score(for teamID: UUID?) -> Int {
         guard let teamID else { return 0 }
-        if let period = selectedPeriod {
-            let ps = periodAnalysis.statsByPeriod[period, default: [:]]
-            return (ps[teamID]?.points ?? 0) + playerIDs(for: teamID).reduce(0) { $0 + (ps[$1]?.points ?? 0) }
+        if !selectedPeriods.isEmpty {
+            return selectedPeriods.reduce(0) { total, period in
+                let ps = periodAnalysis.statsByPeriod[period, default: [:]]
+                return total + (ps[teamID]?.points ?? 0) + playerIDs(for: teamID).reduce(0) { $0 + (ps[$1]?.points ?? 0) }
+            }
         }
         return game.score(forTeamID: teamID)
     }
 
     private func fouls(for teamID: UUID?) -> Int {
         guard let teamID else { return 0 }
-        if let period = selectedPeriod {
-            let ps = periodAnalysis.statsByPeriod[period, default: [:]]
-            let teamFouls = ps[teamID]?.fouls ?? 0
-            let playerFouls = playerIDs(for: teamID).reduce(0) { $0 + (ps[$1]?.fouls ?? 0) }
-            return teamFouls + playerFouls
+        if !selectedPeriods.isEmpty {
+            return selectedPeriods.reduce(0) { total, period in
+                let ps = periodAnalysis.statsByPeriod[period, default: [:]]
+                return total + (ps[teamID]?.fouls ?? 0) + playerIDs(for: teamID).reduce(0) { $0 + (ps[$1]?.fouls ?? 0) }
+            }
         }
         let teamFouls = game.snapshot.teamStatsByID[teamID, default: PlayerStats()].fouls
         let playerFouls = playerIDs(for: teamID).reduce(0) { total, playerID in
@@ -354,8 +361,27 @@ struct SavedGameDetailView: View {
     private func aggregateStats(for teamID: UUID?) -> PlayerStats {
         guard let teamID else { return PlayerStats() }
         var total: PlayerStats
-        if let period = selectedPeriod {
-            total = periodAnalysis.statsByPeriod[period]?[teamID] ?? PlayerStats()
+        if !selectedPeriods.isEmpty {
+            total = selectedPeriods.reduce(into: PlayerStats()) { sum, period in
+                if let ps = periodAnalysis.statsByPeriod[period]?[teamID] {
+                    sum.twoMade += ps.twoMade
+                    sum.twoAttempts += ps.twoAttempts
+                    sum.threeMade += ps.threeMade
+                    sum.threeAttempts += ps.threeAttempts
+                    sum.bonusFreeThrowMade += ps.bonusFreeThrowMade
+                    sum.bonusFreeThrowAttempts += ps.bonusFreeThrowAttempts
+                    sum.freeThrowMade += ps.freeThrowMade
+                    sum.freeThrowAttempts += ps.freeThrowAttempts
+                    sum.rebounds += ps.rebounds
+                    sum.offensiveRebounds += ps.offensiveRebounds
+                    sum.defensiveRebounds += ps.defensiveRebounds
+                    sum.assists += ps.assists
+                    sum.fouls += ps.fouls
+                    sum.blocks += ps.blocks
+                    sum.steals += ps.steals
+                    sum.turnovers += ps.turnovers
+                }
+            }
         } else {
             total = game.snapshot.teamStatsByID[teamID, default: PlayerStats()]
         }
@@ -386,17 +412,34 @@ struct SavedGameDetailView: View {
     }
 
     private var displayStatsByPlayerID: [UUID: PlayerStats] {
-        guard let selectedPeriod else {
+        if selectedPeriods.isEmpty {
             return game.snapshot.statsByPlayerID
         }
-        let periodStats = statsByPlayerID(for: selectedPeriod)
-        let homeIDs = Set(game.homePlayerIDs)
-        let homePts = periodStats.filter { homeIDs.contains($0.key) }.values.reduce(0) { $0 + $1.points }
-        let awayPts = periodStats.filter { !homeIDs.contains($0.key) }.values.reduce(0) { $0 + $1.points }
-        let totalHome = game.snapshot.statsByPlayerID.filter { homeIDs.contains($0.key) }.values.reduce(0) { $0 + $1.points }
-        let totalAway = game.snapshot.statsByPlayerID.filter { !homeIDs.contains($0.key) }.values.reduce(0) { $0 + $1.points }
-        print("[SG] selectedPeriod=\(selectedPeriod) period home=\(homePts) away=\(awayPts) | total home=\(totalHome) away=\(totalAway) | match=\(homePts==totalHome && awayPts==totalAway ? "YES" : "DIFFERS")")
-        return periodStats
+        var combined: [UUID: PlayerStats] = [:]
+        for period in selectedPeriods {
+            let periodStats = statsByPlayerID(for: period)
+            for (pid, stats) in periodStats {
+                var s = combined[pid, default: PlayerStats()]
+                s.twoMade += stats.twoMade
+                s.twoAttempts += stats.twoAttempts
+                s.threeMade += stats.threeMade
+                s.threeAttempts += stats.threeAttempts
+                s.bonusFreeThrowMade += stats.bonusFreeThrowMade
+                s.bonusFreeThrowAttempts += stats.bonusFreeThrowAttempts
+                s.freeThrowMade += stats.freeThrowMade
+                s.freeThrowAttempts += stats.freeThrowAttempts
+                s.rebounds += stats.rebounds
+                s.offensiveRebounds += stats.offensiveRebounds
+                s.defensiveRebounds += stats.defensiveRebounds
+                s.assists += stats.assists
+                s.fouls += stats.fouls
+                s.blocks += stats.blocks
+                s.steals += stats.steals
+                s.turnovers += stats.turnovers
+                combined[pid] = s
+            }
+        }
+        return combined
     }
 
     private var availablePeriodOptions: [Int] {
@@ -496,12 +539,6 @@ struct SavedGameDetailView: View {
             }
         }
 
-        let homeIDs2 = Set(currentGame.homePlayerIDs)
-        let rebuiltHome = statsByPlayer.filter { homeIDs2.contains($0.key) }.values.reduce(0) { $0 + $1.points }
-        let rebuiltAway = statsByPlayer.filter { !homeIDs2.contains($0.key) }.values.reduce(0) { $0 + $1.points }
-        let storedHome = currentGame.snapshot.statsByPlayerID.filter { homeIDs2.contains($0.key) }.values.reduce(0) { $0 + $1.points }
-        let storedAway = currentGame.snapshot.statsByPlayerID.filter { !homeIDs2.contains($0.key) }.values.reduce(0) { $0 + $1.points }
-        print("[SG] rebuild: rebuilt home=\(rebuiltHome) away=\(rebuiltAway) | stored home=\(storedHome) away=\(storedAway)")
         var savedGame = store.savedGames[gameIndex]
         savedGame.snapshot.statsByPlayerID = statsByPlayer
         savedGame.snapshot.playingSecondsByPlayerID = playingSeconds
@@ -509,11 +546,85 @@ struct SavedGameDetailView: View {
         store.savedGames[gameIndex] = savedGame
     }
 
-    private func sanitizeSelectedPeriod() {
-        guard let selectedPeriod else { return }
-        if !availablePeriodOptions.contains(selectedPeriod) {
-            self.selectedPeriod = nil
+    private var gameDurationText: String? {
+        let sortedLogs = game.snapshot.logs
+            .sorted { $0.timestamp < $1.timestamp }
+        guard let first = sortedLogs.first, let last = sortedLogs.last,
+              first.timestamp != last.timestamp else { return nil }
+
+        var activeSeconds: TimeInterval = 0
+        var lastTs = first.timestamp
+        var isClockRunning = false
+
+        for log in sortedLogs {
+            guard let code = log.eventCode else { continue }
+
+            if isClockRunning {
+                activeSeconds += log.timestamp.timeIntervalSince(lastTs)
+            }
+            lastTs = log.timestamp
+
+            switch code {
+            case "event.pause", "event.period_end":
+                isClockRunning = false
+            case "event.resume", "event.period_start":
+                isClockRunning = true
+            default:
+                break
+            }
         }
+
+        guard activeSeconds > 0 else { return nil }
+        return GameView.durationFormatter(activeSeconds)
+    }
+
+    private func segmentedMultiPicker(allPeriods: [Int], allSelected: Bool) -> some View {
+        HStack(spacing: 0) {
+            segmentButton(
+                label: Text(LocalizedStringKey("data_range_full")),
+                isSelected: allSelected
+            ) {
+                if allSelected {
+                    selectedPeriods = []
+                } else {
+                    selectedPeriods = Set(allPeriods)
+                }
+            }
+
+            ForEach(allPeriods, id: \.self) { period in
+                segmentButton(
+                    label: Text(game.periodDisplayName(period)),
+                    isSelected: selectedPeriods.contains(period)
+                ) {
+                    if selectedPeriods.contains(period) {
+                        selectedPeriods.remove(period)
+                    } else {
+                        selectedPeriods.insert(period)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 32)
+        .background(Color(.systemGray5))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func segmentButton(label: Text, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            label
+                .font(.caption.weight(.semibold))
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(isSelected ? Color.accentColor : Color.clear)
+                .foregroundColor(isSelected ? .white : .primary)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func sanitizeSelectedPeriod() {
+        let valid = Set(availablePeriodOptions)
+        selectedPeriods = selectedPeriods.intersection(valid)
     }
 
     private func resolvePlayerIDByName(_ name: String) -> UUID? {

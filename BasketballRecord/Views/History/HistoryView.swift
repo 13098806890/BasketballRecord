@@ -371,7 +371,7 @@ private struct DeleteSavedGamesView: View {
 .font(.subheadline.monospacedDigit().weight(.bold))
                                 }
 
-                                Text(Self.dateFormatter.string(from: game.savedAt))
+                Text(game.gameTimeText)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -473,7 +473,7 @@ private struct SavedGameRow: View {
                         .font(.caption2)
                         .foregroundStyle(.orange)
                 }
-                Text(Self.dateFormatter.string(from: game.savedAt))
+                                Text(game.gameTimeText)
                 Spacer()
                 if store.cloudEnabledGameIDs.contains(game.id) {
                     Image(systemName: "icloud.fill")
@@ -510,5 +510,15 @@ private struct SavedGameRow: View {
         return formatter
     }()
 }
+}
+
+private extension SavedGame {
+    var gameTimeText: String {
+        let start = snapshot.logs.first?.timestamp ?? savedAt
+        let end = savedAt
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd HH:mm"
+        return "\(fmt.string(from: start)) - \(fmt.string(from: end))"
+    }
 }
 
