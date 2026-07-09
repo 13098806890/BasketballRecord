@@ -90,7 +90,7 @@ struct ProSubscriptionStoreView: View {
             .subscriptionStoreControlStyle(.picker)
             .subscriptionStoreButtonLabel(.multiline)
             .subscriptionStorePolicyDestination(for: .privacyPolicy) {
-                SafariWebView(url: URL(string: "https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html")!)
+                SafariWebView(url: URL(string: "https://13098806890.github.io/App-Store-pages/BasketballRecord/privacy-policy.html")!)
             }
             .subscriptionStorePolicyDestination(for: .termsOfService) {
                 SafariWebView(url: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
