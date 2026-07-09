@@ -12,7 +12,7 @@
 
 - **去调试输出**：移除 AI 分析 prompt/summary debug print 和统计重建 debug print。
 
-## 1.32 (2026-07-04)
+## 1.32 (2026-07-09)
 
 ### 新增
 
@@ -20,6 +20,7 @@
 - **AI prompt 多语言本地化**：新增 45 个 i18n key，所有 10 种语言 AI 提示词不再含硬编码中文。
 - **手动结束节次确认**：时间/比分条件未满足时结束节次会弹出确认 alert。
 - **统计系统安全性提升**：CoreData 存储改用 diff+upsert 避免全删全插风险，fatalError 改为 throw，关键路径添加错误日志。
+- **SCF 云存储自动清理**：上传时维护 manifest，支持按 TTL（72h）清理过期共享文件。
 
 ### 修复
 
@@ -27,7 +28,8 @@
 - scoringCodes/pointMap 补齐 5 种投篮类型
 - resolvedPlayerID 排序不一致导致匹配错人
 - analyzer.analyze() 重复计算缓存
-- putbackMissed 篮板统计一致性
+- LoggedAction 移除，改用统一 StatAction
+- AnyView 改为 @ViewBuilder 提升性能
 - AnyView 改为 @ViewBuilder 提升性能
 - 多语言 .strings 文件重复条目清理
 - 自动保存修复、结束节次确认 alert
