@@ -40,7 +40,7 @@
 
 ## 链接
 
-- [宣传页面](https://13098806890.github.io/BasketballRecord/)
-- [隐私政策](https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html)
-- [支持页面](https://13098806890.github.io/BasketballRecord/appstore/support.html)
+- [宣传页面](https://13098806890.github.io/App-Store-pages/BasketballRecord/)
+- [隐私政策](https://13098806890.github.io/App-Store-pages/BasketballRecord/privacy-policy.html)
+- [支持页面](https://13098806890.github.io/App-Store-pages/BasketballRecord/support.html)
 - [App Store](https://apps.apple.com/app/id6773215187)
