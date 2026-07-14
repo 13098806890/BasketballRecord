@@ -147,9 +147,15 @@ struct SavedGameAnalyzer {
 
             // Plus-minus tracking
             if action.points > 0 {
+                let isHome = homeIDs.contains(playerID) || game.snapshot.homeTeamID == playerID
                 var pmByPlayer = plusMinusByPeriod[period, default: [:]]
-                for pid in awayOnCourt { pmByPlayer[pid, default: 0] -= action.points }
-                for pid in homeOnCourt { pmByPlayer[pid, default: 0] += action.points }
+                if isHome {
+                    for pid in homeOnCourt { pmByPlayer[pid, default: 0] += action.points }
+                    for pid in awayOnCourt { pmByPlayer[pid, default: 0] -= action.points }
+                } else {
+                    for pid in homeOnCourt { pmByPlayer[pid, default: 0] -= action.points }
+                    for pid in awayOnCourt { pmByPlayer[pid, default: 0] += action.points }
+                }
                 plusMinusByPeriod[period] = pmByPlayer
             }
         }
