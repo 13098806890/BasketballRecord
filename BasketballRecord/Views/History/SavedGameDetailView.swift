@@ -246,7 +246,12 @@ struct SavedGameDetailView: View {
         } else {
             playingTime = GameView.durationFormatter(game.snapshot.playingSecondsByPlayerID[playerID, default: 0])
         }
-        let plusMinus = game.snapshot.plusMinusByPlayerID[playerID, default: 0]
+        let plusMinus: Int
+        if let sp = selectedPeriod {
+            plusMinus = periodAnalysis.plusMinusByPlayerID(for: sp)[playerID] ?? 0
+        } else {
+            plusMinus = game.snapshot.plusMinusByPlayerID[playerID, default: 0]
+        }
         let plusMinusText = plusMinus > 0 ? "+\(plusMinus)" : "\(plusMinus)"
 
         return NavigationLink {
