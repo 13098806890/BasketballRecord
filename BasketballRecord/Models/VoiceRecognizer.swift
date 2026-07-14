@@ -136,7 +136,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             rebuildNonShotEvents()
         }
     }
-    var onAction: ((StatAction, UUID, TeamSide) -> Void)?
+    var onAction: ((StatAction, UUID, TeamSide, String?) -> Void)?
     var onDualAction: ((StatAction, UUID, TeamSide, StatAction, UUID, TeamSide) -> Void)?
     var onCommand: ((VoiceCommand) -> Void)?
     var onSubstitution: ((TeamSide, UUID, UUID) -> Void)?
@@ -335,9 +335,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     // MARK: - Helper Methods for UI Feedback
 
-    private func showSuccessFeedback(action: StatAction, playerID: UUID, side: TeamSide) {
+    private func showSuccessFeedback(text: String? = nil, action: StatAction, playerID: UUID, side: TeamSide) {
         onFlash?(.green)
-        onAction?(action, playerID, side)
+        onAction?(action, playerID, side, text)
     }
 
     private func showDualSuccessFeedback(action1: StatAction, playerID1: UUID, side1: TeamSide, action2: StatAction, playerID2: UUID, side2: TeamSide) {
@@ -687,7 +687,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let pn = store.player(for: pid)?.name ?? "?"
         let stateLabel = isShot ? (isMade ? "命中" : "未中") : ""
         addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: finalCode, matchDetail: "锚点匹配: 锚点=\(anchor)(\(stateLabel)) | 关键词=\(matchedKeyword) | \(dbgPlayer)")
-        showSuccessFeedback(action: action, playerID: pid, side: sd)
+        showSuccessFeedback(text: text, action: action, playerID: pid, side: sd)
         return true
     }
 
@@ -724,7 +724,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
                 let pn = store.player(for: playerID)?.name ?? "?"
                 addLog(text: text, isSuccess: true, action: act.message, playerName: pn, matchedPattern: eventCode, matchDetail: "自定义映射: \(phrase)")
-                showSuccessFeedback(action: act, playerID: playerID, side: side)
+                showSuccessFeedback(text: text, action: act, playerID: playerID, side: side)
                 return
             }
         }
@@ -964,7 +964,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 if let tid = targetID, let ts = targetSide, ts != sd, tid != pid {
                     guard let turnoverAction = StatAction.allCases.first(where: { $0.eventCode == "stat.turnover" }) else {
                         addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: finalCode, matchDetail: "球员匹配: \(dbgPlayer)")
-                        showSuccessFeedback(action: action, playerID: pid, side: sd)
+                        showSuccessFeedback(text: text, action: action, playerID: pid, side: sd)
                         return true
                     }
                     let pn2 = store.player(for: tid)?.name ?? "?"
@@ -1007,7 +1007,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         }
 
         addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: finalCode, matchDetail: "球员匹配: \(dbgPlayer)")
-        showSuccessFeedback(action: action, playerID: pid, side: sd)
+        showSuccessFeedback(text: text, action: action, playerID: pid, side: sd)
         return true
     }
 
@@ -1159,7 +1159,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             }
             let pn = store.player(for: pid)?.name ?? "?"
             addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: finalCode, matchDetail: "拼音回退球员: \(dbgPlayer)")
-            showSuccessFeedback(action: action, playerID: pid, side: sd)
+            showSuccessFeedback(text: text, action: action, playerID: pid, side: sd)
             return true
         }
 
@@ -1258,7 +1258,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     if let tid = targetID, let ts = targetSide, ts != sd, tid != pid {
                         guard let turnoverAction = StatAction.allCases.first(where: { $0.eventCode == "stat.turnover" }) else {
                             addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: stat.code, matchDetail: "统计拼音回退球员: \(dbgPlayer)")
-                            showSuccessFeedback(action: action, playerID: pid, side: sd)
+                            showSuccessFeedback(text: text, action: action, playerID: pid, side: sd)
                             return true
                         }
                         let pn2 = store.player(for: tid)?.name ?? "?"
@@ -1270,7 +1270,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             }
 
             addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: stat.code, matchDetail: "统计拼音回退球员: \(dbgPlayer)")
-            showSuccessFeedback(action: action, playerID: pid, side: sd)
+            showSuccessFeedback(text: text, action: action, playerID: pid, side: sd)
             return true
         }
 

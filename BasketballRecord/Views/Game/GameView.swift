@@ -384,7 +384,7 @@ struct GameView: View {
                     voiceFlashColor = color
                     clearVoiceFlashAfterDelay()
                 }
-                voiceRecognizer.onAction = { [self] action, playerID, side in
+                voiceRecognizer.onAction = { [self] action, playerID, side, text in
                     guard !gameVM.snapshot.isComplete else {
                         statAlertMessage = NSLocalizedString("stat_game_already_finished", comment: "")
                         return
@@ -405,7 +405,7 @@ struct GameView: View {
                         at: now
                     )
                     _ = liveManager.submitLiveOperation(operation) {
-                        self.applyRecordOperation(action: action, playerID: playerID, side: side, at: now)
+                        self.applyRecordOperation(action: action, playerID: playerID, side: side, at: now, eventMessage: text)
                     }
                     voiceMatch = (playerID, side, action)
                     clearVoiceMatchAfterDelay(playerID: playerID)
@@ -1715,6 +1715,11 @@ struct GameView: View {
             }
             if action.points > 0 {
                 applyPlusMinus(points: action.points, scoringSide: side)
+                if let msg = eventMessage?.lowercased(), msg.contains("快攻") {
+                    var fbStats = gameVM.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+                    fbStats.fastBreakPoints += action.points
+                    gameVM.snapshot.statsByPlayerID[playerID] = fbStats
+                }
             }
             let eventName = isTeamMode ? (store.team(for: teamID)?.name ?? "?") : name(for: playerID)
             let eventPlayerID = isTeamMode ? teamID : playerID
