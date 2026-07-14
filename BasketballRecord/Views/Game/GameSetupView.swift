@@ -58,6 +58,60 @@ struct NewGameSetupView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section(LocalizedStringKey("section_game_settings")) {
+                    Stepper(value: $periodCount, in: 1...8) {
+                        HStack {
+                            Text(LocalizedStringKey("label_period_count"))
+                            Spacer()
+                            Text(String(format: NSLocalizedString("count_periods_format", comment: "Periods count"), periodCount))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Stepper(value: $courtPlayerCount, in: 1...8) {
+                        HStack {
+                            Text(LocalizedStringKey("label_starter_count"))
+                            Spacer()
+                            Text(String(format: NSLocalizedString("count_players_format", comment: "Players count"), courtPlayerCount))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Toggle(LocalizedStringKey("toggle_reset_team_fouls_each_period"), isOn: $resetsTeamFoulsEachPeriod)
+
+                    Picker(LocalizedStringKey("label_period_end_condition"), selection: $periodEndCondition) {
+                        Text(LocalizedStringKey("period_end_manual")).tag(PeriodEndCondition.manual)
+                        Text(LocalizedStringKey("period_end_by_time")).tag(PeriodEndCondition.byTime)
+                        Text(LocalizedStringKey("period_end_by_score")).tag(PeriodEndCondition.byScore)
+                    }
+
+                    if periodEndCondition == .byTime {
+                        HStack {
+                            Text(LocalizedStringKey("label_period_time_limit"))
+                            Spacer()
+                            TextField(LocalizedStringKey("label_minutes"), value: $periodTimeLimit, format: .number)
+                                .keyboardType(.numberPad)
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 60)
+                                .focused($isInputFocused)
+                            Text(LocalizedStringKey("label_minutes_unit"))
+                                .foregroundStyle(.secondary)
+                        }
+                    } else if periodEndCondition == .byScore {
+                        HStack {
+                            Text(LocalizedStringKey("label_period_score_limit"))
+                            Spacer()
+                            TextField(LocalizedStringKey("label_points"), value: $periodScoreLimit, format: .number)
+                                .keyboardType(.numberPad)
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 60)
+                                .focused($isInputFocused)
+                            Text(LocalizedStringKey("label_points_unit"))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
                 Section(LocalizedStringKey("section_teams")) {
                     Picker(LocalizedStringKey("picker_home_team"), selection: $homeTeamID) {
                         ForEach(teams) { team in
@@ -109,60 +163,6 @@ struct NewGameSetupView: View {
                                 players: awayBenchCandidates,
                                 selectedIDs: $awayBenchIDs
                             )
-                        }
-                    }
-                }
-
-                Section(LocalizedStringKey("section_game_settings")) {
-                    Stepper(value: $periodCount, in: 1...8) {
-                        HStack {
-                            Text(LocalizedStringKey("label_period_count"))
-                            Spacer()
-                            Text(String(format: NSLocalizedString("count_periods_format", comment: "Periods count"), periodCount))
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-
-                    Stepper(value: $courtPlayerCount, in: 1...8) {
-                        HStack {
-                            Text(LocalizedStringKey("label_starter_count"))
-                            Spacer()
-                            Text(String(format: NSLocalizedString("count_players_format", comment: "Players count"), courtPlayerCount))
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-
-                    Toggle(LocalizedStringKey("toggle_reset_team_fouls_each_period"), isOn: $resetsTeamFoulsEachPeriod)
-
-                    Picker(LocalizedStringKey("label_period_end_condition"), selection: $periodEndCondition) {
-                        Text(LocalizedStringKey("period_end_manual")).tag(PeriodEndCondition.manual)
-                        Text(LocalizedStringKey("period_end_by_time")).tag(PeriodEndCondition.byTime)
-                        Text(LocalizedStringKey("period_end_by_score")).tag(PeriodEndCondition.byScore)
-                    }
-
-                    if periodEndCondition == .byTime {
-                        HStack {
-                            Text(LocalizedStringKey("label_period_time_limit"))
-                            Spacer()
-                            TextField(LocalizedStringKey("label_minutes"), value: $periodTimeLimit, format: .number)
-                                .keyboardType(.numberPad)
-                                .multilineTextAlignment(.trailing)
-                                .frame(width: 60)
-                                .focused($isInputFocused)
-                            Text(LocalizedStringKey("label_minutes_unit"))
-                                .foregroundStyle(.secondary)
-                        }
-                    } else if periodEndCondition == .byScore {
-                        HStack {
-                            Text(LocalizedStringKey("label_period_score_limit"))
-                            Spacer()
-                            TextField(LocalizedStringKey("label_points"), value: $periodScoreLimit, format: .number)
-                                .keyboardType(.numberPad)
-                                .multilineTextAlignment(.trailing)
-                                .frame(width: 60)
-                                .focused($isInputFocused)
-                            Text(LocalizedStringKey("label_points_unit"))
-                                .foregroundStyle(.secondary)
                         }
                     }
                 }
