@@ -8,6 +8,8 @@ extension VoiceRulesData {
         shotKeywords: [
             ShotKeywordData(keyword: "兩分", eventPrefix: "stat.two"),
             ShotKeywordData(keyword: "2分", eventPrefix: "stat.two"),
+            ShotKeywordData(keyword: "投籃", eventPrefix: "stat.two"),
+            ShotKeywordData(keyword: "投篮", eventPrefix: "stat.two"),
             ShotKeywordData(keyword: "三分", eventPrefix: "stat.three"),
             ShotKeywordData(keyword: "3分", eventPrefix: "stat.three"),
             ShotKeywordData(keyword: "上籃", eventPrefix: "stat.layup"),
