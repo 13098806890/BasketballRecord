@@ -10,6 +10,7 @@ struct PeriodAwareLog: Identifiable, Hashable {
 struct SavedGamePeriodAnalysis {
     var logs: [PeriodAwareLog] = []
     var statsByPeriod: [Int: [UUID: PlayerStats]] = [:]
+    var plusMinusByPeriod: [Int: [UUID: Int]] = [:]
 
     func logs(for period: Int?) -> [PeriodAwareLog] {
         guard let period else { return logs }
@@ -19,6 +20,11 @@ struct SavedGamePeriodAnalysis {
     func statsByPlayerID(for period: Int?) -> [UUID: PlayerStats] {
         guard let period else { return [:] }
         return statsByPeriod[period] ?? [:]
+    }
+
+    func plusMinusByPlayerID(for period: Int?) -> [UUID: Int] {
+        guard let period else { return [:] }
+        return plusMinusByPeriod[period] ?? [:]
     }
 
     func playerLogs(for playerID: UUID, period: Int?) -> [PeriodAwareLog] {
@@ -41,6 +47,20 @@ struct SavedGameAnalyzer {
         var currentPeriod = 1
         var logs: [PeriodAwareLog] = []
         var statsByPeriod: [Int: [UUID: PlayerStats]] = [:]
+        var plusMinusByPeriod: [Int: [UUID: Int]] = [:]
+        var homeOnCourt: Set<UUID> = []
+        var awayOnCourt: Set<UUID> = []
+
+        let allPlayerIDs = Set(game.homePlayerIDs + game.awayPlayerIDs)
+        let homeIDs = Set(game.homePlayerIDs)
+        if game.snapshot.startersRecorded {
+            let starters = Set(game.snapshot.starterPlayerIDs).intersection(allPlayerIDs)
+            homeOnCourt = starters.intersection(homeIDs)
+            awayOnCourt = starters.subtracting(homeIDs)
+        } else {
+            homeOnCourt = homeIDs
+            awayOnCourt = Set(game.awayPlayerIDs)
+        }
 
         for entry in game.snapshot.logs {
             let normalizedMessage = GameLogFormatter.normalizedMessage(entry.message)
@@ -68,6 +88,20 @@ struct SavedGameAnalyzer {
                     inferredPeriod = endedPeriod
                 } else {
                     currentPeriod = inferredPeriod ?? currentPeriod
+                }
+            }
+
+            // Handle control events for on-court tracking
+            if let code = entry.eventCode {
+                if code == "event.period_start" {
+                    if game.snapshot.startersRecorded {
+                        let starters = Set(game.snapshot.starterPlayerIDs).intersection(allPlayerIDs)
+                        homeOnCourt = starters.intersection(homeIDs)
+                        awayOnCourt = starters.subtracting(homeIDs)
+                    }
+                } else if code == "event.substitution", let incoming = entry.playerID, let outgoing = entry.relatedPlayerID {
+                    if homeOnCourt.contains(outgoing) { homeOnCourt.remove(outgoing); homeOnCourt.insert(incoming) }
+                    if awayOnCourt.contains(outgoing) { awayOnCourt.remove(outgoing); awayOnCourt.insert(incoming) }
                 }
             }
 
@@ -110,9 +144,17 @@ struct SavedGameAnalyzer {
             }
 
             statsByPeriod[period] = statsByPlayer
+
+            // Plus-minus tracking
+            if action.points > 0 {
+                var pmByPlayer = plusMinusByPeriod[period, default: [:]]
+                for pid in awayOnCourt { pmByPlayer[pid, default: 0] -= action.points }
+                for pid in homeOnCourt { pmByPlayer[pid, default: 0] += action.points }
+                plusMinusByPeriod[period] = pmByPlayer
+            }
         }
 
-        return SavedGamePeriodAnalysis(logs: logs, statsByPeriod: statsByPeriod)
+        return SavedGamePeriodAnalysis(logs: logs, statsByPeriod: statsByPeriod, plusMinusByPeriod: plusMinusByPeriod)
     }
 
     private func resolvedPlayerID(entry: GameLogEntry, normalizedMessage: String) -> UUID? {
