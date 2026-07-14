@@ -255,15 +255,26 @@ struct TeamStatsDisclosureView: View {
                                }
                                .font(.caption.monospacedDigit())
                            })
-                compareRow(label: localized("stats_points_per_shot"),
-                           home: {
-                               c(String(format: "%.2f", homeStats.pointsPerShot), homeStats.pointsPerShot > awayStats.pointsPerShot)
-                                   .font(.caption.monospacedDigit())
-                           },
-                           away: {
-                               c(String(format: "%.2f", awayStats.pointsPerShot), awayStats.pointsPerShot > homeStats.pointsPerShot)
-                                   .font(.caption.monospacedDigit())
-                           })
+                 compareRow(label: localized("stats_points_per_shot"),
+                            home: {
+                                c(String(format: "%.2f", homeStats.pointsPerShot), homeStats.pointsPerShot > awayStats.pointsPerShot)
+                                    .font(.caption.monospacedDigit())
+                            },
+                            away: {
+                                c(String(format: "%.2f", awayStats.pointsPerShot), awayStats.pointsPerShot > homeStats.pointsPerShot)
+                                    .font(.caption.monospacedDigit())
+                            })
+                if homeStats.fastBreakPoints > 0 || awayStats.fastBreakPoints > 0 {
+                    compareRow(label: localized("stats_fast_break_points"),
+                               home: {
+                                   c("\(homeStats.fastBreakPoints)", homeStats.fastBreakPoints > awayStats.fastBreakPoints)
+                                       .font(.caption.monospacedDigit())
+                               },
+                               away: {
+                                   c("\(awayStats.fastBreakPoints)", awayStats.fastBreakPoints > homeStats.fastBreakPoints)
+                                       .font(.caption.monospacedDigit())
+                               })
+                }
             }
             .padding(10)
             .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))

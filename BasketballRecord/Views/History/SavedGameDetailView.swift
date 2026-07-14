@@ -252,8 +252,10 @@ struct SavedGameDetailView: View {
             playingTime = GameView.durationFormatter(game.snapshot.playingSecondsByPlayerID[playerID, default: 0])
         }
         let plusMinus: Int
-        if let sp = selectedPeriod {
-            plusMinus = periodAnalysis.plusMinusByPlayerID(for: sp)[playerID] ?? 0
+        if !selectedPeriods.isEmpty {
+            plusMinus = selectedPeriods.reduce(0) { sum, period in
+                sum + (periodAnalysis.plusMinusByPlayerID(for: period)[playerID] ?? 0)
+            }
         } else {
             plusMinus = game.snapshot.plusMinusByPlayerID[playerID, default: 0]
         }
@@ -385,6 +387,7 @@ struct SavedGameDetailView: View {
                     sum.blocks += ps.blocks
                     sum.steals += ps.steals
                     sum.turnovers += ps.turnovers
+                    sum.fastBreakPoints += ps.fastBreakPoints
                 }
             }
         } else {
@@ -408,6 +411,7 @@ struct SavedGameDetailView: View {
             total.blocks += stats.blocks
             total.steals += stats.steals
             total.turnovers += stats.turnovers
+            total.fastBreakPoints += stats.fastBreakPoints
         }
         return total
     }

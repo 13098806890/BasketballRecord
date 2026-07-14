@@ -1103,6 +1103,7 @@
 // Win/Loss
 "stats_wins" = "胜";
 "stats_losses" = "负";
+"stats_fast_break_points" = "Fast Break Pts";
 "stats_win_rate" = "胜率";
 
 "ai_prompt_period_event_header" = "第%d节事件：";
