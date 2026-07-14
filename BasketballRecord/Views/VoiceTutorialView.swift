@@ -500,7 +500,7 @@ struct VoiceTutorialView: View {
         recognizer.onError = { [self] msg in
             voiceErrorMessage = msg
         }
-        recognizer.onAction = { [self] action, playerID, _ in
+        recognizer.onAction = { [self] action, playerID, _, _ in
             let pn = store.player(for: playerID)?.name ?? "?"
             tutorialLog.append("\(pn) \(action.message)")
 

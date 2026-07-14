@@ -626,6 +626,7 @@ struct PlayerStats: Codable, Hashable {
     var blocks = 0
     var steals = 0
     var turnovers = 0
+    var fastBreakPoints = 0
 
     enum CodingKeys: String, CodingKey {
         case twoMade
@@ -644,6 +645,7 @@ struct PlayerStats: Codable, Hashable {
         case blocks
         case steals
         case turnovers
+        case fastBreakPoints
         case layupMade, layupAttempts
         case midRangeMade, midRangeAttempts
         case paintMade, paintAttempts
@@ -670,6 +672,7 @@ struct PlayerStats: Codable, Hashable {
         blocks = try container.decodeIfPresent(Int.self, forKey: .blocks) ?? 0
         steals = try container.decodeIfPresent(Int.self, forKey: .steals) ?? 0
         turnovers = try container.decodeIfPresent(Int.self, forKey: .turnovers) ?? 0
+        fastBreakPoints = try container.decodeIfPresent(Int.self, forKey: .fastBreakPoints) ?? 0
         layupMade = try container.decodeIfPresent(Int.self, forKey: .layupMade) ?? 0
         layupAttempts = try container.decodeIfPresent(Int.self, forKey: .layupAttempts) ?? 0
         midRangeMade = try container.decodeIfPresent(Int.self, forKey: .midRangeMade) ?? 0
