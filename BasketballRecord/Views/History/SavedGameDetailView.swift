@@ -382,6 +382,7 @@ struct SavedGameDetailView: View {
             total.blocks += stats.blocks
             total.steals += stats.steals
             total.turnovers += stats.turnovers
+            total.fastBreakPoints += stats.fastBreakPoints
         }
         return total
     }
