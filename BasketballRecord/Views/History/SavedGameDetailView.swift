@@ -445,6 +445,7 @@ struct SavedGameDetailView: View {
                 s.blocks += stats.blocks
                 s.steals += stats.steals
                 s.turnovers += stats.turnovers
+                s.fastBreakPoints += stats.fastBreakPoints
                 combined[pid] = s
             }
         }
