@@ -1,12 +1,12 @@
-• Data range multi-select: choose multiple periods, stats aggregate by selection
-• Game duration display below score
-• List shows game start-end time
-• Voice recognition preserves original text (e.g. "Zhang San fast break made")
-• Fast break points tracking (fastBreakPoints field)
-• Per-period plus-minus recalculated from on-court lineup
-• New voice commands: 投篮 (shot), 快攻 (fast break), 突破 (drive), 跳投 (jump shot)
-• Chinese tutorial: 8 new tasks for new voice commands
-• Game setup layout: settings section moved to top
-• Team stats comparison: added fast break points row (hidden when both zero)
-• SCF cloud storage: manifest-based cleanup
-• Debug output removed
+• 데이터 범위 다중 선택: 여러 쿼터 선택, 통계 집계
+• 점수 아래에 경기 시간 표시
+• 목록에 경기 시작-종료 시간 표시
+• 음성 인식 원본 텍스트 유지 (예: "장삼 속공 성공")
+• 속공 득점 통계 (fastBreakPoints 필드)
+• 쿼터별 플러스마이너스를 코트 라인업에서 재계산
+• 새로운 음성 명령:投篮(슛), 快攻(속공), 突破(드라이브), 跳投(점프슛)
+• 중국어 튜토리얼: 8개 신규 태스크
+• 경기 설정을 상단으로 이동
+• 팀 통계 비교에 속공 득점 행 추가 (0이면 숨김)
+• SCF 클라우드 스토리지: manifest 기반 정리
+• 디버그 출력 제거

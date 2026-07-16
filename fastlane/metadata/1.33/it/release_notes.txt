@@ -1,12 +1,12 @@
-• Data range multi-select: choose multiple periods, stats aggregate by selection
-• Game duration display below score
-• List shows game start-end time
-• Voice recognition preserves original text (e.g. "Zhang San fast break made")
-• Fast break points tracking (fastBreakPoints field)
-• Per-period plus-minus recalculated from on-court lineup
-• New voice commands: 投篮 (shot), 快攻 (fast break), 突破 (drive), 跳投 (jump shot)
-• Chinese tutorial: 8 new tasks for new voice commands
-• Game setup layout: settings section moved to top
-• Team stats comparison: added fast break points row (hidden when both zero)
-• SCF cloud storage: manifest-based cleanup
-• Debug output removed
+• Selezione multipla dei periodi: scegli più periodi, statistiche aggregate
+• Durata partita visualizzata sotto il punteggio
+• Elenco mostra ora inizio e fine partita
+• Riconoscimento vocale mantiene il testo originale (es. "Zhang San contropiede segnato")
+• Statistiche punti in contropiede (campo fastBreakPoints)
+• Più-meno per periodo ricalcolato in base alla formazione in campo
+• Nuovi comandi vocali: 投篮 (tiro), 快攻 (contropiede), 突破 (penetrazione), 跳投 (salto)
+• Tutorial cinese: 8 nuovi esercizi
+• Impostazioni partita spostate in alto
+• Confronto squadre: riga punti contropiede (nascosta se zero)
+• Archiviazione SCF: pulizia basata su manifest
+• Output di debug rimossi
