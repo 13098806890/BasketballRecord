@@ -1,4 +1,16 @@
-Track basketball games in seconds.\n\nRecord scores, player stats, and generate AI game summaries. Perfect for coaches, pickup games, and amateur leagues.\n\n---\n\nBasketball Journey is a basketball record app for training matches, pickup games, and amateur tournaments.
+Track basketball games in seconds.
+
+Record scores, player stats, and generate AI game summaries. Perfect for coaches, pickup games, and amateur leagues.
+
+---
+
+Track basketball games in seconds.
+
+Record scores, player stats, and generate AI game summaries. Perfect for coaches, pickup games, and amateur leagues.
+
+---
+
+Basketball Journey is a basketball record app for training matches, pickup games, and amateur tournaments.
 
 Key Features:
 
