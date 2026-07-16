@@ -415,18 +415,13 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
         }
 
         let sessionID = UUID()
-        let playersWithoutPhoto = players.map { player in
-            var sanitized = player
-            sanitized.photoData = nil
-            return sanitized
-        }
         let payload = BluetoothLiveInvitePayload(
             sessionID: sessionID,
             inviterName: localPeerName,
             hostDeviceID: localDeviceID,
             stateVersion: stateVersion,
             stateHash: stateHash,
-            players: playersWithoutPhoto,
+            players: players,
             teams: teams,
             state: state
         )
@@ -1015,16 +1010,6 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
         to peer: MCPeerID
     ) -> Result<PreparedStoreSyncTransfer, StoreSyncPreparationError> {
         var sanitizedPayload = payload
-        if !sanitizedPayload.savedGames.isEmpty {
-            let teamPlayerIDs = Set(sanitizedPayload.teams.flatMap(\.playerIDs))
-            sanitizedPayload.players = sanitizedPayload.players.map { player in
-                var copy = player
-                if !teamPlayerIDs.contains(copy.id) {
-                    copy.photoData = nil
-                }
-                return copy
-            }
-        }
 
         let includePlayers = !sanitizedPayload.players.isEmpty
         let includeTeams = !sanitizedPayload.teams.isEmpty
