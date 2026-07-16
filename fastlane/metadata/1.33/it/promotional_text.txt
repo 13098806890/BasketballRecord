@@ -1,0 +1,1 @@
+Riconoscimento vocale mantiene il testo originale, statistiche contropiede, più-meno per periodo, nuovi comandi di tiro.

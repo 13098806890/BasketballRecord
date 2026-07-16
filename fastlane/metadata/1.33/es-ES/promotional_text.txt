@@ -1,0 +1,1 @@
+Reconocimiento de voz conserva texto original, estadísticas de contraataque, más-menos por periodo, nuevos comandos de tiro.
