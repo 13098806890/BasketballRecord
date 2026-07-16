@@ -253,9 +253,7 @@ struct SavedGameDetailView: View {
         }
         let plusMinus: Int
         if !selectedPeriods.isEmpty {
-            plusMinus = selectedPeriods.reduce(0) { sum, period in
-                sum + (periodAnalysis.plusMinusByPlayerID(for: period)[playerID] ?? 0)
-            }
+            plusMinus = selectedPeriods.reduce(0) { $0 + (periodAnalysis.plusMinusByPlayerID(for: $1)[playerID] ?? 0) }
         } else {
             plusMinus = game.snapshot.plusMinusByPlayerID[playerID, default: 0]
         }
