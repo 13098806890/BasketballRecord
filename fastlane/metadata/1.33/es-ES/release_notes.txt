@@ -1,12 +1,8 @@
-• Selección múltiple de períodos: elegir varios períodos, estadísticas agregadas
-• Duración del juego debajo del marcador
-• Lista muestra hora de inicio y fin del partido
-• Reconocimiento de voz conserva el texto original (ej. „Zhang San contraataque anotado")
-• Estadísticas de puntos en contraataque (campo fastBreakPoints)
-• Más-menos por período recalculado según la alineación en cancha
-• Nuevos comandos de voz: 投篮 (tiro), 快攻 (contraataque), 突破 (penetración), 跳投 (salto)
-• Tutorial chino: 8 nuevas tareas
-• Diseño de configuración: ajustes movidos arriba
-• Comparativa de equipos: fila de puntos en contraataque (oculta si cero)
-• Almacenamiento SCF: limpieza basada en manifiesto
-• Salidas de depuración eliminadas
+• Gran refactorización de estructura — GameView, SavedGameDetailView, RosterView divididos en archivos más pequeños
+• Prompt de AI completamente localizado — Chino hardcodeado reemplazado, 7 nuevos keys i18n en 10 idiomas
+• Confirmación de fin de período manual — Alerta antes de terminar un período antes de tiempo
+• Estadísticas por período en modo equipo corregidas
+• Reasignación de UUID en importaciones corregida
+• Datos de rachas de puntos integrados en la cronología con nombres de equipos
+• Reglas AI mejoradas: comentarios concisos, nombres de equipos en resultados, estilo adaptativo
+• Correcciones de errores y mejoras de rendimiento

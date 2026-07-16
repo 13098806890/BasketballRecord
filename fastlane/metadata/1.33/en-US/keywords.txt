@@ -1,1 +1,1 @@
-basketball,stats,scorekeeper,voice,recognition,AI,team,game,recorder,iCloud,sync,live
+basketball,stats tracker,box score,live scoring,coach,referee,tournament,game record,voice scoring

@@ -1,1 +1,1 @@
-Registra ogni partita: statistiche automatiche, comandi vocali, riassunti AI, sync Bluetooth, backup iCloud. Il tuo viaggio nel basket, documentato.
+Grande refactoring, prompt AI localizzato in 10 lingue, statistiche modalità squadra corrette, strisce punti integrate nella cronologia, regole AI migliorate.

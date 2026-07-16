@@ -1,0 +1,26 @@
+Basketball Journey is a basketball record app for training matches, pickup games, and amateur tournaments.
+
+Key Features:
+
+- Real-time Scoring & Full Stats: 2PT/3PT, free throws, rebounds, assists, steals, blocks, turnovers, fouls, and more;
+- Voice Scoring: Hold the mic and speak commands — supports 9 languages with intelligent ASR error handling;
+- Complete Game Flow: Period management, substitutions, late arrivals, auto-end period, pause/resume;
+- Team & Player Management: Avatars, jersey numbers, height, weight, and more;
+- Career & Season Analysis: Per-game details, per-player cumulative and average stats;
+- AI Game Summaries & MVP: Connect DeepSeek, OpenAI, or Anthropic for automatic game highlights;
+- Game Groups: Organize games into groups for filtered history and career views;
+- Bluetooth Collaborative Scoring: Real-time sync across multiple devices;
+- Data Import/Export: Backup, migrate, and restore with UUID mapping;
+- iCloud Sync (Pro): Sync game data across devices (Pro).
+
+Use Cases:
+
+- Team training and intra-team scrimmage recording
+- Quick pickup game scoring
+- Season review and personal growth tracking
+
+Terms of Use:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+Privacy Policy:
+https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
