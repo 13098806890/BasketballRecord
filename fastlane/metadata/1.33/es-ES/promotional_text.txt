@@ -1,1 +1,1 @@
-Registra cada partido: estadísticas automáticas, comandos de voz, resúmenes AI, sincronización Bluetooth y respaldo iCloud. Tu viaje de baloncesto, documentado.
+Gran refactorización, prompt AI localizado en 10 idiomas, estadísticas modo equipo corregidas, rachas integradas en cronología, reglas AI mejoradas.

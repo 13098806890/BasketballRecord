@@ -1,12 +1,8 @@
-• Datenbereich Mehrfachauswahl: mehrere Abschnitte wählbar, Statistiken aggregiert
-• Spielzeit-Anzeige unter dem Punktestand
-• Liste zeigt Start- und Endzeit des Spiels
-• Spracherkennung behält Originaltext (z.B. „Zhang San Fastbreak getroffen")
-• Fastbreak-Punkte-Statistik (fastBreakPoints-Feld)
-• Plus/Minus pro Abschnitt basierend auf Aufstellung neu berechnet
-• Neue Sprachbefehle: 投篮 (Wurf), 快攻 (Fastbreak), 突破 (Dribbling), 跳投 (Sprungwurf)
-• Chinesisches Tutorial: 8 neue Aufgaben
-• Spiel-Setup: Einstellungen nach oben verschoben
-• Teamstatistik-Vergleich: Fastbreak-Punkte (ausgeblendet bei null)
-• SCF Cloud-Speicher: Manifest-basierte Bereinigung
-• Debug-Ausgaben entfernt
+• Große Dateistruktur-Refaktorisierung — GameView, SavedGameDetailView, RosterView in kleinere Dateien aufgeteilt
+• KI-Prompt vollständig lokalisiert — Hartcodiertes Chinesisch ersetzt, 7 neue i18n-Keys in 10 Sprachen
+• Manuelle Viertelende-Bestätigung — Bestätigungsdialog vor vorzeitigem Viertelende
+• Team-Modus Viertelstatistiken repariert
+• UUID-Neuzuordnung bei Import repariert
+• Punkteseriendaten in Timeline integriert mit Teamnamen
+• KI-Regeln verbessert: prägnante Kommentare, Teamnamen in Ergebnissen, modusangepasster Stil
+• Fehlerbehebungen und Leistungsverbesserungen

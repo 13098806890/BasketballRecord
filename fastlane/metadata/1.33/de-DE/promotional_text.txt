@@ -1,1 +1,1 @@
-Erfasse jedes Spiel: automatische Statistiken, Sprachbefehle, KI-Zusammenfassungen, Bluetooth-Sync, iCloud-Backup. Deine Basketball-Reise, dokumentiert.
+Große Refaktorisierung, KI-Prompt in 10 Sprachen lokalisiert, Team-Modus-Statistiken repariert, Punkteserien in Timeline integriert, KI-Kommentarregeln verbessert.

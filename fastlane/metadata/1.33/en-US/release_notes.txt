@@ -1,12 +1,8 @@
-• Data range multi-select: choose multiple periods, stats aggregate by selection
-• Game duration display below score
-• List shows game start-end time
-• Voice recognition preserves original text (e.g. "Zhang San fast break made")
-• Fast break points tracking (fastBreakPoints field)
-• Per-period plus-minus recalculated from on-court lineup
-• New voice commands: 投篮 (shot), 快攻 (fast break), 突破 (drive), 跳投 (jump shot)
-• Chinese tutorial: 8 new tasks for new voice commands
-• Game setup layout: settings section moved to top
-• Team stats comparison: added fast break points row (hidden when both zero)
-• SCF cloud storage: manifest-based cleanup
-• Debug output removed
+• Major file structure refactoring — GameView, SavedGameDetailView, RosterView split into smaller files
+• AI prompt fully localized — hardcoded Chinese replaced, 7 new i18n keys across 10 languages
+• Manual period end confirmation — alert before ending a period early
+• Team mode per-period stats fixed
+• UUID remapping fixed for imports
+• Scoring run data merged into timeline with team names
+• AI rules improved: concise commentary, team names in scores, mode-aware style
+• Bug fixes and performance improvements

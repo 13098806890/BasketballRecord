@@ -1,1 +1,1 @@
-basketball,statistiche,segnapunti,voce,riconoscimento,AI,squadra,sincronizzazione
+basket,segnapunti,statistiche,squadra,giocatore,arbitro,torneo,tabellone,punteggio vocale,punti

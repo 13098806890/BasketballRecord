@@ -1,1 +1,1 @@
-basketball,statistiken,spiel,spracherkennung,KI,team,punktestand,synchronisation
+Basketball,Punktezähler,Statistik,Team,Spieler,Training,Turnier,Sprachsteuerung,Spracherkennung

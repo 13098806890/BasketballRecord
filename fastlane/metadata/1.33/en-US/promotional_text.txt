@@ -1,1 +1,1 @@
-Record every game with automatic stats, voice commands, AI summaries, Bluetooth sync, and iCloud backup. Your basketball journey, documented and analyzed.
+Major refactoring, AI prompt fully localized in 10 languages, team mode per-period stats fixed, scoring runs merged with timeline, improved AI commentary rules.
