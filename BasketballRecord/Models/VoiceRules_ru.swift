@@ -31,7 +31,11 @@ extension VoiceRulesData {
             ShotKeywordData(keyword: "put back", eventPrefix: "stat.putback"),
             ShotKeywordData(keyword: "данк", eventPrefix: "stat.dunk"),
             ShotKeywordData(keyword: "слэм-данк", eventPrefix: "stat.dunk"),
-            ShotKeywordData(keyword: "дануть", eventPrefix: "stat.dunk")
+            ShotKeywordData(keyword: "дануть", eventPrefix: "stat.dunk"),
+            ShotKeywordData(keyword: "бросок", eventPrefix: "stat.two"),
+            ShotKeywordData(keyword: "быстрый прорыв", eventPrefix: "stat.two"),
+            ShotKeywordData(keyword: "проход", eventPrefix: "stat.two"),
+            ShotKeywordData(keyword: "прыжок", eventPrefix: "stat.two")
         ],
         madeStates: ["попал", "забил", "есть", "удачно", "зашёл"],
         missedStates: ["промах", "мимо", "заблокировали", "не попал", "нет", "мимо кольца"],
