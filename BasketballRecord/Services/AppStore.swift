@@ -251,7 +251,12 @@ final class AppStore: ObservableObject {
 
     func syncCloudGames() async {
         let cloudIDs = cloudEnabledGameIDs.subtracting(deletedCloudGameIDs)
-        let newGames = await CloudKitManager.shared.sync(cloudEnabledIDs: cloudIDs, localGames: savedGames)
+        let (newGames, aiSummaryUpdates) = await CloudKitManager.shared.sync(cloudEnabledIDs: cloudIDs, localGames: savedGames)
+        for update in aiSummaryUpdates {
+            if let idx = savedGames.firstIndex(where: { $0.id == update.id }) {
+                savedGames[idx].aiSummary = update.aiSummary
+            }
+        }
         guard !newGames.isEmpty else { return }
         savedGames.append(contentsOf: newGames)
         savedGames.sort { $0.savedAt > $1.savedAt }

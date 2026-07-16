@@ -169,7 +169,7 @@ final class CloudKitManager: ObservableObject {
 
     /// Sync local games marked as cloud-enabled to CloudKit, and download any new games.
     /// Returns newly downloaded games that should be merged into local storage.
-    func sync(cloudEnabledIDs: Set<UUID>, localGames: [SavedGame]) async -> [SavedGame] {
+    func sync(cloudEnabledIDs: Set<UUID>, localGames: [SavedGame]) async -> (newGames: [SavedGame], aiSummaryUpdates: [SavedGame]) {
         print("[CloudKit] sync called with \(cloudEnabledIDs.count) enabled IDs, \(localGames.count) local games")
         isSyncing = true
         defer { isSyncing = false }
@@ -192,7 +192,13 @@ final class CloudKitManager: ObservableObject {
         let localIDs = Set(localGames.map(\.id))
         let newGames = cloudGames.filter { !localIDs.contains($0.id) }
         print("[CloudKit] \(newGames.count) new games to download")
-        return newGames
+        let aiSummaryUpdates = cloudGames.filter { cloudGame in
+            localIDs.contains(cloudGame.id) &&
+            cloudGame.aiSummary != nil &&
+            localGames.first(where: { $0.id == cloudGame.id })?.aiSummary == nil
+        }
+        print("[CloudKit] \(aiSummaryUpdates.count) games need AI summary sync")
+        return (newGames, aiSummaryUpdates)
     }
 
     // MARK: - Helpers

@@ -345,6 +345,7 @@ struct TransferGameSnapshotV2: Codable, Hashable {
     var wasBluetoothCollaborated: Bool?
     var showsOffensiveDefensiveRebound: Bool?
     var editHistory: [GameLogEditRecord]?
+    var originalPeriodCount: Int?
 
     enum CodingKeys: String, CodingKey {
         case statsByPlayerID = "a"
@@ -384,6 +385,7 @@ struct TransferGameSnapshotV2: Codable, Hashable {
         case wasBluetoothCollaborated = "ai"
         case showsOffensiveDefensiveRebound = "aj"
         case editHistory = "ak"
+        case originalPeriodCount = "al"
     }
 
     init(legacy: GameSnapshot) {
@@ -428,6 +430,7 @@ struct TransferGameSnapshotV2: Codable, Hashable {
         wasBluetoothCollaborated = legacy.wasBluetoothCollaborated ? true : nil
         showsOffensiveDefensiveRebound = legacy.showsOffensiveDefensiveRebound ? true : nil
         editHistory = legacy.editHistory.isEmpty ? nil : legacy.editHistory
+        originalPeriodCount = legacy.originalPeriodCount == 4 ? nil : legacy.originalPeriodCount
     }
 
     var legacy: GameSnapshot {
@@ -440,6 +443,7 @@ struct TransferGameSnapshotV2: Codable, Hashable {
             homeTeamID: homeTeamID,
             awayTeamID: awayTeamID,
             periodCount: periodCount ?? 4,
+            originalPeriodCount: originalPeriodCount ?? 4,
             currentPeriod: currentPeriod ?? 1,
             periodIsRunning: periodIsRunning ?? false,
             isComplete: isComplete ?? false,
@@ -848,6 +852,7 @@ struct GameSnapshot: Codable, Hashable {
         homeTeamID: UUID? = nil,
         awayTeamID: UUID? = nil,
         periodCount: Int = 4,
+        originalPeriodCount: Int = 4,
         currentPeriod: Int = 1,
         periodIsRunning: Bool = false,
         isComplete: Bool = false,
@@ -887,6 +892,7 @@ struct GameSnapshot: Codable, Hashable {
         self.homeTeamID = homeTeamID
         self.awayTeamID = awayTeamID
         self.periodCount = periodCount
+        self.originalPeriodCount = originalPeriodCount
         self.currentPeriod = currentPeriod
         self.periodIsRunning = periodIsRunning
         self.isComplete = isComplete

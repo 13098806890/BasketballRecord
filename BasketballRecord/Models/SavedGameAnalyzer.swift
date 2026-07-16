@@ -93,13 +93,7 @@ struct SavedGameAnalyzer {
 
             // Handle control events for on-court tracking
             if let code = entry.eventCode {
-                if code == "event.period_start" {
-                    if game.snapshot.startersRecorded {
-                        let starters = Set(game.snapshot.starterPlayerIDs).intersection(allPlayerIDs)
-                        homeOnCourt = starters.intersection(homeIDs)
-                        awayOnCourt = starters.subtracting(homeIDs)
-                    }
-                } else if code == "event.substitution", let incoming = entry.playerID, let outgoing = entry.relatedPlayerID {
+                if code == "event.substitution", let incoming = entry.playerID, let outgoing = entry.relatedPlayerID {
                     if homeOnCourt.contains(outgoing) { homeOnCourt.remove(outgoing); homeOnCourt.insert(incoming) }
                     if awayOnCourt.contains(outgoing) { awayOnCourt.remove(outgoing); awayOnCourt.insert(incoming) }
                 }

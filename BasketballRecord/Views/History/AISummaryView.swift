@@ -18,7 +18,8 @@ struct AISummaryView: View {
         self.store = store
         self.periodAnalysis = periodAnalysis
         self._isShowingPurchase = isShowingPurchase
-        _aiSummary = State(initialValue: game.aiSummary ?? "")
+        let latest = store.savedGames.first(where: { $0.id == game.id })?.aiSummary
+        _aiSummary = State(initialValue: latest ?? game.aiSummary ?? "")
     }
     
     var body: some View {
@@ -80,7 +81,8 @@ struct AISummaryView: View {
         }
         .onAppear {
             if aiSummary.isEmpty,
-               let savedSummary = game.aiSummary,
+               let currentGame = store.savedGames.first(where: { $0.id == game.id }),
+               let savedSummary = currentGame.aiSummary,
                !savedSummary.isEmpty {
                 let normalizedSummary = normalizeAISummary(savedSummary)
                 aiSummary = normalizedSummary
