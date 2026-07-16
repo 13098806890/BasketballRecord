@@ -1,1 +1,1 @@
-Basketball,Punktezähler,Statistik,Team,Spieler,Training,Turnier,Sprachsteuerung,Spracherkennung
+scorebook,punktezähler,statistiken,basketball,ergebnisse,aufzeichnung,team

@@ -1,8 +1,9 @@
-• Major file structure refactoring — GameView, SavedGameDetailView, RosterView split into smaller files
-• AI prompt fully localized — hardcoded Chinese replaced, 7 new i18n keys across 10 languages
-• Manual period end confirmation — alert before ending a period early
-• Team mode per-period stats fixed
-• UUID remapping fixed for imports
-• Scoring run data merged into timeline with team names
-• AI rules improved: concise commentary, team names in scores, mode-aware style
-• Bug fixes and performance improvements
+What's New in 1.33:
+
+• Voice scoring now preserves your original speech — what you say is what gets recorded
+• Fast break points tracked automatically — see fast break stats in team comparison
+• Per-period plus/minus recalculated when filtering by period
+• New voice commands: shot, fast break, drive, jump shot
+• Chinese tutorial expanded with 8 new practice tasks
+• Game settings moved to top for quicker setup
+• Performance improvements and bug fixes

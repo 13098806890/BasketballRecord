@@ -1,4 +1,4 @@
-Basketball Journey ist eine Basketball-Aufzeichnungs-App für Trainingsspiele, Pickup-Spiele und Mannschaftsinterne Spiele. Erfasse schnell Punkte, Spielerstatistiken, Spielverläufe und Karrieredaten.
+Basketballspiele in Sekunden erfassen.\n\nPunkte, Spielerstatistiken, KI-Spielzusammenfassungen. Perfekt für Training, Pickup-Spiele und Amateurligen.\n\n---\n\nBasketball Journey ist eine Basketball-Aufzeichnungs-App für Trainingsspiele, Pickup-Spiele und Mannschaftsinterne Spiele. Erfasse schnell Punkte, Spielerstatistiken, Spielverläufe und Karrieredaten.
 
 Kernfunktionen:
 

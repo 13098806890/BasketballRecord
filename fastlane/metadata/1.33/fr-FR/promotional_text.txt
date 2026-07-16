@@ -1,1 +1,1 @@
-Grande refonte, invite IA localisée en 10 langues, statistiques mode équipe corrigées, séries de points intégrées à la chronologie, règles IA améliorées.
+Reconnaissance vocale améliorée, stats contre-attaque, plus-moins par période, nouvelles commandes, résumés IA.

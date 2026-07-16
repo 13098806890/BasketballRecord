@@ -1,1 +1,1 @@
-basketball,stats tracker,box score,live scoring,coach,referee,tournament,game record,voice scoring
+scorebook,scorekeeper,stat tracker,basketball stats,basketball score,box score,play by play

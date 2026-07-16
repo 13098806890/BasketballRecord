@@ -107,7 +107,8 @@ platform :ios do
     end
 
     info = live.get_app_store_version_localizations
-    base = "fastlane/metadata/#{version}"
+    project_root = File.expand_path("..", File.dirname(__FILE__))
+    base = File.join(project_root, "fastlane/metadata/#{version}")
     FileUtils.mkdir_p(base)
 
     info.each do |loc|
@@ -115,6 +116,14 @@ platform :ios do
       dir = File.join(base, locale)
       FileUtils.mkdir_p(dir)
       UI.message("--- #{locale} (#{dir}) ---")
+
+      # Debug: print raw object info for first locale (ja)
+      if locale == "ja"
+        UI.message("  object class: #{loc.class}")
+        UI.message("  inspect: #{loc.inspect.first(800)}")
+        pub_methods = loc.public_methods - Object.methods
+        UI.message("  public methods: #{pub_methods.sort.first(20).join(', ')}")
+      end
 
       file_map = {
         description:      "description.txt",

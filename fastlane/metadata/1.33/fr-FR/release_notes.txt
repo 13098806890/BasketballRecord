@@ -1,8 +1,9 @@
-• Grande refonte de la structure des fichiers — GameView, SavedGameDetailView, RosterView divisés en fichiers plus petits
-• Invite IA entièrement localisée — Chinois codé en dur remplacé, 7 nouvelles clés i18n dans 10 langues
-• Confirmation de fin de période manuelle — Alerte avant de terminer une période prématurément
-• Statistiques par période en mode équipe corrigées
-• Réaffectation des UUID lors de l'importation corrigée
-• Données de séries de points intégrées à la chronologie avec noms d'équipes
-• Règles IA améliorées : commentaires concis, noms d'équipes dans les scores, style adaptatif
-• Corrections de bugs et améliorations des performances
+Nouveautés 1.33:
+
+• La reconnaissance vocale conserve le texte original — ce que vous dites est enregistré
+• Statistiques de contre-attaque automatiques — visibles dans la comparaison d'équipes
+• Plus-moins par période recalculé lors du filtrage
+• Nouvelles commandes vocales : tir, contre-attaque, percée, tir en suspension
+• Tutoriel chinois enrichi de 8 nouveaux exercices
+• Paramètres de match déplacés en haut
+• Améliorations de performance et corrections
