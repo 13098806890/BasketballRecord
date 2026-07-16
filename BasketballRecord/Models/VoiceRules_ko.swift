@@ -36,7 +36,11 @@ extension VoiceRulesData {
             ShotKeywordData(keyword: "팥백", eventPrefix: "stat.putback"),
             ShotKeywordData(keyword: "덩크", eventPrefix: "stat.dunk"),
             ShotKeywordData(keyword: "덩크슛", eventPrefix: "stat.dunk"),
-            ShotKeywordData(keyword: "dunk", eventPrefix: "stat.dunk")
+            ShotKeywordData(keyword: "dunk", eventPrefix: "stat.dunk"),
+            ShotKeywordData(keyword: "슛", eventPrefix: "stat.two"),
+            ShotKeywordData(keyword: "속공", eventPrefix: "stat.two"),
+            ShotKeywordData(keyword: "드라이브", eventPrefix: "stat.two"),
+            ShotKeywordData(keyword: "점프슛", eventPrefix: "stat.two")
         ],
         madeStates: ["성공", "들어갔다", "득점", "성공했다"],
         missedStates: ["실패", "빗나감", "블록", "못 넣음", "안 들어감", "놓침", "노", "에어볼"],

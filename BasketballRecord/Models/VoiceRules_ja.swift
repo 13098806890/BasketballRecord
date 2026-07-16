@@ -40,7 +40,11 @@ extension VoiceRulesData {
             ShotKeywordData(keyword: "putback", eventPrefix: "stat.putback"),
             ShotKeywordData(keyword: "ダンク", eventPrefix: "stat.dunk"),
             ShotKeywordData(keyword: "ダンクシュート", eventPrefix: "stat.dunk"),
-            ShotKeywordData(keyword: "dunk", eventPrefix: "stat.dunk")
+            ShotKeywordData(keyword: "dunk", eventPrefix: "stat.dunk"),
+            ShotKeywordData(keyword: "シュート", eventPrefix: "stat.two"),
+            ShotKeywordData(keyword: "ファストブレイク", eventPrefix: "stat.two"),
+            ShotKeywordData(keyword: "ドライブ", eventPrefix: "stat.two"),
+            ShotKeywordData(keyword: "ジャンプショット", eventPrefix: "stat.two")
         ],
         madeStates: ["入った", "成功", "決めた", "決まった"],
         missedStates: ["外した", "入らない", "ミス", "失敗", "ブロック", "届かない", "はずれ", "ない", "ノー", "エアボール"],

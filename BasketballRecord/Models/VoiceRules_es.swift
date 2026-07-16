@@ -36,7 +36,12 @@ extension VoiceRulesData {
             ShotKeywordData(keyword: "put back", eventPrefix: "stat.putback"),
             ShotKeywordData(keyword: "mate", eventPrefix: "stat.dunk"),
             ShotKeywordData(keyword: "clavada", eventPrefix: "stat.dunk"),
-            ShotKeywordData(keyword: "dunk", eventPrefix: "stat.dunk")
+            ShotKeywordData(keyword: "dunk", eventPrefix: "stat.dunk"),
+             ShotKeywordData(keyword: "tiro", eventPrefix: "stat.two"),
+             ShotKeywordData(keyword: "contraataque", eventPrefix: "stat.two"),
+             ShotKeywordData(keyword: "penetración", eventPrefix: "stat.two"),
+             ShotKeywordData(keyword: "penetracion", eventPrefix: "stat.two"),
+             ShotKeywordData(keyword: "tiro saltando", eventPrefix: "stat.two")
         ],
         madeStates: ["anotó", "entró", "metió", "canasta", "bueno"],
         missedStates: ["fallado", "fuera", "bloqueado", "perdido", "no", "fallo", "aire"],
