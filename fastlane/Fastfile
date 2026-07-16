@@ -107,18 +107,32 @@ platform :ios do
     end
 
     info = live.get_app_store_version_localizations
+    base = "fastlane/metadata/#{version}"
+    FileUtils.mkdir_p(base)
+
     info.each do |loc|
       locale = loc.locale
-      UI.message("--- #{locale} ---")
-      UI.message("  name: #{loc.marketing_name}")
-      UI.message("  subtitle: #{loc.subtitle}")
-      UI.message("  keywords: #{loc.keywords}")
-      UI.message("  description: #{loc.description}")
-      UI.message("  support_url: #{loc.support_url}")
-      UI.message("  privacy_url: #{loc.privacy_url}")
-      UI.message("  marketing_url: #{loc.marketing_url}")
-      UI.message("  promotional_text: #{loc.promotional_text}")
-      UI.message("  release_notes: #{loc.whats_new}")
+      dir = File.join(base, locale)
+      FileUtils.mkdir_p(dir)
+      UI.message("--- #{locale} (#{dir}) ---")
+
+      file_map = {
+        description:      "description.txt",
+        keywords:         "keywords.txt",
+        marketing_url:    "marketing_url.txt",
+        promotional_text: "promotional_text.txt",
+        support_url:      "support_url.txt",
+        whats_new:        "release_notes.txt",
+        subtitle:         "subtitle.txt"
+      }
+
+      file_map.each do |attr, filename|
+        val = loc.respond_to?(attr) ? loc.send(attr) : nil
+        next if val.nil? || val.to_s.strip.empty?
+        File.write(File.join(dir, filename), val.to_s.strip)
+        UI.message("  ✓ #{filename}")
+      end
     end
+    UI.success("Metadata saved to #{base}/")
   end
 end
