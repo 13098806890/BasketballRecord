@@ -1,0 +1,1 @@
+basketball,statistiche,segnapunti,voce,riconoscimento,AI,squadra,sincronizzazione

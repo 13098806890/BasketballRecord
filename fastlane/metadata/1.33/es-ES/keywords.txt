@@ -1,0 +1,1 @@
+baloncesto,estadísticas,anotador,voz,reconocimiento,IA,equipo,sincronización
