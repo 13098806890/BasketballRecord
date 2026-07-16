@@ -1,1 +1,1 @@
-Riconoscimento vocale mantiene il testo originale, statistiche contropiede, più-meno per periodo, nuovi comandi di tiro.
+Registra ogni partita con statistiche automatiche, comandi vocali, riassunti AI, sincronizzazione Bluetooth e backup iCloud. Il tuo viaggio nel basket, documentato.
