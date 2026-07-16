@@ -148,6 +148,9 @@ extension AppStore {
             if let existingIndex = nextGames.firstIndex(where: { $0.id == incoming.id }) {
                 var updatedGame = incoming
                 updatedGame.groupIDs = nextGames[existingIndex].groupIDs
+                if nextGames[existingIndex].aiSummary != nil {
+                    updatedGame.aiSummary = nextGames[existingIndex].aiSummary
+                }
                 nextGames[existingIndex] = updatedGame
                 updated += 1
             } else {

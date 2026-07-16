@@ -252,11 +252,8 @@ struct SavedGameDetailView: View {
             playingTime = GameView.durationFormatter(game.snapshot.playingSecondsByPlayerID[playerID, default: 0])
         }
         let plusMinus: Int
-        if !selectedPeriods.isEmpty {
-            plusMinus = selectedPeriods.reduce(0) { $0 + (periodAnalysis.plusMinusByPlayerID(for: $1)[playerID] ?? 0) }
-        } else {
-            plusMinus = game.snapshot.plusMinusByPlayerID[playerID, default: 0]
-        }
+        let pmPeriods = selectedPeriods.isEmpty ? Set(availablePeriodOptions) : selectedPeriods
+        plusMinus = pmPeriods.reduce(0) { $0 + (periodAnalysis.plusMinusByPlayerID(for: $1)[playerID] ?? 0) }
         let plusMinusText = plusMinus > 0 ? "+\(plusMinus)" : "\(plusMinus)"
 
         return NavigationLink {
@@ -504,9 +501,16 @@ struct SavedGameDetailView: View {
         var awayOnCourt: Set<UUID> = []
         var lastTimestamp = logs.first?.timestamp ?? Date()
 
-        // Initialize lineup from starters if set, otherwise empty
-        let homeStarters = Set(currentGame.snapshot.starterPlayerIDs.filter { homeIDs.contains($0) })
-        let awayStarters = Set(currentGame.snapshot.starterPlayerIDs.filter { awayIDs.contains($0) })
+        // Initialize lineup
+        if currentGame.snapshot.startersRecorded {
+            let allPlayerIDs = Set(currentGame.homePlayerIDs + currentGame.awayPlayerIDs)
+            let starters = Set(currentGame.snapshot.starterPlayerIDs).intersection(allPlayerIDs)
+            homeOnCourt = starters.intersection(homeIDs)
+            awayOnCourt = starters.subtracting(homeIDs)
+        } else {
+            homeOnCourt = homeIDs
+            awayOnCourt = awayIDs
+        }
 
         for log in logs {
             let elapsed = max(0, log.timestamp.timeIntervalSince(lastTimestamp))
@@ -517,13 +521,7 @@ struct SavedGameDetailView: View {
 
             guard let code = log.eventCode else { continue }
 
-            if code.hasPrefix("event.period") {
-                homeOnCourt = homeStarters
-                awayOnCourt = awayStarters
-                if code == "event.period_start" {
-                    // Period started - ensure lineups are set
-                }
-            } else if code == "event.substitution", let incoming = log.playerID, let outgoing = log.relatedPlayerID {
+            if code == "event.substitution", let incoming = log.playerID, let outgoing = log.relatedPlayerID {
                 if homeOnCourt.contains(outgoing) { homeOnCourt.remove(outgoing); homeOnCourt.insert(incoming) }
                 if awayOnCourt.contains(outgoing) { awayOnCourt.remove(outgoing); awayOnCourt.insert(incoming) }
             } else if code == "event.late_arrival", let pid = log.playerID {
