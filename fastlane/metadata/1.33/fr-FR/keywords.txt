@@ -1,0 +1,1 @@
+basketball,stats,scoreur,voix,reconnaissance,IA,équipe,sync,iCloud

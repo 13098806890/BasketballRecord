@@ -1,0 +1,1 @@
+basketball,statistiken,spiel,spracherkennung,KI,team,punktestand,synchronisation
