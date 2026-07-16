@@ -1,0 +1,1 @@
+La reconnaissance vocale conserve le texte original, stats de contre-attaque, plus-moins par période, nouvelles commandes de tir.
