@@ -1,4 +1,4 @@
-Basketball Journey est une application d'enregistrement de basketball pour les entraînements, les matchs informels et les scrimmages internes. Suivez rapidement les scores, les statistiques des joueurs, l'historique et les données de carrière.
+Enregistrez les matchs de basket en quelques secondes.\n\nScores, statistiques, résumés IA. Idéal pour les entraînements, matchs informels et ligues amateurs.\n\n---\n\nBasketball Journey est une application d'enregistrement de basketball pour les entraînements, les matchs informels et les scrimmages internes. Suivez rapidement les scores, les statistiques des joueurs, l'historique et les données de carrière.
 
 Fonctionnalités principales :
 

@@ -1,1 +1,1 @@
-basketball,scoreur,statistiques,équipe,joueur,arbitre,tournoi,notation vocale,score direct,scout
+scoreur,statistiques,basketball,marqueur,score,équipe,entraîneur

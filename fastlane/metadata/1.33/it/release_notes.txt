@@ -1,8 +1,9 @@
-• Grande refactoring della struttura dei file — GameView, SavedGameDetailView, RosterView suddivisi in file più piccoli
-• Prompt AI completamente localizzato — Cinese hardcoded sostituito, 7 nuove chiavi i18n in 10 lingue
-• Conferma fine periodo manuale — Avviso prima di terminare un periodo in anticipo
-• Statistiche per periodo in modalità squadra corrette
-• Rimappatura UUID nelle importazioni corretta
-• Dati di strisce di punti integrati nella cronologia con nomi squadre
-• Regole AI migliorate: commenti concisi, nomi squadre nei punteggi, stile adattivo
-• Correzione bug e miglioramenti prestazionali
+Novità in 1.33:
+
+• Riconoscimento vocale mantiene il testo originale — quello che dici viene registrato
+• Punti contropiede tracciati automaticamente — statistiche nel confronto squadre
+• Più-meno per periodo ricalcolato filtrando per periodo
+• Nuovi comandi vocali: tiro, contropiede, penetrazione, tiro in sospensione
+• Tutorial cinese ampliato con 8 nuovi esercizi
+• Impostazioni partita spostate in alto
+• Miglioramenti prestazionali e correzioni bug

@@ -1,1 +1,1 @@
-Major refactoring, AI prompt fully localized in 10 languages, team mode per-period stats fixed, scoring runs merged with timeline, improved AI commentary rules.
+Voice scoring improved, fast break stats, per-period plus-minus, new shot commands, AI summaries. Smarter basketball tracking.

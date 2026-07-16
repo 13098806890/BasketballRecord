@@ -1,8 +1,9 @@
-• Große Dateistruktur-Refaktorisierung — GameView, SavedGameDetailView, RosterView in kleinere Dateien aufgeteilt
-• KI-Prompt vollständig lokalisiert — Hartcodiertes Chinesisch ersetzt, 7 neue i18n-Keys in 10 Sprachen
-• Manuelle Viertelende-Bestätigung — Bestätigungsdialog vor vorzeitigem Viertelende
-• Team-Modus Viertelstatistiken repariert
-• UUID-Neuzuordnung bei Import repariert
-• Punkteseriendaten in Timeline integriert mit Teamnamen
-• KI-Regeln verbessert: prägnante Kommentare, Teamnamen in Ergebnissen, modusangepasster Stil
-• Fehlerbehebungen und Leistungsverbesserungen
+Neuerungen in 1.33:
+
+• Spracherkennung behält Originaltext — Gesagtes wird direkt aufgezeichnet
+• Fastbreak-Punkte automatisch erfasst — Statistik im Teamvergleich
+• Plus/Minus pro Viertel bei Filterung neu berechnet
+• Neue Sprachbefehle: Wurf, Fastbreak, Durchbruch, Sprungwurf
+• Chinesisches Tutorial um 8 Übungen erweitert
+• Spiel-Einstellungen nach oben verschoben
+• Leistungsverbesserungen und Fehlerbehebungen

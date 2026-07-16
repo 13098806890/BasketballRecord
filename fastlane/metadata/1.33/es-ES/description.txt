@@ -1,23 +1,23 @@
-Basketball Journey es una aplicación de registro de baloncesto para entrenamientos, partidos informales y scrimmages internos. Registra rápidamente puntuaciones, estadísticas de jugadores, historial y datos de carrera.
+Basketballspiele in Sekunden erfassen.\n\nPunkte, Spielerstatistiken, KI-Spielzusammenfassungen. Perfekt für Training, Pickup-Spiele und Amateurligen.\n\n---\n\nBasketball Journey ist eine Basketball-Aufzeichnungs-App für Trainingsspiele, Pickup-Spiele und Mannschaftsinterne Spiele. Erfasse schnell Punkte, Spielerstatistiken, Spielverläufe und Karrieredaten.
 
-Funciones principales:
+Kernfunktionen:
 
-- Puntuación rápida y estadísticas completas: 2PT/3PT, tiros libres, rebotes, asistencias, robos, tapones, pérdidas, faltas y más;
-- Flujo de partido completo: Gestión de periodos, sustituciones, jugadores tardíos, finalización automática de periodo, pausa/reanudación y finalización;
-- Gestión de equipos y jugadores: Crea y edita equipos y jugadores con avatares, números, altura, peso y más;
-- Análisis de historial y carrera: Detalles por partido, estadísticas acumuladas y promedio por jugador, titular/suplente;
-- Resúmenes con IA: Conecta DeepSeek, OpenAI o Anthropic para generar resúmenes, MVP y momentos destacados;
-- Grupos de partidos: Organiza partidos en grupos para vistas filtradas de historial y carrera;
-- Colaboración Bluetooth: Sincroniza eventos de puntuación en tiempo real entre dispositivos;
-- Almacenamiento iCloud: Sincroniza datos de partidos en iCloud para acceso multidispositivo;
-- Importación/Exportación: Copia de seguridad, migración y restauración con fusión de datos y mapeo UUID;
-- Deshacer y rehacer: Deshace o rehace operaciones de puntuación en cualquier momento;
+- Schnelle Punkteerfassung & Vollständige Statistiken: 2PT/3PT, Freiwürfe, Rebounds, Assists, Steals, Blocks, Turnover, Fouls und mehr;
+- Kompletter Spielablauf: Periodenverwaltung, Auswechslungen, Nachzügler, automatischer Periodenende, Pause/Fortsetzen und Spielabschluss;
+- Team- & Spielerverwaltung: Teams und Spieler mit Avataren, Trikotnummern, Größe, Gewicht erstellen und bearbeiten;
+- Verlaufs- & Karriereanalyse: Details pro Spiel, kumulierte und durchschnittliche Statistiken pro Spieler, Starter-/Bankeinsätze;
+- KI-Spielzusammenfassungen: Verbinde DeepSeek, OpenAI oder Anthropic, um Zusammenfassungen, MVP und Highlights zu generieren und zu speichern;
+- Spielgruppen: Spiele in Gruppen organisieren für gefilterte Verlaufs- und Karriereansichten;
+- Bluetooth-Kollaboration: Punkteereignisse in Echtzeit über mehrere Geräte via Bluetooth synchronisieren;
+- iCloud-Speicher (Pro): Spieldaten in iCloud sichern für geräteübergreifenden Zugriff;
+- Datenimport/Export: Backup, Migration und Wiederherstellung mit Datenzusammenführung und UUID-Zuordnung;
+- Rückgängig & Wiederholen: Punkteoperationen jederzeit rückgängig machen oder wiederholen;
 
-Casos de uso:
+Anwendungsfälle:
 
-- Entrenamiento de equipos y scrimmages internos
-- Puntuación rápida en partidos informales
-- Revisión de temporada y seguimiento personal
+- Mannschaftstraining und interne Trainingsspiele
+- Schnelle Punkteerfassung bei Pickup-Spielen
+- Saisonrückblick und persönliche Fortschrittsverfolgung
 
 Terms of Use:
 https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
