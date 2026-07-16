@@ -31,6 +31,14 @@ Upload metadata for a specific version to App Store Connect
 
 Release an approved version to the App Store
 
+### ios download_metadata
+
+```sh
+[bundle exec] fastlane ios download_metadata
+```
+
+Download current metadata from App Store Connect
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.
