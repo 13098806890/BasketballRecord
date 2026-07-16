@@ -13,7 +13,11 @@ extension AppStore {
 
     func updatePlayer(_ player: Player) {
         guard let index = players.firstIndex(where: { $0.id == player.id }) else { return }
-        players[index] = player
+        var merged = player
+        if merged.photoData == nil {
+            merged.photoData = players[index].photoData
+        }
+        players[index] = merged
     }
 
     func deletePlayers(at offsets: IndexSet) {
@@ -69,7 +73,11 @@ extension AppStore {
         var updatedPlayers = 0
 
         if let existingIndex = players.firstIndex(where: { $0.id == importedPlayer.id }) {
-            players[existingIndex] = importedPlayer
+            var merged = importedPlayer
+            if merged.photoData == nil {
+                merged.photoData = players[existingIndex].photoData
+            }
+            players[existingIndex] = merged
             updatedPlayers = 1
         } else {
             players.append(importedPlayer)
