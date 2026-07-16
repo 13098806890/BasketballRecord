@@ -82,4 +82,43 @@ platform :ios do
       UI.error("Cannot release - current state: #{app_store_version.app_store_state}")
     end
   end
+
+  desc "Download current metadata from App Store Connect"
+  lane :download_metadata do |options|
+    version = options[:version] || "1.33"
+
+    key_id, key_filepath = resolve_api_key
+
+    api_key = app_store_connect_api_key(
+      key_id: key_id,
+      issuer_id: "50853c64-5d54-42f0-85aa-a6e291d5066b",
+      key_filepath: key_filepath
+    )
+
+    app = Spaceship::ConnectAPI::App.find("com.xiedongze.BasketballRecord")
+    live = app.get_live_app_store_version
+    if live.nil?
+      UI.message("No live version found, trying edit version...")
+      live = app.get_edit_app_store_version
+    end
+
+    if live.nil?
+      UI.user_error!("Could not find any App Store version")
+    end
+
+    info = live.get_app_store_version_localizations
+    info.each do |loc|
+      locale = loc.locale
+      UI.message("--- #{locale} ---")
+      UI.message("  name: #{loc.marketing_name}")
+      UI.message("  subtitle: #{loc.subtitle}")
+      UI.message("  keywords: #{loc.keywords}")
+      UI.message("  description: #{loc.description}")
+      UI.message("  support_url: #{loc.support_url}")
+      UI.message("  privacy_url: #{loc.privacy_url}")
+      UI.message("  marketing_url: #{loc.marketing_url}")
+      UI.message("  promotional_text: #{loc.promotional_text}")
+      UI.message("  release_notes: #{loc.whats_new}")
+    end
+  end
 end
