@@ -893,6 +893,8 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "settings_show_voice_button_footer" = "득점 페이지에 마이크 버튼을 표시하여 음성 입력을 지원합니다.";
 "settings_voice_log_enable" = "음성 로그 활성화";
 "settings_voice_log_enable_footer" = "음성 인식의 상세 매칭 과정을 기록하여 디버깅 및 검토에 활용합니다.";
+"settings_voice_show_success_animation" = "성공 애니메이션 표시";
+"settings_voice_show_success_animation_footer" = "음성 입력이 인식되면 선수 아바타와 동작 이름을 표시하는 애니메이션을 보여줍니다.";
 "voice_shortcuts_empty" = "음성 단축키 없음";
 "voice_shortcuts_empty_desc" = "사용자 정의 구문을 만들어 작업을 실행합니다.";
 "voice_shortcuts_custom" = "사용자 정의";

@@ -875,6 +875,8 @@
 "settings_show_voice_button_footer" = "Показать кнопку микрофона на странице подсчёта для голосового ввода.";
 "settings_voice_log_enable" = "Включить голосовой журнал";
 "settings_voice_log_enable_footer" = "Записывает детали распознавания для отладки и просмотра.";
+"settings_voice_show_success_animation" = "Показывать анимацию успеха";
+"settings_voice_show_success_animation_footer" = "Показывать анимацию с аватаром игрока и названием действия при распознавании голосового ввода.";
 "voice_shortcuts_empty" = "Нет голосовых команд";
 "voice_shortcuts_empty_desc" = "Создайте пользовательские фразы для запуска действий.";
 "voice_shortcuts_custom" = "Пользовательские";
