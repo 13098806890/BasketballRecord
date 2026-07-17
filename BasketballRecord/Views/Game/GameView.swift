@@ -952,21 +952,31 @@ struct GameView: View {
                 ContentUnavailableView(LocalizedStringKey("text_no_events"), systemImage: "list.bullet.clipboard")
                     .frame(maxWidth: .infinity, minHeight: 120)
             } else {
-                ScrollView {
-                    LazyVStack(spacing: 0) {
-                        ForEach(gameVM.snapshot.logs.reversed()) { entry in
-                            Text(logText(for: entry))
-                                .font(highlightedLogID == entry.id ? .footnote.monospacedDigit().weight(.bold) : .footnote.monospacedDigit())
-                                .lineLimit(2)
-                                .foregroundStyle(GameLogFormatter.isScoring(entry) ? Color.blue : Color.primary)
-                                .scaleEffect(highlightedLogID == entry.id ? 1.05 : 1)
-                                .animation(.spring(response: 0.24, dampingFraction: 0.72), value: highlightedLogID == entry.id)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical, 4)
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(spacing: 0) {
+                            ForEach(gameVM.snapshot.logs.reversed()) { entry in
+                                Text(logText(for: entry))
+                                    .font(highlightedLogID == entry.id ? .footnote.monospacedDigit().weight(.bold) : .footnote.monospacedDigit())
+                                    .lineLimit(2)
+                                    .foregroundStyle(GameLogFormatter.isScoring(entry) ? Color.blue : Color.primary)
+                                    .scaleEffect(highlightedLogID == entry.id ? 1.05 : 1)
+                                    .animation(.spring(response: 0.24, dampingFraction: 0.72), value: highlightedLogID == entry.id)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.vertical, 4)
+                                    .id(entry.id)
+                            }
+                        }
+                    }
+                    .frame(maxHeight: 250)
+                    .onChange(of: gameVM.snapshot.logs.count) { oldCount, newCount in
+                        if newCount > oldCount, let newestId = gameVM.snapshot.logs.last?.id {
+                            withAnimation {
+                                proxy.scrollTo(newestId, anchor: .top)
+                            }
                         }
                     }
                 }
-                .frame(maxHeight: 250)
             }
         }
     }
