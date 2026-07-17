@@ -875,6 +875,8 @@ Formato:
 "settings_show_voice_button_footer" = "Mostra un pulsante microfono sulla pagina di punteggio per l'input vocale.";
 "settings_voice_log_enable" = "Abilita registro vocale";
 "settings_voice_log_enable_footer" = "Registra i dettagli di riconoscimento per debug e revisione.";
+"settings_voice_show_success_animation" = "Mostra animazione di successo";
+"settings_voice_show_success_animation_footer" = "Mostra un'animazione con l'avatar del giocatore e il nome dell'azione quando il comando vocale viene riconosciuto.";
 "voice_shortcuts_empty" = "Nessuna scorciatoia vocale";
 "voice_shortcuts_empty_desc" = "Crea frasi personalizzate per attivare azioni.";
 "voice_shortcuts_custom" = "Personalizzato";

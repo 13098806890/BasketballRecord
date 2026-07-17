@@ -884,6 +884,8 @@
 "settings_show_voice_button_footer" = "在記分頁顯示麥克風按鈕，支援語音輸入。";
 "settings_voice_log_enable" = "啟用語音日誌";
 "settings_voice_log_enable_footer" = "記錄語音識別的詳細匹配過程，便於除錯和回顧。";
+"settings_voice_show_success_animation" = "顯示成功動畫";
+"settings_voice_show_success_animation_footer" = "語音輸入成功時顯示球員頭像和動作名稱動畫。";
 "voice_shortcuts_empty" = "沒有語音快捷指令";
 "voice_shortcuts_empty_desc" = "建立自訂短語來觸發動作。";
 "voice_shortcuts_custom" = "自訂";

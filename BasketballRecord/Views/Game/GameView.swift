@@ -64,9 +64,13 @@ struct GameView: View {
     @State private var voiceMatch: (playerID: UUID, side: TeamSide, action: StatAction)?
     @State private var voiceFlashColor: Color?
     @State private var voiceErrorMessage: String?
+    @State private var voiceSuccessItem: (player: Player, action: StatAction)?
+    @State private var voiceSuccessDismissTask: Task<Void, Never>?
+
     @StateObject private var voiceRecognizer = VoiceRecognizer()
     @AppStorage("voice_locale") private var voiceLocale: String = ""
     @AppStorage("voice_matching_threshold") private var voiceMatchingThreshold: Double = 0.6
+    @AppStorage("voice_show_success_animation") private var showVoiceSuccessAnimation = true
 
     private let matchClockTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -81,6 +85,42 @@ struct GameView: View {
                     simulationLoadingView
                 }
                 .allowsHitTesting(!isSimulating)
+                .overlay(alignment: .top) {
+                    VStack(spacing: 16) {
+                        if showVoiceSuccessAnimation, let item = voiceSuccessItem {
+                            VStack(spacing: 16) {
+                                Group {
+                                    if let data = item.player.photoData, let image = UIImage(data: data) {
+                                        Image(uiImage: image)
+                                            .resizable()
+                                            .scaledToFill()
+                                    } else {
+                                        ZStack {
+                                            Circle().fill(Color.primary.opacity(0.12))
+                                            Text(String(item.player.name.prefix(2)))
+                                                .font(.largeTitle.weight(.semibold))
+                                                .foregroundStyle(.primary)
+                                        }
+                                    }
+                                }
+                                .frame(width: 160, height: 160)
+                                .clipShape(Circle())
+                                .overlay(Circle().stroke(.separator, lineWidth: 0.5))
+                                .shadow(color: .black.opacity(0.15), radius: 12, y: 6)
+
+                                Text(item.action.message)
+                                    .font(.title.weight(.bold))
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+                    }
+                    .padding(.top, UIScreen.main.bounds.height / 3 - 120)
+                    .frame(maxWidth: .infinity)
+                    .scaleEffect(voiceSuccessItem != nil ? 1 : 0.5)
+                    .opacity(voiceSuccessItem != nil ? 1 : 0)
+                    .animation(.easeOut(duration: 0.25), value: voiceSuccessItem != nil)
+                    .allowsHitTesting(false)
+                }
                 .navigationTitle(LocalizedStringKey("nav_game"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -409,6 +449,10 @@ struct GameView: View {
                     }
                     voiceMatch = (playerID, side, action)
                     clearVoiceMatchAfterDelay(playerID: playerID)
+                    if let player = store.player(for: playerID) {
+                        voiceSuccessItem = (player, action)
+                    }
+                    clearVoiceSuccessAfterDelay(playerID: playerID)
                 }
                 voiceRecognizer.onDualAction = { [self] action1, pid1, side1, action2, pid2, side2 in
                     guard !gameVM.snapshot.isComplete else {
@@ -457,6 +501,10 @@ struct GameView: View {
                             }
                             voiceMatch = (pid1, side1, action1)
                             clearVoiceMatchAfterDelay(playerID: pid1)
+                            if let player = store.player(for: pid1) {
+                                voiceSuccessItem = (player, action1)
+                            }
+                            clearVoiceSuccessAfterDelay(playerID: pid1)
                             return
                         }
                         let combinedMsg = Self.dualAssistMessage(pn1: pn1, pn2: pn2, shot: action2.message, locale: locale)
@@ -471,6 +519,10 @@ struct GameView: View {
                     }
                     voiceMatch = (pid1, side1, action1)
                     clearVoiceMatchAfterDelay(playerID: pid1)
+                    if let player = store.player(for: pid1) {
+                        voiceSuccessItem = (player, action1)
+                    }
+                    clearVoiceSuccessAfterDelay(playerID: pid1)
                 }
                 voiceRecognizer.onCommand = { [self] command in
                     switch command {
@@ -532,6 +584,7 @@ struct GameView: View {
                 voiceMatchDismissTask?.cancel()
                 voiceFlashDismissTask?.cancel()
                 voiceErrorDismissTask?.cancel()
+                voiceSuccessDismissTask?.cancel()
             })
     }
 
@@ -2585,6 +2638,18 @@ struct GameView: View {
             await MainActor.run {
                 guard voiceMatch?.playerID == playerID else { return }
                 voiceMatch = nil
+            }
+        }
+    }
+
+    private func clearVoiceSuccessAfterDelay(playerID: UUID) {
+        voiceSuccessDismissTask?.cancel()
+        voiceSuccessDismissTask = Task {
+            try? await Task.sleep(for: .seconds(1.2))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                guard voiceSuccessItem?.player.id == playerID else { return }
+                voiceSuccessItem = nil
             }
         }
     }

@@ -885,6 +885,8 @@ Format:
 "settings_show_voice_button_footer" = "Show a microphone button on the scoring page for voice input.";
 "settings_voice_log_enable" = "Enable Voice Log";
 "settings_voice_log_enable_footer" = "Record recognition details for debugging and review.";
+"settings_voice_show_success_animation" = "Show Success Animation";
+"settings_voice_show_success_animation_footer" = "Show an animation with player avatar and action name when voice input is recognized.";
 "voice_shortcuts_empty" = "No Voice Shortcuts";
 "voice_shortcuts_empty_desc" = "Create custom phrases to trigger actions.";
 "voice_shortcuts_custom" = "Custom";

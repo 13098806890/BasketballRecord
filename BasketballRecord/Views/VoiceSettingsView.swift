@@ -19,6 +19,7 @@ struct VoiceSettingsView: View {
     @ObservedObject var store: AppStore
     @AppStorage(kVoiceLocaleKey) private var voiceLocale: String = ""
     @AppStorage("voice_matching_threshold") private var voiceMatchingThreshold: Double = 0.6
+    @AppStorage("voice_show_success_animation") private var showVoiceSuccessAnimation = true
 
     private var effectiveLocale: String {
         voiceLocale.isEmpty ? (Bundle.main.preferredLocalizations.first ?? "en") : voiceLocale
@@ -95,6 +96,15 @@ struct VoiceSettingsView: View {
                 }
             } footer: {
                 Text(LocalizedStringKey("settings_voice_log_enable_footer"))
+            }
+
+            Section {
+                Toggle(isOn: $showVoiceSuccessAnimation) {
+                    Label(LocalizedStringKey("settings_voice_show_success_animation"), systemImage: "person.crop.circle.badge.checkmark")
+                        .foregroundStyle(.primary)
+                }
+            } footer: {
+                Text(LocalizedStringKey("settings_voice_show_success_animation_footer"))
             }
 
             Section {
