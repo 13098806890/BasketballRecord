@@ -47,6 +47,9 @@
 "voice_log_copy_all" = "复制全部";
 "voice_log_delete_all_confirm" = "删除所有语音记录？";
 "settings_voice_shortcuts" = "语音快捷指令";
+"section_voice_nicknames" = "语音昵称";
+"section_voice_nicknames_footer" = "添加昵称用于语音识别。比赛中说出昵称即可选中该球员。";
+"placeholder_nicknames" = "输入昵称…";
 "button_collab_games" = "蓝牙协同";
 "settings_cloud_storage" = "iCloud 存储";
 "cloud_storage_description" = "点击比赛来开启或关闭云存储。存储在云端的比赛会在各设备间同步。";

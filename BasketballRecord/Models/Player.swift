@@ -9,6 +9,7 @@ struct Player: Identifiable, Codable, Hashable {
     var photoData: Data?
     var playerGroupIDs: [UUID] = []
     var badges: [PlayerBadge] = []
+    var nicknames: [String] = []
 
     init(
         id: UUID = UUID(),
@@ -18,7 +19,8 @@ struct Player: Identifiable, Codable, Hashable {
         number: String = "",
         photoData: Data? = nil,
         playerGroupIDs: [UUID] = [],
-        badges: [PlayerBadge] = []
+        badges: [PlayerBadge] = [],
+        nicknames: [String] = []
     ) {
         self.id = id
         self.name = name
@@ -28,6 +30,7 @@ struct Player: Identifiable, Codable, Hashable {
         self.photoData = photoData
         self.playerGroupIDs = playerGroupIDs
         self.badges = badges
+        self.nicknames = nicknames
     }
 
     init(from decoder: Decoder) throws {
@@ -40,6 +43,7 @@ struct Player: Identifiable, Codable, Hashable {
         photoData = try container.decodeIfPresent(Data.self, forKey: .photoData)
         playerGroupIDs = try container.decodeIfPresent([UUID].self, forKey: .playerGroupIDs) ?? []
         badges = try container.decodeIfPresent([PlayerBadge].self, forKey: .badges) ?? []
+        nicknames = try container.decodeIfPresent([String].self, forKey: .nicknames) ?? []
     }
 }
 
@@ -88,6 +92,7 @@ struct ExportPlayer: Identifiable, Codable, Hashable {
     var weight: String
     var number: String
     var photoData: Data?
+    var nicknames: [String]
 
     init(player: Player) {
         id = player.id
@@ -96,19 +101,21 @@ struct ExportPlayer: Identifiable, Codable, Hashable {
         weight = player.weight
         number = player.number
         photoData = player.photoData
+        nicknames = player.nicknames
     }
 
-    init(id: UUID, name: String, height: String = "", weight: String = "", number: String = "", photoData: Data? = nil) {
+    init(id: UUID, name: String, height: String = "", weight: String = "", number: String = "", photoData: Data? = nil, nicknames: [String] = []) {
         self.id = id
         self.name = name
         self.height = height
         self.weight = weight
         self.number = number
         self.photoData = photoData
+        self.nicknames = nicknames
     }
 
     var playerWithoutPhoto: Player {
-        Player(id: id, name: name, height: height, weight: weight, number: number)
+        Player(id: id, name: name, height: height, weight: weight, number: number, nicknames: nicknames)
     }
 }
 

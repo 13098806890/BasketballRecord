@@ -595,6 +595,9 @@
 "voice_log_copy_all" = "Copiar todo";
 "voice_log_delete_all_confirm" = "¿Eliminar todos los registros de voz?";
 "settings_voice_shortcuts" = "Accesos directos de voz";
+"section_voice_nicknames" = "Apodos de voz";
+"section_voice_nicknames_footer" = "Añade apodos para el reconocimiento de voz. Di un apodo durante el partido para seleccionar a este jugador.";
+"placeholder_nicknames" = "Introducir apodo…";
 "settings_cloud_storage" = "Almacenamiento iCloud";
 "stat_label_2pt" = "2PT";
 "stat_label_3pt" = "3PT";

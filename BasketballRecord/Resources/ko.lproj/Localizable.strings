@@ -853,6 +853,9 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "voice_log_copy_all" = "모두 복사";
 "voice_log_delete_all_confirm" = "모든 음성 기록을 삭제하시겠습니까?";
 "settings_voice_shortcuts" = "음성 단축키";
+"section_voice_nicknames" = "음성 별명";
+"section_voice_nicknames_footer" = "음성 인식용 별명을 추가하세요. 경기 중 별명을 말하면 이 선수를 선택합니다.";
+"placeholder_nicknames" = "별명 입력…";
 "settings_cloud_storage" = "iCloud 저장소";
 "stats_points_format_short" = "PTS";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";

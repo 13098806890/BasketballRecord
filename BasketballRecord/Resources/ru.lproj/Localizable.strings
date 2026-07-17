@@ -598,6 +598,9 @@
 "voice_log_copy_all" = "Копировать все";
 "voice_log_delete_all_confirm" = "Удалить все голосовые записи?";
 "settings_voice_shortcuts" = "Голосовые команды";
+"section_voice_nicknames" = "Голосовые псевдонимы";
+"section_voice_nicknames_footer" = "Добавьте псевдонимы для голосового распознавания. Произнесите псевдоним во время игры, чтобы выбрать этого игрока.";
+"placeholder_nicknames" = "Введите псевдоним…";
 "settings_cloud_storage" = "Хранилище iCloud";
 "stat_label_2pt" = "2PT";
 "stat_label_3pt" = "3PT";

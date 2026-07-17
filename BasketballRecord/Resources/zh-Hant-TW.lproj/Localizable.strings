@@ -844,6 +844,9 @@
 "voice_log_copy_all" = "複製全部";
 "voice_log_delete_all_confirm" = "刪除所有語音記錄？";
 "settings_voice_shortcuts" = "語音快捷指令";
+"section_voice_nicknames" = "語音暱稱";
+"section_voice_nicknames_footer" = "添加暱稱用於語音識別。比賽中說出暱稱即可選中該球員。";
+"placeholder_nicknames" = "輸入暱稱…";
 "settings_cloud_storage" = "iCloud 儲存";
 "stats_points_format_short" = "得分";
 "stats_rebound_assist_steal_block" = "籃板 / 助攻 / 抄截 / 火鍋";

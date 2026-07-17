@@ -202,6 +202,7 @@ struct ExportPlayerV2: Codable, Hashable {
     var weight: String
     var number: String
     var photoData: Data?
+    var nicknames: [String]
 
     enum CodingKeys: String, CodingKey {
         case id = "i"
@@ -210,6 +211,7 @@ struct ExportPlayerV2: Codable, Hashable {
         case weight = "w"
         case number = "o"
         case photoData = "f"
+        case nicknames = "k"
     }
 
     init(legacy: ExportPlayer) {
@@ -219,10 +221,11 @@ struct ExportPlayerV2: Codable, Hashable {
         weight = legacy.weight
         number = legacy.number
         photoData = legacy.photoData
+        nicknames = legacy.nicknames
     }
 
     var legacy: ExportPlayer {
-        ExportPlayer(id: id, name: name, height: height, weight: weight, number: number, photoData: photoData)
+        ExportPlayer(id: id, name: name, height: height, weight: weight, number: number, photoData: photoData, nicknames: nicknames)
     }
 }
 
