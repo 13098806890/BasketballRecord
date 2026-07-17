@@ -21,6 +21,8 @@ struct CoreDataStore {
                   let name = obj.value(forKey: "name") as? String else { return nil }
             let groupIDsData = obj.value(forKey: "playerGroupIDsData") as? Data
             let playerGroupIDs = groupIDsData.flatMap { try? JSONDecoder().decode([UUID].self, from: $0) } ?? []
+            let nicknamesData = obj.value(forKey: "nicknamesData") as? Data
+            let nicknames = nicknamesData.flatMap { try? JSONDecoder().decode([String].self, from: $0) } ?? []
             return Player(
                 id: id,
                 name: name,
@@ -28,7 +30,8 @@ struct CoreDataStore {
                 weight: obj.value(forKey: "weight") as? String ?? "",
                 number: obj.value(forKey: "number") as? String ?? "",
                 photoData: nil,
-                playerGroupIDs: playerGroupIDs
+                playerGroupIDs: playerGroupIDs,
+                nicknames: nicknames
             )
         }
     }
@@ -47,6 +50,7 @@ struct CoreDataStore {
             obj.setValue(player.weight, forKey: "weight")
             obj.setValue(player.number, forKey: "number")
             obj.setValue(try? JSONEncoder().encode(player.playerGroupIDs), forKey: "playerGroupIDsData")
+            obj.setValue(try? JSONEncoder().encode(player.nicknames), forKey: "nicknamesData")
         }
         for id in toDelete {
             let request = NSFetchRequest<NSManagedObject>(entityName: "CDPlayer")

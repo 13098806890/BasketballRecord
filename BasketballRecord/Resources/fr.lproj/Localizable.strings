@@ -595,6 +595,9 @@
 "voice_log_copy_all" = "Tout copier";
 "voice_log_delete_all_confirm" = "Supprimer tous les enregistrements vocaux ?";
 "settings_voice_shortcuts" = "Raccourcis vocaux";
+"section_voice_nicknames" = "Surnoms vocaux";
+"section_voice_nicknames_footer" = "Ajoutez des surnoms pour la reconnaissance vocale. Dites un surnom pendant le match pour sélectionner ce joueur.";
+"placeholder_nicknames" = "Saisir le surnom…";
 "settings_cloud_storage" = "Stockage iCloud";
 "stat_label_2pt" = "2PT";
 "stat_label_3pt" = "3PT";

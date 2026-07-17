@@ -28,6 +28,9 @@
 "voice_log_copy_all" = "Copy All";
 "voice_log_delete_all_confirm" = "Delete all voice records?";
 "settings_voice_shortcuts" = "Voice Shortcuts";
+"section_voice_nicknames" = "Voice Nicknames";
+"section_voice_nicknames_footer" = "Add nicknames for voice recognition. Say a nickname during the game to select this player.";
+"placeholder_nicknames" = "Enter nickname…";
 "button_collab_games" = "Bluetooth Games";
 "settings_cloud_storage" = "iCloud Storage";
 "cloud_storage_description" = "Tap a game to enable or disable cloud storage. Cloud-stored games sync across your devices.";

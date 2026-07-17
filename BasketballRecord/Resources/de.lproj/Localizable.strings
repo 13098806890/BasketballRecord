@@ -595,6 +595,9 @@
 "voice_log_copy_all" = "Alle kopieren";
 "voice_log_delete_all_confirm" = "Alle Sprachnotizen löschen?";
 "settings_voice_shortcuts" = "Sprachkurzbefehle";
+"section_voice_nicknames" = "Spitznamen";
+"section_voice_nicknames_footer" = "Fügen Sie Spitznamen für die Spracherkennung hinzu. Sagen Sie während des Spiels einen Spitznamen, um diesen Spieler auszuwählen.";
+"placeholder_nicknames" = "Spitznamen eingeben…";
 "settings_cloud_storage" = "iCloud-Speicher";
 "stat_label_2pt" = "2PT";
 "stat_label_3pt" = "3PT";

@@ -387,6 +387,21 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     continue
                 }
 
+                // Priority 1a: Nickname direct match
+                if !player.nicknames.isEmpty {
+                    let lowerText = text.lowercased()
+                    for nick in player.nicknames {
+                        let nickLower = nick.lowercased()
+                        if lowerText.contains(nickLower) || nickLower.contains(lowerText) {
+                            let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
+                            results.append((id, side, 1.0))
+                            details.append("\(player.name)(昵称:\(nick))")
+                            break
+                        }
+                    }
+                    if results.last?.0 == id { continue }
+                }
+
                 // Priority 1.5: Levenshtein distance for Latin-script names
                 if currentRules.useLevenshteinMatching {
                     let dist = Self.levenshteinDistance(text, player.name)

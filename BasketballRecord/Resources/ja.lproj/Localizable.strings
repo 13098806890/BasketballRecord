@@ -16,6 +16,9 @@
 "voice_log_copy_all" = "すべてコピー";
 "voice_log_delete_all_confirm" = "すべての音声記録を削除しますか？";
 "settings_voice_shortcuts" = "音声ショートカット";
+"section_voice_nicknames" = "音声ニックネーム";
+"section_voice_nicknames_footer" = "音声認識用のニックネームを追加します。試合中にニックネームを言うとこの選手を選択できます。";
+"placeholder_nicknames" = "ニックネームを入力…";
 "settings_career_display" = "キャリア表示";
 "settings_section_data_management" = "データ管理";
 "settings_teams" = "チーム";

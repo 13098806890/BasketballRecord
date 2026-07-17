@@ -13,6 +13,8 @@ struct PlayerEditorView: View {
     @State private var number: String
     @State private var photoData: Data?
     @State private var selectedPhoto: PhotosPickerItem?
+    @State private var nicknames: [String]
+    @State private var newNickname = ""
 
     init(player: Player?) {
         self.player = player
@@ -21,6 +23,7 @@ struct PlayerEditorView: View {
         _weight = State(initialValue: player?.weight ?? "")
         _number = State(initialValue: player?.number ?? "")
         _photoData = State(initialValue: player?.photoData)
+        _nicknames = State(initialValue: player?.nicknames ?? [])
     }
 
     var body: some View {
@@ -61,6 +64,36 @@ struct PlayerEditorView: View {
                             Text(UnitSettings.editorWeightUnitLabel())
                                 .foregroundStyle(.secondary)
                         }
+                }
+
+                Section {
+                    ForEach(nicknames, id: \.self) { nick in
+                        HStack {
+                            Image(systemName: "mic.fill")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text(nick)
+                            Spacer()
+                            Button { nicknames.removeAll { $0 == nick } } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.red)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    HStack {
+                        TextField(LocalizedStringKey("placeholder_nicknames"), text: $newNickname)
+                        Button { addNickname() } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundStyle(.green)
+                        }
+                        .disabled(newNickname.trimmingCharacters(in: .whitespaces).isEmpty)
+                        .buttonStyle(.plain)
+                    }
+                } header: {
+                    Text(LocalizedStringKey("section_voice_nicknames"))
+                } footer: {
+                    Text(LocalizedStringKey("section_voice_nicknames_footer"))
                 }
 
                 Section(LocalizedStringKey("section_uuid")) {
@@ -107,6 +140,13 @@ struct PlayerEditorView: View {
         .clipShape(Circle())
     }
 
+    private func addNickname() {
+        let trimmed = newNickname.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty, !nicknames.contains(trimmed) else { return }
+        nicknames.append(trimmed)
+        newNickname = ""
+    }
+
     private func save() {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let next = Player(
@@ -115,7 +155,8 @@ struct PlayerEditorView: View {
             height: height.trimmingCharacters(in: .whitespacesAndNewlines),
             weight: weight.trimmingCharacters(in: .whitespacesAndNewlines),
             number: number.trimmingCharacters(in: .whitespacesAndNewlines),
-            photoData: photoData
+            photoData: photoData,
+            nicknames: nicknames
         )
 
         if player == nil {

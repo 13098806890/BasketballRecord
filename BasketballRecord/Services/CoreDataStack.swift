@@ -98,7 +98,12 @@ struct CoreDataStack {
         playerGroupIDsData.attributeType = .binaryDataAttributeType
         playerGroupIDsData.isOptional = true
 
-        player.properties = [playerID, playerName, playerHeight, playerWeight, playerNumber, playerPhotoPath, playerGroupIDsData]
+        let playerNicknamesData = NSAttributeDescription()
+        playerNicknamesData.name = "nicknamesData"
+        playerNicknamesData.attributeType = .binaryDataAttributeType
+        playerNicknamesData.isOptional = true
+
+        player.properties = [playerID, playerName, playerHeight, playerWeight, playerNumber, playerPhotoPath, playerGroupIDsData, playerNicknamesData]
 
         // Team attributes
         let teamID = NSAttributeDescription()
