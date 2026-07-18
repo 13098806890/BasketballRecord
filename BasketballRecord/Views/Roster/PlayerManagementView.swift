@@ -6,31 +6,34 @@ struct PlayerManagementView: View {
     @State private var editingPlayer: Player?
     @State private var selectedPlayerGroupID: UUID?
     @State private var searchText = ""
+    @State private var displayedPlayers: [Player] = []
+    @State private var searchTask: Task<Void, Never>?
 
-    private var filteredPlayers: [Player] {
+    private var basePlayers: [Player] {
         let nonTutorial = store.players.filter { !AppStore.tutorialPlayerIDs.contains($0.id) }
-        let grouped: [Player]
         if store.isPro, let groupID = selectedPlayerGroupID {
-            grouped = nonTutorial.filter { $0.playerGroupIDs.contains(groupID) }
-        } else {
-            grouped = nonTutorial
+            return nonTutorial.filter { $0.playerGroupIDs.contains(groupID) }
         }
-        guard !searchText.trimmingCharacters(in: .whitespaces).isEmpty else { return grouped }
-        let query = searchText.lowercased()
-        return grouped.filter { player in
-            player.name.lowercased().contains(query) ||
-            player.nicknames.contains { $0.lowercased().contains(query) } ||
-            player.number.lowercased().contains(query)
+        return nonTutorial
+    }
+
+    private func filterPlayers(_ query: String, from all: [Player]) -> [Player] {
+        guard !query.trimmingCharacters(in: .whitespaces).isEmpty else { return all }
+        let q = query.lowercased()
+        return all.filter { player in
+            player.name.lowercased().contains(q) ||
+            player.nicknames.contains { $0.lowercased().contains(q) } ||
+            player.number.lowercased().contains(q)
         }
     }
 
     var body: some View {
         List {
-            if filteredPlayers.isEmpty {
+            if displayedPlayers.isEmpty {
                 ContentUnavailableView(LocalizedStringKey("empty_no_players"), systemImage: "person.crop.circle.badge.plus")
             }
 
-            ForEach(filteredPlayers) { player in
+            ForEach(displayedPlayers) { player in
                 HStack(spacing: 12) {
                     PlayerAvatarView(player: player, size: 44)
                     VStack(alignment: .leading, spacing: 4) {
@@ -58,6 +61,25 @@ struct PlayerManagementView: View {
             .onDelete(perform: store.deletePlayers)
         }
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: LocalizedStringKey("search_players"))
+        .onChange(of: searchText) { _, _ in
+            searchTask?.cancel()
+            searchTask = Task {
+                try? await Task.sleep(nanoseconds: 150_000_000)
+                if !Task.isCancelled {
+                    let all = basePlayers
+                    displayedPlayers = filterPlayers(searchText, from: all)
+                }
+            }
+        }
+        .onChange(of: selectedPlayerGroupID) { _, _ in
+            displayedPlayers = filterPlayers(searchText, from: basePlayers)
+        }
+        .onAppear {
+            displayedPlayers = basePlayers
+        }
+        .onDisappear {
+            searchTask?.cancel()
+        }
         .navigationTitle(LocalizedStringKey("settings_players"))
         .toolbar {
             if store.isPro {

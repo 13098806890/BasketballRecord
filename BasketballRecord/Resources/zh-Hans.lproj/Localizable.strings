@@ -1159,4 +1159,4 @@
 "alert_manual_end_period_title" = "确认结束本节？";
 "alert_manual_end_period_time_format" = "第%d节时间未到（设定时长%d分钟），确定要提前结束吗？";
 "alert_manual_end_period_score_format" = "第%d节得分未达到上限（%d分），确定要提前结束吗？";
-\"search_players\" = \"搜索球员\";
+"search_players" = "搜索球员";
