@@ -1,1 +1,1 @@
-Reconocimiento de voz mejorado, estadísticas contraataque, más-menos por periodo, nuevos comandos, resúmenes AI.
+Puntuación en tiempo real con reconocimiento de voz. Seguimiento de estadísticas, resúmenes con IA, sincronización entre dispositivos.
