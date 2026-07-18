@@ -1,0 +1,8 @@
+• Animazione vocale: avatar e animazione dopo comando vocale, dissolvenza in 1,2s
+• Soprannomi giocatore: aggiungi più soprannomi, riconoscimento vocale per soprannome
+• Scorrimento automatico: nuovi eventi scorrono in alto
+• Selezione multipla: seleziona più periodi per dati aggregati
+• Durata partita: mostra tempo di gioco reale (escluse pause)
+• Orari in elenco: mostra inizio e fine di ogni partita
+• Correzione +/- : coerenza tra periodi e totale
+• Miglioramenti e correzioni bug

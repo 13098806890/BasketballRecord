@@ -1,0 +1,1 @@
+anotador,estadísticas,baloncesto,puntuación,marcador,equipo,entrenador

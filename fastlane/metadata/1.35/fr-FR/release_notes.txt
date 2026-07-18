@@ -1,0 +1,8 @@
+• Animation vocale : avatar et animation après commande vocale, fondu en 1,2s
+• Surnoms de joueur : ajoutez plusieurs surnoms, reconnaissance vocale par surnom
+• Défilement automatique : nouveaux événements défilent en haut
+• Sélection multiple : sélectionnez plusieurs périodes pour des données agrégées
+• Durée du match : affiche le temps de jeu réel (hors temps morts)
+• Heures dans la liste : affiche début et fin de chaque match
+• Correction +/- : cohérence entre périodes et total
+• Améliorations et correctifs

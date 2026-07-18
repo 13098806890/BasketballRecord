@@ -1,0 +1,1 @@
+Reconocimiento de voz mejorado, estadísticas contraataque, más-menos por periodo, nuevos comandos, resúmenes AI.

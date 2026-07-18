@@ -1,0 +1,38 @@
+Registra le partite di basket in secondi.
+
+Punteggi, statistiche, riassunti AI. Perfetto per allenamenti, partite informali e leghe amatoriali.
+
+---
+
+Registra le partite di basket in secondi.
+
+Punteggi, statistiche, riassunti AI. Perfetto per allenamenti, partite informali e leghe amatoriali.
+
+---
+
+Basketball Journey è un'app per la registrazione di basket per allenamenti, partite improvvisate e scrimmage interni. Registra rapidamente punteggi, statistiche giocatori, cronologia e dati di carriera.
+
+Funzionalità principali:
+
+- Punteggio rapido e statistiche complete: 2PT/3PT, tiri liberi, rimbalzi, assist, rubate, stoppate, palle perse, falli e altro;
+- Flusso partita completo: Gestione periodi, sostituzioni, arrivi tardivi, termine automatico periodo, pausa/ripresa e fine partita;
+- Gestione squadre e giocatori: Crea e modifica squadre e giocatori con avatar, numeri, altezza, peso e altro;
+- Analisi cronologia e carriera: Dettagli per partita, statistiche cumulate e medie per giocatore, titolari/panchina;
+- Riassunti AI: Collega DeepSeek o altri servizi AI per generare riassunti, MVP e momenti salienti;
+- Gruppi partite: Organizza le partite in gruppi per viste filtrate;
+- Collaborazione Bluetooth: Sincronizza eventi di punteggio in tempo reale tra dispositivi;
+- Archiviazione iCloud: Sincronizza dati partite su iCloud per accesso multi-dispositivo;
+- Import/Export: Backup, migrazione e ripristino con fusione dati e mapping UUID;
+- Annulla e ripeti: Annulla o ripeti le operazioni in qualsiasi momento;
+
+Casi d'uso:
+
+- Allenamenti di squadra e scrimmage interni
+- Punteggio rapido per partite improvvisate
+- Revisione stagionale e monitoraggio personale
+
+Terms of Use:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+Privacy Policy:
+https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
