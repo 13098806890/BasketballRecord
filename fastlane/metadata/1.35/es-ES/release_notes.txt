@@ -1,0 +1,8 @@
+• Animación de voz: avatar y animación tras entrada de voz, se desvanece en 1,2s
+• Apodos de jugador: añade múltiples apodos, reconoce por apodo
+• Desplazamiento automático: nuevos eventos suben automáticamente
+• Selección múltiple: selecciona varios períodos para datos agregados
+• Duración del partido: muestra tiempo real (excluyendo pausas)
+• Horario en lista: muestra inicio y fin de cada partido
+• Corrección +/- : consistencia entre períodos y total
+• Mejoras y correcciones de errores

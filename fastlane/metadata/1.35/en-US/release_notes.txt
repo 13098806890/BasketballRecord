@@ -1,0 +1,8 @@
+• Voice animation: player avatar and action animation after voice input, fades in 1.2s
+• Player nicknames: add multiple nicknames, say any to match
+• Event stream auto-scroll: new events scroll to top automatically
+• Multi-period selection: select multiple periods to view aggregated stats
+• Game duration display: shows actual playing time (excluding pauses)
+• Time range in list: shows start-end time for each game
+• Plus-minus fix: per-period plus-minus now consistent with full game
+• Performance improvements and bug fixes

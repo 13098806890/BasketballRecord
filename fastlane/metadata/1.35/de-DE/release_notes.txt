@@ -1,0 +1,8 @@
+• Sprach-Erfolgsanimation: Spieler-Avatar und Aktionsanimation nach Spracheingabe, blendet nach 1,2s aus
+• Spieler-Spitznamen: Mehrere Spitznamen hinzufügbar, Spracherkennung per Spitzname
+• Automatischer Scroll: Neue Ereignisse scrollen automatisch nach oben
+• Mehrfachauswahl: Mehrere Viertel auswählen für aggregierte Daten
+• Spielzeit anzeigen: Tatsächliche Spielzeit (ohne Pausen) im Detail
+• Start-/Endzeit in Liste: Anzeige von Start und Ende jedes Spiels
+• Plus-Minus-Korrektur: Konsistenz zwischen Viertel- und Gesamtwerten
+• Leistungsverbesserungen und Fehlerbehebungen
