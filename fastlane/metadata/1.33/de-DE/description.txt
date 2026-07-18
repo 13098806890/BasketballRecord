@@ -18,7 +18,7 @@ Kernfunktionen:
 - Kompletter Spielablauf: Periodenverwaltung, Auswechslungen, Nachzügler, automatischer Periodenende, Pause/Fortsetzen und Spielabschluss;
 - Team- & Spielerverwaltung: Teams und Spieler mit Avataren, Trikotnummern, Größe, Gewicht erstellen und bearbeiten;
 - Verlaufs- & Karriereanalyse: Details pro Spiel, kumulierte und durchschnittliche Statistiken pro Spieler, Starter-/Bankeinsätze;
-- KI-Spielzusammenfassungen: Verbinde DeepSeek, OpenAI oder Anthropic, um Zusammenfassungen, MVP und Highlights zu generieren und zu speichern;
+- KI-Spielzusammenfassungen: Verbinde DeepSeek oder andere KI-Dienste, um Zusammenfassungen, MVP und Highlights zu generieren und zu speichern;
 - Spielgruppen: Spiele in Gruppen organisieren für gefilterte Verlaufs- und Karriereansichten;
 - Bluetooth-Kollaboration: Punkteereignisse in Echtzeit über mehrere Geräte via Bluetooth synchronisieren;
 - iCloud-Speicher (Pro): Spieldaten in iCloud sichern für geräteübergreifenden Zugriff;

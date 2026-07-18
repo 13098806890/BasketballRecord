@@ -19,7 +19,7 @@ Key Features:
 - Complete Game Flow: Period management, substitutions, late arrivals, auto-end period, pause/resume;
 - Team & Player Management: Avatars, jersey numbers, height, weight, and more;
 - Career & Season Analysis: Per-game details, per-player cumulative and average stats;
-- AI Game Summaries & MVP: Connect DeepSeek, OpenAI, or Anthropic for automatic game highlights;
+- AI Game Summaries & MVP: Connect DeepSeek or other AI services for automatic game highlights;
 - Game Groups: Organize games into groups for filtered history and career views;
 - Bluetooth Collaborative Scoring: Real-time sync across multiple devices;
 - Data Import/Export: Backup, migrate, and restore with UUID mapping;
