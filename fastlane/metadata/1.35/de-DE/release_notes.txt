@@ -1,3 +1,4 @@
+• Spielersuche: Suche nach Namen, Spitznamen oder Rückennummer in der Spielerverwaltung
 • Sprach-Erfolgsanimation: Spieler-Avatar und Aktionsanimation nach Spracheingabe, blendet nach 1,2s aus
 • Spieler-Spitznamen: Mehrere Spitznamen hinzufügbar, Spracherkennung per Spitzname
 • Automatischer Scroll: Neue Ereignisse scrollen automatisch nach oben

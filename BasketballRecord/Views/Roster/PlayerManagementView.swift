@@ -5,11 +5,23 @@ struct PlayerManagementView: View {
     @State private var exportingPlayer: Player?
     @State private var editingPlayer: Player?
     @State private var selectedPlayerGroupID: UUID?
+    @State private var searchText = ""
 
     private var filteredPlayers: [Player] {
         let nonTutorial = store.players.filter { !AppStore.tutorialPlayerIDs.contains($0.id) }
-        guard store.isPro, let groupID = selectedPlayerGroupID else { return nonTutorial }
-        return nonTutorial.filter { $0.playerGroupIDs.contains(groupID) }
+        let grouped: [Player]
+        if store.isPro, let groupID = selectedPlayerGroupID {
+            grouped = nonTutorial.filter { $0.playerGroupIDs.contains(groupID) }
+        } else {
+            grouped = nonTutorial
+        }
+        guard !searchText.trimmingCharacters(in: .whitespaces).isEmpty else { return grouped }
+        let query = searchText.lowercased()
+        return grouped.filter { player in
+            player.name.lowercased().contains(query) ||
+            player.nicknames.contains { $0.lowercased().contains(query) } ||
+            player.number.lowercased().contains(query)
+        }
     }
 
     var body: some View {
@@ -45,6 +57,7 @@ struct PlayerManagementView: View {
             }
             .onDelete(perform: store.deletePlayers)
         }
+        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: LocalizedStringKey("search_players"))
         .navigationTitle(LocalizedStringKey("settings_players"))
         .toolbar {
             if store.isPro {
