@@ -18,7 +18,7 @@ Funzionalità principali:
 - Flusso partita completo: Gestione periodi, sostituzioni, arrivi tardivi, termine automatico periodo, pausa/ripresa e fine partita;
 - Gestione squadre e giocatori: Crea e modifica squadre e giocatori con avatar, numeri, altezza, peso e altro;
 - Analisi cronologia e carriera: Dettagli per partita, statistiche cumulate e medie per giocatore, titolari/panchina;
-- Riassunti AI: Collega DeepSeek, OpenAI o Anthropic per generare riassunti, MVP e momenti salienti;
+- Riassunti AI: Collega DeepSeek o altri servizi AI per generare riassunti, MVP e momenti salienti;
 - Gruppi partite: Organizza le partite in gruppi per viste filtrate;
 - Collaborazione Bluetooth: Sincronizza eventi di punteggio in tempo reale tra dispositivi;
 - Archiviazione iCloud: Sincronizza dati partite su iCloud per accesso multi-dispositivo;

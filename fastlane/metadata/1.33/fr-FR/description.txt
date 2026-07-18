@@ -18,7 +18,7 @@ Fonctionnalités principales :
 - Gestion complète du match : Gestion des périodes, remplacements, arrivées tardives, fin automatique de période, pause/reprise et fin de match ;
 - Gestion des équipes et joueurs : Créez et modifiez équipes et joueurs avec avatars, numéros, taille, poids, etc. ;
 - Analyse historique et carrière : Détails par match, statistiques cumulées et moyennes par joueur, titularisations/remplacements ;
-- Résumés IA : Connectez DeepSeek, OpenAI ou Anthropic pour générer résumés, MVP et moments forts ;
+- Résumés IA : Connectez DeepSeek ou d'autres services IA pour générer résumés, MVP et moments forts ;
 - Groupes de matchs : Organisez les matchs en groupes pour des vues filtrées ;
 - Collaboration Bluetooth : Synchronisez les scores en temps réel entre plusieurs appareils ;
 - Stockage iCloud : Synchronisez les données de match sur iCloud pour un accès multi-appareils ;

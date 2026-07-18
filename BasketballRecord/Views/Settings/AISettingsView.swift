@@ -51,7 +51,7 @@ struct AISettingsView: View {
             Form {
                 Section {
                     Picker(LocalizedStringKey("label_ai_provider"), selection: $selectedProviderRaw) {
-                        ForEach(AIProvider.allCases) { provider in
+                        ForEach(AIProvider.availableProviders) { provider in
                             Text(provider.displayName).tag(provider.rawValue)
                         }
                     }
@@ -61,6 +61,11 @@ struct AISettingsView: View {
                             selectedModelID = provider.models.first?.id ?? ""
                         }
                         loadSavedKey()
+                    }
+                    .onAppear {
+                        if !AIProvider.availableProviders.contains(where: { $0.rawValue == selectedProviderRaw }) {
+                            selectedProviderRaw = AIProvider.deepseek.rawValue
+                        }
                     }
 
                     VStack(alignment: .leading, spacing: 6) {

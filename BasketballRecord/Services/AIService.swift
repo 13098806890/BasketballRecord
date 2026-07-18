@@ -15,6 +15,13 @@ enum AIProvider: String, Codable, CaseIterable, Identifiable {
         }
     }
 
+    static var availableProviders: [AIProvider] {
+        if Locale.current.region?.identifier == "CN" {
+            return [.deepseek]
+        }
+        return allCases
+    }
+
     var endpoint: URL? {
         switch self {
         case .deepseek: return URL(string: "https://api.deepseek.com/chat/completions")
