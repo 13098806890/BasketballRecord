@@ -1,1 +1,0 @@
-scoreur,statistiques,basketball,marqueur,score,équipe,entraîneur
