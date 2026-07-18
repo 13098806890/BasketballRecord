@@ -1156,4 +1156,4 @@
 "alert_manual_end_period_title" = "End Period Early?";
 "alert_manual_end_period_time_format" = "Period %d time has not elapsed (limit: %d min). End this period now?";
 "alert_manual_end_period_score_format" = "Period %d score limit (%d) not reached. End this period now?";
-\"search_players\" = \"搜尋球員\";
+"search_players" = "搜尋球員";
