@@ -1,1 +1,1 @@
-Spracherkennung optimiert, Fastbreak-Statistiken, Plus-Minus pro Viertel, neue Wurfkommandos, KI-Zusammenfassungen.
+Echtzeit-Basketball-Erfassung mit Spracherkennung. Statistiken verfolgen, KI-Spielzusammenfassungen, geräteübergreifende Synchronisation.

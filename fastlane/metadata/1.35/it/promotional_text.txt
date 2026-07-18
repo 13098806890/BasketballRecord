@@ -1,1 +1,1 @@
-Riconoscimento vocale migliorato, statistiche contropiede, più-meno per periodo, nuovi comandi, riassunti AI.
+Punteggio in tempo reale con riconoscimento vocale. Tracciamento statistiche, riassunti AI, sincronizzazione tra dispositivi.

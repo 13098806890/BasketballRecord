@@ -1,1 +1,1 @@
-Voice scoring improved, fast break stats, per-period plus-minus, new shot commands, AI summaries. Smarter basketball tracking.
+Real-time basketball scorekeeping with voice recognition. Track stats, generate AI game summaries, and sync across devices.
