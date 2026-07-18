@@ -1,3 +1,4 @@
+• Recherche de joueurs : recherchez par nom, surnom ou numéro de maillot
 • Animation vocale : avatar et animation après commande vocale, fondu en 1,2s
 • Surnoms de joueur : ajoutez plusieurs surnoms, reconnaissance vocale par surnom
 • Défilement automatique : nouveaux événements défilent en haut

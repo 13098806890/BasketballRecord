@@ -1,3 +1,4 @@
+• Ricerca giocatori: cerca per nome, soprannome o numero di maglia
 • Animazione vocale: avatar e animazione dopo comando vocale, dissolvenza in 1,2s
 • Soprannomi giocatore: aggiungi più soprannomi, riconoscimento vocale per soprannome
 • Scorrimento automatico: nuovi eventi scorrono in alto

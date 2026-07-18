@@ -1,3 +1,4 @@
+• Búsqueda de jugadores: busca por nombre, apodo o número de camiseta
 • Animación de voz: avatar y animación tras entrada de voz, se desvanece en 1,2s
 • Apodos de jugador: añade múltiples apodos, reconoce por apodo
 • Desplazamiento automático: nuevos eventos suben automáticamente
