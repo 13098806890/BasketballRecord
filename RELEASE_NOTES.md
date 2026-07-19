@@ -4,6 +4,7 @@
 
 ### 修复
 
+- **云端下载修复**：`ExportPlayer`/`ExportPlayerV2` 的 `nicknames` 字段改为 `decodeIfPresent`，兼容旧版云端分享数据。
 - **DeepSeek 模型更新**：`deepseek-chat` 即将停用，替换为 `deepseek-v4-flash`（SCF 服务及 App 端均已更新）。
 
 ### 新增
