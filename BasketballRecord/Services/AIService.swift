@@ -32,7 +32,7 @@ enum AIProvider: String, Codable, CaseIterable, Identifiable {
 
     var models: [AIModel] {
         switch self {
-        case .deepseek: return [AIModel(provider: .deepseek, id: "deepseek-chat", displayName: "DeepSeek Chat")]
+        case .deepseek: return [AIModel(provider: .deepseek, id: "deepseek-v4-flash", displayName: "DeepSeek V4 Flash")]
         case .openAI: return [
             AIModel(provider: .openAI, id: "gpt-4o", displayName: "GPT-4o"),
             AIModel(provider: .openAI, id: "gpt-4o-mini", displayName: "GPT-4o Mini"),
@@ -47,7 +47,7 @@ enum AIProvider: String, Codable, CaseIterable, Identifiable {
     }
 
     static var defaultModel: AIModel {
-        AIModel(provider: .deepseek, id: "deepseek-chat", displayName: "DeepSeek Chat")
+        AIModel(provider: .deepseek, id: "deepseek-v4-flash", displayName: "DeepSeek V4 Flash")
     }
 }
 

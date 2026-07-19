@@ -1,5 +1,16 @@
 # Release Notes
 
+## 2.36 (2026-07-19)
+
+### 修复
+
+- **DeepSeek 模型更新**：`deepseek-chat` 即将停用，替换为 `deepseek-v4-flash`（SCF 服务及 App 端均已更新）。
+
+### 新增
+
+- **球员搜索**：球员管理页面顶部新增搜索栏，可按姓名、昵称、球衣号码搜索球员。
+- **导出合规声明**：Info.plist 新增 `ITSAppUsesNonExemptEncryption = NO`，避免上传构建包时弹窗。
+
 ## 2.35 (2026-07-17)
 
 ### 改进

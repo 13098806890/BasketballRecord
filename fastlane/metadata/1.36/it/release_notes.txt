@@ -1,0 +1,4 @@
+• Ricerca giocatori: cerca per nome, soprannome o numero
+• Modello DeepSeek aggiornato: deepseek-v4-flash sostituisce
+• Conformità export: nessun popup durante il caricamento
+• Correzioni e miglioramenti
