@@ -1,0 +1,4 @@
+• Spielersuche: Suche nach Name, Spitzname oder Nummer
+• DeepSeek-Modell aktualisiert: deepseek-v4-flash ersetzt
+• Export-Compliance: keine Popups beim Upload
+• Fehlerbehebungen und Leistungsverbesserungen

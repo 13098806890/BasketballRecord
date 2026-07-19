@@ -128,7 +128,7 @@ def call_ai(api_key, messages, system_prompt, temperature, max_tokens):
     full_messages.extend(messages)
 
     body = json.dumps({
-        "model": "deepseek-chat",
+        "model": "deepseek-v4-flash",
         "messages": full_messages,
         "temperature": temperature,
         "max_tokens": max_tokens
