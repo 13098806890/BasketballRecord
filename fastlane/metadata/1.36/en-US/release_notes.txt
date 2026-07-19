@@ -1,4 +1,5 @@
 • Player search: search by name, nickname, or jersey number
+• Cloud share: improved backward compatibility for older shared data
 • DeepSeek model updated: deepseek-v4-flash replaces deprecated deepseek-chat
 • Export compliance: no more prompts during upload
 • Bug fixes and performance improvements
