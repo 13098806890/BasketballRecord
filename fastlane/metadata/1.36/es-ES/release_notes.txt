@@ -1,4 +1,5 @@
 • Búsqueda de jugadores: busca por nombre, apodo o número
+• Compartir en la nube: compatibilidad mejorada con datos antiguos
 • Modelo DeepSeek actualizado: deepseek-v4-flash reemplaza
 • Cumplimiento de exportación: sin ventanas emergentes
 • Correcciones y mejoras
