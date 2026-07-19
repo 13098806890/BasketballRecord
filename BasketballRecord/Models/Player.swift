@@ -114,6 +114,17 @@ struct ExportPlayer: Identifiable, Codable, Hashable {
         self.nicknames = nicknames
     }
 
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        height = try container.decode(String.self, forKey: .height)
+        weight = try container.decode(String.self, forKey: .weight)
+        number = try container.decodeIfPresent(String.self, forKey: .number) ?? ""
+        photoData = try container.decodeIfPresent(Data.self, forKey: .photoData)
+        nicknames = try container.decodeIfPresent([String].self, forKey: .nicknames) ?? []
+    }
+
     var playerWithoutPhoto: Player {
         Player(id: id, name: name, height: height, weight: weight, number: number, nicknames: nicknames)
     }

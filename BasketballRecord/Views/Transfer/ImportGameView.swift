@@ -252,21 +252,34 @@ struct ImportGameView: View {
         cloudImportError = nil
         do {
             let data = try await CloudShareManager.retrieve(uuid: cloudImportUUID.trimmingCharacters(in: .whitespacesAndNewlines))
+            print("[CloudShare] ImportGameView retrieved \(data.count) bytes")
 
-            if let bundle = try? JSONDecoder().decode(CloudShareBundle.self, from: data),
-               let gameV2 = bundle.games.first {
-                let legacy = gameV2.legacyPackage
-                for exportPlayer in bundle.players {
-                    let pkg = ExportedPlayerPackage(player: exportPlayer)
-                    store.importPlayerPackage(pkg)
+            if let bundle = try? JSONDecoder().decode(CloudShareBundle.self, from: data) {
+                print("[CloudShare] Bundle decoded: \(bundle.players.count) players, \(bundle.teams.count) teams, \(bundle.games.count) games")
+                if let gameV2 = bundle.games.first {
+                    let legacy = gameV2.legacyPackage
+                    for exportPlayer in bundle.players {
+                        let pkg = ExportedPlayerPackage(player: exportPlayer)
+                        store.importPlayerPackage(pkg)
+                    }
+                    for exportTeam in bundle.teams {
+                        let pkg = ExportedTeamPackage(team: exportTeam, players: bundle.players.filter { exportTeam.playerIDs.contains($0.id) })
+                        store.importTeamPackage(pkg)
+                    }
+                    applyDecodedPackage(legacy)
+                } else {
+                    print("[CloudShare] Bundle has no games")
+                    throw CloudShareError.invalidResponse
                 }
-                for exportTeam in bundle.teams {
-                    let pkg = ExportedTeamPackage(team: exportTeam, players: bundle.players.filter { exportTeam.playerIDs.contains($0.id) })
-                    store.importTeamPackage(pkg)
-                }
-                applyDecodedPackage(legacy)
             } else {
+                print("[CloudShare] Bundle decode failed, trying base64...")
+                if let json = try? JSONSerialization.jsonObject(with: data),
+                   let dict = json as? [String: Any] {
+                    print("[CloudShare] JSON keys: \(dict.keys)")
+                }
                 guard let base64 = String(data: data, encoding: .utf8) else {
+                    let preview = String(data: data.prefix(200), encoding: .utf8) ?? "non-UTF8"
+                    print("[CloudShare] Not valid UTF-8 either, preview=\(preview)")
                     throw CloudShareError.invalidResponse
                 }
                 self.base64 = base64

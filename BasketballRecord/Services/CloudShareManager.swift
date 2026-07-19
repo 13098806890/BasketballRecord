@@ -118,12 +118,21 @@ struct CloudShareManager {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw CloudShareError.networkError(URLError(.badServerResponse))
         }
+        print("[CloudShare] retrieve uuid=\(uuid) status=\(httpResponse.statusCode) dataSize=\(data.count)")
+
         if httpResponse.statusCode == 404 {
             throw CloudShareError.notFound
         }
         guard httpResponse.statusCode == 200 else {
             let body = String(data: data, encoding: .utf8) ?? "HTTP \(httpResponse.statusCode)"
+            print("[CloudShare] retrieve error body=\(body.prefix(500))")
             throw CloudShareError.serverError(body)
+        }
+
+        if let preview = String(data: data.prefix(500), encoding: .utf8) {
+            print("[CloudShare] retrieve data preview=\(preview)")
+        } else {
+            print("[CloudShare] retrieve data is not UTF-8 text, size=\(data.count)")
         }
         return data
     }
