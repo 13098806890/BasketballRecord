@@ -164,6 +164,7 @@
 "picker_home_team" = "Accueil Équipe";
 "picker_away_team" = "Équipe de secours";
 "label_period_count" = "Périodes";
+"count_on_court_format" = "%d sur %d sur le terrain";
 "count_periods_format" = "%d Périodes";
 "label_starter_count" = "Démarreurs";
 "count_players_format" = "%d joueurs";
@@ -171,8 +172,10 @@
 "starter_home_bench_title" = "Accueil Banc";
 "starter_away_bench_title" = "Banc de sortie";
 "section_starter_select_format" = "%@ Sélectionner %d";
+"section_bench" = "Remplaçants";
 "section_bench_optional_format" = "%@ · Facultatif";
 "text_team_has_no_players" = "Cette équipe n'a pas encore de joueurs";
+"text_no_bench_players" = "Aucun remplaçant";
 "text_no_optional_bench" = "Pas de joueurs de banc en option";
 "badge_starter" = "Démarreur";
 "badge_bench" = "Banc";
@@ -180,6 +183,7 @@
 "nav_substitution" = "Substitution";
 "nav_late_arrival" = "Ajouter la cour";
 "picker_team" = "Équipe";
+"section_on_court" = "Sur le terrain";
 "section_substitute_out" = "Sous-sortie";
 "section_substitute_in" = "Sous";
 "text_no_on_court_players" = "Aucun joueur sur le terrain disponible";

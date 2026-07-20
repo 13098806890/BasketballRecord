@@ -164,6 +164,7 @@
 "picker_home_team" = "홈 팀";
 "picker_away_team" = "원정 팀";
 "label_period_count" = "경기 절수";
+"count_on_court_format" = "코트 위 %d/%d";
 "count_periods_format" = "%d절";
 "label_starter_count" = "선발 인원";
 "count_players_format" = "%d명";
@@ -171,8 +172,10 @@
 "starter_home_bench_title" = "홈 벤치";
 "starter_away_bench_title" = "원정 벤치";
 "section_starter_select_format" = "%@ · %d명 선택";
+"section_bench" = "벤치";
 "section_bench_optional_format" = "%@ · 선택";
 "text_team_has_no_players" = "이 팀은 아직 플레이어가 없습니다.";
+"text_no_bench_players" = "벤치 선수 없음";
 "text_no_optional_bench" = "옵션 벤치 플레이어 없음";
 "badge_starter" = "선발";
 "badge_bench" = "벤치";
@@ -180,6 +183,7 @@
 "nav_substitution" = "교체";
 "nav_late_arrival" = "On-Court에 추가하기";
 "picker_team" = "팀";
+"section_on_court" = "코트 위 선수";
 "section_substitute_out" = "아웃";
 "section_substitute_in" = "인";
 "text_no_on_court_players" = "사용 가능한 플레이어 없음";

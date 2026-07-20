@@ -164,6 +164,7 @@
 "picker_home_team" = "Heimteam";
 "picker_away_team" = "Auswärtsteam";
 "label_period_count" = "Perioden";
+"count_on_court_format" = "%d von %d auf dem Feld";
 "count_periods_format" = "%d Perioden";
 "label_starter_count" = "Starter";
 "count_players_format" = "%d Spieler";
@@ -171,8 +172,10 @@
 "starter_home_bench_title" = "Heimbank";
 "starter_away_bench_title" = "Auswärtsbank";
 "section_starter_select_format" = "%@ · %d auswählen";
+"section_bench" = "Bank";
 "section_bench_optional_format" = "%@ · Optional";
 "text_team_has_no_players" = "Dieses Team hat noch keine Spieler";
+"text_no_bench_players" = "Keine Bankspieler";
 "text_no_optional_bench" = "Keine optionalen Bankspieler";
 "badge_starter" = "Starter";
 "badge_bench" = "Bank";
@@ -180,6 +183,7 @@
 "nav_substitution" = "Auswechslung";
 "nav_late_arrival" = "Späteren Einsatz hinzufügen";
 "picker_team" = "Team";
+"section_on_court" = "Auf dem Feld";
 "section_substitute_out" = "Auswechslung raus";
 "section_substitute_in" = "Auswechslung rein";
 "text_no_on_court_players" = "Keine Spieler auf dem Feld";

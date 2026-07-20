@@ -242,6 +242,7 @@
 "picker_home_team" = "主隊";
 "picker_away_team" = "客隊";
 "label_period_count" = "比賽節數";
+"count_on_court_format" = "場上 %d / %d 人";
 "count_periods_format" = "%d節";
 "label_starter_count" = "首發人數";
 "count_players_format" = "%d人";
@@ -249,8 +250,10 @@
 "starter_home_bench_title" = "主隊替補";
 "starter_away_bench_title" = "客隊替補";
 "section_starter_select_format" = "%@ · 選擇 %d 人";
+"section_bench" = "替補球員";
 "section_bench_optional_format" = "%@ · 可選";
 "text_team_has_no_players" = "這支球隊還沒有球員";
+"text_no_bench_players" = "無替補球員";
 "text_no_optional_bench" = "當前沒有可選替補";
 "badge_starter" = "首發";
 "badge_bench" = "替補";
@@ -258,6 +261,7 @@
 "nav_substitution" = "換人";
 "nav_late_arrival" = "新增上場";
 "picker_team" = "球隊";
+"section_on_court" = "場上球員";
 "section_substitute_out" = "換下";
 "section_substitute_in" = "換上";
 "text_no_on_court_players" = "沒有已標記在場的球員";

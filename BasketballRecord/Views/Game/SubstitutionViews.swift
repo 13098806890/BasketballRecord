@@ -3,16 +3,17 @@ import SwiftUI
 struct SubstitutionView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var side: TeamSide
-    @Binding var outgoingPlayerID: UUID?
-    @Binding var incomingPlayerID: UUID?
 
     var homeTeamName: String
     var awayTeamName: String
-    var homeOnCourtPlayers: [Player]
-    var homeBenchPlayers: [Player]
-    var awayOnCourtPlayers: [Player]
-    var awayBenchPlayers: [Player]
-    var onConfirm: () -> Void
+    var homePlayers: [Player]
+    var awayPlayers: [Player]
+    var homeOnCourtIDs: [UUID]
+    var awayOnCourtIDs: [UUID]
+    var courtPlayerCount: Int
+    var onConfirm: (TeamSide, [UUID]) -> Void
+
+    @State private var editedOnCourtIDs: Set<UUID> = []
 
     var body: some View {
         NavigationStack {
@@ -24,27 +25,34 @@ struct SubstitutionView: View {
                     }
                     .pickerStyle(.segmented)
                     .onChange(of: side) { _, _ in
-                        outgoingPlayerID = nil
-                        incomingPlayerID = nil
+                        resetToCurrent()
                     }
                 }
                 .padding(.horizontal)
 
                 VStack(alignment: .leading, spacing: 8) {
-                    sectionHeader(NSLocalizedString("section_substitute_out", comment: "Substitute out"), selectedName(for: outgoingPlayerID))
+                    HStack {
+                        Text(NSLocalizedString("section_on_court", comment: "On court"))
+                            .font(.headline)
+                        Spacer()
+                        Text(String(format: NSLocalizedString("count_on_court_format", comment: "On court count"), editedOnCourtIDs.count, courtPlayerCount))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
                     if onCourtPlayers.isEmpty {
-                        Text(LocalizedStringKey("text_no_on_court_players"))
+                        Text(LocalizedStringKey("text_no_players"))
                             .foregroundStyle(.secondary)
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 12) {
-                            ForEach(onCourtPlayers) { player in
+                                ForEach(onCourtPlayers) { player in
                                     SelectablePlayerAvatarButton(
                                         player: player,
-                                        isSelected: outgoingPlayerID == player.id,
-                                        badge: outgoingPlayerID == player.id ? NSLocalizedString("badge_sub_out", comment: "Substitute out badge") : nil
+                                        isSelected: true,
+                                        badge: NSLocalizedString("badge_on_court", comment: "On-court badge")
                                     ) {
-                                        outgoingPlayerID = player.id
+                                        editedOnCourtIDs.remove(player.id)
                                     }
                                 }
                             }
@@ -55,20 +63,22 @@ struct SubstitutionView: View {
                 .padding(.horizontal)
 
                 VStack(alignment: .leading, spacing: 8) {
-                    sectionHeader(NSLocalizedString("section_substitute_in", comment: "Substitute in"), selectedName(for: incomingPlayerID))
+                    Text(NSLocalizedString("section_bench", comment: "Bench"))
+                        .font(.headline)
+
                     if benchPlayers.isEmpty {
-                        Text(LocalizedStringKey("text_no_bench_to_sub_in"))
+                        Text(LocalizedStringKey("text_no_bench_players"))
                             .foregroundStyle(.secondary)
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 12) {
-                            ForEach(benchPlayers) { player in
+                                ForEach(benchPlayers) { player in
                                     SelectablePlayerAvatarButton(
                                         player: player,
-                                        isSelected: incomingPlayerID == player.id,
-                                        badge: incomingPlayerID == player.id ? NSLocalizedString("badge_sub_in", comment: "Substitute in badge") : nil
+                                        isSelected: false
                                     ) {
-                                        incomingPlayerID = player.id
+                                        guard editedOnCourtIDs.count < courtPlayerCount else { return }
+                                        editedOnCourtIDs.insert(player.id)
                                     }
                                 }
                             }
@@ -89,37 +99,37 @@ struct SubstitutionView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(LocalizedStringKey("button_record")) {
-                        onConfirm()
+                        let sortedIDs = teamPlayers.filter { editedOnCourtIDs.contains($0.id) }.map(\.id)
+                        onConfirm(side, sortedIDs)
                         dismiss()
                     }
-                    .disabled(outgoingPlayerID == nil || incomingPlayerID == nil || outgoingPlayerID == incomingPlayerID)
+                    .disabled(editedOnCourtIDs.count != courtPlayerCount)
                 }
             }
         }
+        .onAppear {
+            resetToCurrent()
+        }
+    }
+
+    private var teamPlayers: [Player] {
+        side == .home ? homePlayers : awayPlayers
     }
 
     private var onCourtPlayers: [Player] {
-        side == .home ? homeOnCourtPlayers : awayOnCourtPlayers
+        teamPlayers.filter { editedOnCourtIDs.contains($0.id) }
     }
 
     private var benchPlayers: [Player] {
-        side == .home ? homeBenchPlayers : awayBenchPlayers
+        teamPlayers.filter { !editedOnCourtIDs.contains($0.id) }
     }
 
-    private func selectedName(for id: UUID?) -> String {
-        guard let id else { return NSLocalizedString("text_not_selected", comment: "Not selected") }
-        return (onCourtPlayers + benchPlayers).first(where: { $0.id == id })?.name ?? NSLocalizedString("text_not_selected", comment: "Not selected")
+    private var currentOnCourtIDs: [UUID] {
+        side == .home ? homeOnCourtIDs : awayOnCourtIDs
     }
 
-    private func sectionHeader(_ title: String, _ detail: String) -> some View {
-        HStack {
-            Text(title)
-                .font(.headline)
-            Spacer()
-            Text(detail)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
+    private func resetToCurrent() {
+        editedOnCourtIDs = Set(currentOnCourtIDs)
     }
 }
 

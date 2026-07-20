@@ -37,8 +37,6 @@ struct GameView: View {
     @State private var manualEndPeriodMessage = ""
     @State private var substitutionSide: TeamSide = .home
     @State private var lateArrivalSide: TeamSide = .home
-    @State private var outgoingPlayerID: UUID?
-    @State private var incomingPlayerID: UUID?
     @State private var lateArrivalIncomingPlayerID: UUID?
     @State private var saveConfirmation: String?
     @State private var statAlertMessage: String?
@@ -243,15 +241,14 @@ struct GameView: View {
             .sheet(isPresented: $isShowingSubstitution) {
                 SubstitutionView(
                     side: $substitutionSide,
-                    outgoingPlayerID: $outgoingPlayerID,
-                    incomingPlayerID: $incomingPlayerID,
                     homeTeamName: store.team(for: gameVM.snapshot.homeTeamID)?.name ?? NSLocalizedString("team_home_default", comment: "Default home team name"),
                     awayTeamName: store.team(for: gameVM.snapshot.awayTeamID)?.name ?? NSLocalizedString("team_away_default", comment: "Default away team name"),
-                    homeOnCourtPlayers: players(in: gameVM.snapshot.homeTeamID).filter { gameVM.snapshot.homeOnCourtPlayerIDs.contains($0.id) },
-                    homeBenchPlayers: benchPlayers(for: .home),
-                    awayOnCourtPlayers: players(in: gameVM.snapshot.awayTeamID).filter { gameVM.snapshot.awayOnCourtPlayerIDs.contains($0.id) },
-                    awayBenchPlayers: benchPlayers(for: .away),
-                    onConfirm: performSubstitution
+                    homePlayers: players(in: gameVM.snapshot.homeTeamID),
+                    awayPlayers: players(in: gameVM.snapshot.awayTeamID),
+                    homeOnCourtIDs: gameVM.snapshot.homeOnCourtPlayerIDs,
+                    awayOnCourtIDs: gameVM.snapshot.awayOnCourtPlayerIDs,
+                    courtPlayerCount: gameVM.snapshot.courtPlayerCount,
+                    onConfirm: performBatchSubstitution
                 )
             }
             .sheet(isPresented: $isShowingLateArrival) {
@@ -575,7 +572,6 @@ struct GameView: View {
                 liveManager.handleIncomingResyncRequest(request)
             }
             .onChange(of: store.teams) { _, _ in ensureInitialSelection() }
-            .onChange(of: substitutionSide) { _, _ in prepareSubstitutionDefaults() }
             .onChange(of: lateArrivalSide) { _, _ in prepareLateArrivalDefaults() }
             .onDisappear {
                 scorePulseDismissTask?.cancel()
@@ -2086,39 +2082,36 @@ struct GameView: View {
         }
     }
 
-    private func prepareSubstitutionDefaults() {
-        let onCourt = substitutionSide == .home ? gameVM.snapshot.homeOnCourtPlayerIDs : gameVM.snapshot.awayOnCourtPlayerIDs
-        let bench = gamePlayerIDs(for: substitutionSide).filter { !onCourt.contains($0) }
-        outgoingPlayerID = onCourt.first
-        incomingPlayerID = bench.first
-    }
-
     private func openSubstitution(_ side: TeamSide) {
         substitutionSide = side
-        prepareSubstitutionDefaults()
         isShowingSubstitution = true
     }
 
-    private func performSubstitution() {
-        guard let outgoingPlayerID,
-              let incomingPlayerID,
-              outgoingPlayerID != incomingPlayerID else { return }
-
+    private func performBatchSubstitution(side: TeamSide, newOnCourtIDs: [UUID]) {
         let now = Date()
-        _ = liveManager.submitLiveOperation(
-            .substitution(
-                outgoingPlayerID: outgoingPlayerID,
-                incomingPlayerID: incomingPlayerID,
-                side: substitutionSide.liveSide,
-                at: now
-            )
-        ) {
-            applySubstitutionOperation(
-                outgoingPlayerID: outgoingPlayerID,
-                incomingPlayerID: incomingPlayerID,
-                side: substitutionSide,
-                at: now
-            )
+        let oldOnCourtIDs = onCourtIDs(for: side)
+
+        let outgoingIDs = oldOnCourtIDs.filter { !newOnCourtIDs.contains($0) }
+        let incomingIDs = newOnCourtIDs.filter { !oldOnCourtIDs.contains($0) }
+
+        guard outgoingIDs.count == incomingIDs.count, !outgoingIDs.isEmpty else { return }
+
+        for (outgoingID, incomingID) in zip(outgoingIDs, incomingIDs) {
+            _ = liveManager.submitLiveOperation(
+                .substitution(
+                    outgoingPlayerID: outgoingID,
+                    incomingPlayerID: incomingID,
+                    side: side.liveSide,
+                    at: now
+                )
+            ) {
+                applySubstitutionOperation(
+                    outgoingPlayerID: outgoingID,
+                    incomingPlayerID: incomingID,
+                    side: side,
+                    at: now
+                )
+            }
         }
     }
 
