@@ -251,6 +251,7 @@
 "picker_home_team" = "主队";
 "picker_away_team" = "客队";
 "label_period_count" = "比赛节数";
+"count_on_court_format" = "场上 %d / %d 人";
 "count_periods_format" = "%d节";
 "label_starter_count" = "首发人数";
 "count_players_format" = "%d人";
@@ -258,8 +259,11 @@
 "starter_home_bench_title" = "主队替补";
 "starter_away_bench_title" = "客队替补";
 "section_starter_select_format" = "%@ · 选择 %d 人";
+"section_on_court" = "场上球员";
+"section_bench" = "替补球员";
 "section_bench_optional_format" = "%@ · 可选";
 "text_team_has_no_players" = "这支球队还没有球员";
+"text_no_bench_players" = "无替补球员";
 "text_no_optional_bench" = "当前没有可选替补";
 "badge_starter" = "首发";
 "badge_bench" = "替补";

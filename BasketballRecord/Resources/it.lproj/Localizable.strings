@@ -164,6 +164,7 @@
 "picker_home_team" = "Home Team";
 "picker_away_team" = "Away Team";
 "label_period_count" = "Periodi";
+"count_on_court_format" = "%d di %d in campo";
 "count_periods_format" = "%d periodi";
 "label_starter_count" = "Avvicinamenti";
 "count_players_format" = "%d giocatori";
@@ -171,8 +172,11 @@
 "starter_home_bench_title" = "Home Bench";
 "starter_away_bench_title" = "Away Bench";
 "section_starter_select_format" = "%@ · Seleziona %d";
+"section_on_court" = "In campo";
+"section_bench" = "Panchina";
 "section_bench_optional_format" = "%@ · Opzionale";
 "text_team_has_no_players" = "Questa squadra non ha ancora giocatori";
+"text_no_bench_players" = "Nessun giocatore in panchina";
 "text_no_optional_bench" = "Nessun giocatore di panca opzionale";
 "badge_starter" = "Avviamento";
 "badge_bench" = "Bench";

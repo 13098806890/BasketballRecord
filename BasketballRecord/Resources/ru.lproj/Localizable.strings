@@ -164,6 +164,7 @@
 "picker_home_team" = "Домашняя команда";
 "picker_away_team" = "Прочь команда";
 "label_period_count" = "Периоды";
+"count_on_court_format" = "%d из %d на площадке";
 "count_periods_format" = "%d периоды";
 "label_starter_count" = "Начинающие";
 "count_players_format" = "%d Игроки";
@@ -171,8 +172,11 @@
 "starter_home_bench_title" = "Домашняя скамейка";
 "starter_away_bench_title" = "Прочь скамейка";
 "section_starter_select_format" = "%@ Выберите %d";
+"section_on_court" = "На площадке";
+"section_bench" = "Запасные";
 "section_bench_optional_format" = "%@ Факультативный";
 "text_team_has_no_players" = "У этой команды пока нет игроков";
+"text_no_bench_players" = "Нет запасных игроков";
 "text_no_optional_bench" = "Нет дополнительных игроков скамейки";
 "badge_starter" = "Стартер";
 "badge_bench" = "скамейка";

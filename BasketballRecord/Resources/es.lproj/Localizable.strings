@@ -164,6 +164,7 @@
 "picker_home_team" = "Equipo Local";
 "picker_away_team" = "Equipo Visitante";
 "label_period_count" = "Períodos";
+"count_on_court_format" = "%d de %d en cancha";
 "count_periods_format" = "%d períodos";
 "label_starter_count" = "Titulares";
 "count_players_format" = "%d jugadores";
@@ -172,8 +173,11 @@
 "starter_home_bench_title" = "Banca Local";
 "starter_away_bench_title" = "Banca Visitante";
 "section_starter_select_format" = "%@ · Seleccionar %d";
+"section_on_court" = "En cancha";
+"section_bench" = "Banca";
 "section_bench_optional_format" = "%@ · Opcional";
 "text_team_has_no_players" = "Este equipo aún no tiene jugadores";
+"text_no_bench_players" = "Sin jugadores de banca";
 "text_no_optional_bench" = "No hay jugadores de banca opcionales";
 "badge_starter" = "Titular";
 "badge_bench" = "Banca";

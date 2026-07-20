@@ -231,6 +231,7 @@
 "picker_home_team" = "Home Team";
 "picker_away_team" = "Away Team";
 "label_period_count" = "Periods";
+"count_on_court_format" = "%d of %d on court";
 "count_periods_format" = "%d periods";
 "label_starter_count" = "Starters";
 "count_players_format" = "%d players";
@@ -238,8 +239,10 @@
 "starter_home_bench_title" = "Home Bench";
 "starter_away_bench_title" = "Away Bench";
 "section_starter_select_format" = "%@ · Select %d";
+"section_bench" = "Bench";
 "section_bench_optional_format" = "%@ · Optional";
 "text_team_has_no_players" = "This team has no players yet";
+"text_no_bench_players" = "No bench players";
 "text_no_optional_bench" = "No optional bench players";
 "badge_starter" = "Starter";
 "badge_bench" = "Bench";
