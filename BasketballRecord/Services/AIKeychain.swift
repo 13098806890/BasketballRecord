@@ -89,6 +89,14 @@ struct AIKeychain {
         guard status == errSecSuccess || status == errSecItemNotFound else {
             throw AIKeychainError.osStatus(status)
         }
+        if provider == .deepseek {
+            let legacyQuery: [String: Any] = [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: service,
+                kSecAttrAccount as String: "deepseek_api_key"
+            ]
+            SecItemDelete(legacyQuery as CFDictionary)
+        }
     }
 
     func hasSavedKey(for provider: AIProvider) -> Bool {
