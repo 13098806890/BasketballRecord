@@ -20,6 +20,7 @@ struct RosterView: View {
     @State private var showingSettingsDocument: SettingsDocument?
     @State private var isShowingPurchase = false
 
+    @AppStorage("show_badges") private var showBadges = true
     @AppStorage(UnitSettings.heightUnitKey) private var heightRaw: String = ""
     @AppStorage(UnitSettings.weightUnitKey) private var weightRaw: String = ""
 
@@ -56,6 +57,22 @@ struct RosterView: View {
                         Spacer()
 
                         Toggle("", isOn: $store.showsBluetoothGamesButton)
+                            .labelsHidden()
+                    }
+
+                    HStack(spacing: 12) {
+                        Image(systemName: "medal.fill")
+                            .font(.subheadline.weight(.semibold))
+                            .symbolRenderingMode(.monochrome)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 28, height: 28)
+
+                        Text(LocalizedStringKey("settings_show_badges"))
+                            .font(.body.weight(.medium))
+
+                        Spacer()
+
+                        Toggle("", isOn: $showBadges)
                             .labelsHidden()
                     }
 

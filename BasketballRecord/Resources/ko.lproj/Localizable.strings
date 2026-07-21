@@ -849,6 +849,7 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "label_career_summary" = "커리어 요약";
 "label_games_count" = "게임";
 "stats_total_points" = "총 득점";
+"settings_show_badges" = "메달 표시";
 "settings_show_bluetooth_button" = "블루투스 협동 표시";
 "settings_show_voice_button" = "음성 버튼 표시";
 "settings_voice_log" = "음성 로그";

@@ -591,6 +591,7 @@
 "label_career_summary" = "Riepilogo carriera";
 "label_games_count" = "Partite";
 "stats_total_points" = "Punti totali";
+"settings_show_badges" = "Mostra medaglie";
 "settings_show_bluetooth_button" = "Mostra collaborazione Bluetooth";
 "settings_show_voice_button" = "Mostra pulsante vocale";
 "settings_voice_log" = "Registro vocale";

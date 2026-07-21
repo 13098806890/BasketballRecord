@@ -591,6 +591,7 @@
 "label_career_summary" = "Resumen de carrera";
 "label_games_count" = "Juegos";
 "stats_total_points" = "Puntos totales";
+"settings_show_badges" = "Mostrar medallas";
 "settings_show_bluetooth_button" = "Mostrar colaboración Bluetooth";
 "settings_show_voice_button" = "Mostrar botón de voz";
 "settings_voice_log" = "Registro de voz";
