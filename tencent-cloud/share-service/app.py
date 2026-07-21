@@ -10,7 +10,7 @@ import urllib.error
 import urllib.parse
 import xml.etree.ElementTree as ET
 import email.utils as email_utils
-from datetime import date
+from datetime import date, datetime, timezone
 from flask import Flask, request, jsonify
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -245,8 +245,29 @@ def _get_remaining_seconds(key):
         return 0
 
 
-def _generate_key(uid):
-    return f"shares/{uid}.json"
+def _uid_timestamp(uid):
+    manifest = _load_manifest()
+    for entry in manifest:
+        if entry.get("uuid") == uid:
+            return entry.get("created_at")
+    return None
+
+
+def _month_path(base, uid, ts=None):
+    if ts is None:
+        ts = _uid_timestamp(uid)
+    if ts is None:
+        ts = time.time()
+    dt = datetime.fromtimestamp(ts, tz=timezone.utc)
+    return f"{base}/{dt.year}/{dt.month:02d}/{uid}"
+
+
+def _generate_key(uid, ts=None):
+    return _month_path("shares", uid, ts) + ".json"
+
+
+def _photo_key(uid, pid, ts=None):
+    return _month_path("shares", uid, ts) + f"/photos/{pid}.jpg"
 
 
 @app.route("/v2/debug", methods=["GET"])
@@ -412,7 +433,7 @@ def upload_photo(uid, pid):
     if not data:
         return jsonify({"error": "empty body"}), 400
 
-    key = f"shares/{uid}/photos/{pid}.jpg"
+    key = _photo_key(uid, pid)
     try:
         _cos_request("PUT", key, data=data)
     except Exception as e:
@@ -432,7 +453,7 @@ def download_photo(uid, pid):
     except ValueError:
         return jsonify({"error": "invalid uuid"}), 400
 
-    key = f"shares/{uid}/photos/{pid}.jpg"
+    key = _photo_key(uid, pid)
     if not _check_exists(key):
         return jsonify({"error": "not found"}), 404
 
@@ -461,7 +482,7 @@ def _do_cleanup():
         created = entry.get("created_at", 0)
         if now - created > TTL:
             try:
-                key = _generate_key(uid)
+                key = _generate_key(uid, created)
                 _cos_request("DELETE", key)
                 deleted += 1
             except Exception:

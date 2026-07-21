@@ -1,11 +1,16 @@
-import os, json, base64, time, urllib.request, urllib.error, traceback
-from datetime import date
+import os, json, base64, time, uuid, hmac, hashlib, urllib.request, urllib.error, urllib.parse, traceback, threading
+from datetime import date, datetime, timezone
 from flask import Flask, request, jsonify
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.backends import default_backend
 
 app = Flask(__name__)
+
+COS_BUCKET = os.environ.get("COS_BUCKET", "")
+COS_REGION = os.environ.get("COS_REGION", "ap-shanghai")
+COS_SECRET_ID = os.environ.get("COS_SECRET_ID", "")
+COS_SECRET_KEY = os.environ.get("COS_SECRET_KEY", "")
 
 # In-memory rate limit: 10 requests per transactionId per day
 _rate_limit = {}  # {"txnId_date": count}
@@ -152,31 +157,138 @@ def call_ai(api_key, messages, system_prompt, temperature, max_tokens):
         return {"error": str(e)}
 
 
+def _v5_sign(method, path, headers, params=""):
+    now = int(time.time())
+    start = now - 60
+    end = now + 3600
+    key_time = f"{start};{end}"
+
+    sign_key = hmac.new(
+        COS_SECRET_KEY.encode(), key_time.encode(), hashlib.sha1
+    ).hexdigest()
+
+    sorted_headers = sorted(headers.items(), key=lambda x: x[0].lower())
+    header_parts = []
+    header_names = []
+    for k, v in sorted_headers:
+        ek = urllib.parse.quote(k.lower(), safe="")
+        ev = urllib.parse.quote(str(v).strip(), safe="")
+        header_parts.append(f"{ek}={ev}")
+        header_names.append(ek)
+
+    http_headers = "&".join(header_parts)
+    header_list = ";".join(header_names)
+
+    http_string = f"{method.lower()}\n{path}\n{params}\n{http_headers}\n"
+    sha1_http = hashlib.sha1(http_string.encode()).hexdigest()
+    string_to_sign = f"sha1\n{key_time}\n{sha1_http}\n"
+    signature = hmac.new(
+        sign_key.encode(), string_to_sign.encode(), hashlib.sha1
+    ).hexdigest()
+
+    return (
+        f"q-sign-algorithm=sha1"
+        f"&q-ak={COS_SECRET_ID}"
+        f"&q-sign-time={key_time}"
+        f"&q-key-time={key_time}"
+        f"&q-header-list={header_list}"
+        f"&q-url-param-list="
+        f"&q-signature={signature}"
+    )
+
+
+def _cos_put(key, data):
+    if not COS_BUCKET or not COS_SECRET_ID or not COS_SECRET_KEY:
+        return
+    path = f"/{key}"
+    host = f"{COS_BUCKET}.cos.{COS_REGION}.myqcloud.com"
+    url = f"https://{host}{path}"
+
+    sign_headers = {
+        "Host": host,
+        "x-cos-content-sha256": hashlib.sha256(data).hexdigest(),
+    }
+    auth = _v5_sign("PUT", path, sign_headers)
+
+    req_headers = {
+        "Authorization": auth,
+        "Host": host,
+        "x-cos-content-sha256": sign_headers["x-cos-content-sha256"],
+        "Content-Type": "application/octet-stream",
+    }
+
+    req = urllib.request.Request(url, data=data, headers=req_headers, method="PUT")
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            pass
+    except Exception:
+        pass
+
+
+def _write_log(entry):
+    if not COS_BUCKET:
+        return
+    now = datetime.now(timezone.utc)
+    ts = now.strftime("%Y%m%dT%H%M%S")
+    token = (entry.get("appAccountToken", "") or "unknown")[:8]
+    log_key = "ai/{}/{:02d}/{}/request-{}-{}.json".format(now.year, now.month, token, ts, str(uuid.uuid4())[:8])
+    threading.Thread(target=_cos_put, args=(log_key, json.dumps(entry, ensure_ascii=False).encode()), daemon=True).start()
+
+
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok", "cryptography": True})
 
 @app.route("/v1/chat", methods=["POST"])
 def chat():
+    start_time = time.time()
+    log_entry = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "transactionId": "",
+        "appAccountToken": "",
+        "environment": "",
+        "request": {},
+        "response": {},
+        "latencyMs": 0,
+    }
+
     try:
         body = request.get_json(silent=True) or {}
         config = APP_CONFIGS.get("com.xiedongze.BasketballRecord")
 
         tid = body.get("transactionId", "")
+        log_entry["transactionId"] = tid
+        log_entry["appAccountToken"] = body.get("appAccountToken", "")
+        log_entry["environment"] = body.get("environment", "")
+        log_entry["request"] = {
+            "messageCount": len(body.get("messages", [])),
+            "systemPrompt": (body.get("systemPrompt", "") or "")[:200],
+            "temperature": body.get("temperature", 0.6),
+            "maxTokens": body.get("maxTokens", 2500),
+        }
+
         if not tid:
+            log_entry["response"] = {"status": "error", "error": "transactionId required"}
+            _write_log(log_entry)
             return jsonify({"error": "transactionId required"}), 400
 
         if not _check_rate(tid):
+            log_entry["response"] = {"status": "error", "error": "rate limit reached (10/day)"}
+            _write_log(log_entry)
             return jsonify({"error": "rate limit reached (10/day)"}), 429
 
         client_token = body.get("appAccountToken", "")
         env = body.get("environment", "")
-        valid, status = verify_transaction(tid, config, "com.xiedongze.BasketballRecord", client_token, env)
+        valid, sub_status = verify_transaction(tid, config, "com.xiedongze.BasketballRecord", client_token, env)
         if not valid:
-            return jsonify({"error": f"subscription {status}"}), 403
+            log_entry["response"] = {"status": "error", "error": f"subscription {sub_status}"}
+            _write_log(log_entry)
+            return jsonify({"error": f"subscription {sub_status}"}), 403
 
         api_key = os.environ.get("DEEPSEEK_API_KEY", "")
         if not api_key:
+            log_entry["response"] = {"status": "error", "error": "server not configured"}
+            _write_log(log_entry)
             return jsonify({"error": "server not configured"}), 500
 
         result = call_ai(
@@ -187,11 +299,34 @@ def chat():
             body.get("maxTokens", 2500)
         )
 
+        log_entry["latencyMs"] = int((time.time() - start_time) * 1000)
+        log_entry["deepSeekStatus"] = 200 if "error" not in result else 500
+
         if "error" in result:
+            log_entry["response"] = {"status": "error", "error": result["error"]}
+            _write_log(log_entry)
             return jsonify(result), 500
+
+        usage = result.get("usage", {})
+        content = ""
+        choices = result.get("choices", [])
+        if choices and isinstance(choices, list) and len(choices) > 0:
+            content = (choices[0].get("message", {}).get("content", "") or "")[:200]
+
+        log_entry["response"] = {
+            "status": "success",
+            "contentPreview": content,
+            "promptTokens": usage.get("prompt_tokens", 0),
+            "completionTokens": usage.get("completion_tokens", 0),
+            "totalTokens": usage.get("total_tokens", 0),
+        }
+        _write_log(log_entry)
         return jsonify(result)
 
     except Exception as e:
+        log_entry["latencyMs"] = int((time.time() - start_time) * 1000)
+        log_entry["response"] = {"status": "error", "error": str(e)}
+        _write_log(log_entry)
         return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
 
 

@@ -5,16 +5,19 @@
 ### 改进
 
 - **批量换人**：换人页面改为直接展示场上/场下球员，支持一次性调整多名场上球员，系统自动计算换人对次。
+- **SCF 分享服务**：分享数据改为按月目录存储，便于手动管理。
 
 ### 修复
 
 - **云端下载修复**：`ExportPlayer`/`ExportPlayerV2` 的 `nicknames` 字段改为 `decodeIfPresent`，兼容旧版云端分享数据。
 - **DeepSeek 模型更新**：`deepseek-chat` 即将停用，替换为 `deepseek-v4-flash`（SCF 服务及 App 端均已更新）。
+- **API Key 删除修复**：删除 API Key 时同时清理旧版遗留 key，防止重新出现。
 
 ### 新增
 
 - **球员搜索**：球员管理页面顶部新增搜索栏，可按姓名、昵称、球衣号码搜索球员。
 - **导出合规声明**：Info.plist 新增 `ITSAppUsesNonExemptEncryption = NO`，避免上传构建包时弹窗。
+- **SCF 请求日志**：AI 服务每次请求记录日志到 COS，按月/设备分类存储。
 
 ## 2.35 (2026-07-17)
 
