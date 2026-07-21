@@ -373,6 +373,7 @@
 "deepseek_status_removed" = "Сохраненный ключ API удален.";
 "deepseek_status_saved_to_keychain" = "API-ключ сохранен в Keychain.";
 "deepseek_status_test_success" = "Тест на соединение удался.";
+"deepseek_save_hint" = "Вы можете сохранить ключ сразу или сначала проверить соединение.";
 "deepseek_test_before_save_hint" = "Пожалуйста, проверьте соединение перед сохранением.";
 "empty_no_players" = "Нет игроков пока";
 "empty_no_teams" = "Команды пока нет";

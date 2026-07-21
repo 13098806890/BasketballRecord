@@ -383,6 +383,7 @@
 "deepseek_status_removed" = "保存された API キーを削除しました。";
 "deepseek_status_saved_to_keychain" = "APIキーはKeychainに保存されます。";
 "deepseek_status_test_success" = "接続テストが成功しました。";
+"deepseek_save_hint" = "キーを直接保存するか、先に接続をテストすることができます。";
 "deepseek_test_before_save_hint" = "保存前に接続をテストしてください。";
 "empty_no_players" = "プレイヤーはまだありません";
 "empty_no_teams" = "チームはまだありません";

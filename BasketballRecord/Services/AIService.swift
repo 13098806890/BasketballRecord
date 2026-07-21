@@ -32,16 +32,20 @@ enum AIProvider: String, Codable, CaseIterable, Identifiable {
 
     var models: [AIModel] {
         switch self {
-        case .deepseek: return [AIModel(provider: .deepseek, id: "deepseek-v4-flash", displayName: "DeepSeek V4 Flash")]
+        case .deepseek: return [
+            AIModel(provider: .deepseek, id: "deepseek-v4-flash", displayName: "DeepSeek V4 Flash"),
+            AIModel(provider: .deepseek, id: "deepseek-v4-pro", displayName: "DeepSeek V4 Pro"),
+        ]
         case .openAI: return [
             AIModel(provider: .openAI, id: "gpt-4o", displayName: "GPT-4o"),
             AIModel(provider: .openAI, id: "gpt-4o-mini", displayName: "GPT-4o Mini"),
-            AIModel(provider: .openAI, id: "gpt-4-turbo", displayName: "GPT-4 Turbo"),
-            AIModel(provider: .openAI, id: "gpt-3.5-turbo", displayName: "GPT-3.5 Turbo"),
+            AIModel(provider: .openAI, id: "o4-mini", displayName: "o4-mini"),
         ]
         case .anthropic: return [
-            AIModel(provider: .anthropic, id: "claude-sonnet-4", displayName: "Claude Sonnet 4"),
-            AIModel(provider: .anthropic, id: "claude-haiku-4", displayName: "Claude Haiku 4"),
+            AIModel(provider: .anthropic, id: "claude-fable-5", displayName: "Claude Fable 5"),
+            AIModel(provider: .anthropic, id: "claude-opus-4-8", displayName: "Claude Opus 4.8"),
+            AIModel(provider: .anthropic, id: "claude-sonnet-5", displayName: "Claude Sonnet 5"),
+            AIModel(provider: .anthropic, id: "claude-haiku-4-5", displayName: "Claude Haiku 4.5"),
         ]
         }
     }
@@ -73,7 +77,7 @@ struct AIService {
     }
 
     func testConnection(model: AIModel, apiKey: String) async throws {
-        let _ = try await sendChat(model: model, apiKey: apiKey, systemPrompt: "You are a helpful assistant.", userPrompt: "Reply only: OK", temperature: 0, maxTokens: 16)
+        let _ = try await sendChat(model: model, apiKey: apiKey, systemPrompt: "You are a helpful assistant.", userPrompt: "Say OK", temperature: 0.1, maxTokens: 50)
     }
 
     private func sendOpenAICompatible(model: AIModel, apiKey: String, systemPrompt: String, userPrompt: String, temperature: Double, maxTokens: Int) async throws -> String {

@@ -373,6 +373,7 @@
 "deepseek_status_removed" = "La clé d'API sauvegardée a été supprimée.";
 "deepseek_status_saved_to_keychain" = "API Clé enregistrée dans Keychain.";
 "deepseek_status_test_success" = "Le test de connexion a réussi.";
+"deepseek_save_hint" = "Vous pouvez enregistrer la clé directement ou d'abord tester la connexion.";
 "deepseek_test_before_save_hint" = "Veuillez tester la connexion avant d'enregistrer.";
 "empty_no_players" = "Pas encore de joueurs";
 "empty_no_teams" = "Pas encore d'équipes";
