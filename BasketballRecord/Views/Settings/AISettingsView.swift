@@ -33,7 +33,7 @@ struct AISettingsView: View {
     }
 
     private var canSave: Bool {
-        !normalizedKey.isEmpty && testedKey == normalizedKey
+        !normalizedKey.isEmpty
     }
 
     @State private var testedKey: String?
@@ -126,7 +126,7 @@ struct AISettingsView: View {
                 } header: {
                     Text(LocalizedStringKey("settings_section_ai_config"))
                 } footer: {
-                    Text(LocalizedStringKey("deepseek_test_before_save_hint"))
+                    Text(LocalizedStringKey("deepseek_save_hint"))
                 }
 
                 Section(LocalizedStringKey("section_status")) {

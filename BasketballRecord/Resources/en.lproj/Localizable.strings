@@ -444,6 +444,7 @@
 "deepseek_status_removed" = "Saved API Key removed.";
 "deepseek_status_saved_to_keychain" = "API Key saved to Keychain.";
 "deepseek_status_test_success" = "Connection test succeeded.";
+"deepseek_save_hint" = "You can save the key directly or test the connection first.";
 "deepseek_test_before_save_hint" = "Please test the connection before saving.";
 "empty_no_players" = "No players yet";
 "empty_no_teams" = "No teams yet";

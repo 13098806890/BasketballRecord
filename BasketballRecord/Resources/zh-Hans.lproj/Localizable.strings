@@ -446,6 +446,7 @@
 "deepseek_status_removed" = "已删除保存的 API Key。";
 "deepseek_status_saved_to_keychain" = "API Key 已保存到 Keychain。";
 "deepseek_status_test_success" = "连接测试成功。";
+"deepseek_save_hint" = "可以直接保存密钥，也可以先测试连接再保存。";
 "deepseek_test_before_save_hint" = "请先测试连接成功后再保存。";
 "empty_no_players" = "还没有球员";
 "empty_no_teams" = "还没有球队";

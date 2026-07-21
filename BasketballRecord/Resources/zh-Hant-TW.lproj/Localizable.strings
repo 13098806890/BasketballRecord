@@ -375,6 +375,7 @@
 "deepseek_status_removed" = "已刪除保存的 API Key。";
 "deepseek_status_saved_to_keychain" = "API Key 已保存到 Keychain。";
 "deepseek_status_test_success" = "連接測試成功。";
+"deepseek_save_hint" = "可以直接儲存密鑰，也可以先測試連線再儲存。";
 "deepseek_test_before_save_hint" = "請先測試連接成功後再保存。";
 "empty_no_players" = "還沒有球員";
 "empty_no_teams" = "還沒有球隊";
