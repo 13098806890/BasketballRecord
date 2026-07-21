@@ -851,6 +851,7 @@
 "label_career_summary" = "キャリアサマリー";
 "label_games_count" = "試合数";
 "stats_total_points" = "総得点";
+"settings_show_badges" = "メダルを表示";
 "settings_show_bluetooth_button" = "Bluetooth協同を表示";
 "settings_cloud_storage" = "iCloudストレージ";
 "stats_points_format_short" = "PTS";

@@ -20,6 +20,7 @@
 "nav_bluetooth_sync" = "Bluetooth Sync";
 "settings_bluetooth_games" = "Bluetooth Collaboration Games";
 "empty_no_bluetooth_games" = "No Bluetooth collaboration games";
+"settings_show_badges" = "Show Badges";
 "settings_show_bluetooth_button" = "Show Bluetooth Collaboration";
 "settings_show_voice_button" = "Show Voice Button";
 "settings_voice_log" = "Voice Log";

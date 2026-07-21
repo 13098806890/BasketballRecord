@@ -840,6 +840,7 @@
 "label_career_summary" = "生涯彙總";
 "label_games_count" = "出場";
 "stats_total_points" = "總得分";
+"settings_show_badges" = "顯示勳章";
 "settings_show_bluetooth_button" = "顯示藍牙協同邀請";
 "settings_show_voice_button" = "顯示語音按鈕";
 "settings_voice_log" = "語音日誌";

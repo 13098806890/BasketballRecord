@@ -594,6 +594,7 @@
 "label_career_summary" = "Сводка карьеры";
 "label_games_count" = "Игры";
 "stats_total_points" = "Всего очков";
+"settings_show_badges" = "Показывать медали";
 "settings_show_bluetooth_button" = "Показывать Bluetooth-совместный доступ";
 "settings_show_voice_button" = "Показать кнопку голоса";
 "settings_voice_log" = "Журнал голоса";

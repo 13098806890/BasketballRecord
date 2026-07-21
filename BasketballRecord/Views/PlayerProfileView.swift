@@ -8,6 +8,7 @@ struct PlayerProfileView: View {
     @Binding var selectedGroupID: UUID?
     @State private var selectedGameIDs: Set<UUID> = []
     @State private var hasInitializedGameSelection = false
+    @AppStorage("show_badges") private var showBadges = true
     @State private var selectedPeriod: Int? = nil
     @State private var fixedGameAnalysis = SavedGamePeriodAnalysis()
     @State private var showingELOHistory = false
@@ -59,7 +60,7 @@ struct PlayerProfileView: View {
 
                     header
 
-                    if let player, !player.badges.isEmpty {
+                    if showBadges, let player, !player.badges.isEmpty {
                         if let fg = fixedGame {
                             if player.badges.contains(where: { $0.gameID == fg.id }) {
                                 badgeSection(player)
