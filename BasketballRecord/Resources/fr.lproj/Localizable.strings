@@ -820,6 +820,7 @@
 "ai_prompt_section_summary_desc" = "(Analyse détaillée quartier par quartier : ·Utilise les événements de score de l'analyse des séries pour décrire le déroulement de chaque quartier ·Pour chaque score, indique qui a marqué, combien de points et le score exact ·Analyse l'impact des séries de points et des séries de tirs manqués ·Les rebonds/passes décisives consécutifs montrent la domination du joueur ·L'alternance de la tête indique un match serré. Ton conversationnel. Au moins 5-8 phrases par quartier)";
 "ai_prompt_section_mvp" = "MVP";
 "ai_prompt_section_mvp_desc" = "(Sélectionne 1 seul joueur. Utilise les données clés des statistiques des joueurs et de l'analyse des séries : les contributions de score du joueur, ses séries, rebonds, passes, défense et son impact dans les moments critiques. Au moins 3-5 phrases)";
+"ai_prompt_mvp_format" = "Affichez le nom complet du MVP sur la première ligne dans ce format exact:\nMVP: Nom du joueur";
 "ai_prompt_section_highlights" = "Moments Forts";
 "ai_prompt_section_highlights_desc" = "(Sélectionne les 2 moments les plus importants du match. Trouve des séries de points personnelles ou des jeux décisifs dans l'analyse des séries. Pour chaque moment, indique le score, qui a fait le jeu et comment cela a changé le match. Ton naturel.)
 Format :

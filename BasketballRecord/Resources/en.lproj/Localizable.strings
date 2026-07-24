@@ -774,6 +774,7 @@
 "ai_prompt_section_summary_desc" = "(Detailed period-by-period analysis: ·Use scoring events from Scoring Run Analysis to describe each period's flow ·For each score, state who scored, how many points, and the exact score (refer to pre->post format) ·Analyze the impact of scoring runs and missed-shot streaks ·Consecutive rebounds/assists show player dominance ·Alternating scoring periods indicate a tight game. Conversational tone. At least 5-8 sentences per period)";
 "ai_prompt_section_mvp" = "MVP";
 "ai_prompt_section_mvp_desc" = "(Select only 1 player. Use key data from Player Stats and Scoring Run Analysis: the player's scoring contributions, streaks, rebounds, assists, defense, and impact on game momentum during critical moments. At least 3-5 sentences)";
+"ai_prompt_mvp_format" = "Output the MVP player's full name on the first line in this exact format:\nMVP: Player Name";
 "ai_prompt_section_highlights" = "Highlight Moments";
 "ai_prompt_section_highlights_desc" = "(Select the 2 most important highlights of the game. Find personal scoring runs or clutch plays from [Scoring Run Analysis]. For each highlight, clearly state the score at the time, who made the play, and how it changed the game. Conversational tone, not formal)
 Format:

@@ -125,7 +125,7 @@ struct AISummaryView: View {
             Group {
                 ForEach(Array(sections.enumerated()), id: \.offset) { _, section in
                     let isMVP = isMVPSection(section.title)
-                    let mvpID = isMVP ? mvpPlayerID(in: section.items.joined(separator: " ")) : nil
+                    let mvpID = isMVP ? mvpPlayerID(in: section.items) : nil
                     
                     VStack(alignment: .leading, spacing: 12) {
                         if isMVP {
@@ -732,6 +732,7 @@ struct AISummaryView: View {
         let summaryDesc = NSLocalizedString("ai_prompt_section_summary_desc", comment: "Summary desc")
         let mvpTitle = NSLocalizedString("ai_prompt_section_mvp", comment: "MVP title")
         let mvpDesc = NSLocalizedString("ai_prompt_section_mvp_desc", comment: "MVP desc")
+        let mvpFormat = NSLocalizedString("ai_prompt_mvp_format", comment: "MVP format")
         let highlightsTitle = NSLocalizedString("ai_prompt_section_highlights", comment: "Highlights title")
         let highlightsDesc = NSLocalizedString("ai_prompt_section_highlights_desc", comment: "Highlights desc")
         let extraReq = NSLocalizedString("ai_prompt_extra_requirements", comment: "Extra requirements")
@@ -776,6 +777,8 @@ struct AISummaryView: View {
         
         ### \(mvpTitle)
         \(mvpDesc)
+        
+        \(mvpFormat)
         
         ### \(highlightsTitle)
         \(highlightsDesc)
@@ -916,6 +919,10 @@ struct AISummaryView: View {
                 continue
             }
             
+            if currentTitle == nil, line.range(of: #"^MVP[：:]\s*\S"#, options: [.regularExpression, .caseInsensitive]) != nil {
+                continue
+            }
+            
             if !line.isEmpty || !currentLines.isEmpty {
                 currentLines.append(line)
             }
@@ -1010,14 +1017,45 @@ struct AISummaryView: View {
         title.localizedCaseInsensitiveContains("mvp")
     }
     
-    private func mvpPlayerID(in text: String) -> UUID? {
-        let normalized = stripMarkdownDecorations(from: text)
+    private func mvpPlayerID(in items: [String]) -> UUID? {
         let candidates = game.playerNamesByID
             .map { (id: $0.key, name: $0.value.trimmingCharacters(in: .whitespacesAndNewlines)) }
             .filter { !$0.name.isEmpty }
-            .sorted { $0.name.count > $1.name.count }
         
-        return candidates.first(where: { normalized.contains($0.name) })?.id
+        // Tier 1: structured "MVP: PlayerName" format
+        let mvpPattern = try? NSRegularExpression(pattern: #"^MVP[：:]\s*(.+)"#, options: [.caseInsensitive])
+        for item in items {
+            let trimmed = item.trimmingCharacters(in: .whitespaces)
+            if let match = mvpPattern?.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) {
+                let nameRange = Range(match.range(at: 1), in: trimmed)
+                let extracted = nameRange.map { String(trimmed[$0]).trimmingCharacters(in: .whitespaces) } ?? ""
+                if !extracted.isEmpty {
+                    let sorted = candidates.sorted { $0.name.count > $1.name.count }
+                    if let found = sorted.first(where: { extracted.contains($0.name) }) {
+                        return found.id
+                    }
+                }
+            }
+        }
+        
+        // Tier 2: regex extraction from first item text
+        let namePattern = try? NSRegularExpression(pattern: #"^(.+?)[\s\d（(]"#)
+        for item in items {
+            let trimmed = stripMarkdownDecorations(from: item)
+            guard !trimmed.isEmpty else { continue }
+            if let match = namePattern?.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) {
+                let nameRange = Range(match.range(at: 1), in: trimmed)
+                let extracted = nameRange.map { String(trimmed[$0]).trimmingCharacters(in: .whitespaces) } ?? ""
+                if !extracted.isEmpty {
+                    let sorted = candidates.sorted { $0.name.count > $1.name.count }
+                    if let found = sorted.first(where: { extracted.contains($0.name) }) {
+                        return found.id
+                    }
+                }
+            }
+        }
+        
+        return nil
     }
     
     private func replacing(_ pattern: String, in text: String, with template: String) -> String {
