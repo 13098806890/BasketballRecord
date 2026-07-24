@@ -714,6 +714,7 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "ai_prompt_section_summary_desc" = "(쿼터별 상세 분석: ·득점 런 분석의 득점 이벤트를 사용하여 각 쿼터의 흐름 설명 ·각 득점에 대해 누가 몇 점을 득점했는지, 정확한 점수 기재 ·득점 런과 미스 슛 연속의 영향 분석 ·연속 리바운드/어시스트는 선수의 지배력을 보여줌 ·선두 교체는 접전을 나타냄. 대화체. 각 쿼터 최소 5-8문장)";
 "ai_prompt_section_mvp" = "MVP";
 "ai_prompt_section_mvp_desc" = "(1명의 선수만 선택. 선수 통계 및 득점 런 분석의 주요 데이터 사용: 해당 선수의 득점 기여도, 연속 득점, 리바운드, 어시스트, 수비, 중요한 순간에 미친 영향. 최소 3-5문장)";
+"ai_prompt_mvp_format" = "다음 형식으로 첫 번째 줄에 MVP 선수의 전체 이름을 출력:\nMVP: 선수 이름";
 "ai_prompt_section_highlights" = "하이라이트";
 "ai_prompt_section_highlights_desc" = "(경기에서 가장 중요한 2개의 하이라이트를 선택. 득점 런 분석에서 개인 연속 득점이나 클러치 플레이 찾기. 각 하이라이트에 대해 당시 점수, 누가 플레이를 했는지, 경기에 어떤 변화를 가져왔는지 기재. 자연스러운 어조.)
 형식:

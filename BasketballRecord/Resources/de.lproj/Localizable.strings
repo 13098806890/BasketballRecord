@@ -820,6 +820,7 @@
 "ai_prompt_section_summary_desc" = "(Detailierte Viertel-für-Viertel-Analyse: ·Verwende Score-Ereignisse aus der Scoring-Run-Analyse, um den Ablauf jedes Viertels zu beschreiben ·Gib bei jedem Punkt an, wer gepunktet hat, wie viele Punkte und den genauen Spielstand ·Analysiere die Auswirkung von Scoring-Runs und Fehlwurf-Serien ·Aufeinanderfolgende Rebounds/Assists zeigen Spielerdominanz ·Wechselnde Führung zeigt ein enges Spiel an. Konversationeller Ton. Mindestens 5-8 Sätze pro Viertel)";
 "ai_prompt_section_mvp" = "MVP";
 "ai_prompt_section_mvp_desc" = "(Wähle nur 1 Spieler aus. Nutze Schlüsseldaten aus den Spielerstatistiken und der Scoring-Run-Analyse: die Punktbeiträge des Spielers, Serien, Rebounds, Assists, Verteidigung und Einfluss auf entscheidende Momente. Mindestens 3-5 Sätze)";
+"ai_prompt_mvp_format" = "Gib den vollständigen Namen des MVP in der ersten Zeile in diesem Format aus:\nMVP: Spielername";
 "ai_prompt_section_highlights" = "Highlight-Momente";
 "ai_prompt_section_highlights_desc" = "(Wähle die 2 wichtigsten Highlights des Spiels aus. Finde persönliche Scoring-Runs oder entscheidende Spielzüge in der Scoring-Run-Analyse. Gib bei jedem Highlight den genauen Spielstand, den Spieler und die Auswirkung auf das Spiel an. Natürlicher Ton.)
 Format:

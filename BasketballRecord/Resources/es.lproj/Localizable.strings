@@ -820,6 +820,7 @@
 "ai_prompt_section_summary_desc" = "(Análisis detallado período por período: ·Usa eventos de anotación del análisis de rachas para describir el flujo de cada período ·Para cada anotación, indica quién anotó, cuántos puntos y el marcador exacto ·Analiza el impacto de las rachas de anotación y las rachas de fallos ·Rebotes/asistencias consecutivos muestran dominio del jugador ·Liderazgo alternante indica un partido reñido. Tono conversacional. Al menos 5-8 oraciones por período)";
 "ai_prompt_section_mvp" = "MVP";
 "ai_prompt_section_mvp_desc" = "(Selecciona solo 1 jugador. Usa datos clave de las estadísticas de jugadores y del análisis de rachas: contribuciones de anotación, rachas, rebotes, asistencias, defensa e impacto en momentos críticos. Al menos 3-5 oraciones)";
+"ai_prompt_mvp_format" = "Escribe el nombre completo del MVP en la primera línea con este formato:\nMVP: Nombre del jugador";
 "ai_prompt_section_highlights" = "Momentos Destacados";
 "ai_prompt_section_highlights_desc" = "(Selecciona los 2 momentos más importantes del partido. Encuentra rachas personales de anotación o jugadas clave en el análisis de rachas. Para cada momento, indica el marcador, quién hizo la jugada y cómo cambió el partido. Tono natural.)
 Formato:

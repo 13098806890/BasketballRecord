@@ -820,6 +820,7 @@
 "ai_prompt_section_summary_desc" = "(Analisi dettagliata periodo per periodo: ·Usa gli eventi di punteggio dall'analisi delle serie per descrivere il flusso di ogni periodo ·Per ogni punto, indica chi ha segnato, quanti punti e il punteggio esatto ·Analizza l'impatto delle serie di punti e delle serie di tiri sbagliati ·I rimbalzi/assist consecutivi mostrano il dominio del giocatore ·L'alternanza del vantaggio indica una partita equilibrata. Tono colloquiale. Almeno 5-8 frasi per periodo)";
 "ai_prompt_section_mvp" = "MVP";
 "ai_prompt_section_mvp_desc" = "(Seleziona solo 1 giocatore. Usa dati chiave dalle statistiche dei giocatori e dall'analisi delle serie: contributi di punti, serie, rimbalzi, assist, difesa e impatto nei momenti critici. Almeno 3-5 frasi)";
+"ai_prompt_mvp_format" = "Scrivi il nome completo del MVP nella prima riga in questo formato esatto:\nMVP: Nome giocatore";
 "ai_prompt_section_highlights" = "Momenti Salienti";
 "ai_prompt_section_highlights_desc" = "(Seleziona i 2 momenti più importanti della partita. Trova serie personali di punti o giocate decisive nell'analisi delle serie. Per ogni momento, indica il punteggio, chi ha fatto la giocata e come ha cambiato la partita. Tono naturale.)
 Formato:
