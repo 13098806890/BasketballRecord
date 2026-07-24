@@ -156,6 +156,8 @@ struct PlayerEditorView: View {
             weight: weight.trimmingCharacters(in: .whitespacesAndNewlines),
             number: number.trimmingCharacters(in: .whitespacesAndNewlines),
             photoData: photoData,
+            playerGroupIDs: player?.playerGroupIDs ?? [],
+            badges: player?.badges ?? [],
             nicknames: nicknames
         )
 

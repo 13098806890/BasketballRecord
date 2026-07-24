@@ -74,6 +74,9 @@ struct PlayerManagementView: View {
         .onChange(of: selectedPlayerGroupID) { _, _ in
             displayedPlayers = filterPlayers(searchText, from: basePlayers)
         }
+        .onChange(of: store.players) { _, _ in
+            displayedPlayers = filterPlayers(searchText, from: basePlayers)
+        }
         .onAppear {
             displayedPlayers = basePlayers
         }

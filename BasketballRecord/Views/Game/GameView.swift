@@ -421,7 +421,7 @@ struct GameView: View {
                     voiceFlashColor = color
                     clearVoiceFlashAfterDelay()
                 }
-                voiceRecognizer.onAction = { [self] action, playerID, side, text in
+                voiceRecognizer.onAction = { [self] action, playerID, side, _ in
                     guard !gameVM.snapshot.isComplete else {
                         statAlertMessage = NSLocalizedString("stat_game_already_finished", comment: "")
                         return
@@ -442,7 +442,7 @@ struct GameView: View {
                         at: now
                     )
                     _ = liveManager.submitLiveOperation(operation) {
-                        self.applyRecordOperation(action: action, playerID: playerID, side: side, at: now, eventMessage: text)
+                        self.applyRecordOperation(action: action, playerID: playerID, side: side, at: now)
                     }
                     voiceMatch = (playerID, side, action)
                     clearVoiceMatchAfterDelay(playerID: playerID)
