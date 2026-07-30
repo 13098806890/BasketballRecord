@@ -231,7 +231,7 @@ def _write_log(entry):
     now = datetime.now(timezone.utc)
     ts = now.strftime("%Y%m%dT%H%M%S")
     token = (entry.get("appAccountToken", "") or "unknown")[:8]
-    log_key = "ai/{}/{:02d}/{}/request-{}-{}.json".format(now.year, now.month, token, ts, str(uuid.uuid4())[:8])
+    log_key = "ai/basketball/{}/{:02d}/{}/request-{}-{}.json".format(now.year, now.month, token, ts, str(uuid.uuid4())[:8])
     threading.Thread(target=_cos_put, args=(log_key, json.dumps(entry, ensure_ascii=False).encode()), daemon=True).start()
 
 
