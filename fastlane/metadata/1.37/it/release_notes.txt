@@ -1,0 +1,6 @@
+• Sostituzioni multiple : vista diretta dei giocatori in campo/panchina, regola più giocatori insieme
+• Interruttore medaglie : nuovo interruttore nelle impostazioni
+• Formato MVP riassunto AI : estrazione strutturata per maggiore precisione
+• Correzione editor giocatori : non perde più gruppi e medaglie
+• Correzione visualizzazione eventi vocali : formato standard ripristinato
+• Correzione bug e miglioramenti delle prestazioni

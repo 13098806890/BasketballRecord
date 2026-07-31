@@ -1,0 +1,1 @@
+Punteggio in tempo reale con riconoscimento vocale. Tracciamento statistiche, riassunti AI, sincronizzazione tra dispositivi.

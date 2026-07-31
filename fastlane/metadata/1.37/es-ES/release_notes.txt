@@ -1,0 +1,6 @@
+• Sustituciones masivas: vista directa de jugadores en pista/banquillo, ajusta varios a la vez
+• Interruptor de insignias: nuevo interruptor en ajustes
+• Formato MVP del resumen AI: extracción estructurada para mayor precisión
+• Corrección editor de jugadores: ya no pierde grupos e insignias
+• Corrección visualización de eventos de voz: formato estándar restaurado
+• Correcciones de errores y mejoras de rendimiento

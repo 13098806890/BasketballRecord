@@ -1,0 +1,6 @@
+• Remplacements groupés : vue directe des joueurs sur le terrain/ banc, ajustez plusieurs à la fois
+• Interrupteur d'affichage des badges : nouveau bouton dans les réglages
+• Format MVP du résumé IA : extraction structurée pour une meilleure précision
+• Correction éditeur de joueurs : les infos de groupe et badges sont préservées
+• Correction affichage des événements vocaux : format standard rétabli
+• Corrections de bugs et améliorations de performance

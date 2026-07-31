@@ -1,0 +1,1 @@
+Real-time basketball scorekeeping with voice recognition. Track stats, generate AI game summaries, and sync across devices.

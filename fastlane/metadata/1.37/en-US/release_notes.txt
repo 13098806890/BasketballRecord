@@ -1,0 +1,6 @@
+• Batch substitutions: intuitive on-court/bench view, swap multiple players at once
+• Badges display toggle: new switch in settings to show/hide badges
+• AI summary MVP format: structured extraction for better accuracy
+• Player editor fix: no longer loses group and badge info
+• Voice event display fix: restored standard format
+• Bug fixes and performance improvements

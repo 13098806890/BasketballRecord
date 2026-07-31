@@ -1,0 +1,6 @@
+• Massenwechsel: direkte Anzeige von Spielern auf dem Feld/der Bank, mehrere gleichzeitig wechseln
+• Abzeichen-Anzeigeschalter: neuer Schalter in den Einstellungen
+• KI-Zusammenfassung MVP-Format: strukturierte Extraktion für bessere Genauigkeit
+• Spieler-Editor-Fix: Gruppen- und Abzeicheninfo bleiben erhalten
+• Spracherkennungsanzeige-Fix: standardisiertes Format wiederhergestellt
+• Fehlerbehebungen und Leistungsverbesserungen
