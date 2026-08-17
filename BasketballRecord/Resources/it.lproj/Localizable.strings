@@ -366,6 +366,9 @@
 "deepseek_error_remove_failed" = "Non è riuscito a rimuovere API Key.";
 "deepseek_error_save_failed" = "Non è riuscito a salvare API Key.";
 "deepseek_error_test_failed" = "Il test di connessione è fallito.";
+"deepseek_key_removed" = "Chiave API rimossa";
+"deepseek_key_saved" = "Chiave API salvata";
+"deepseek_test_success" = "Test di connessione riuscito";
 "deepseek_settings_title" = "API IA";
 "deepseek_status_has_saved_key" = "Rilevata chiave API salvata.";
 "deepseek_status_loaded_saved_key" = "Caricato API Key salvato.";
@@ -922,6 +925,7 @@ Formato:
 "button_saved" = "Salvato";
 
 "label_team_stats_mode" = "Statistiche squadra";
+"team_stats_mode_hint" = "Registra le statistiche per l'intera squadra invece che per i singoli giocatori. Nessun quintetto iniziale richiesto.";
 
 "section_team_home" = "Squadra casa";
 
@@ -1049,6 +1053,7 @@ Formato:
 "cloudshare_upload_button" = "Carica su Cloud";
 "cloudshare_uploading" = "Caricamento...";
 "cloudshare_uploading_metadata" = "Caricamento metadati...";
+"cloudshare_uploading_photos" = "Caricamento foto...";
 "cloudshare_uploading_photos_format" = "Foto %d di %d";
 "cloudshare_upload_new_button" = "Carica nuovo";
 "cloudshare_include_photos" = "Includi foto";
@@ -1064,8 +1069,8 @@ Formato:
 "cloudshare_error_not_configured" = "Servizio Cloud non configurato";
 "cloudshare_error_not_found" = "Condivisione Cloud non trovata";
 "cloudshare_error_empty_data" = "Dati vuoti";
-"cloudshare_error_devicecheck_unsupported" = "Dispositivo non supporta verifica";
-"cloudshare_error_devicecheck_failed" = "Verifica dispositivo fallita";
+"common_delete" = "Elimina";
+"text_no_data" = "Nessun dato";
 "cloudshare_error_invalid_response" = "Risposta server non valida";
 "cloudshare_error_network" = "Connessione di rete fallita";
 "cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
@@ -1107,7 +1112,7 @@ Formato:
 "stats_win_rate" = "Win Rate";
 
 "ai_prompt_period_event_header" = "Period %d Events:";
-"ai_prompt_no_events" = "No events available";
+"period_end_manual" = "Manuale";
 "ai_prompt_team_stats_section" = "Team Stats (system recorded)";
 "ai_prompt_diff_lead_home" = "Home leads by %lld";
 "ai_prompt_diff_lead_away" = "Away leads by %lld";

@@ -366,6 +366,9 @@
 "deepseek_error_remove_failed" = "API 키 제거 실패.";
 "deepseek_error_save_failed" = "API 키 저장 실패.";
 "deepseek_error_test_failed" = "연결 테스트 실패.";
+"deepseek_key_removed" = "API 키가 삭제되었습니다";
+"deepseek_key_saved" = "API 키가 저장되었습니다";
+"deepseek_test_success" = "연결 테스트 성공";
 "deepseek_settings_title" = "AI API";
 "deepseek_status_has_saved_key" = "저장된 API 열쇠는 검출했습니다.";
 "deepseek_status_loaded_saved_key" = "저장된 API 열쇠를 적재했습니다.";
@@ -956,6 +959,7 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "button_saved" = "저장됨";
 
 "label_team_stats_mode" = "팀 통계 모드";
+"team_stats_mode_hint" = "개별 선수가 아닌 팀 전체의 통계를 기록합니다. 선발 라인업이 필요 없습니다.";
 
 "section_team_home" = "홈 팀";
 
@@ -1068,6 +1072,7 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "cloudshare_upload_button" = "클라우드에 업로드";
 "cloudshare_uploading" = "업로드 중...";
 "cloudshare_uploading_metadata" = "메타데이터 업로드 중...";
+"cloudshare_uploading_photos" = "사진 업로드 중...";
 "cloudshare_uploading_photos_format" = "사진 %d/%d";
 "cloudshare_upload_new_button" = "새로 업로드";
 "cloudshare_include_photos" = "사진 포함";
@@ -1083,8 +1088,8 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "cloudshare_error_not_configured" = "클라우드 서비스가 구성되지 않음";
 "cloudshare_error_not_found" = "클라우드 공유를 찾을 수 없음";
 "cloudshare_error_empty_data" = "데이터가 비어 있음";
-"cloudshare_error_devicecheck_unsupported" = "장치가 인증을 지원하지 않음";
-"cloudshare_error_devicecheck_failed" = "장치 인증 실패";
+"common_delete" = "삭제";
+"text_no_data" = "데이터 없음";
 "cloudshare_error_invalid_response" = "서버 응답이 잘못됨";
 "cloudshare_error_network" = "네트워크 연결 실패";
 "cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
@@ -1126,7 +1131,7 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "stats_win_rate" = "Win Rate";
 
 "ai_prompt_period_event_header" = "Period %d Events:";
-"ai_prompt_no_events" = "No events available";
+"period_end_manual" = "수동";
 "ai_prompt_team_stats_section" = "Team Stats (system recorded)";
 "ai_prompt_diff_lead_home" = "Home leads by %lld";
 "ai_prompt_diff_lead_away" = "Away leads by %lld";

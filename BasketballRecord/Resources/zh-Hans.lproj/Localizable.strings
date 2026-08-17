@@ -439,7 +439,10 @@
 "deepseek_error_remove_failed" = "删除 API Key 失败。";
 "deepseek_error_save_failed" = "保存 API Key 失败。";
 "deepseek_error_test_failed" = "连接测试失败。";
+"deepseek_key_removed" = "API 密钥已删除";
+"deepseek_key_saved" = "API 密钥已保存";
 "deepseek_settings_title" = "AI API 设置";
+"deepseek_test_success" = "连接测试成功";
 "deepseek_status_has_saved_key" = "已检测到保存的 API Key。";
 "deepseek_status_loaded_saved_key" = "已加载已保存的 API Key。";
 "deepseek_status_no_saved_key" = "尚未保存 API Key。";
@@ -934,6 +937,7 @@
 "button_saved" = "已保存";
 
 "label_team_stats_mode" = "按球队统计";
+"team_stats_mode_hint" = "整队统一记录技术统计，不区分具体球员，也无需选择首发阵容。";
 
 "section_team_home" = "主队";
 
@@ -1066,6 +1070,7 @@
 "cloudshare_upload_button" = "上传到云端";
 "cloudshare_uploading" = "正在上传...";
 "cloudshare_uploading_metadata" = "正在上传元数据...";
+"cloudshare_uploading_photos" = "正在上传照片...";
 "cloudshare_uploading_photos_format" = "照片 %d/%d";
 "cloudshare_upload_new_button" = "重新上传";
 "cloudshare_include_photos" = "包含照片";
@@ -1081,8 +1086,7 @@
 "cloudshare_error_not_configured" = "云服务未配置";
 "cloudshare_error_not_found" = "云端分享不存在";
 "cloudshare_error_empty_data" = "数据为空";
-"cloudshare_error_devicecheck_unsupported" = "此设备不支持验证";
-"cloudshare_error_devicecheck_failed" = "设备验证失败";
+"common_delete" = "删除";
 "cloudshare_error_invalid_response" = "服务器响应无效";
 "cloudshare_error_network" = "网络连接失败";
 "cloudshare_error_too_large" = "数据过大（%d KB），请减少选择项或关闭导出照片";
@@ -1119,7 +1123,7 @@
 "stats_win_rate" = "胜率";
 
 "ai_prompt_period_event_header" = "第%d节事件：";
-"ai_prompt_no_events" = "无可用事件记录";
+"text_no_data" = "暂无数据";
 "ai_prompt_team_stats_section" = "【球队数据（系统记录）】";
 "ai_prompt_diff_lead_home" = "主队领先%lld分";
 "ai_prompt_diff_lead_away" = "客队领先%lld分";

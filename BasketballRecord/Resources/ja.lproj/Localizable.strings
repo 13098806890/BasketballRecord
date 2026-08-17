@@ -376,6 +376,9 @@
 "deepseek_error_remove_failed" = "APIキーを削除できません。";
 "deepseek_error_save_failed" = "APIキーを保存できません。";
 "deepseek_error_test_failed" = "接続テストが失敗しました。";
+"deepseek_key_removed" = "APIキーを削除しました";
+"deepseek_key_saved" = "APIキーを保存しました";
+"deepseek_test_success" = "接続テストに成功しました";
 "deepseek_settings_title" = "AI APIの設定";
 "deepseek_status_has_saved_key" = "保存された API キーが検出されました。";
 "deepseek_status_loaded_saved_key" = "保存された API キーをロードしました。";
@@ -933,6 +936,7 @@
 "button_saved" = "保存済み";
 
 "label_team_stats_mode" = "チーム統計";
+"team_stats_mode_hint" = "個人選手ではなくチーム全体の統計を記録します。スターティングメンバーは不要です。";
 
 "section_team_home" = "ホームチーム";
 
@@ -1060,6 +1064,7 @@
 "cloudshare_upload_button" = "クラウドにアップロード";
 "cloudshare_uploading" = "アップロード中...";
 "cloudshare_uploading_metadata" = "メタデータをアップロード中...";
+"cloudshare_uploading_photos" = "写真をアップロード中...";
 "cloudshare_uploading_photos_format" = "写真 %d/%d";
 "cloudshare_upload_new_button" = "再アップロード";
 "cloudshare_include_photos" = "写真を含める";
@@ -1075,8 +1080,8 @@
 "cloudshare_error_not_configured" = "クラウドサービスが設定されていません";
 "cloudshare_error_not_found" = "クラウド共有が見つかりません";
 "cloudshare_error_empty_data" = "データが空です";
-"cloudshare_error_devicecheck_unsupported" = "デバイスが検証をサポートしていません";
-"cloudshare_error_devicecheck_failed" = "デバイス検証に失敗しました";
+"common_delete" = "削除";
+"text_no_data" = "データなし";
 "cloudshare_error_invalid_response" = "サーバー応答が無効です";
 "cloudshare_error_network" = "ネットワーク接続に失敗しました";
 "cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
@@ -1118,7 +1123,7 @@
 "stats_win_rate" = "Win Rate";
 
 "ai_prompt_period_event_header" = "Period %d Events:";
-"ai_prompt_no_events" = "No events available";
+"period_end_manual" = "手動";
 "ai_prompt_team_stats_section" = "Team Stats (system recorded)";
 "ai_prompt_diff_lead_home" = "Home leads by %lld";
 "ai_prompt_diff_lead_away" = "Away leads by %lld";

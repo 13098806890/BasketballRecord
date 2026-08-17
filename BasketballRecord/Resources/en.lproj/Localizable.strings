@@ -438,11 +438,14 @@
 "deepseek_error_remove_failed" = "Failed to remove API Key.";
 "deepseek_error_save_failed" = "Failed to save API Key.";
 "deepseek_error_test_failed" = "Connection test failed.";
+"deepseek_key_removed" = "API Key removed";
+"deepseek_key_saved" = "API Key saved";
 "deepseek_settings_title" = "AI API";
 "deepseek_status_has_saved_key" = "Saved API Key detected.";
 "deepseek_status_loaded_saved_key" = "Loaded saved API Key.";
 "deepseek_status_no_saved_key" = "No saved API Key.";
 "deepseek_status_removed" = "Saved API Key removed.";
+"deepseek_test_success" = "Connection successful";
 "deepseek_status_saved_to_keychain" = "API Key saved to Keychain.";
 "deepseek_status_test_success" = "Connection test succeeded.";
 "deepseek_save_hint" = "You can save the key directly or test the connection first.";
@@ -954,6 +957,7 @@ Format:
 "button_saved" = "Saved";
 
 "label_team_stats_mode" = "Team Stats Mode";
+"team_stats_mode_hint" = "Records stats for the whole team instead of individual players. No starting lineup needed.";
 
 "section_team_home" = "Home Team";
 
@@ -1071,6 +1075,7 @@ Format:
 "cloudshare_upload_button" = "Upload to Cloud";
 "cloudshare_uploading" = "Uploading...";
 "cloudshare_uploading_metadata" = "Uploading metadata...";
+"cloudshare_uploading_photos" = "Uploading photos...";
 "cloudshare_uploading_photos_format" = "Photo %d of %d";
 "cloudshare_upload_new_button" = "Upload New";
 "cloudshare_include_photos" = "Include Photos";
@@ -1086,8 +1091,7 @@ Format:
 "cloudshare_error_not_configured" = "Cloud service not configured";
 "cloudshare_error_not_found" = "Cloud share not found";
 "cloudshare_error_empty_data" = "Data is empty";
-"cloudshare_error_devicecheck_unsupported" = "Device does not support verification";
-"cloudshare_error_devicecheck_failed" = "Device verification failed";
+"common_delete" = "Delete";
 "cloudshare_error_invalid_response" = "Invalid server response";
 "cloudshare_error_network" = "Network connection failed";
 "cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
@@ -1124,7 +1128,7 @@ Format:
 "stats_win_rate" = "Win Rate";
 
 "ai_prompt_period_event_header" = "Period %d Events:";
-"ai_prompt_no_events" = "No events available";
+"text_no_data" = "No data";
 "ai_prompt_team_stats_section" = "Team Stats (system recorded)";
 "ai_prompt_diff_lead_home" = "Home leads by %lld";
 "ai_prompt_diff_lead_away" = "Away leads by %lld";
