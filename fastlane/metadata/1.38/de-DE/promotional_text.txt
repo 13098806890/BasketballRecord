@@ -1,0 +1,1 @@
+Echtzeit-Basketball-Erfassung mit Spracherkennung. Statistiken verfolgen, KI-Spielzusammenfassungen, geräteübergreifende Synchronisation.

@@ -77,6 +77,11 @@ final class CloudKitManager: ObservableObject {
             do {
                 print("[CloudKit] Checking for existing record: \(recordID.recordName)")
                 let existing = try await database.record(for: recordID)
+                let cloudUpdatedAt = (existing["updatedAt"] as? Date) ?? game.savedAt
+                if cloudUpdatedAt > game.savedAt {
+                    print("[CloudKit] Skipping upload - cloud newer (cloud=\(cloudUpdatedAt), local=\(game.savedAt))")
+                    return
+                }
                 print("[CloudKit] Existing record found, updating...")
                 existing["gameData"] = CKAsset(fileURL: fileURL)
                 existing["version"] = (existing["version"] as? Int64 ?? 0) + 1
@@ -169,7 +174,7 @@ final class CloudKitManager: ObservableObject {
 
     /// Sync local games marked as cloud-enabled to CloudKit, and download any new games.
     /// Returns newly downloaded games that should be merged into local storage.
-    func sync(cloudEnabledIDs: Set<UUID>, localGames: [SavedGame]) async -> (newGames: [SavedGame], aiSummaryUpdates: [SavedGame]) {
+    func sync(cloudEnabledIDs: Set<UUID>, localGames: [SavedGame]) async -> (newGames: [SavedGame], updatedGames: [SavedGame], aiSummaryUpdates: [SavedGame]) {
         print("[CloudKit] sync called with \(cloudEnabledIDs.count) enabled IDs, \(localGames.count) local games")
         isSyncing = true
         defer { isSyncing = false }
@@ -182,23 +187,36 @@ final class CloudKitManager: ObservableObject {
         let cloudGames = await fetchGames(ids: cloudEnabledIDs)
         print("[CloudKit] Fetched \(cloudGames.count) cloud games")
 
+        let localByID = Dictionary(uniqueKeysWithValues: localGames.map { ($0.id, $0) })
+        var newGames: [SavedGame] = []
+        var updatedGames: [SavedGame] = []
         for cloudGame in cloudGames {
-            if !cloudEnabledIDs.contains(cloudGame.id) {
-                print("[CloudKit] Deleting cloud game \(cloudGame.id) (no longer locally enabled)")
-                await deleteGame(cloudGame.id)
+            guard let local = localByID[cloudGame.id] else {
+                newGames.append(cloudGame)
+                continue
+            }
+            if cloudGame.savedAt > local.savedAt {
+                var updated = cloudGame
+                updated.groupIDs = local.groupIDs
+                if local.aiSummary != nil {
+                    updated.aiSummary = local.aiSummary
+                }
+                updatedGames.append(updated)
+                print("[CloudKit] Cloud game newer (cloud=\(cloudGame.savedAt), local=\(local.savedAt)), will update local")
             }
         }
+        print("[CloudKit] \(newGames.count) new games, \(updatedGames.count) updated games to download")
 
         let localIDs = Set(localGames.map(\.id))
-        let newGames = cloudGames.filter { !localIDs.contains($0.id) }
-        print("[CloudKit] \(newGames.count) new games to download")
+        let existingGameIDs = Set(newGames.map(\.id)).union(Set(updatedGames.map(\.id)))
         let aiSummaryUpdates = cloudGames.filter { cloudGame in
+            !existingGameIDs.contains(cloudGame.id) &&
             localIDs.contains(cloudGame.id) &&
             cloudGame.aiSummary != nil &&
             localGames.first(where: { $0.id == cloudGame.id })?.aiSummary == nil
         }
         print("[CloudKit] \(aiSummaryUpdates.count) games need AI summary sync")
-        return (newGames, aiSummaryUpdates)
+        return (newGames, updatedGames, aiSummaryUpdates)
     }
 
     // MARK: - Helpers

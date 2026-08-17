@@ -865,10 +865,8 @@ private struct PlayerGameSelectionView: View {
     }
 
     private func score(for teamID: UUID?, in game: SavedGame) -> Int {
-        let ids = teamID == game.snapshot.homeTeamID ? game.homePlayerIDs : game.awayPlayerIDs
-        return ids.reduce(0) { total, playerID in
-            total + game.snapshot.statsByPlayerID[playerID, default: PlayerStats()].points
-        }
+        guard let teamID else { return 0 }
+        return game.score(forTeamID: teamID)
     }
 
     private static let dateFormatter: DateFormatter = {
@@ -1104,8 +1102,8 @@ struct CloudStorageView: View {
     }
 
     private func scoreLine(for game: SavedGame) -> String {
-        let homeScore = game.homePlayerIDs.reduce(0) { $0 + (game.snapshot.statsByPlayerID[$1]?.points ?? 0) }
-        let awayScore = game.awayPlayerIDs.reduce(0) { $0 + (game.snapshot.statsByPlayerID[$1]?.points ?? 0) }
+        let homeScore = game.score(forTeamID: game.snapshot.homeTeamID ?? UUID())
+        let awayScore = game.score(forTeamID: game.snapshot.awayTeamID ?? UUID())
         return "\(homeScore) - \(awayScore)"
     }
 

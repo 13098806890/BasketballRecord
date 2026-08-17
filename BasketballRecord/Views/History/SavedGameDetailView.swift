@@ -502,13 +502,17 @@ struct SavedGameDetailView: View {
         var lastTimestamp = logs.first?.timestamp ?? Date()
 
         // Initialize lineup
-        if currentGame.snapshot.startersRecorded {
-            let allPlayerIDs = Set(currentGame.homePlayerIDs + currentGame.awayPlayerIDs)
+        let allPlayerIDs = Set(currentGame.homePlayerIDs + currentGame.awayPlayerIDs)
+        if !currentGame.snapshot.homeTeamStatsMode, currentGame.snapshot.startersRecorded {
             let starters = Set(currentGame.snapshot.starterPlayerIDs).intersection(allPlayerIDs)
             homeOnCourt = starters.intersection(homeIDs)
-            awayOnCourt = starters.subtracting(homeIDs)
-        } else {
+        } else if !currentGame.snapshot.homeTeamStatsMode {
             homeOnCourt = homeIDs
+        }
+        if !currentGame.snapshot.awayTeamStatsMode, currentGame.snapshot.startersRecorded {
+            let starters = Set(currentGame.snapshot.starterPlayerIDs).intersection(allPlayerIDs)
+            awayOnCourt = starters.intersection(awayIDs)
+        } else if !currentGame.snapshot.awayTeamStatsMode {
             awayOnCourt = awayIDs
         }
 
@@ -538,9 +542,17 @@ struct SavedGameDetailView: View {
                     related.apply(to: &relatedStats)
                     statsByPlayer[rpid] = relatedStats
                 }
-                if action.points > 0 {
-                   for p in awayOnCourt { plusMinus[p, default: 0] -= action.points }
-                    for p in homeOnCourt { plusMinus[p, default: 0] += action.points }
+                if action.points > 0,
+                   let side = PlusMinusEngine.scoringSide(for: pid, homeTeamID: currentGame.snapshot.homeTeamID, awayTeamID: currentGame.snapshot.awayTeamID, homePlayerIDs: currentGame.homePlayerIDs, awayPlayerIDs: currentGame.awayPlayerIDs) {
+                    PlusMinusEngine.apply(
+                        points: action.points,
+                        scoringSide: side,
+                        homeTeamStatsMode: currentGame.snapshot.homeTeamStatsMode,
+                        awayTeamStatsMode: currentGame.snapshot.awayTeamStatsMode,
+                        homeOnCourt: homeOnCourt,
+                        awayOnCourt: awayOnCourt,
+                        to: &plusMinus
+                    )
                 }
             }
         }

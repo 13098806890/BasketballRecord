@@ -336,7 +336,7 @@ final class VoiceASRTests: XCTestCase {
         rec.updateRules(for: rules.locale)
         var code: String?
         let exp = expectation(description: "match_\(text)")
-        rec.onAction = { a, _, _ in code = a.eventCode; exp.fulfill() }
+        rec.onAction = { (a: StatAction, _, _, _) in code = a.eventCode; exp.fulfill() }
         rec.onDualAction = { a1, _, _, _, _, _ in code = a1.eventCode; exp.fulfill() }
         rec.onCommand = { c in
             switch c {
@@ -391,7 +391,7 @@ final class VoiceASRTests: XCTestCase {
         rec.currentSnapshot = snapshot
         rec.updateRules(for: rules.locale)
         var matched = false
-        rec.onAction = { _, _, _ in matched = true }
+        rec.onAction = { (_: StatAction, _, _, _) in matched = true }
         rec.onDualAction = { _, _, _, _, _, _ in matched = true }
         rec.onCommand = { _ in matched = true }
         rec.onSubstitution = { _, _, _ in matched = true }

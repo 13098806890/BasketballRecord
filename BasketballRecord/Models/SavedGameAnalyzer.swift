@@ -53,12 +53,20 @@ struct SavedGameAnalyzer {
 
         let allPlayerIDs = Set(game.homePlayerIDs + game.awayPlayerIDs)
         let homeIDs = Set(game.homePlayerIDs)
-        if game.snapshot.startersRecorded {
+        if game.snapshot.homeTeamStatsMode {
+            homeOnCourt = []
+        } else if game.snapshot.startersRecorded {
             let starters = Set(game.snapshot.starterPlayerIDs).intersection(allPlayerIDs)
             homeOnCourt = starters.intersection(homeIDs)
-            awayOnCourt = starters.subtracting(homeIDs)
         } else {
             homeOnCourt = homeIDs
+        }
+        if game.snapshot.awayTeamStatsMode {
+            awayOnCourt = []
+        } else if game.snapshot.startersRecorded {
+            let starters = Set(game.snapshot.starterPlayerIDs).intersection(allPlayerIDs)
+            awayOnCourt = starters.subtracting(homeIDs)
+        } else {
             awayOnCourt = Set(game.awayPlayerIDs)
         }
 
@@ -140,16 +148,18 @@ struct SavedGameAnalyzer {
             statsByPeriod[period] = statsByPlayer
 
             // Plus-minus tracking
-            if action.points > 0 {
-                let isHome = homeIDs.contains(playerID) || game.snapshot.homeTeamID == playerID
+            if action.points > 0,
+               let side = PlusMinusEngine.scoringSide(for: playerID, homeTeamID: game.snapshot.homeTeamID, awayTeamID: game.snapshot.awayTeamID, homePlayerIDs: game.homePlayerIDs, awayPlayerIDs: game.awayPlayerIDs) {
                 var pmByPlayer = plusMinusByPeriod[period, default: [:]]
-                if isHome {
-                    for pid in homeOnCourt { pmByPlayer[pid, default: 0] += action.points }
-                    for pid in awayOnCourt { pmByPlayer[pid, default: 0] -= action.points }
-                } else {
-                    for pid in homeOnCourt { pmByPlayer[pid, default: 0] -= action.points }
-                    for pid in awayOnCourt { pmByPlayer[pid, default: 0] += action.points }
-                }
+                PlusMinusEngine.apply(
+                    points: action.points,
+                    scoringSide: side,
+                    homeTeamStatsMode: game.snapshot.homeTeamStatsMode,
+                    awayTeamStatsMode: game.snapshot.awayTeamStatsMode,
+                    homeOnCourt: homeOnCourt,
+                    awayOnCourt: awayOnCourt,
+                    to: &pmByPlayer
+                )
                 plusMinusByPeriod[period] = pmByPlayer
             }
         }

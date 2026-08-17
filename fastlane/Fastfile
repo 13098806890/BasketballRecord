@@ -96,16 +96,18 @@ platform :ios do
     )
 
     app = Spaceship::ConnectAPI::App.find("com.xiedongze.BasketballRecord")
-    live = app.get_live_app_store_version
+    live = app.get_app_store_versions.select { |v| v.version_string == version }.first
+
     if live.nil?
-      UI.message("No live version found, trying edit version...")
-      live = app.get_edit_app_store_version
+      live = app.get_live_app_store_version
+      live = app.get_edit_app_store_version if live.nil?
     end
 
     if live.nil?
-      UI.user_error!("Could not find any App Store version")
+      UI.user_error!("Could not find version #{version}")
     end
 
+    UI.message("Reading localizations for version #{version} (#{live.app_store_state})")
     info = live.get_app_store_version_localizations
     project_root = File.expand_path("..", File.dirname(__FILE__))
     base = File.join(project_root, "fastlane/metadata/#{version}")
@@ -120,9 +122,7 @@ platform :ios do
       # Debug: print raw object info for first locale (ja)
       if locale == "ja"
         UI.message("  object class: #{loc.class}")
-        UI.message("  inspect: #{loc.inspect.first(800)}")
-        pub_methods = loc.public_methods - Object.methods
-        UI.message("  public methods: #{pub_methods.sort.first(20).join(', ')}")
+        UI.message("  inspect: #{loc.inspect[0, 800]}")
       end
 
       file_map = {

@@ -91,9 +91,6 @@ struct AISummaryView: View {
                 }
             }
         }
-        .onChange(of: periodAnalysis.statsByPeriod.isEmpty) { _, isEmpty in
-            guard !isEmpty else { return }
-        }
         .alert(LocalizedStringKey("alert_ai_summary_exists_title"), isPresented: $showSummaryExistsAlert) {
             Button(LocalizedStringKey("button_ok")) { }
         } message: {
@@ -264,35 +261,6 @@ struct AISummaryView: View {
                 }
             }
         }
-    }
-    
-    private func periodEventsText() -> String {
-        let analysis = periodAnalysis
-        let periodCount = game.snapshot.periodCount
-        var lines: [String] = []
-        
-        let maxAnalysisPeriod = analysis.statsByPeriod.keys.max() ?? periodCount
-        for period in 1...max(maxAnalysisPeriod, periodCount) {
-            let periodLogs = analysis.logs(for: period).filter { log in
-                GameLogFormatter.isScoring(log) || log.entry.eventCode == "stat.foul" || log.entry.eventCode == "stat.assist" || log.entry.eventCode == "stat.rebound" || log.entry.eventCode == "stat.block" || log.entry.eventCode == "stat.steal" || log.entry.eventCode == "stat.turnover"
-            }
-            guard !periodLogs.isEmpty else { continue }
-            
-            lines.append("- \(game.periodDisplayName(period))：")
-            for log in periodLogs.prefix(20) {
-                let msg = GameLogFormatter.normalizedMessage(log.entry.message)
-                    .replacingOccurrences(of: "\\[event:\\w+(\\.\\w+)*\\]", with: "", options: .regularExpression)
-                    .trimmingCharacters(in: .whitespaces)
-                if !msg.isEmpty {
-                    lines.append("  - \(msg)")
-                }
-            }
-        }
-        
-        if lines.isEmpty {
-            return NSLocalizedString("ai_prompt_no_events", comment: "No events")
-        }
-        return lines.joined(separator: "\n")
     }
     
     private func teamStatsPromptSection() -> String {

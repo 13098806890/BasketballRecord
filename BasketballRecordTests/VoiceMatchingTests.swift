@@ -160,7 +160,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
+        recognizer.onAction = { (action: StatAction, _, _, _) in
             capturedAction = action
             exp.fulfill()
         }
@@ -177,7 +177,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
+        recognizer.onAction = { (action: StatAction, _, _, _) in
             capturedAction = action
             exp.fulfill()
         }
@@ -194,7 +194,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
+        recognizer.onAction = { (action: StatAction, _, _, _) in
             capturedAction = action
             exp.fulfill()
         }
@@ -211,7 +211,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
+        recognizer.onAction = { (action: StatAction, _, _, _) in
             capturedAction = action
             exp.fulfill()
         }
@@ -228,7 +228,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
+        recognizer.onAction = { (action: StatAction, _, _, _) in
             capturedAction = action
             exp.fulfill()
         }
@@ -245,7 +245,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
+        recognizer.onAction = { (action: StatAction, _, _, _) in
             capturedAction = action
             exp.fulfill()
         }
@@ -262,7 +262,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
+        recognizer.onAction = { (action: StatAction, _, _, _) in
             capturedAction = action
             exp.fulfill()
         }
@@ -323,7 +323,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
+        recognizer.onAction = { (action: StatAction, _, _, _) in
             capturedAction = action
             exp.fulfill()
         }
@@ -340,7 +340,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
+        recognizer.onAction = { (action: StatAction, _, _, _) in
             capturedAction = action
             exp.fulfill()
         }
@@ -357,7 +357,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
+        recognizer.onAction = { (action: StatAction, _, _, _) in
             capturedAction = action
             exp.fulfill()
         }
@@ -374,7 +374,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
+        recognizer.onAction = { (action: StatAction, _, _, _) in
             capturedAction = action
             exp.fulfill()
         }
@@ -391,7 +391,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
+        recognizer.onAction = { (action: StatAction, _, _, _) in
             capturedAction = action
             exp.fulfill()
         }
@@ -408,7 +408,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
+        recognizer.onAction = { (action: StatAction, _, _, _) in
             capturedAction = action
             exp.fulfill()
         }
@@ -425,7 +425,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
+        recognizer.onAction = { (action: StatAction, _, _, _) in
             capturedAction = action
             exp.fulfill()
         }
@@ -612,7 +612,7 @@ final class VoiceMatchingTests: XCTestCase {
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
         var capturedPlayerID: UUID?
-        recognizer.onAction = { action, pid, _ in
+        recognizer.onAction = { (action: StatAction, pid: UUID, _, _) in
             capturedAction = action; capturedPlayerID = pid; exp.fulfill()
         }
         recognizer.simulateText("红队两分命中")
@@ -634,7 +634,7 @@ final class VoiceMatchingTests: XCTestCase {
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
         var capturedPlayerID: UUID?
-        recognizer.onAction = { action, pid, _ in
+        recognizer.onAction = { (action: StatAction, pid: UUID, _, _) in
             capturedAction = action; capturedPlayerID = pid; exp.fulfill()
         }
         recognizer.simulateText("蓝队三分")
@@ -655,7 +655,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction called")
         var capturedPlayerID: UUID?
-        recognizer.onAction = { _, pid, _ in
+        recognizer.onAction = { (_: StatAction, pid: UUID, _, _) in
             capturedPlayerID = pid; exp.fulfill()
         }
         recognizer.simulateText("主队两分命中")
@@ -700,7 +700,7 @@ final class VoiceMatchingTests: XCTestCase {
         let exp = expectation(description: "onAction called")
         var capturedAction: StatAction?
         var capturedPlayerID: UUID?
-        recognizer.onAction = { action, pid, _ in
+        recognizer.onAction = { (action: StatAction, pid: UUID, _, _) in
             capturedAction = action; capturedPlayerID = pid; exp.fulfill()
         }
         // Test with fuzzy variant: "洪队" (ASR might recognize "红队" as "洪队")
@@ -730,7 +730,7 @@ final class VoiceMatchingTests: XCTestCase {
         do {
             let exp = expectation(description: "onAction 7号两分")
             var capturedPID: UUID?
-            recognizer.onAction = { _, pid, _ in capturedPID = pid; exp.fulfill() }
+            recognizer.onAction = { (_: StatAction, pid: UUID, _, _) in capturedPID = pid; exp.fulfill() }
             recognizer.simulateText("7号两分")
             await fulfillment(of: [exp], timeout: 1.0)
             XCTAssertEqual(capturedPID, home7ID, "无前缀应匹配主队7号（allIDs中主队优先）")
@@ -740,7 +740,7 @@ final class VoiceMatchingTests: XCTestCase {
         do {
             let exp = expectation(description: "onAction 主队7号两分")
             var capturedPID: UUID?
-            recognizer.onAction = { _, pid, _ in capturedPID = pid; exp.fulfill() }
+            recognizer.onAction = { (_: StatAction, pid: UUID, _, _) in capturedPID = pid; exp.fulfill() }
             recognizer.simulateText("主队7号两分")
             await fulfillment(of: [exp], timeout: 1.0)
             XCTAssertEqual(capturedPID, home7ID, "主队前缀应匹配主队7号")
@@ -750,7 +750,7 @@ final class VoiceMatchingTests: XCTestCase {
         do {
             let exp = expectation(description: "onAction 客队7号两分")
             var capturedPID: UUID?
-            recognizer.onAction = { _, pid, _ in capturedPID = pid; exp.fulfill() }
+            recognizer.onAction = { (_: StatAction, pid: UUID, _, _) in capturedPID = pid; exp.fulfill() }
             recognizer.simulateText("客队7号两分")
             await fulfillment(of: [exp], timeout: 1.0)
             XCTAssertEqual(capturedPID, away7ID, "客队前缀应匹配客队7号")
@@ -773,7 +773,7 @@ final class VoiceMatchingTests: XCTestCase {
         let exp = expectation(description: "onAction for John got 2")
         var capturedAction: StatAction?
         var capturedPID: UUID?
-        recognizer.onAction = { action, pid, _ in
+        recognizer.onAction = { (action: StatAction, pid: UUID, _, _) in
             capturedAction = action; capturedPID = pid; exp.fulfill()
         }
         recognizer.simulateText("John got 2")
@@ -796,7 +796,7 @@ final class VoiceMatchingTests: XCTestCase {
         let exp = expectation(description: "onAction for John got two")
         var capturedAction: StatAction?
         var capturedPID: UUID?
-        recognizer.onAction = { action, pid, _ in
+        recognizer.onAction = { (action: StatAction, pid: UUID, _, _) in
             capturedAction = action; capturedPID = pid; exp.fulfill()
         }
         recognizer.simulateText("John got two")
@@ -819,7 +819,7 @@ final class VoiceMatchingTests: XCTestCase {
         let exp = expectation(description: "onAction for Mac free through")
         var capturedAction: StatAction?
         var capturedPID: UUID?
-        recognizer.onAction = { action, pid, _ in
+        recognizer.onAction = { (action: StatAction, pid: UUID, _, _) in
             capturedAction = action; capturedPID = pid; exp.fulfill()
         }
         recognizer.simulateText("Mac free through")
@@ -836,7 +836,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction for ... to know")
         var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
+        recognizer.onAction = { (action: StatAction, _, _, _) in
             capturedAction = action; exp.fulfill()
         }
         recognizer.simulateText("张三 to know")
@@ -852,7 +852,7 @@ final class VoiceMatchingTests: XCTestCase {
 
         let exp = expectation(description: "onAction for AD 2 Mr")
         var capturedAction: StatAction?
-        recognizer.onAction = { action, _, _ in
+        recognizer.onAction = { (action: StatAction, _, _, _) in
             capturedAction = action; exp.fulfill()
         }
         recognizer.simulateText("AD 2 Mr")

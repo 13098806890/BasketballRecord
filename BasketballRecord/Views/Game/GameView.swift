@@ -2692,7 +2692,7 @@ struct GameView: View {
         if let latest = store.latestUnfinishedGame() {
             gameVM.snapshot = latest.snapshot
             voiceRecognizer.currentSnapshot = gameVM.snapshot
-            gameVM.undoStack = []
+            gameVM.undoStack = latest.undoSnapshots
             gameVM.redoStack.removeAll()
             currentGameRecordID = latest.id
             trimInvalidLineups()
@@ -2769,10 +2769,15 @@ struct GameView: View {
     }
 
     private func applyPlusMinus(points: Int, scoringSide: TeamSide, in target: inout GameSnapshot) {
-        let scoringIDs = scoringSide == .home ? target.homeOnCourtPlayerIDs : target.awayOnCourtPlayerIDs
-        let defendingIDs = scoringSide == .home ? target.awayOnCourtPlayerIDs : target.homeOnCourtPlayerIDs
-        scoringIDs.forEach { target.plusMinusByPlayerID[$0, default: 0] += points }
-        defendingIDs.forEach { target.plusMinusByPlayerID[$0, default: 0] -= points }
+        PlusMinusEngine.apply(
+            points: points,
+            scoringSide: scoringSide,
+            homeTeamStatsMode: target.homeTeamStatsMode,
+            awayTeamStatsMode: target.awayTeamStatsMode,
+            homeOnCourt: Set(target.homeOnCourtPlayerIDs),
+            awayOnCourt: Set(target.awayOnCourtPlayerIDs),
+            to: &target.plusMinusByPlayerID
+        )
     }
 
     /// Revert the last action directly on the current gameVM.snapshot. Returns true if successful.

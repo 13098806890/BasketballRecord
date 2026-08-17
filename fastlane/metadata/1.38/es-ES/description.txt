@@ -1,0 +1,38 @@
+Registra partidos de baloncesto en segundos.
+
+Puntos, estadísticas de jugadores y resúmenes por IA. Perfecto para entrenamientos, partidos casuales y ligas amateurs.
+
+---
+
+Registra partidos de baloncesto en segundos.
+
+Puntos, estadísticas de jugadores y resúmenes por IA. Perfecto para entrenamientos, partidos casuales y ligas amateurs.
+
+---
+
+Basketball Record es una app de registro y estadísticas de baloncesto para aficionados, entrenamientos de equipo y torneos amateurs. Registra rápidamente puntos, estadísticas de jugadores, el desarrollo del partido y los datos de carrera.
+
+Funciones principales:
+
+- Marcador en tiempo real y estadísticas completas: 2PT/3PT, tiros libres, rebotes, asistencias, robos, tapones, pérdidas y faltas;
+- Registro por voz: mantén pulsado el micrófono y habla para registrar eventos, admite 9 idiomas con corrección inteligente de errores ASR;
+- Gestión completa del partido: inicio de periodo, pausa, reanudación, sustituciones, jugadores que llegan tarde, fin automático y finalización;
+- Gestión de equipos y jugadores: crea y edita equipos y jugadores con avatar, número de camiseta, altura y peso;
+- Estadísticas de carrera y temporada: detalle por partido, acumulados y promedios por jugador;
+- Resúmenes por IA y MVP (Pro): conecta DeepSeek u otros servicios de IA para generar y guardar resúmenes y momentos destacados;
+- Grupos de partidos y temporadas (Pro): organiza los partidos en grupos para filtrar historial y datos de carrera;
+- Colaboración por Bluetooth (Pro): sincroniza eventos de anotación en tiempo real entre varios dispositivos;
+- Importación/exportación de datos: respaldo, migración y restauración entre dispositivos, con fusión y asignación de UUID;
+- Sincronización con iCloud (Pro): respalda los partidos en iCloud para acceso entre dispositivos.
+
+Casos de uso:
+
+- Entrenamientos de equipo y partidos internos
+- Registro rápido en partidos casuales
+- Repaso de temporada y seguimiento del progreso personal
+
+Terms of Use:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+Privacy Policy:
+https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
