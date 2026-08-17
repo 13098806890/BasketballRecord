@@ -135,11 +135,9 @@ struct NewGameSetupView: View {
                                 Text(LocalizedStringKey("label_team_stats_mode"))
                             }
                         }
-                        if homeTeamStatsMode {
-                            Text(LocalizedStringKey("team_stats_mode_hint"))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
+                        Text(LocalizedStringKey("team_stats_mode_hint"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         if !homeTeamStatsMode {
                             starterSection(title: NSLocalizedString("starter_home_title", comment: "Home starters"), players: homePlayers, selectedIDs: $homeStarterIDs, requiredCount: requiredHomeCount)
                             benchSection(
@@ -161,11 +159,9 @@ struct NewGameSetupView: View {
                                 Text(LocalizedStringKey("label_team_stats_mode"))
                             }
                         }
-                        if awayTeamStatsMode {
-                            Text(LocalizedStringKey("team_stats_mode_hint"))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
+                        Text(LocalizedStringKey("team_stats_mode_hint"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         if !awayTeamStatsMode {
                             starterSection(title: NSLocalizedString("starter_away_title", comment: "Away starters"), players: awayPlayers, selectedIDs: $awayStarterIDs, requiredCount: requiredAwayCount)
                             benchSection(
