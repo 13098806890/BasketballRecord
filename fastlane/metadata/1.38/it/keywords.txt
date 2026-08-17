@@ -1,0 +1,1 @@
+segnapunti,statistiche,basket,punteggio,squadra,allenatore,partita,registrazione,torneo,risultati

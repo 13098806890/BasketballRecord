@@ -233,8 +233,8 @@ struct GameGroupEditView: View {
     }
 
     private func scoreLine(for game: SavedGame) -> String {
-        let homeScore = game.homePlayerIDs.reduce(0) { $0 + (game.snapshot.statsByPlayerID[$1]?.points ?? 0) }
-        let awayScore = game.awayPlayerIDs.reduce(0) { $0 + (game.snapshot.statsByPlayerID[$1]?.points ?? 0) }
+        let homeScore = game.score(forTeamID: game.snapshot.homeTeamID ?? UUID())
+        let awayScore = game.score(forTeamID: game.snapshot.awayTeamID ?? UUID())
         return "\(homeScore) - \(awayScore)"
     }
 

@@ -196,6 +196,7 @@ final class AppStore: ObservableObject {
     let coreDataStore = CoreDataStore()
     private var hasMigratedToCoreData = false
     private var suppressSave = false
+    private var lastSavedGameData: [UUID: Data] = [:]
 
     private enum DirtyKey: Hashable {
         case players, teams, gameGroups, playerGroups, savedGames
@@ -251,7 +252,11 @@ final class AppStore: ObservableObject {
 
     func syncCloudGames() async {
         let cloudIDs = cloudEnabledGameIDs.subtracting(deletedCloudGameIDs)
-        let (newGames, aiSummaryUpdates) = await CloudKitManager.shared.sync(cloudEnabledIDs: cloudIDs, localGames: savedGames)
+        let (newGames, updatedGames, aiSummaryUpdates) = await CloudKitManager.shared.sync(cloudEnabledIDs: cloudIDs, localGames: savedGames)
+        for update in updatedGames {
+            guard let idx = savedGames.firstIndex(where: { $0.id == update.id }) else { continue }
+            savedGames[idx] = update
+        }
         for update in aiSummaryUpdates {
             if let idx = savedGames.firstIndex(where: { $0.id == update.id }) {
                 savedGames[idx].aiSummary = update.aiSummary
@@ -426,6 +431,15 @@ final class AppStore: ObservableObject {
 
 
 
+    private func encodeGameForTracking(_ game: SavedGame) -> Data? {
+        var tracked = game
+        if tracked.undoSnapshots.count > 30 {
+            tracked.undoSnapshots = Array(tracked.undoSnapshots.suffix(30))
+        }
+        tracked.previousSnapshot = nil
+        return try? JSONEncoder().encode(tracked)
+    }
+
     private func safeWrite<T: Encodable>(_ value: T, forKey key: String) {
         let data: Data
         if key.hasPrefix("game_"), var game = value as? SavedGame {
@@ -535,12 +549,24 @@ final class AppStore: ObservableObject {
         safeWrite(meta, forKey: metaKey)
 
         // Save each game individually (only if games changed)
+        var changedGameIDs: Set<UUID> = []
         if dirtyKeys.contains(.savedGames) {
             let gameIDs = savedGames.map(\.id)
             safeWrite(gameIDs, forKey: gamesIndexKey)
             for game in savedGames {
-                safeWrite(game, forKey: gameKey(for: game.id))
+                let key = gameKey(for: game.id)
+                let essentialData = encodeGameForTracking(game)
+                if lastSavedGameData[game.id] == essentialData {
+                    continue
+                }
+                safeWrite(game, forKey: key)
+                if let data = essentialData {
+                    lastSavedGameData[game.id] = data
+                }
+                changedGameIDs.insert(game.id)
             }
+            let validIDs = Set(savedGames.map(\.id))
+            lastSavedGameData = lastSavedGameData.filter { validIDs.contains($0.key) }
         }
 
         // Core Data persistence — write only dirty entities
@@ -552,7 +578,8 @@ final class AppStore: ObservableObject {
             let existingIDs = coreDataStore.fetchAllSavedGameIDs()
             let newIDs = Set(savedGames.map(\.id))
             let toDelete = existingIDs.subtracting(newIDs)
-            for game in savedGames {
+            let writeIDs = changedGameIDs.isEmpty ? newIDs : changedGameIDs
+            for game in savedGames where writeIDs.contains(game.id) {
                 coreDataStore.upsertSavedGame(game)
             }
             for id in toDelete {

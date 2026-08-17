@@ -1,0 +1,5 @@
+• Ricerca giocatori: cerca per nome, soprannome o numero
+• Cloud share: compatibilità migliorata con dati precedenti
+• Modello DeepSeek aggiornato: deepseek-v4-flash sostituisce
+• Conformità export: nessun popup durante il caricamento
+• Correzioni e miglioramenti

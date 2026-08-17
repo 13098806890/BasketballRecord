@@ -101,28 +101,61 @@ struct BadgeAwarder {
     static func parseMVP(from summary: String?, playerNames: [UUID: String]) -> UUID? {
         guard let summary = summary else { return nil }
         let candidates = playerNames
-            .map { (id: $0.key, name: $0.value.trimmingCharacters(in: .whitespaces)) }
+            .map { (id: $0.key, name: $0.value.trimmingCharacters(in: .whitespacesAndNewlines)) }
             .filter { !$0.name.isEmpty }
-            .sorted { $0.name.count > $1.name.count }
 
+        // Tier 1: structured "MVP: PlayerName" / "MVP：球员名" across the whole summary
+        let mvpPattern = try? NSRegularExpression(pattern: #"(?i)(?:mvp|最有价值|最有價值|most valuable)[：:]\s*([^\n，。,.()（）【】]+)"#)
+        if let mvpPattern {
+            let range = NSRange(summary.startIndex..., in: summary)
+            for match in mvpPattern.matches(in: summary, options: [], range: range) {
+                let nameRange = Range(match.range(at: 1), in: summary)
+                let extracted = nameRange.map { String(summary[$0]).trimmingCharacters(in: .whitespaces) } ?? ""
+                if !extracted.isEmpty {
+                    let sorted = candidates.sorted { $0.name.count > $1.name.count }
+                    if let found = sorted.first(where: { extracted.contains($0.name) }) {
+                        return found.id
+                    }
+                    if let found = candidates.first(where: { normalizeForMatch($0.name) == normalizeForMatch(extracted) }) {
+                        return found.id
+                    }
+                }
+            }
+        }
+
+        // Tier 2: fall back to lines that mention MVP, checking the same line then the next few
         let lines = summary.split(separator: "\n").map(String.init)
         for i in lines.indices {
             let trimmed = lines[i].trimmingCharacters(in: .whitespaces)
-            guard trimmed.lowercased().contains("mvp") || trimmed.contains("最有价值") || trimmed.contains("最有價值") else { continue }
+            guard isMVPKeywordLine(trimmed) else { continue }
 
-            for candidate in candidates where trimmed.contains(candidate.name) {
-                return candidate.id
+            let sorted = candidates.sorted { $0.name.count > $1.name.count }
+            if let found = sorted.first(where: { trimmed.contains($0.name) }) {
+                return found.id
             }
 
             for j in (i + 1)..<min(i + 3, lines.count) {
                 let next = lines[j].trimmingCharacters(in: .whitespaces)
                 guard !next.isEmpty else { continue }
-                for candidate in candidates where next.contains(candidate.name) {
-                    return candidate.id
+                if let found = sorted.first(where: { next.contains($0.name) }) {
+                    return found.id
                 }
             }
         }
         return nil
+    }
+
+    private static func isMVPKeywordLine(_ text: String) -> Bool {
+        let lower = text.lowercased()
+        return lower.contains("mvp")
+            || lower.contains("most valuable")
+            || text.contains("最有价值")
+            || text.contains("最有價值")
+    }
+
+    private static func normalizeForMatch(_ text: String) -> String {
+        text.lowercased()
+            .replacingOccurrences(of: #"[^\p{L}\p{N}]"#, with: "", options: .regularExpression)
     }
 
     @MainActor static func scanAllGames(store: AppStore) {

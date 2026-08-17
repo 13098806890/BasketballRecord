@@ -1,6 +1,5 @@
 import Foundation
 import OSLog
-import DeviceCheck
 
 private let shareServiceBaseURL = "https://1443094980-e9pcdbf48s.ap-shanghai.tencentscf.com"
 private var shareUploadURL: URL? {
@@ -18,8 +17,6 @@ enum CloudShareError: LocalizedError {
     case notConfigured
     case notFound
     case emptyData
-    case deviceCheckNotSupported
-    case deviceCheckFailed(Error?)
     case networkError(Error)
     case serverError(String)
     case invalidResponse
@@ -32,10 +29,6 @@ enum CloudShareError: LocalizedError {
             return NSLocalizedString("cloudshare_error_not_found", comment: "")
         case .emptyData:
             return NSLocalizedString("cloudshare_error_empty_data", comment: "")
-        case .deviceCheckNotSupported:
-            return NSLocalizedString("cloudshare_error_devicecheck_unsupported", comment: "")
-        case .deviceCheckFailed(let error):
-            return error?.localizedDescription ?? NSLocalizedString("cloudshare_error_devicecheck_failed", comment: "")
         case .networkError(let error):
             return error.localizedDescription
         case .serverError(let msg):
@@ -57,24 +50,6 @@ struct CloudShareCheckResponse: Decodable {
 
 @MainActor
 struct CloudShareManager {
-    static func generateDeviceToken() async throws -> String {
-        let device = DCDevice.current
-        guard device.isSupported else {
-            throw CloudShareError.deviceCheckNotSupported
-        }
-        let tokenData: Data = try await withCheckedThrowingContinuation { continuation in
-            device.generateToken { token, error in
-                if let error = error {
-                    continuation.resume(throwing: CloudShareError.deviceCheckFailed(error))
-                } else if let token = token {
-                    continuation.resume(returning: token)
-                } else {
-                    continuation.resume(throwing: CloudShareError.deviceCheckFailed(nil))
-                }
-            }
-        }
-        return tokenData.base64EncodedString()
-    }
 
     static func upload(data: Data) async throws -> String {
         guard !data.isEmpty else {

@@ -479,19 +479,7 @@ struct BluetoothStoreSyncComposerView: View {
 
     private func score(for teamID: UUID?, in game: SavedGame) -> Int {
         guard let teamID else { return 0 }
-
-        let playerIDs: [UUID]
-        if teamID == game.snapshot.homeTeamID {
-            playerIDs = game.homePlayerIDs
-        } else if teamID == game.snapshot.awayTeamID {
-            playerIDs = game.awayPlayerIDs
-        } else {
-            playerIDs = []
-        }
-
-        return playerIDs.reduce(into: 0) { partialResult, playerID in
-            partialResult += game.snapshot.statsByPlayerID[playerID, default: PlayerStats()].points
-        }
+        return game.score(forTeamID: teamID)
     }
 
     private func progressDetailText(_ progress: BluetoothStoreSyncProgress) -> String {
