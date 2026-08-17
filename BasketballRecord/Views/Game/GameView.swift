@@ -8,6 +8,7 @@
 
 import SwiftUI
 import UIKit
+import StoreKit
 import MultipeerConnectivity
 import CryptoKit
 
@@ -69,6 +70,8 @@ struct GameView: View {
     @AppStorage("voice_locale") private var voiceLocale: String = ""
     @AppStorage("voice_matching_threshold") private var voiceMatchingThreshold: Double = 0.6
     @AppStorage("voice_show_success_animation") private var showVoiceSuccessAnimation = true
+    @AppStorage("completed_games_count") private var completedGamesCount = 0
+    @AppStorage("review_prompted_at_count") private var reviewPromptedAtCount = 0
 
     private let matchClockTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -2079,6 +2082,21 @@ struct GameView: View {
         let now = Date()
         _ = liveManager.submitLiveOperation(.finishGame(at: now)) {
             applyFinishGameOperation(at: now)
+        }
+        maybePromptForReview()
+    }
+
+    private func maybePromptForReview() {
+        completedGamesCount += 1
+        let thresholds = [3, 12]
+        guard let next = thresholds.first(where: { completedGamesCount >= $0 && reviewPromptedAtCount < $0 }) else { return }
+        reviewPromptedAtCount = next
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            if let scene = UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene })
+                .first(where: { $0.activationState == .foregroundActive }) {
+                SKStoreReviewController.requestReview(in: scene)
+            }
         }
     }
 
