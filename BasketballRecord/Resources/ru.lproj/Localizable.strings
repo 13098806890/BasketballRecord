@@ -366,6 +366,9 @@
 "deepseek_error_remove_failed" = "Не удалось удалить API-ключ.";
 "deepseek_error_save_failed" = "Не удалось сохранить API-ключ.";
 "deepseek_error_test_failed" = "Тест на подключение провалился.";
+"deepseek_key_removed" = "Ключ API удалён";
+"deepseek_key_saved" = "Ключ API сохранён";
+"deepseek_test_success" = "Тест подключения успешен";
 "deepseek_settings_title" = "AI API";
 "deepseek_status_has_saved_key" = "Обнаружен сохраненный ключ API.";
 "deepseek_status_loaded_saved_key" = "Загруженный сохраненный API-ключ.";
@@ -922,6 +925,7 @@
 "button_saved" = "Сохранено";
 
 "label_team_stats_mode" = "Статистика команды";
+"team_stats_mode_hint" = "Записывает статистику для всей команды, а не для отдельных игроков. Стартовый состав не требуется.";
 
 "section_team_home" = "Домашняя команда";
 
@@ -1049,6 +1053,7 @@
 "cloudshare_upload_button" = "Загрузить в облако";
 "cloudshare_uploading" = "Загрузка...";
 "cloudshare_uploading_metadata" = "Загрузка метаданных...";
+"cloudshare_uploading_photos" = "Загрузка фотографий...";
 "cloudshare_uploading_photos_format" = "Фото %d из %d";
 "cloudshare_upload_new_button" = "Загрузить новый";
 "cloudshare_include_photos" = "Включить фото";
@@ -1064,8 +1069,8 @@
 "cloudshare_error_not_configured" = "Облачный сервис не настроен";
 "cloudshare_error_not_found" = "Облачный обмен не найден";
 "cloudshare_error_empty_data" = "Данные пусты";
-"cloudshare_error_devicecheck_unsupported" = "Устройство не поддерживает проверку";
-"cloudshare_error_devicecheck_failed" = "Проверка устройства не удалась";
+"common_delete" = "Удалить";
+"text_no_data" = "Нет данных";
 "cloudshare_error_invalid_response" = "Неверный ответ сервера";
 "cloudshare_error_network" = "Сетевое соединение не удалось";
 "cloudshare_error_too_large" = "Data is too large (%d KB). Try selecting fewer items or disable photos.";
@@ -1107,7 +1112,7 @@
 "stats_win_rate" = "Win Rate";
 
 "ai_prompt_period_event_header" = "Period %d Events:";
-"ai_prompt_no_events" = "No events available";
+"period_end_manual" = "Вручную";
 "ai_prompt_team_stats_section" = "Team Stats (system recorded)";
 "ai_prompt_diff_lead_home" = "Home leads by %lld";
 "ai_prompt_diff_lead_away" = "Away leads by %lld";

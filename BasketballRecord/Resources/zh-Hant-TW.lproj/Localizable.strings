@@ -368,7 +368,10 @@
 "deepseek_error_remove_failed" = "刪除 API Key 失敗。";
 "deepseek_error_save_failed" = "保存 API Key 失敗。";
 "deepseek_error_test_failed" = "連接測試失敗。";
+"deepseek_key_removed" = "API 密鑰已刪除";
+"deepseek_key_saved" = "API 密鑰已儲存";
 "deepseek_settings_title" = "AI API 設置";
+"deepseek_test_success" = "連接測試成功";
 "deepseek_status_has_saved_key" = "已檢測到保存的 API Key。";
 "deepseek_status_loaded_saved_key" = "已加載已保存的 API Key。";
 "deepseek_status_no_saved_key" = "尚未保存 API Key。";
@@ -776,6 +779,7 @@
 "label_period_end_condition" = "每節結束條件";
 "period_end_by_time" = "時間";
 "period_end_by_score" = "比分";
+"period_end_manual" = "手動";
 "label_period_time_limit" = "每節時間";
 "label_minutes" = "分鐘";
 "label_minutes_unit" = "分鐘";
@@ -931,6 +935,7 @@
 "button_saved" = "已儲存";
 
 "label_team_stats_mode" = "按球隊統計";
+"team_stats_mode_hint" = "整隊統一記錄技術統計，不區分個別球員，也無需選擇先發陣容。";
 
 "section_team_home" = "主隊";
 
@@ -1058,6 +1063,7 @@
 "cloudshare_upload_button" = "上傳到雲端";
 "cloudshare_uploading" = "正在上傳...";
 "cloudshare_uploading_metadata" = "正在上傳元數據...";
+"cloudshare_uploading_photos" = "正在上傳照片...";
 "cloudshare_uploading_photos_format" = "照片 %d/%d";
 "cloudshare_upload_new_button" = "重新上傳";
 "cloudshare_include_photos" = "包含照片";
@@ -1073,8 +1079,7 @@
 "cloudshare_error_not_configured" = "雲端服務未配置";
 "cloudshare_error_not_found" = "雲端分享不存在";
 "cloudshare_error_empty_data" = "數據為空";
-"cloudshare_error_devicecheck_unsupported" = "此設備不支持驗證";
-"cloudshare_error_devicecheck_failed" = "設備驗證失敗";
+"common_delete" = "刪除";
 "cloudshare_error_invalid_response" = "伺服器響應無效";
 "cloudshare_error_network" = "網絡連接失敗";
 "cloudshare_error_too_large" = "數據過大（%d KB），請減少選擇項或關閉匯出照片";
@@ -1116,7 +1121,7 @@
 "stats_win_rate" = "Win Rate";
 
 "ai_prompt_period_event_header" = "Period %d Events:";
-"ai_prompt_no_events" = "No events available";
+"text_no_data" = "暫無資料";
 "ai_prompt_team_stats_section" = "Team Stats (system recorded)";
 "ai_prompt_diff_lead_home" = "Home leads by %lld";
 "ai_prompt_diff_lead_away" = "Away leads by %lld";
