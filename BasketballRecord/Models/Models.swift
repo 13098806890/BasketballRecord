@@ -201,6 +201,7 @@ struct ExportPlayerV2: Codable, Hashable {
     var height: String
     var weight: String
     var number: String
+    var position: String
     var photoData: Data?
     var nicknames: [String]
 
@@ -210,6 +211,7 @@ struct ExportPlayerV2: Codable, Hashable {
         case height = "h"
         case weight = "w"
         case number = "o"
+        case position = "r"
         case photoData = "f"
         case nicknames = "k"
     }
@@ -220,6 +222,7 @@ struct ExportPlayerV2: Codable, Hashable {
         height = legacy.height
         weight = legacy.weight
         number = legacy.number
+        position = legacy.position
         photoData = legacy.photoData
         nicknames = legacy.nicknames
     }
@@ -231,12 +234,13 @@ struct ExportPlayerV2: Codable, Hashable {
         height = try container.decode(String.self, forKey: .height)
         weight = try container.decode(String.self, forKey: .weight)
         number = try container.decodeIfPresent(String.self, forKey: .number) ?? ""
+        position = try container.decodeIfPresent(String.self, forKey: .position) ?? ""
         photoData = try container.decodeIfPresent(Data.self, forKey: .photoData)
         nicknames = try container.decodeIfPresent([String].self, forKey: .nicknames) ?? []
     }
 
     var legacy: ExportPlayer {
-        ExportPlayer(id: id, name: name, height: height, weight: weight, number: number, photoData: photoData, nicknames: nicknames)
+        ExportPlayer(id: id, name: name, height: height, weight: weight, number: number, position: position, photoData: photoData, nicknames: nicknames)
     }
 }
 

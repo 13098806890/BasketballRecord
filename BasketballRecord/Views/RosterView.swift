@@ -21,6 +21,7 @@ struct RosterView: View {
     @State private var isShowingPurchase = false
 
     @AppStorage("show_badges") private var showBadges = true
+    @AppStorage(AppSkin.storageKey) private var appSkinRaw = AppSkin.classic.rawValue
     @AppStorage(UnitSettings.heightUnitKey) private var heightRaw: String = ""
     @AppStorage(UnitSettings.weightUnitKey) private var weightRaw: String = ""
 
@@ -74,6 +75,15 @@ struct RosterView: View {
 
                         Toggle("", isOn: $showBadges)
                             .labelsHidden()
+                    }
+
+                    Picker(selection: $appSkinRaw) {
+                        ForEach(AppSkin.allCases) { skin in
+                            Text(skin.title)
+                                .tag(skin.rawValue)
+                        }
+                    } label: {
+                        Label(LocalizedStringKey("settings_skin"), systemImage: "paintpalette.fill")
                     }
 
                     NavigationLink {
@@ -354,4 +364,3 @@ func rosterPlayerSubtitle(_ player: Player) -> String {
     if !player.weight.isEmpty { parts.append(UnitSettings.displayWeight(player.weight)) }
     return parts.isEmpty ? NSLocalizedString("player_profile_missing_basic", comment: "Missing player basics") : parts.joined(separator: " · ")
 }
-

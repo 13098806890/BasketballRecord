@@ -8,6 +8,10 @@ struct CoreDataStack {
 
     init() {
         container = NSPersistentContainer(name: "BasketballRecord", managedObjectModel: Self.model)
+        if let description = container.persistentStoreDescriptions.first {
+            description.shouldMigrateStoreAutomatically = true
+            description.shouldInferMappingModelAutomatically = true
+        }
         container.loadPersistentStores { _, error in
             if let error {
                 print("[CoreData] Load error: \(error)")
@@ -88,6 +92,11 @@ struct CoreDataStack {
         playerNumber.attributeType = .stringAttributeType
         playerNumber.isOptional = true
 
+        let playerPosition = NSAttributeDescription()
+        playerPosition.name = "position"
+        playerPosition.attributeType = .stringAttributeType
+        playerPosition.isOptional = true
+
         let playerPhotoPath = NSAttributeDescription()
         playerPhotoPath.name = "photoPath"
         playerPhotoPath.attributeType = .stringAttributeType
@@ -103,7 +112,7 @@ struct CoreDataStack {
         playerNicknamesData.attributeType = .binaryDataAttributeType
         playerNicknamesData.isOptional = true
 
-        player.properties = [playerID, playerName, playerHeight, playerWeight, playerNumber, playerPhotoPath, playerGroupIDsData, playerNicknamesData]
+        player.properties = [playerID, playerName, playerHeight, playerWeight, playerNumber, playerPosition, playerPhotoPath, playerGroupIDsData, playerNicknamesData]
 
         // Team attributes
         let teamID = NSAttributeDescription()
