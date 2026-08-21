@@ -11,6 +11,7 @@ struct PlayerEditorView: View {
     @State private var height: String
     @State private var weight: String
     @State private var number: String
+    @State private var position: String
     @State private var photoData: Data?
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var nicknames: [String]
@@ -22,6 +23,7 @@ struct PlayerEditorView: View {
         _height = State(initialValue: player?.height ?? "")
         _weight = State(initialValue: player?.weight ?? "")
         _number = State(initialValue: player?.number ?? "")
+        _position = State(initialValue: player?.position ?? "")
         _photoData = State(initialValue: player?.photoData)
         _nicknames = State(initialValue: player?.nicknames ?? [])
     }
@@ -50,6 +52,12 @@ struct PlayerEditorView: View {
                     TextField(LocalizedStringKey("placeholder_name_required"), text: $name)
                     TextField(LocalizedStringKey("placeholder_number"), text: $number)
                         .keyboardType(.numberPad)
+                    Picker(LocalizedStringKey("label_position"), selection: $position) {
+                        Text(LocalizedStringKey("position_unspecified")).tag("")
+                        ForEach(PlayerPosition.allCases) { position in
+                            Text(position.rawValue).tag(position.rawValue)
+                        }
+                    }
                     TextField(LocalizedStringKey("placeholder_height_cm"), text: $height)
                         .keyboardType(.decimalPad)
                         .padding(.trailing, 36)
@@ -155,6 +163,7 @@ struct PlayerEditorView: View {
             height: height.trimmingCharacters(in: .whitespacesAndNewlines),
             weight: weight.trimmingCharacters(in: .whitespacesAndNewlines),
             number: number.trimmingCharacters(in: .whitespacesAndNewlines),
+            position: position.trimmingCharacters(in: .whitespacesAndNewlines),
             photoData: photoData,
             playerGroupIDs: player?.playerGroupIDs ?? [],
             badges: player?.badges ?? [],

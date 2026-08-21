@@ -1009,7 +1009,7 @@ final class BluetoothSyncManager: NSObject, ObservableObject {
         payload: BluetoothStoreSyncPayload,
         to peer: MCPeerID
     ) -> Result<PreparedStoreSyncTransfer, StoreSyncPreparationError> {
-        var sanitizedPayload = payload
+        let sanitizedPayload = payload
 
         let includePlayers = !sanitizedPayload.players.isEmpty
         let includeTeams = !sanitizedPayload.teams.isEmpty

@@ -4,12 +4,18 @@ struct PlayerAvatarView: View {
     var player: Player
     var size: CGFloat = 56
     var isSelected: Bool = false
+    var usesPixelSkin: Bool = false
 
     var body: some View {
         Group {
             if let data = player.photoData, let image = UIImage(data: data) {
                 Image(uiImage: image)
                     .resizable()
+                    .scaledToFill()
+            } else if usesPixelSkin {
+                Image("pixel_default_avatar")
+                    .resizable()
+                    .interpolation(.none)
                     .scaledToFill()
             } else {
                 ZStack {

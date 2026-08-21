@@ -12,10 +12,26 @@ struct HistoryView: View {
     @State private var loadTask: Task<Void, Never>?
     @State private var pendingSwipeDeleteGame: SavedGame?
     @State private var expandedSections: Set<String> = []
+    @AppStorage(AppSkin.storageKey) private var appSkinRaw = AppSkin.classic.rawValue
+
+    private var usesPixelSkin: Bool { AppSkin(rawValue: appSkinRaw) == .pixelEsports }
 
     var body: some View {
         Group {
-            if embedInNavigation {
+            if usesPixelSkin {
+                HistoryPixelView(
+                    embedInNavigation: embedInNavigation,
+                    searchText: $searchText,
+                    selectedGroupID: $selectedGroupID,
+                    isShowingImport: $isShowingImport,
+                    isShowingDelete: $isShowingDelete,
+                    pendingSwipeDeleteGame: $pendingSwipeDeleteGame,
+                    expandedSections: $expandedSections,
+                    isLoadingGames: isLoadingGames,
+                    hasNoGames: filteredGames.isEmpty,
+                    monthGroups: monthGroups
+                )
+            } else if embedInNavigation {
                 NavigationStack {
                     List {
                         if store.isPro, let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
@@ -279,7 +295,7 @@ struct HistoryView: View {
                 }
             } message: {
                 Text(LocalizedStringKey("text_irreversible_deletion"))
-            }
+        }
     }
 
     private var filteredGames: [SavedGame] {
@@ -436,22 +452,6 @@ private struct DeleteSavedGamesView: View {
     }()
 }
 
-private struct GameMonthKey: Hashable, Comparable {
-    var year: Int
-    var month: Int
-
-    static func < (lhs: GameMonthKey, rhs: GameMonthKey) -> Bool {
-        lhs.year == rhs.year ? lhs.month < rhs.month : lhs.year < rhs.year
-    }
-}
-
-private struct GameMonthGroup: Identifiable {
-    var key: GameMonthKey
-    var games: [SavedGame]
-    var id: String { "\(key.year)-\(key.month)" }
-    var title: String { String(format: NSLocalizedString("month_title_format", comment: "Month title"), key.year, key.month) }
-}
-
 private struct SavedGameRow: View {
     @EnvironmentObject private var store: AppStore
     var game: SavedGame
@@ -521,4 +521,3 @@ private extension SavedGame {
         return "\(fmt.string(from: start)) - \(fmt.string(from: end))"
     }
 }
-
