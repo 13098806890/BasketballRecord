@@ -154,6 +154,10 @@ struct HistoryPixelView: View {
                     GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
                 }
 
+                BasketballExcelExportButton {
+                    BasketballExcelReportBuilder.history(monthGroups.flatMap(\.games), players: store.players)
+                }
+
                 Button {
                     isShowingDelete = true
                 } label: {

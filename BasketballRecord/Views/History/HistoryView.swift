@@ -127,6 +127,10 @@ struct HistoryView: View {
                                 GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
                             }
 
+                            BasketballExcelExportButton {
+                                BasketballExcelReportBuilder.history(filteredGames, players: store.players)
+                            }
+
                             Button {
                                 isShowingDelete = true
                             } label: {
@@ -233,6 +237,10 @@ struct HistoryView: View {
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         if store.isPro {
                             GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
+                        }
+
+                        BasketballExcelExportButton {
+                            BasketballExcelReportBuilder.history(filteredGames, players: store.players)
                         }
 
                         Button {

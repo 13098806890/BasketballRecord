@@ -29,9 +29,14 @@ struct PlayerProfileView: View {
         .navigationBarBackButtonHidden(false)
         .modifier(PlayerProfileNavigationBarSkin(isPixelSkin: usesPixelSkin))
         .toolbar {
-            if usesPixelSkin && fixedGame == nil {
-                ToolbarItem(placement: .topBarTrailing) {
-                    pixelGameSelectionToolbarItem
+            if fixedGame == nil {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    BasketballExcelExportButton {
+                        BasketballExcelReportBuilder.playerProfile(playerID: playerID, games: filteredGames, players: store.players)
+                    }
+                    if usesPixelSkin {
+                        pixelGameSelectionToolbarItem
+                    }
                 }
             }
         }

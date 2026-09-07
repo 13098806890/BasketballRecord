@@ -111,6 +111,14 @@ struct CareerPixelView: View {
 
             Spacer()
 
+            if boardKind != .history {
+                BasketballExcelExportButton {
+                    let games = (store.isPro ? selectedGroupID.map { store.gamesInGroup($0) } : nil) ?? store.savedGames
+                    let players = (store.isPro ? selectedPlayerGroupID.map { groupID in store.players.filter { $0.playerGroupIDs.contains(groupID) } } : nil) ?? store.players
+                    return BasketballExcelReportBuilder.career(teams: store.teams, players: players, games: games)
+                }
+            }
+
             if store.isPro {
                 PlayerGroupPicker(store: store, selectedGroupID: $selectedPlayerGroupID)
                 GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)

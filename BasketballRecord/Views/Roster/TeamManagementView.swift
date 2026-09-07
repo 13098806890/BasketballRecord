@@ -41,6 +41,13 @@ struct TeamManagementView: View {
             .onDelete(perform: store.deleteTeams)
         }
         .navigationTitle(LocalizedStringKey("settings_teams"))
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                BasketballExcelExportButton {
+                    BasketballExcelReportBuilder.teamRoster(store.teams, players: store.players)
+                }
+            }
+        }
         .sheet(item: $editingTeam) { team in
             TeamEditorView(team: team)
         }

@@ -85,6 +85,11 @@ struct PlayerManagementView: View {
         }
         .navigationTitle(LocalizedStringKey("settings_players"))
         .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                BasketballExcelExportButton {
+                    BasketballExcelReportBuilder.playerRoster(displayedPlayers)
+                }
+            }
             if store.isPro {
                 ToolbarItem(placement: .topBarTrailing) {
                     PlayerGroupPicker(store: store, selectedGroupID: $selectedPlayerGroupID)
