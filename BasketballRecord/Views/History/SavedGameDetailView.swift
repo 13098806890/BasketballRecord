@@ -128,6 +128,9 @@ struct SavedGameDetailView: View {
                     if store.isPro {
                         GameGroupPicker(store: store, selectedGroupID: $selectedGroupID, iconName: "folder.badge.plus", checkedGroupIDs: Set(store.groups(for: game.id).map(\.id)))
                     }
+                    BasketballExcelExportButton {
+                        BasketballExcelReportBuilder.singleGame(game, players: store.players)
+                    }
                     Button {
                         isShowingExport = true
                     } label: {

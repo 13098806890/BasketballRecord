@@ -49,6 +49,9 @@ struct ProSubscriptionStoreView: View {
         SettingsFeatureSection(icon: "pencil.and.list.clipboard", title: LocalizedStringKey("label_edit_event_log"), items: [
             SettingsFeatureItem(LocalizedStringKey("pro_feature_edit_1"), LocalizedStringKey("")),
         ]),
+        SettingsFeatureSection(icon: "tablecells", title: LocalizedStringKey("section_export_settings"), items: [
+            SettingsFeatureItem(LocalizedStringKey("pro_feature_excel_1"), LocalizedStringKey("")),
+        ]),
     ]
 
     var body: some View {

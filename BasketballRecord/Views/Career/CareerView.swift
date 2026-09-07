@@ -33,6 +33,15 @@ struct CareerView: View {
             .navigationTitle(boardKind == .history ? LocalizedStringKey("nav_game_history") : LocalizedStringKey("tab_career"))
             .modifier(CareerNavigationBarSkin(isPixelSkin: usesPixelSkin))
             .toolbar {
+                if !usesPixelSkin, boardKind != .history {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        BasketballExcelExportButton {
+                            let games = (store.isPro ? selectedGroupID.map { store.gamesInGroup($0) } : nil) ?? store.savedGames
+                            let players = (store.isPro ? selectedPlayerGroupID.map { groupID in store.players.filter { $0.playerGroupIDs.contains(groupID) } } : nil) ?? store.players
+                            return BasketballExcelReportBuilder.career(teams: store.teams, players: players, games: games)
+                        }
+                    }
+                }
                 if !usesPixelSkin, boardKind != .history, store.isPro {
                     ToolbarItem(placement: .topBarTrailing) {
                         HStack(spacing: 8) {
