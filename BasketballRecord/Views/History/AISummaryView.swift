@@ -224,6 +224,7 @@ struct AISummaryView: View {
         let prompt = summaryPrompt()
         
         let systemRole = NSLocalizedString("ai_system_role", comment: "AI system role")
+        let outputLanguageInstruction = NSLocalizedString("ai_output_language_instruction", comment: "AI output language")
         
         isGeneratingAISummary = true
         aiSummaryError = nil
@@ -234,12 +235,12 @@ struct AISummaryView: View {
                 if let config = aiConfig {
                     summary = try await AIService.shared.sendChat(
                         model: config.model, apiKey: config.apiKey,
-                        systemPrompt: systemRole, userPrompt: prompt
+                        systemPrompt: "\(systemRole)\n\(outputLanguageInstruction)", userPrompt: prompt
                     )
                 } else {
                     summary = try await AIServiceProxy.chat(
                         messages: [["role": "user", "content": prompt]],
-                        systemPrompt: systemRole,
+                        systemPrompt: "\(systemRole)\n\(outputLanguageInstruction)",
                         temperature: 0.6,
                         maxTokens: 2500
                     )
@@ -271,7 +272,7 @@ struct AISummaryView: View {
         let hasAway = game.snapshot.awayTeamStatsMode && awayTeamStats.points > 0
         guard hasHome || hasAway else { return "" }
         
-        var lines: [String] = ["【Team Stats (system recorded)】"]
+        var lines: [String] = [NSLocalizedString("ai_prompt_team_stats_section", comment: "Team stats section")]
         if hasHome {
             let ts = homeTeamStats
             let pts = String(format: NSLocalizedString("stats_points_format", comment: "Points"), ts.points)
@@ -1244,8 +1245,9 @@ struct AISummaryView: View {
     
     private static let aiPromptDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_Hans_CN")
-        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        formatter.locale = .autoupdatingCurrent
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
         return formatter
     }()
     

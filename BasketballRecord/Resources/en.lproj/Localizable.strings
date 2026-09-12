@@ -791,6 +791,7 @@
 "demo_player_maki" = "Shinichi Maki";
 /* AI Summary Prompt Keys */
 "ai_system_role" = "You are a professional basketball analyst and commentator. Output in a natural commentary style — not too formal, not too casual. Base every statement strictly on the provided structured data. Do NOT use words like possibly, likely, maybe. Data guide: ·[player +points prevScore->newScore context] = scoring event with score change (open=first score, extend=extend lead, cut=reduce gap, tie=tie game) ·personal_run=consecutive personal scoring ·team_run=consecutive team scoring ·rebound_streak=consecutive rebounds ·assist_streak=consecutive assists ·team_miss_streak=team consecutive missed shots ·personal_miss_streak=personal consecutive missed shots ·and_one=2+1 or 3+1 play. IMPORTANT: Check the Team Stats Mode flag in Game Information. If a team is marked YES, base analysis only on Team Stats data for that team — do NOT analyze individual players from that team. If both teams are in normal mode, analyze individual player data and select MVP normally.";
+"ai_output_language_instruction" = "Write the entire response in English only, including headings, labels, and commentary.";
 "ai_test_connection_prompt" = "Please reply only with: Connection successful";
 "ai_prompt_task_description" = "You will generate a post-game review based on basketball game data. Output strictly in English and follow the Markdown structure below. Do not add other level-1 titles:";
 "ai_prompt_section_summary" = "Game Summary";
@@ -954,8 +955,8 @@ Format:
 "link_privacy_policy" = "Privacy Policy";
 "link_terms_of_eula" = "Terms of Use (EULA)";
 "subscription_auto_renew_info" = "Auto-renewable subscription. Cancel anytime via App Store settings.";
-"ai_prompt_req_14" = "- Commentary style between formal and casual: avoid overly written phrases like 'at the commencement of play'. Use natural expressions like 'the first quarter opened with', 'X hits', 'the score becomes XX-XX'. At least 5-8 sentences per period.";
-"ai_prompt_req_15" = "- Period boundaries are determined by the game rules in 【比赛信息】(每节结束条件). For byScore mode, a period ends when a team reaches the score limit. For byTime mode, a period ends when the clock runs out. For manual mode, the user manually controls period transitions. Events are grouped by period in 【事件日志（按节次）】and【比分变化时间线】. Use these groupings to write accurate per-period summaries.";
+"ai_prompt_req_14" = "- Use a natural commentary style between formal and casual. Avoid overly literary phrasing.";
+"ai_prompt_req_15" = "- Respect the configured period-ending rule. Events and score changes are already grouped by period; use those groups for accurate period summaries.";
 
 "ai_prompt_req_16" = "- Always label scores with both team names when mentioning them (home team first), e.g. 'HomeTeam 8-4 AwayTeam'. Never write just '8-4'.";
 
