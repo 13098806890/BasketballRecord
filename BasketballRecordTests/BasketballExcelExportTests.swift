@@ -85,7 +85,7 @@ final class BasketballExcelExportTests: XCTestCase {
 
         XCTAssertEqual(report.sheets.count, 5)
         XCTAssertEqual(averageRow[1], .integer(2))
-        XCTAssertEqual(averageRow[4], .number(3))
+        XCTAssertEqual(averageRow[5], .number(3))
     }
 
     func testTeamStatsModeDoesNotCreatePlayerBoxScoreRowsForThatTeam() {

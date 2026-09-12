@@ -708,6 +708,7 @@
 "demo_player_maki" = "牧紳一";
 /* AI Summary Prompt Keys */
 "ai_system_role" = "你是專業籃球解說與數據分析師。用自然的賽事解說風格輸出，既不過於書面也不過於隨意。嚴格基於提供的結構化數據，不得使用可能大概或許等不確定措辭。每條描述必須有數據支撐。數據說明：·[球員 +分 前比分→後比分 類型]表示每次得分事件及比分變化（open=首開紀錄, extend=擴大領先, cut=縮小差距, tie=追平）·personal_run=個人連續得分·team_run=球隊連續得分·rebound_streak=連續籃板·assist_streak=連續助攻·team_miss_streak=球隊連續不中·personal_miss_streak=個人連續不中·and_one=2+1或3+1打三分。注意【比賽信息】中的球隊統計模式標記：如果某隊標記為是，則該隊只基於【球隊統計數據】分析，不要分析該隊個人球員。如果兩隊都是普通模式，正常分析個人數據和評選MVP。";
+"ai_output_language_instruction" = "整篇回答只能使用繁體中文，包括標題、標籤和比賽解說。";
 "ai_test_connection_prompt" = "請僅回覆：連接成功";
 "ai_prompt_task_description" = "你將基於一場籃球比賽資料生成賽後復盤。請嚴格用繁體中文輸出，並且嚴格按照以下 Markdown 結構，不要添加其他一級標題：";
 "ai_prompt_section_summary" = "比賽總結";
@@ -932,8 +933,8 @@
 "link_privacy_policy" = "隱私政策";
 "link_terms_of_eula" = "使用條款 (EULA)";
 "subscription_auto_renew_info" = "自動續期訂閱。可隨時在 App Store 設定中取消。";
-"ai_prompt_req_14" = "- 解說風格介於書面和口語之間：避免過於書面化的表達如'比賽伊始'。使用自然的表達如'第一節開局'、'X命中'、'比分來到XX-XX'。每節至少5-8句話。";
-"ai_prompt_req_15" = "- 節次邊界由【比賽信息】中的'每節結束條件'決定。按比分模式時，某隊達到比分上限則該節結束；按時間模式時，時間到則該節結束；手動模式時由用戶手動切換節次。事件已按節次分組在【事件日誌（按節次）】和【比分變化時間線】中，使用這些分組來寫準確的逐節總結。";
+"ai_prompt_req_14" = "- 解說風格介於書面和口語之間，避免過於書面化的表達。";
+"ai_prompt_req_15" = "- 遵循已設定的每節結束條件。事件和比分變化已按節次分組，請據此準確總結每一節。";
 
 "ai_prompt_req_16" = "- 每次提及比分時必須寫明兩隊分數並用隊名標識（主隊在前），例如'北辰 8-4 河語隊'，不要僅寫'8-4'這樣的純數字格式。";
 
@@ -1158,7 +1159,7 @@
 "ai_prompt_metric_line_format" = "%@: %@ (%@)";
 "ai_prompt_playing_time_format" = "Longest playing time: %@ (%@)";
 "ai_prompt_playing_time_no_data" = "Longest playing time: no data";
-"ai_prompt_players_and_more" = "%1$@ and %4$ld others";
+"ai_prompt_players_and_more" = "%1$@，以及其他 %4$ld 人";
 "ai_prompt_no_participants" = "No participant stats available.";
 "ai_prompt_no_scoring_record" = "No scoring record";
 "ai_prompt_metric_most_points" = "Most Points";

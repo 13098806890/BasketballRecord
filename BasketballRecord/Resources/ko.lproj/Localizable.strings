@@ -513,8 +513,8 @@
 "alert_confirmation_failed_retry" = "Confirmation failed. Please check the connection and try again.";
 "alert_confirm_delete_game_title" = "Delete this game?";
 "alert_confirm_delete_games_title" = "Delete selected games?";
-"alert_ai_no_api_key" = "Please configure and save AI API Key in Settings first.";
-"alert_ai_generate_failed" = "Generation failed. Please try again later.";
+"alert_ai_no_api_key" = "설정에서 AI API 키를 먼저 구성하고 저장해 주세요.";
+"alert_ai_generate_failed" = "생성에 실패했습니다. 잠시 후 다시 시도해 주세요.";
 "alert_missing_roster_title" = "New teams or players detected";
 "alert_missing_roster_message" = "The import contains teams or players not on this device. Unmatched items will be created with their original UUIDs. Photos will not be imported.";
 "alert_overwrite_game_title" = "Existing game will be overwritten";
@@ -530,8 +530,8 @@
 "button_continue_import" = "Continue";
 "button_parse_game_record" = "Parse Game Record";
 "button_import_game" = "Import Game";
-"button_ai_generate_summary" = "Generate Summary";
-"button_ai_generating" = "Generating…";
+"button_ai_generate_summary" = "요약 생성";
+"button_ai_generating" = "생성 중…";
 "nav_game_history" = "Game History";
 "nav_game_detail" = "Game Detail";
 "nav_delete_games" = "Delete Games";
@@ -543,7 +543,7 @@
 "status_processing_sync" = "Processing sync data";
 "status_preparing_sync_hint" = "Preparing data. The request will be sent and will wait for peer confirmation when ready.";
 "status_background_processing_hint" = "Processing moved to background. The main UI remains interactive.";
-"section_ai_game_summary" = "AI Game Summary";
+"section_ai_game_summary" = "AI 경기 요약";
 "section_game_share_code" = "Game Share Code";
 "section_team_match" = "Team Match";
 "section_player_match" = "Player Match";
@@ -600,8 +600,8 @@ Type: Game chunked
 Teams: %d
 Players: %d
 Unmatched items will be created with original UUIDs. Photos will not be imported.";
-"text_ai_waiting_key" = "Waiting for AI API Key.";
-"text_ai_will_generate" = "Will generate: game summary, MVP pick and highlight moments.";
+"text_ai_waiting_key" = "AI API 키를 기다리는 중입니다.";
+"text_ai_will_generate" = "경기 요약, MVP 선정 및 하이라이트 장면을 생성합니다.";
 "text_clipboard_recognized_game" = "Detected game data from clipboard and auto-pasted successfully.";
 "unmarked_role" = "Unmarked";
 "unrecorded_role" = "Unrecorded";
@@ -717,6 +717,7 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "demo_player_maki" = "마키 신이치";
 /* AI Summary Prompt Keys - English Fallback */
 "ai_system_role" = "You are a professional basketball analyst and commentator. Output in a natural commentary style — not too formal, not too casual. Base every statement strictly on the provided structured data. Do NOT use words like possibly, likely, maybe. Data guide: ·[player +points prevScore->newScore context] = scoring event with score change (open=first score, extend=extend lead, cut=reduce gap, tie=tie game) ·personal_run=consecutive personal scoring ·team_run=consecutive team scoring ·rebound_streak=consecutive rebounds ·assist_streak=consecutive assists ·team_miss_streak=team consecutive missed shots ·personal_miss_streak=personal consecutive missed shots ·and_one=2+1 or 3+1 play. IMPORTANT: Check the Team Stats Mode flag in Game Information. If a team is marked YES, base analysis only on Team Stats data for that team — do NOT analyze individual players from that team. If both teams are in normal mode, analyze individual player data and select MVP normally.";
+"ai_output_language_instruction" = "제목, 레이블, 해설을 포함한 전체 답변을 한국어로만 작성하세요.";
 "ai_test_connection_prompt" = "Please reply only with: Connection successful";
 "ai_prompt_task_description" = "농구 경기 데이터를 기반으로 경기 리뷰를 생성합니다. 한국어로 엄격하게 출력하고 아래 Markdown 구조를 따르십시오. 다른 수준 1 제목을 추가하지 마십시오:";
 "ai_prompt_section_summary" = "경기 요약";
@@ -955,9 +956,9 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "link_privacy_policy" = "개인정보 처리방침";
 "link_terms_of_eula" = "이용 약관 (EULA)";
 "subscription_auto_renew_info" = "자동 갱신 구독입니다. App Store 설정에서 언제든지 취소할 수 있습니다.";
-"ai_prompt_req_14" = "- 해설 스타일은 격식과 구어체 사이: '경기 시작과 함께'와 같은 지나치게 문어체적인 표현을 피하고 '첫 번째 쿼터는 XX로 시작되었다', 'X가 성공시킨다', '점수는 XX-XX가 된다'와 같은 자연스러운 표현을 사용하십시오. 각 쿼터 최소 5-8문장.";
+"ai_prompt_req_14" = "- 격식과 구어체 사이의 자연스러운 해설 스타일을 사용하고 지나치게 문어적인 표현은 피하세요.";
 
-"ai_prompt_req_15" = "- 쿼터 경계는 【比赛信息】의 '쿼터 종료 조건'에 의해 결정됩니다. 점수 모드에서는 팀이 점수 제한에 도달하면 쿼터가 종료됩니다. 시간 모드에서는 시간이 다 되면 쿼터가 종료됩니다. 수동 모드에서는 사용자가 수동으로 쿼터를 전환합니다. 이벤트는 【事件日志（按节次）】와 【比分变化时间线】에서 쿼터별로 그룹화되어 있습니다. 이러한 그룹화를 사용하여 정확한 요약을 작성하십시오.";
+"ai_prompt_req_15" = "- 설정된 쿼터 종료 조건을 따르세요. 이벤트와 점수 변화는 이미 쿼터별로 그룹화되어 있으므로 정확한 쿼터 요약에 활용하세요.";
 
 "ai_prompt_req_16" = "- 점수를 언급할 때는 항상 두 팀 이름을 함께 표기하세요 (홈팀이 먼저). 예: 'HomeTeam 8-4 AwayTeam'. '8-4'와 같은 숫자만 표기하지 마세요.";
 
@@ -1168,7 +1169,7 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "ai_prompt_metric_line_format" = "%@: %@ (%@)";
 "ai_prompt_playing_time_format" = "Longest playing time: %@ (%@)";
 "ai_prompt_playing_time_no_data" = "Longest playing time: no data";
-"ai_prompt_players_and_more" = "%1$@ and %4$ld others";
+"ai_prompt_players_and_more" = "%1$@ 외 %4$ld명";
 "ai_prompt_no_participants" = "No participant stats available.";
 "ai_prompt_no_scoring_record" = "No scoring record";
 "ai_prompt_metric_most_points" = "Most Points";

@@ -836,6 +836,7 @@
 "demo_player_ayako" = "Ayako";
 "demo_player_maki" = "Shinichi Maki";
 "ai_system_role" = "You are a professional basketball analyst and commentator. Output in a natural commentary style — not too formal, not too casual. Base every statement strictly on the provided structured data. Do NOT use words like possibly, likely, maybe. Data guide: ·[player +points prevScore->newScore context] = scoring event with score change (open=first score, extend=extend lead, cut=reduce gap, tie=tie game) ·personal_run=consecutive personal scoring ·team_run=consecutive team scoring ·rebound_streak=consecutive rebounds ·assist_streak=consecutive assists ·team_miss_streak=team consecutive missed shots ·personal_miss_streak=personal consecutive missed shots ·and_one=2+1 or 3+1 play. IMPORTANT: Check the Team Stats Mode flag in Game Information. If a team is marked YES, base analysis only on Team Stats data for that team — do NOT analyze individual players from that team. If both teams are in normal mode, analyze individual player data and select MVP normally.";
+"ai_output_language_instruction" = "Scrivi l'intera risposta esclusivamente in italiano, inclusi titoli, etichette e commento.";
 "ai_test_connection_prompt" = "Please reply only with: Connection successful";
 "ai_prompt_task_description" = "Genererai un resoconto post-partita basato su dati di basket. Uscita strettamente in italiano. Segui la struttura Markdown qui sotto. Non aggiungere altri titoli di livello 1:";
 "ai_prompt_section_summary" = "Riepilogo Partita";
@@ -922,8 +923,8 @@ Formato:
 "link_privacy_policy" = "Informativa sulla privacy";
 "link_terms_of_eula" = "Termini di utilizzo (EULA)";
 "subscription_auto_renew_info" = "Abbonamento con rinnovo automatico. Annulla in qualsiasi momento nelle impostazioni di App Store.";
-"ai_prompt_req_14" = "- Stile di commento tra formale e informale: evita espressioni troppo scritte come 'all'inizio del gioco'. Usa espressioni naturali come 'il primo periodo è iniziato con', 'X segna', 'il punteggio diventa XX-XX'. Almeno 5-8 frasi per periodo.";
-"ai_prompt_req_15" = "- I confini dei periodi sono determinati dalle regole del gioco in 【比赛信息】(condizione di fine periodo). In modalità a punti, un periodo termina quando una squadra raggiunge il limite di punti. In modalità a tempo, un periodo termina quando il tempo scade. In modalità manuale, l'utente cambia periodo manualmente. Gli eventi sono raggruppati per periodo in 【事件日志（按节次）】e【比分变化时间线】. Usa questi raggruppamenti per riassunti accurati.";
+"ai_prompt_req_14" = "- Usa uno stile di commento naturale, tra formale e informale, evitando espressioni eccessivamente letterarie.";
+"ai_prompt_req_15" = "- Rispetta la regola configurata per la fine del periodo. Eventi e variazioni del punteggio sono già raggruppati per periodo; usali per riepiloghi accurati.";
 
 "ai_prompt_req_16" = "- Etichetta sempre i punteggi con i nomi di entrambe le squadre (casa prima), es. 'HomeTeam 8-4 AwayTeam'. Non scrivere solo '8-4'.";
 
@@ -1149,7 +1150,7 @@ Formato:
 "ai_prompt_metric_line_format" = "%@: %@ (%@)";
 "ai_prompt_playing_time_format" = "Longest playing time: %@ (%@)";
 "ai_prompt_playing_time_no_data" = "Longest playing time: no data";
-"ai_prompt_players_and_more" = "%1$@ and %4$ld others";
+"ai_prompt_players_and_more" = "%1$@ e altri %4$ld";
 "ai_prompt_no_participants" = "No participant stats available.";
 "ai_prompt_no_scoring_record" = "No scoring record";
 "ai_prompt_metric_most_points" = "Most Points";

@@ -689,6 +689,7 @@
 "stat_label_free_throw_rate" = "FT%";
 /* AI Summary Prompt Keys - English Fallback */
 "ai_system_role" = "You are a professional basketball analyst and commentator. Output in a natural commentary style — not too formal, not too casual. Base every statement strictly on the provided structured data. Do NOT use words like possibly, likely, maybe. Data guide: ·[player +points prevScore->newScore context] = scoring event with score change (open=first score, extend=extend lead, cut=reduce gap, tie=tie game) ·personal_run=consecutive personal scoring ·team_run=consecutive team scoring ·rebound_streak=consecutive rebounds ·assist_streak=consecutive assists ·team_miss_streak=team consecutive missed shots ·personal_miss_streak=personal consecutive missed shots ·and_one=2+1 or 3+1 play. IMPORTANT: Check the Team Stats Mode flag in Game Information. If a team is marked YES, base analysis only on Team Stats data for that team — do NOT analyze individual players from that team. If both teams are in normal mode, analyze individual player data and select MVP normally.";
+"ai_output_language_instruction" = "見出し、ラベル、解説を含む回答全体を日本語のみで記述してください。";
 "ai_test_connection_prompt" = "Please reply only with: Connection successful";
 "ai_prompt_task_description" = "バスケットボールの試合データに基づいてレビューを生成します。日本語で厳密に出力し、以下のMarkdown構造に従ってください。他のレベル1見出しを追加しないでください：";
 "ai_prompt_section_summary" = "試合概要";
@@ -933,8 +934,8 @@
 "link_privacy_policy" = "プライバシーポリシー";
 "link_terms_of_eula" = "利用規約 (EULA)";
 "subscription_auto_renew_info" = "自動更新サブスクリプション。App Storeの設定からいつでもキャンセルできます。";
-"ai_prompt_req_14" = "- 解説スタイルはフォーマルとカジュアルの中間：試合開始などの書き言葉的な表現を避け、「第1クォーターはXXで始まった」「Xが決める」「スコアはXX-XXになる」などの自然な表現を使用。各ピリオド最低5-8文。";
-"ai_prompt_req_15" = "- ピリオドの境界は【比赛信息】の「各ピリオド終了条件」によって決定されます。得点モードでは、チームが得点上限に達するとピリオドが終了します。時間モードでは、時間切れでピリオドが終了します。手動モードでは、ユーザーが手動でピリオドを切り替えます。イベントは【事件日志（按节次）】と【比分变化时间线】でピリオドごとにグループ化されています。これらのグループ化を使用して正確なサマリーを作成してください。";
+"ai_prompt_req_14" = "- フォーマルすぎずカジュアルすぎない自然な解説にし、過度に文学的な表現は避けてください。";
+"ai_prompt_req_15" = "- 設定されたピリオド終了条件に従ってください。イベントとスコア推移はピリオド別に整理済みなので、正確なピリオド要約に使用してください。";
 
 "ai_prompt_req_16" = "- スコアに言及する際は、必ず両チーム名を付けて表記してください（ホームチームが先）。例：「HomeTeam 8-4 AwayTeam」。数字のみの「8-4」のような表記は避けてください。";
 
@@ -1160,7 +1161,7 @@
 "ai_prompt_metric_line_format" = "%@: %@ (%@)";
 "ai_prompt_playing_time_format" = "Longest playing time: %@ (%@)";
 "ai_prompt_playing_time_no_data" = "Longest playing time: no data";
-"ai_prompt_players_and_more" = "%1$@ and %4$ld others";
+"ai_prompt_players_and_more" = "%1$@、ほか%4$ld名";
 "ai_prompt_no_participants" = "No participant stats available.";
 "ai_prompt_no_scoring_record" = "No scoring record";
 "ai_prompt_metric_most_points" = "Most Points";
