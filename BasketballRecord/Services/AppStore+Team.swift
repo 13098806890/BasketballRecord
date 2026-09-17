@@ -161,6 +161,7 @@ extension AppStore {
         return SavedGame(
             id: game.id,
             savedAt: game.savedAt,
+            modifiedAt: game.modifiedAt,
             snapshot: snapshot,
             aiSummary: game.aiSummary,
             previousSnapshot: game.previousSnapshot.map { remappedSnapshotForTeamMerge($0, sourceID: sourceID, targetID: targetID) },

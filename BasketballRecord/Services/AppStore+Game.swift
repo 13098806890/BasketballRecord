@@ -39,8 +39,7 @@ extension AppStore {
     }
 
     func latestUnfinishedGame() -> SavedGame? {
-        guard let latest = savedGames.first else { return nil }
-        return latest.snapshot.isComplete ? nil : latest
+        savedGames.first { !$0.snapshot.isComplete }
     }
 
     func exportGameBase64(_ game: SavedGame) -> String? {
@@ -221,6 +220,7 @@ extension AppStore {
         return SavedGame(
             id: game.id,
             savedAt: game.savedAt,
+            modifiedAt: game.modifiedAt,
             snapshot: snapshot,
             aiSummary: game.aiSummary,
             previousSnapshot: game.previousSnapshot.map { remappedSnapshot($0, playerIDMap: playerIDMap, teamIDMap: teamIDMap) },
