@@ -80,7 +80,7 @@ struct HistoryPixelView: View {
     @Binding var isShowingDelete: Bool
     @Binding var pendingSwipeDeleteGame: SavedGame?
     @Binding var expandedSections: Set<String>
-    var isLoadingGames: Bool
+    var isLoadingGames: Binding<Bool>
     var hasNoGames: Bool
     var monthGroups: [GameMonthGroup]
 
@@ -100,7 +100,7 @@ struct HistoryPixelView: View {
         ZStack {
             HistoryPixelBackground()
 
-            if !isLoadingGames, hasNoGames {
+            if !isLoadingGames.wrappedValue, hasNoGames {
                 ContentUnavailableView(
                     LocalizedStringKey("empty_no_game_history"),
                     systemImage: "clock.badge.questionmark"
@@ -131,7 +131,7 @@ struct HistoryPixelView: View {
                 }
             }
 
-            if isLoadingGames {
+            if isLoadingGames.wrappedValue {
                 VStack(spacing: 8) {
                     ProgressView()
                         .tint(HistoryPixelDesign.cyan)
@@ -154,9 +154,17 @@ struct HistoryPixelView: View {
                     GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
                 }
 
-                BasketballExcelExportButton {
-                    BasketballExcelReportBuilder.history(monthGroups.flatMap(\.games), players: store.players)
-                }
+                BasketballExcelExportButton(
+                    isEnabled: isLoadingGames.wrappedValue || !store.isPro || !store.savedGames.isEmpty,
+                    isLoadingGames: isLoadingGames,
+                    loadsAllGamesFromStore: true,
+                    selectedGamesExportFile: { games in
+                        BasketballExcelReportBuilder.historyArchive(games, players: store.players)
+                    },
+                    makeExportFile: {
+                        BasketballExcelReportBuilder.historyArchive(store.savedGames, players: store.players)
+                    }
+                )
 
                 Button {
                     isShowingDelete = true

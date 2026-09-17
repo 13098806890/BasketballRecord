@@ -53,7 +53,7 @@ extension StatAction {
         let normalized = GameLogFormatter.normalizedMessage(message)
         for action in allCases {
             let candidates = action.suffixCandidates
-            for suffix in candidates where normalized.hasSuffix(suffix) {
+            for suffix in candidates where !suffix.isEmpty && normalized.hasSuffix(suffix) {
                 let name = String(normalized.dropLast(suffix.count)).trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !name.isEmpty else { return nil }
                 return (name, action)

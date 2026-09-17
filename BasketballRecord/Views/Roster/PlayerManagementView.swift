@@ -87,7 +87,7 @@ struct PlayerManagementView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 BasketballExcelExportButton {
-                    BasketballExcelReportBuilder.playerRoster(displayedPlayers)
+                    BasketballExcelReportBuilder.playerRoster(displayedPlayers).exportFile
                 }
             }
             if store.isPro {
