@@ -1,20 +1,77 @@
 import Foundation
+import zlib
 
-struct BasketballExcelReport {
+struct BasketballExcelExportFile: Sendable {
+    let fileName: String
+    private let content: Content
+
+    var data: Data {
+        switch content {
+        case .data(let data):
+            return data
+        case .workbook(let sheets):
+            return BasketballXLSXWriter(sheets: sheets).data()
+        case .archive(let entries):
+            let archiveEntries = entries.map { ($0.fileName, $0.report.data) }
+            return ZipStore(entries: archiveEntries, compression: .deflate).data()
+        }
+    }
+
+    init(fileName: String, data: Data) {
+        self.fileName = fileName
+        content = .data(data)
+    }
+
+    init(fileName: String, sheets: [BasketballExcelSheet]) {
+        self.fileName = fileName
+        content = .workbook(sheets)
+    }
+
+    init(fileName: String, archiveEntries: [BasketballExcelArchiveEntry]) {
+        self.fileName = fileName
+        content = .archive(archiveEntries)
+    }
+
+    private enum Content: Sendable {
+        case data(Data)
+        case workbook([BasketballExcelSheet])
+        case archive([BasketballExcelArchiveEntry])
+    }
+}
+
+struct BasketballExcelReport: Sendable {
     let fileName: String
     let sheets: [BasketballExcelSheet]
 
     var data: Data {
         BasketballXLSXWriter(sheets: sheets).data()
     }
+
+    var exportFile: BasketballExcelExportFile {
+        BasketballExcelExportFile(
+            fileName: BasketballExcelExportFileName.addingXLSXExtension(to: fileName),
+            sheets: sheets
+        )
+    }
 }
 
-struct BasketballExcelSheet {
+struct BasketballExcelArchiveEntry: Sendable {
+    let fileName: String
+    let report: BasketballExcelReport
+}
+
+enum BasketballExcelExportFileName {
+    static func addingXLSXExtension(to fileName: String) -> String {
+        fileName.lowercased().hasSuffix(".xlsx") ? fileName : "\(fileName).xlsx"
+    }
+}
+
+struct BasketballExcelSheet: Sendable {
     let name: String
     let rows: [[BasketballExcelCell]]
 }
 
-enum BasketballExcelCell: Equatable {
+enum BasketballExcelCell: Equatable, Sendable {
     case text(String)
     case number(Double)
     case integer(Int)
@@ -72,17 +129,21 @@ struct BasketballExcelReportBuilder {
         )
     }
 
-    static func history(_ games: [SavedGame], players: [Player]) -> BasketballExcelReport {
-        let sortedGames = games.sorted { $0.savedAt > $1.savedAt }
-        return BasketballExcelReport(
-            fileName: fileName("history", "BasketballRecord"),
-            sheets: [
-                gamesSheet(games: sortedGames),
-                playerBoxScoreSheet(games: sortedGames, players: players),
-                playerSummarySheet(games: sortedGames, players: players),
-                teamStatsSheet(games: sortedGames),
-                eventLogSheet(games: sortedGames)
-            ]
+    static func historyArchive(_ games: [SavedGame], players: [Player]) -> BasketballExcelExportFile {
+        let sortedGames = games.sorted {
+            $0.savedAt == $1.savedAt ? $0.id.uuidString < $1.id.uuidString : $0.savedAt > $1.savedAt
+        }
+        var nameCounts: [String: Int] = [:]
+        let entries = sortedGames.map { game in
+            let baseName = fileName("game", "\(archiveDateFormatter.string(from: game.savedAt))_\(game.displayTitle)")
+            let occurrence = nameCounts[baseName, default: 0] + 1
+            nameCounts[baseName] = occurrence
+            let uniqueName = occurrence == 1 ? baseName : "\(baseName)_\(occurrence)"
+            return BasketballExcelArchiveEntry(fileName: "\(uniqueName).xlsx", report: singleGame(game, players: players))
+        }
+        return BasketballExcelExportFile(
+            fileName: "BasketballRecord_History.zip",
+            archiveEntries: entries
         )
     }
 
@@ -109,13 +170,10 @@ struct BasketballExcelReportBuilder {
         )
     }
 
-    static func career(teams: [Team], players: [Player], games: [SavedGame]) -> BasketballExcelReport {
+    static func playerCareerSummary(players: [Player], games: [SavedGame]) -> BasketballExcelReport {
         BasketballExcelReport(
-            fileName: "BasketballRecord_Career",
-            sheets: [
-                allTeamsCareerSheet(teams: teams, games: games),
-                playerSummarySheet(games: games, players: players)
-            ]
+            fileName: "BasketballRecord_PlayerCareer",
+            sheets: [playerSummarySheet(games: games, players: players)]
         )
     }
 
@@ -161,18 +219,6 @@ struct BasketballExcelReportBuilder {
             [text("excel_field_team_stats_mode"), .text(teamStatsModeText(for: game))]
         ]
         return BasketballExcelSheet(name: localized("excel_sheet_overview"), rows: rows)
-    }
-
-    private static func gamesSheet(games: [SavedGame]) -> BasketballExcelSheet {
-        var rows: [[BasketballExcelCell]] = [
-            header(["excel_header_date", "excel_header_game", "excel_header_home_team", "excel_header_away_team", "excel_header_home_score", "excel_header_away_score", "excel_header_periods", "excel_header_status"])
-        ]
-        rows += games.map { game in
-            let homeScore = game.snapshot.homeTeamID.map { game.score(forTeamID: $0) } ?? 0
-            let awayScore = game.snapshot.awayTeamID.map { game.score(forTeamID: $0) } ?? 0
-            return [.date(game.savedAt), .text(game.displayTitle), .text(game.homeTeamName), .text(game.awayTeamName), .integer(homeScore), .integer(awayScore), .integer(game.snapshot.periodCount), .text(game.snapshot.isComplete ? localized("period_summary_finished") : localized("alert_unfinished_game_title"))]
-        }
-        return BasketballExcelSheet(name: localized("excel_sheet_games"), rows: rows)
     }
 
     private static func playerBoxScoreSheet(games: [SavedGame], players: [Player]) -> BasketballExcelSheet {
@@ -249,7 +295,16 @@ struct BasketballExcelReportBuilder {
         ]
         for game in games.sorted(by: { $0.savedAt > $1.savedAt }) {
             for log in game.snapshot.logs {
-                rows.append([.date(game.savedAt), .text(game.displayTitle), .integer(log.period ?? 0), .duration(log.periodElapsedSeconds ?? 0), .text(log.eventCode ?? ""), .text(GameLogFormatter.normalizedMessage(log.message)), .text(log.playerID.map { playerName($0, game: game, players: []) } ?? ""), .text(log.relatedPlayerID.map { playerName($0, game: game, players: []) } ?? "")])
+                rows.append([
+                    .date(game.savedAt),
+                    .text(game.displayTitle),
+                    .integer(log.period ?? 0),
+                    periodTimeCell(log.periodElapsedSeconds),
+                    .text(log.eventCode ?? ""),
+                    .text(localizedEventMessage(log, game: game)),
+                    .text(eventPlayerName(log.playerID, game: game) ?? ""),
+                    .text(eventPlayerName(log.relatedPlayerID, game: game) ?? "")
+                ])
             }
         }
         return BasketballExcelSheet(name: localized("excel_sheet_event_log"), rows: rows)
@@ -308,10 +363,108 @@ struct BasketballExcelReportBuilder {
         var rows: [[BasketballExcelCell]] = [header(["excel_header_date", "excel_header_game", "excel_header_period", "excel_header_time", "excel_header_event_code", "excel_header_event"])]
         for game in games {
             for log in game.snapshot.logs where log.playerID == playerID || log.relatedPlayerID == playerID {
-                rows.append([.date(game.savedAt), .text(game.displayTitle), .integer(log.period ?? 0), .duration(log.periodElapsedSeconds ?? 0), .text(log.eventCode ?? ""), .text(GameLogFormatter.normalizedMessage(log.message))])
+                rows.append([
+                    .date(game.savedAt),
+                    .text(game.displayTitle),
+                    .integer(log.period ?? 0),
+                    periodTimeCell(log.periodElapsedSeconds),
+                    .text(log.eventCode ?? ""),
+                    .text(localizedEventMessage(log, game: game))
+                ])
             }
         }
         return BasketballExcelSheet(name: localized("excel_sheet_events"), rows: rows)
+    }
+
+    private static func periodTimeCell(_ seconds: TimeInterval?) -> BasketballExcelCell {
+        guard let seconds else { return .blank }
+        let totalSeconds = max(0, Int(seconds.rounded()))
+        return .text(String(format: "%02d:%02d", totalSeconds / 60, totalSeconds % 60))
+    }
+
+    private static func localizedEventMessage(_ log: GameLogEntry, game: SavedGame) -> String {
+        let fallback = GameLogFormatter.normalizedMessage(log.message)
+        let eventCode = log.eventCode ?? GameLogFormatter.extractEventCode(from: log.message)
+        let parsedAction = StatAction.parseFromSuffix(log.message)
+        let action = eventCode.flatMap { code in
+            StatAction.allCases.first(where: { $0.eventCode == code })
+        } ?? parsedAction?.action
+        let primaryPlayerName = eventPlayerName(log.playerID, game: game) ?? parsedAction?.playerName
+
+        if let action {
+            switch action {
+            case .assistTwoMade, .assistThreeMade:
+                guard let assister = primaryPlayerName,
+                      let scorer = eventPlayerName(log.relatedPlayerID, game: game) else { return fallback }
+                let shotKey: String
+                if case .assistThreeMade = action {
+                    shotKey = "action_three_made"
+                } else {
+                    shotKey = "action_two_made"
+                }
+                let shot = localized(shotKey)
+                return String(format: localized("excel_event_assist_format"), assister, scorer, shot)
+            case .stealTurnover:
+                guard let stealer = primaryPlayerName,
+                      let playerWhoTurnedItOver = eventPlayerName(log.relatedPlayerID, game: game) else { return fallback }
+                return String(format: localized("excel_event_steal_turnover_format"), stealer, playerWhoTurnedItOver)
+            default:
+                guard let primaryPlayerName else { return fallback }
+                return "\(primaryPlayerName) \(action.message)"
+            }
+        }
+
+        guard let eventCode else { return fallback }
+
+        switch eventCode {
+        case "event.game_end":
+            return localized("event_game_end")
+        case "event.game_saved":
+            return localized("event_game_saved")
+        case "event.pause":
+            return localized("event_game_paused")
+        case "event.resume":
+            return localized("event_game_resumed")
+        case "event.period_start", "event.period_end":
+            guard let period = log.period
+                ?? (eventCode == "event.period_start" ? GameLogFormatter.startedPeriodNumber(from: log.message) : GameLogFormatter.endedPeriodNumber(from: log.message)) else {
+                return fallback
+            }
+            let key = eventCode == "event.period_start" ? "event_period_start_format" : "event_period_end_format"
+            return String(format: localized(key), period)
+        case "event.starters_home", "event.starters_away":
+            let isHome = eventCode == "event.starters_home"
+            let teamPlayerIDs = isHome ? game.homePlayerIDs : game.awayPlayerIDs
+            let starterNames = game.snapshot.starterPlayerIDs
+                .filter { teamPlayerIDs.contains($0) }
+                .map { playerName($0, game: game, players: []) }
+            let names = starterNames.isEmpty ? starterNamesFromMessage(fallback) : starterNames.joined(separator: ", ")
+            let key = isHome ? "event_starters_home_format" : "event_starters_away_format"
+            return String(format: localized(key), names)
+        case "event.substitution":
+            guard let incoming = eventPlayerName(log.playerID, game: game),
+                  let outgoing = eventPlayerName(log.relatedPlayerID, game: game) else { return fallback }
+            return String(format: localized("event_substitution_format"), incoming, outgoing)
+        case "event.late_arrival":
+            guard let player = eventPlayerName(log.playerID, game: game) else { return fallback }
+            return String(format: localized("event_late_arrival_format"), player)
+        case "event.ot_start":
+            let overtimePeriods = max(1, game.snapshot.periodCount - game.snapshot.originalPeriodCount)
+            return String(format: localized("event_overtime_start_format"), overtimePeriods)
+        default:
+            return fallback
+        }
+    }
+
+    private static func starterNamesFromMessage(_ message: String) -> String {
+        message.split(whereSeparator: { $0 == ":" || $0 == "：" }).last.map(String.init)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    }
+
+    private static func eventPlayerName(_ id: UUID?, game: SavedGame) -> String? {
+        guard let id else { return nil }
+        if id == game.snapshot.homeTeamID { return game.homeTeamName }
+        if id == game.snapshot.awayTeamID { return game.awayTeamName }
+        return game.playerNamesByID[id]
     }
 
     private static func teamCareerSheet(teamID: UUID, teamName: String, games: [SavedGame]) -> BasketballExcelSheet {
@@ -324,31 +477,6 @@ struct BasketballExcelReportBuilder {
             let opponentScore = opponentID.map { game.score(forTeamID: $0) } ?? 0
             let result = score > opponentScore ? localized("excel_result_win") : score < opponentScore ? localized("excel_result_loss") : localized("excel_result_draw")
             rows.append([.date(game.savedAt), .text(game.displayTitle), .text(teamName), .text(result), .integer(score), .integer(opponentScore), .integer(score - opponentScore)])
-        }
-        return BasketballExcelSheet(name: localized("excel_sheet_team_career"), rows: rows)
-    }
-
-    private static func allTeamsCareerSheet(teams: [Team], games: [SavedGame]) -> BasketballExcelSheet {
-        var rows: [[BasketballExcelCell]] = [
-            header(["excel_header_team", "excel_header_games", "excel_header_wins", "excel_header_losses", "excel_header_win_rate", "excel_header_points_for", "excel_header_points_against", "excel_header_average_margin"])
-        ]
-        for team in teams.sorted(by: { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }) {
-            let relevantGames = games.filter { $0.snapshot.homeTeamID == team.id || $0.snapshot.awayTeamID == team.id }
-            guard !relevantGames.isEmpty else { continue }
-            var wins = 0
-            var losses = 0
-            var pointsFor = 0
-            var pointsAgainst = 0
-            for game in relevantGames {
-                let score = game.score(forTeamID: team.id)
-                let opponentID = team.id == game.snapshot.homeTeamID ? game.snapshot.awayTeamID : game.snapshot.homeTeamID
-                let opponentScore = opponentID.map { game.score(forTeamID: $0) } ?? 0
-                pointsFor += score
-                pointsAgainst += opponentScore
-                if score > opponentScore { wins += 1 }
-                if score < opponentScore { losses += 1 }
-            }
-            rows.append([.text(team.name), .integer(relevantGames.count), .integer(wins), .integer(losses), .percentage(Double(wins) / Double(relevantGames.count)), .integer(pointsFor), .integer(pointsAgainst), .number(Double(pointsFor - pointsAgainst) / Double(relevantGames.count))])
         }
         return BasketballExcelSheet(name: localized("excel_sheet_team_career"), rows: rows)
     }
@@ -424,6 +552,19 @@ struct BasketballExcelReportBuilder {
         let safe = value.unicodeScalars.map { allowed.contains($0) ? String($0) : "_" }.joined()
         return "BasketballRecord_\(prefix)_\(safe.isEmpty ? "Export" : safe)"
     }
+
+    private static let archiveDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyyMMdd_HHmm"
+        return formatter
+    }()
+}
+
+enum BasketballExcelGameSelection {
+    static func selectedGames(from games: [SavedGame], ids: Set<UUID>) -> [SavedGame] {
+        games.filter { ids.contains($0.id) }
+    }
 }
 
 private struct BasketballXLSXWriter {
@@ -472,7 +613,7 @@ private struct BasketballXLSXWriter {
     }
 
     private func styles() -> Data {
-        data("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><numFmts count=\"3\"><numFmt numFmtId=\"164\" formatCode=\"yyyy-mm-dd hh:mm\"/><numFmt numFmtId=\"165\" formatCode=\"mm:ss\"/><numFmt numFmtId=\"166\" formatCode=\"0.0%\"/></numFmts><fonts count=\"2\"><font><sz val=\"11\"/><color rgb=\"FF1F2937\"/><name val=\"Aptos\"/></font><font><b/><sz val=\"11\"/><color rgb=\"FFFFFFFF\"/><name val=\"Aptos\"/></font></fonts><fills count=\"3\"><fill><patternFill patternType=\"none\"/></fill><fill><patternFill patternType=\"gray125\"/></fill><fill><patternFill patternType=\"solid\"><fgColor rgb=\"FF12344D\"/><bgColor indexed=\"64\"/></patternFill></fill></fills><borders count=\"1\"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count=\"1\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellStyleXfs><cellXfs count=\"7\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/><xf numFmtId=\"0\" fontId=\"1\" fillId=\"2\" borderId=\"0\" applyAlignment=\"1\"><alignment horizontal=\"center\"/></xf><xf numFmtId=\"164\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/><xf numFmtId=\"165\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/><xf numFmtId=\"166\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/><xf numFmtId=\"3\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/><xf numFmtId=\"2\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellXfs></styleSheet>")
+        data("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><numFmts count=\"3\"><numFmt numFmtId=\"164\" formatCode=\"yyyy-mm-dd hh:mm\"/><numFmt numFmtId=\"165\" formatCode=\"mm:ss\"/><numFmt numFmtId=\"166\" formatCode=\"0.0%\"/></numFmts><fonts count=\"2\"><font><sz val=\"11\"/><color rgb=\"FF1F2937\"/><name val=\"Aptos\"/></font><font><b/><sz val=\"11\"/><color rgb=\"FFFFFFFF\"/><name val=\"Aptos\"/></font></fonts><fills count=\"3\"><fill><patternFill patternType=\"none\"/></fill><fill><patternFill patternType=\"gray125\"/></fill><fill><patternFill patternType=\"solid\"><fgColor rgb=\"FF12344D\"/><bgColor indexed=\"64\"/></patternFill></fill></fills><borders count=\"1\"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count=\"1\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellStyleXfs><cellXfs count=\"7\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/><xf numFmtId=\"0\" fontId=\"1\" fillId=\"2\" borderId=\"0\" applyFont=\"1\" applyFill=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/></xf><xf numFmtId=\"164\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/><xf numFmtId=\"165\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/><xf numFmtId=\"166\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/><xf numFmtId=\"3\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/><xf numFmtId=\"2\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellXfs></styleSheet>")
     }
 
     private func worksheet(_ sheet: BasketballExcelSheet) -> Data {
@@ -542,8 +683,19 @@ private struct BasketballXLSXWriter {
     }
 }
 
+private enum ZipCompression: Equatable {
+    case stored
+    case deflate
+}
+
 private struct ZipStore {
     let entries: [(String, Data)]
+    let compression: ZipCompression
+
+    init(entries: [(String, Data)], compression: ZipCompression = .stored) {
+        self.entries = entries
+        self.compression = compression
+    }
 
     func data() -> Data {
         var output = Data()
@@ -551,30 +703,33 @@ private struct ZipStore {
         var offset: UInt32 = 0
         for (name, content) in entries {
             let nameData = name.data(using: .utf8)!
+            let compressedContent = compression == .deflate ? ZipDeflater.compress(content) : nil
+            let payload = compressedContent ?? content
+            let compressionMethod: UInt16 = compressedContent == nil ? 0 : 8
             let crc = CRC32.checksum(content)
             output.append(contentsOf: uint32(0x04034b50))
             output.append(contentsOf: uint16(20))
             output.append(contentsOf: uint16(0x0800))
-            output.append(contentsOf: uint16(0))
+            output.append(contentsOf: uint16(compressionMethod))
             output.append(contentsOf: uint16(0))
             output.append(contentsOf: uint16(0))
             output.append(contentsOf: uint32(crc))
-            output.append(contentsOf: uint32(UInt32(content.count)))
+            output.append(contentsOf: uint32(UInt32(payload.count)))
             output.append(contentsOf: uint32(UInt32(content.count)))
             output.append(contentsOf: uint16(UInt16(nameData.count)))
             output.append(contentsOf: uint16(0))
             output.append(nameData)
-            output.append(content)
+            output.append(payload)
 
             centralDirectory.append(contentsOf: uint32(0x02014b50))
             centralDirectory.append(contentsOf: uint16(20))
             centralDirectory.append(contentsOf: uint16(20))
             centralDirectory.append(contentsOf: uint16(0x0800))
-            centralDirectory.append(contentsOf: uint16(0))
+            centralDirectory.append(contentsOf: uint16(compressionMethod))
             centralDirectory.append(contentsOf: uint16(0))
             centralDirectory.append(contentsOf: uint16(0))
             centralDirectory.append(contentsOf: uint32(crc))
-            centralDirectory.append(contentsOf: uint32(UInt32(content.count)))
+            centralDirectory.append(contentsOf: uint32(UInt32(payload.count)))
             centralDirectory.append(contentsOf: uint32(UInt32(content.count)))
             centralDirectory.append(contentsOf: uint16(UInt16(nameData.count)))
             centralDirectory.append(contentsOf: uint16(0))
@@ -605,6 +760,46 @@ private struct ZipStore {
 
     private func uint32(_ value: UInt32) -> Data {
         Data([UInt8(value & 0xff), UInt8((value >> 8) & 0xff), UInt8((value >> 16) & 0xff), UInt8(value >> 24)])
+    }
+}
+
+private enum ZipDeflater {
+    static func compress(_ data: Data) -> Data? {
+        var stream = z_stream()
+        let initializationStatus = zlib.deflateInit2_(
+            &stream,
+            Z_DEFAULT_COMPRESSION,
+            Z_DEFLATED,
+            -MAX_WBITS,
+            8,
+            Z_DEFAULT_STRATEGY,
+            ZLIB_VERSION,
+            Int32(MemoryLayout<z_stream>.size)
+        )
+        guard initializationStatus == Z_OK else { return nil }
+        defer { _ = zlib.deflateEnd(&stream) }
+
+        var compressedData = Data()
+        let succeeded = data.withUnsafeBytes { inputBuffer -> Bool in
+            stream.next_in = UnsafeMutablePointer(mutating: inputBuffer.bindMemory(to: Bytef.self).baseAddress)
+            stream.avail_in = uInt(inputBuffer.count)
+            var status: Int32 = Z_OK
+
+            repeat {
+                var outputBuffer = [UInt8](repeating: 0, count: 16_384)
+                outputBuffer.withUnsafeMutableBufferPointer { buffer in
+                    stream.next_out = buffer.baseAddress
+                    stream.avail_out = uInt(buffer.count)
+                    status = zlib.deflate(&stream, Z_FINISH)
+                    let bytesWritten = buffer.count - Int(stream.avail_out)
+                    compressedData.append(contentsOf: buffer.prefix(bytesWritten))
+                }
+            } while status == Z_OK
+
+            return status == Z_STREAM_END
+        }
+
+        return succeeded ? compressedData : nil
     }
 }
 

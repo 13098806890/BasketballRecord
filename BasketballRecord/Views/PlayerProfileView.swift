@@ -31,7 +31,7 @@ struct PlayerProfileView: View {
             if fixedGame == nil {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     BasketballExcelExportButton {
-                        BasketballExcelReportBuilder.playerProfile(playerID: playerID, games: filteredGames, players: store.players)
+                        BasketballExcelReportBuilder.playerProfile(playerID: playerID, games: filteredGames, players: store.players).exportFile
                     }
                     if usesPixelSkin {
                         pixelGameSelectionToolbarItem
@@ -743,11 +743,30 @@ struct PlayerGameSelectionView: View {
     @Environment(\.dismiss) private var dismiss
     var games: [SavedGame]
     @Binding var selectedIDs: Set<UUID>
+    var onDone: (() -> Void)? = nil
+    var doneTitle: LocalizedStringKey = LocalizedStringKey("button_done")
+    var isLoadingGames: Binding<Bool>? = nil
+    var loadsAllGamesFromStore = false
+    var refreshGames: (() -> [SavedGame])? = nil
+    var onGamesRefreshed: (([SavedGame]) -> Void)? = nil
+    @State private var refreshedGames: [SavedGame]?
     @State private var selectedGroupID: UUID? = nil
+
+    private var currentGames: [SavedGame] {
+        refreshedGames ?? games
+    }
 
     var body: some View {
         List {
-            if games.isEmpty {
+            if isLoadingGames?.wrappedValue == true {
+                HStack(spacing: 10) {
+                    ProgressView()
+                    Text(LocalizedStringKey("loading_games"))
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .listRowSeparator(.hidden)
+            } else if currentGames.isEmpty {
                 ContentUnavailableView(LocalizedStringKey("text_no_selectable_games"), systemImage: "clock.badge.questionmark")
             }
 
@@ -842,15 +861,36 @@ struct PlayerGameSelectionView: View {
 
             ToolbarItem(placement: .confirmationAction) {
                 Button(LocalizedStringKey("button_select_all")) {
-                    selectedIDs = Set(games.map(\.id))
+                    selectedIDs = Set(currentGames.map(\.id))
                 }
-                .disabled(games.isEmpty || selectedIDs.count == games.count)
+                .disabled(currentGames.isEmpty || selectedIDs.count == currentGames.count)
             }
 
             ToolbarItem(placement: .topBarTrailing) {
-                Button(LocalizedStringKey("button_done")) { dismiss() }
+                Button(doneTitle) {
+                    onDone?()
+                    dismiss()
+                }
+                .disabled(onDone != nil && selectedIDs.isEmpty)
             }
         }
+        .onAppear {
+            guard loadsAllGamesFromStore || refreshGames != nil else { return }
+            refreshCurrentGames()
+        }
+        .onChange(of: isLoadingGames?.wrappedValue ?? false) { _, isLoading in
+            guard !isLoading, loadsAllGamesFromStore || refreshGames != nil else { return }
+            refreshCurrentGames()
+        }
+    }
+
+    private func refreshCurrentGames() {
+        let games = loadsAllGamesFromStore
+            ? store.savedGames.sorted { $0.savedAt > $1.savedAt }
+            : refreshGames?() ?? self.games
+        refreshedGames = games
+        selectedIDs = Set(games.map(\.id))
+        onGamesRefreshed?(games)
     }
 
     private var monthGroups: [PlayerGameMonthGroup] {
@@ -858,8 +898,8 @@ struct PlayerGameSelectionView: View {
         
         // Filter games by selected group if any (Pro only)
         let filteredGames = (store.isPro ? selectedGroupID.map { groupID in
-            games.filter { $0.groupIDs.contains(groupID) }
-        } : nil) ?? games
+            currentGames.filter { $0.groupIDs.contains(groupID) }
+        } : nil) ?? currentGames
         
         let grouped = Dictionary(grouping: filteredGames) { game in
             let components = calendar.dateComponents([.year, .month], from: game.savedAt)

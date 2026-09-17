@@ -1053,6 +1053,9 @@
 "action_putback_missed" = "补篮未中";
 "action_dunk_made" = "扣篮命中";
 "action_dunk_missed" = "扣篮未中";
+"action_assist_two_made" = "两分命中（助攻）";
+"action_assist_three_made" = "三分命中（助攻）";
+"action_steal_turnover" = "抢断/失误";
 "label_time" = "时间";
 "label_action" = "动作";
 "label_type" = "类型";
@@ -1139,7 +1142,7 @@
 // Win/Loss
 "stats_wins" = "胜";
 "stats_losses" = "负";
-"stats_fast_break_points" = "Fast Break Pts";
+"stats_fast_break_points" = "快攻得分";
 "stats_win_rate" = "胜率";
 
 "ai_prompt_period_event_header" = "第%d节事件：";
@@ -1197,6 +1200,8 @@
 "pixel_group_all_around" = "综合表现";
 "pro_feature_excel_1" = "将比赛、历史、球员、生涯和名册数据完整导出为 Excel。";
 "button_export_excel" = "导出 Excel";
+"export_preparing" = "正在准备导出…";
+"error_export_file_create_failed" = "无法准备导出文件，请重试。";
 "excel_field_away_team" = "客队";
 "excel_field_date" = "日期";
 "excel_field_final_score" = "最终比分";
@@ -1210,7 +1215,7 @@
 "excel_field_position" = "位置";
 "excel_field_status" = "状态";
 "excel_field_team_stats_mode" = "球队统计模式";
-"excel_field_weight" = "Weight";
+"excel_field_weight" = "体重";
 "excel_header_assists" = "助攻";
 "excel_header_average_margin" = "场均分差";
 "excel_header_away_score" = "客队得分";
@@ -1292,3 +1297,5 @@
 "excel_team_stats_both" = "双方球队";
 "excel_team_stats_home" = "仅主队";
 "excel_team_stats_none" = "球员数据";
+"excel_event_assist_format" = "%1$@助攻%2$@，%3$@";
+"excel_event_steal_turnover_format" = "%1$@抢断了%2$@的球";

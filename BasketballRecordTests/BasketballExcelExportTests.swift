@@ -2,6 +2,23 @@ import XCTest
 @testable import BasketballRecord
 
 final class BasketballExcelExportTests: XCTestCase {
+    func testExportFilenameUsesXLSXExtension() {
+        XCTAssertEqual(BasketballExcelExportFileName.addingXLSXExtension(to: "BasketballRecord_history"), "BasketballRecord_history.xlsx")
+        XCTAssertEqual(BasketballExcelExportFileName.addingXLSXExtension(to: "career.xlsx"), "career.xlsx")
+    }
+
+    func testGameSelectionReturnsOnlySelectedGames() {
+        let homeID = UUID(uuidString: "00000000-0000-0000-0000-000000000031")!
+        let awayID = UUID(uuidString: "00000000-0000-0000-0000-000000000032")!
+        let playerID = UUID(uuidString: "00000000-0000-0000-0000-000000000033")!
+        let first = makeGame(homeID: homeID, awayID: awayID, playerID: playerID, stats: PlayerStats(), timestamp: 1_700_000_000)
+        let second = makeGame(homeID: homeID, awayID: awayID, playerID: playerID, stats: PlayerStats(), timestamp: 1_700_000_100)
+
+        let selected = BasketballExcelGameSelection.selectedGames(from: [first, second], ids: [second.id])
+
+        XCTAssertEqual(selected.map(\.id), [second.id])
+    }
+
     func testStatsAggregatorPreservesDetailedShotAndTeamMetrics() {
         var first = PlayerStats()
         first.twoMade = 2
@@ -67,6 +84,104 @@ final class BasketballExcelExportTests: XCTestCase {
         XCTAssertEqual(report.sheets[1].rows.count, 2)
         XCTAssertEqual(report.sheets[2].rows.count, 3)
         XCTAssertEqual(report.data.prefix(2), Data([0x50, 0x4b]))
+    }
+
+    func testSingleGameEventExportLocalizesGameLifecycleEventsInsteadOfAssist() {
+        let timestamp = Date(timeIntervalSince1970: 1_700_000_000)
+        let logs = [
+            GameLogEntry(timestamp: timestamp, message: "第1节开始", eventCode: "event.period_start", period: 1),
+            GameLogEntry(timestamp: timestamp, message: "比赛暂停", eventCode: "event.pause", period: 1),
+            GameLogEntry(timestamp: timestamp, message: "比赛继续", eventCode: "event.resume", period: 1)
+        ]
+        let game = SavedGame(
+            savedAt: timestamp,
+            snapshot: GameSnapshot(logs: logs),
+            homeTeamName: "Home",
+            awayTeamName: "Away",
+            homePlayerIDs: [],
+            awayPlayerIDs: [],
+            playerNamesByID: [:]
+        )
+
+        let report = BasketballExcelReportBuilder.singleGame(game, players: [])
+        let eventMessages = report.sheets[4].rows.dropFirst().map { $0[5] }
+
+        XCTAssertEqual(eventMessages, [
+            .text(String(format: NSLocalizedString("event_period_start_format", comment: ""), 1)),
+            .text(NSLocalizedString("event_game_paused", comment: "")),
+            .text(NSLocalizedString("event_game_resumed", comment: ""))
+        ])
+        XCTAssertNil(StatAction.parseFromSuffix("比赛开始"))
+        XCTAssertNil(StatAction.parseFromSuffix("比赛暂停"))
+        XCTAssertNil(StatAction.parseFromSuffix("比赛继续"))
+    }
+
+    func testCompositeEventsKeepBothPlayersAndShotDetailsInExport() {
+        let timestamp = Date(timeIntervalSince1970: 1_700_000_000)
+        let assisterID = UUID(uuidString: "00000000-0000-0000-0000-000000000041")!
+        let scorerID = UUID(uuidString: "00000000-0000-0000-0000-000000000042")!
+        let stealerID = UUID(uuidString: "00000000-0000-0000-0000-000000000043")!
+        let turnoverID = UUID(uuidString: "00000000-0000-0000-0000-000000000044")!
+        let logs = [
+            GameLogEntry(timestamp: timestamp, message: "Assist event", eventCode: StatAction.assistTwoMade.eventCode, playerID: assisterID, relatedPlayerID: scorerID),
+            GameLogEntry(timestamp: timestamp, message: "Steal event", eventCode: StatAction.stealTurnover.eventCode, playerID: stealerID, relatedPlayerID: turnoverID)
+        ]
+        let game = SavedGame(
+            savedAt: timestamp,
+            snapshot: GameSnapshot(logs: logs),
+            homeTeamName: "Home",
+            awayTeamName: "Away",
+            homePlayerIDs: [assisterID, scorerID, stealerID, turnoverID],
+            awayPlayerIDs: [],
+            playerNamesByID: [
+                assisterID: "Assister",
+                scorerID: "Scorer",
+                stealerID: "Stealer",
+                turnoverID: "Turnover Player"
+            ]
+        )
+
+        let report = BasketballExcelReportBuilder.singleGame(game, players: [])
+        let eventMessages = report.sheets[4].rows.dropFirst().map { $0[5] }
+
+        XCTAssertEqual(
+            eventMessages[0],
+            .text(String(
+                format: NSLocalizedString("excel_event_assist_format", comment: ""),
+                "Assister",
+                "Scorer",
+                NSLocalizedString("action_two_made", comment: "")
+            ))
+        )
+        XCTAssertEqual(
+            eventMessages[1],
+            .text(String(
+                format: NSLocalizedString("excel_event_steal_turnover_format", comment: ""),
+                "Stealer",
+                "Turnover Player"
+            ))
+        )
+    }
+
+    func testLegacyEventExportPreservesPlayerNameWhenPlayerIDIsMissing() {
+        let timestamp = Date(timeIntervalSince1970: 1_700_000_000)
+        let log = GameLogEntry(timestamp: timestamp, message: "Legacy Player 2分命中")
+        let game = SavedGame(
+            savedAt: timestamp,
+            snapshot: GameSnapshot(logs: [log]),
+            homeTeamName: "Home",
+            awayTeamName: "Away",
+            homePlayerIDs: [],
+            awayPlayerIDs: [],
+            playerNamesByID: [:]
+        )
+
+        let report = BasketballExcelReportBuilder.singleGame(game, players: [])
+
+        XCTAssertEqual(
+            report.sheets[4].rows[1][5],
+            .text("Legacy Player \(StatAction.twoMade.message)")
+        )
     }
 
     func testPlayerProfileReportUsesSelectedGamesAndNumericAverages() {

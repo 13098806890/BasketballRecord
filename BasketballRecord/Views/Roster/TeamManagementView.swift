@@ -44,7 +44,7 @@ struct TeamManagementView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 BasketballExcelExportButton {
-                    BasketballExcelReportBuilder.teamRoster(store.teams, players: store.players)
+                    BasketballExcelReportBuilder.teamRoster(store.teams, players: store.players).exportFile
                 }
             }
         }

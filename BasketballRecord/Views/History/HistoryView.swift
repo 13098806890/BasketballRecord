@@ -27,7 +27,7 @@ struct HistoryView: View {
                     isShowingDelete: $isShowingDelete,
                     pendingSwipeDeleteGame: $pendingSwipeDeleteGame,
                     expandedSections: $expandedSections,
-                    isLoadingGames: isLoadingGames,
+                    isLoadingGames: $isLoadingGames,
                     hasNoGames: filteredGames.isEmpty,
                     monthGroups: monthGroups
                 )
@@ -127,9 +127,17 @@ struct HistoryView: View {
                                 GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
                             }
 
-                            BasketballExcelExportButton {
-                                BasketballExcelReportBuilder.history(filteredGames, players: store.players)
-                            }
+                            BasketballExcelExportButton(
+                                isEnabled: isLoadingGames || !store.isPro || !store.savedGames.isEmpty,
+                                isLoadingGames: $isLoadingGames,
+                                loadsAllGamesFromStore: true,
+                                selectedGamesExportFile: { games in
+                                    BasketballExcelReportBuilder.historyArchive(games, players: store.players)
+                                },
+                                makeExportFile: {
+                                    BasketballExcelReportBuilder.historyArchive(store.savedGames, players: store.players)
+                                }
+                            )
 
                             Button {
                                 isShowingDelete = true
@@ -239,9 +247,17 @@ struct HistoryView: View {
                             GameGroupPicker(store: store, selectedGroupID: $selectedGroupID)
                         }
 
-                        BasketballExcelExportButton {
-                            BasketballExcelReportBuilder.history(filteredGames, players: store.players)
-                        }
+                        BasketballExcelExportButton(
+                            isEnabled: isLoadingGames || !store.isPro || !store.savedGames.isEmpty,
+                            isLoadingGames: $isLoadingGames,
+                            loadsAllGamesFromStore: true,
+                            selectedGamesExportFile: { games in
+                                BasketballExcelReportBuilder.historyArchive(games, players: store.players)
+                            },
+                            makeExportFile: {
+                                BasketballExcelReportBuilder.historyArchive(store.savedGames, players: store.players)
+                            }
+                        )
 
                         Button {
                             isShowingDelete = true
@@ -307,7 +323,11 @@ struct HistoryView: View {
     }
 
     private var filteredGames: [SavedGame] {
-        var games = displayedGames
+        filterGames(displayedGames)
+    }
+
+    private func filterGames(_ source: [SavedGame]) -> [SavedGame] {
+        var games = source
 
         // Filter by group if selected (Pro only)
         if store.isPro, let selectedGroupID = selectedGroupID {

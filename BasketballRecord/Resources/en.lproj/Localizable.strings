@@ -1057,6 +1057,9 @@ Format:
 "action_putback_missed" = "Putback Missed";
 "action_dunk_made" = "Dunk Made";
 "action_dunk_missed" = "Dunk Missed";
+"action_assist_two_made" = "2PT Made (Assist)";
+"action_assist_three_made" = "3PT Made (Assist)";
+"action_steal_turnover" = "Steal / Turnover";
 "label_time" = "Time";
 "label_action" = "Action";
 "label_type" = "Type";
@@ -1201,6 +1204,8 @@ Format:
 "pixel_group_all_around" = "ALL-AROUND";
 "pro_feature_excel_1" = "Export complete game, history, player, career, and roster data to Excel.";
 "button_export_excel" = "Export Excel";
+"export_preparing" = "Preparing export…";
+"error_export_file_create_failed" = "Could not prepare the export file. Please try again.";
 "excel_field_away_team" = "Away team";
 "excel_field_date" = "Date";
 "excel_field_final_score" = "Final score";
@@ -1296,3 +1301,5 @@ Format:
 "excel_team_stats_both" = "Both teams";
 "excel_team_stats_home" = "Home team only";
 "excel_team_stats_none" = "Player stats";
+"excel_event_assist_format" = "%1$@ assisted %2$@ for %3$@";
+"excel_event_steal_turnover_format" = "%1$@ stole the ball from %2$@";

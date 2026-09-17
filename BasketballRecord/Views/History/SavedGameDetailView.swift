@@ -129,28 +129,12 @@ struct SavedGameDetailView: View {
                         GameGroupPicker(store: store, selectedGroupID: $selectedGroupID, iconName: "folder.badge.plus", checkedGroupIDs: Set(store.groups(for: game.id).map(\.id)))
                     }
                     BasketballExcelExportButton {
-                        BasketballExcelReportBuilder.singleGame(game, players: store.players)
+                        BasketballExcelReportBuilder.singleGame(game, players: store.players).exportFile
                     }
                     Button {
                         isShowingExport = true
                     } label: {
                         Label(LocalizedStringKey("button_export"), systemImage: TransferSymbol.exportData)
-                    }
-                    Button {
-                        if store.isPro || isEditing {
-                            isEditing.toggle()
-                        } else {
-                            isShowingPurchase = true
-                        }
-                    } label: {
-                        HStack(spacing: 4) {
-                            if !store.isPro && !isEditing {
-                                Image(systemName: "lock.fill")
-                                    .font(.caption2)
-                            }
-                            Text(LocalizedStringKey(isEditing ? "button_done" : "button_edit"))
-                        }
-                        .foregroundStyle(store.isPro || isEditing ? Color.primary : Color.gray)
                     }
                 }
             }
