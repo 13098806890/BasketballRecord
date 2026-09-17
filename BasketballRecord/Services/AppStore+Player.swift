@@ -99,12 +99,25 @@ extension AppStore {
         if targetPlayer.height.isEmpty { targetPlayer.height = sourcePlayer.height }
         if targetPlayer.weight.isEmpty { targetPlayer.weight = sourcePlayer.weight }
         if targetPlayer.number.isEmpty { targetPlayer.number = sourcePlayer.number }
+        if targetPlayer.position.isEmpty { targetPlayer.position = sourcePlayer.position }
         if targetPlayer.photoData == nil { targetPlayer.photoData = sourcePlayer.photoData }
+        targetPlayer.nicknames = dedupedStrings(targetPlayer.nicknames + sourcePlayer.nicknames)
+        targetPlayer.playerGroupIDs = dedupedUUIDs(targetPlayer.playerGroupIDs + sourcePlayer.playerGroupIDs)
+        targetPlayer.badges.append(contentsOf: sourcePlayer.badges.filter { !targetPlayer.badges.contains($0) })
 
         var nextPlayers = players
         nextPlayers[targetIndex] = targetPlayer
         nextPlayers.removeAll { $0.id == sourceID }
         players = nextPlayers
+
+        playerGroups = playerGroups.map { group in
+            guard group.playerIDs.contains(sourceID) else { return group }
+            return PlayerGroup(
+                id: group.id,
+                name: group.name,
+                playerIDs: remapDedupedIDs(group.playerIDs, sourceID: sourceID, targetID: targetID)
+            )
+        }
 
         var updatedTeams = 0
         teams = teams.map { team in
@@ -159,6 +172,7 @@ extension AppStore {
         return SavedGame(
             id: game.id,
             savedAt: game.savedAt,
+            modifiedAt: game.modifiedAt,
             snapshot: snapshot,
             aiSummary: game.aiSummary,
             previousSnapshot: game.previousSnapshot.map { remappedSnapshotForPlayerMerge($0, sourceID: sourceID, targetID: targetID) },
@@ -178,6 +192,9 @@ extension AppStore {
             var mapped = entry
             if mapped.playerID == sourceID {
                 mapped.playerID = targetID
+            }
+            if mapped.relatedPlayerID == sourceID {
+                mapped.relatedPlayerID = targetID
             }
             return mapped
         }
@@ -239,6 +256,16 @@ extension AppStore {
         return ids
             .map { $0 == sourceID ? targetID : $0 }
             .filter { seen.insert($0).inserted }
+    }
+
+    private func dedupedStrings(_ values: [String]) -> [String] {
+        var seen: Set<String> = []
+        return values.filter { seen.insert($0).inserted }
+    }
+
+    private func dedupedUUIDs(_ values: [UUID]) -> [UUID] {
+        var seen: Set<UUID> = []
+        return values.filter { seen.insert($0).inserted }
     }
 
     func mergedStats(lhs: PlayerStats, rhs: PlayerStats) -> PlayerStats {
