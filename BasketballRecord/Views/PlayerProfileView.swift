@@ -9,12 +9,11 @@ struct PlayerProfileView: View {
     @Binding var selectedGroupID: UUID?
     @State var selectedGameIDs: Set<UUID> = []
     @State private var hasInitializedGameSelection = false
-    @AppStorage("show_badges") var showBadges = true
     @AppStorage(AppSkin.storageKey) private var appSkinRaw = AppSkin.classic.rawValue
     @State private var selectedPeriod: Int? = nil
     @State private var fixedGameAnalysis = SavedGamePeriodAnalysis()
     @State var showingELOHistory = false
-    @State var expandedStatSections: Set<String> = ["game", "career", "average", "badges"]
+    @State var expandedStatSections: Set<String> = ["game", "career", "average"]
 
     var player: Player? { store.player(for: playerID) }
     private var usesPixelSkin: Bool { AppSkin(rawValue: appSkinRaw) == .pixelEsports }
@@ -119,12 +118,6 @@ struct PlayerProfileView: View {
             }
 
             header
-
-            if showBadges, let player, !player.badges.isEmpty {
-                if let fg = fixedGame, player.badges.contains(where: { $0.gameID == fg.id }) {
-                    badgeSection(player)
-                }
-            }
 
             if let fixedGame, fixedGame.snapshot.periodCount > 1 {
                 VStack(alignment: .leading, spacing: 10) {
@@ -243,47 +236,6 @@ struct PlayerProfileView: View {
             }
         }
         .padding(.top, 1)
-    }
-
-    private func badgeSection(_ player: Player) -> some View {
-        let filtered = fixedGame.map { game in player.badges.filter { $0.gameID == game.id } } ?? player.badges
-        let grouped = Dictionary(grouping: filtered, by: { $0.type })
-            .mapValues(\.count)
-            .sorted { $0.key.title < $1.key.title }
-        return DisclosureGroup(NSLocalizedString("label_badges", comment: ""), isExpanded: Binding(
-            get: { expandedStatSections.contains("badges") },
-            set: { if $0 { expandedStatSections.insert("badges") } else { expandedStatSections.remove("badges") } }
-        )) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 10) {
-                    ForEach(grouped, id: \.key) { type, count in
-                        VStack(spacing: 4) {
-                            Image(type.assetName)
-                                .resizable()
-                                .frame(width: 44, height: 44)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                            HStack(spacing: 2) {
-                                Text(type.title)
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                                    .fixedSize()
-                                if count > 1 {
-                                    Text("×\(count)")
-                                        .font(.caption2.weight(.semibold))
-                                        .foregroundStyle(.primary)
-                                }
-                            }
-                        }
-                        .frame(width: 72)
-                    }
-                }
-                .padding(.horizontal)
-            }
-            .frame(height: 72)
-        }
-        .tint(.primary)
-        .padding(.horizontal)
     }
 
     var playerELO: Double {
