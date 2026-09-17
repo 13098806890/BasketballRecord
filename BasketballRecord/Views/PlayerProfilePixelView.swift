@@ -134,8 +134,7 @@ extension PlayerProfileView {
     func careerPixelContent(availableHeight: CGFloat, availableWidth: CGFloat) -> some View {
         let scale = min(max(availableWidth / 390, 0.92), 1.24)
         let headerBudget: CGFloat = 112 * scale
-        let badgeBudget: CGFloat = player.map { showBadges && !$0.badges.isEmpty ? 106 : 0 } ?? 0
-        let statsMinHeight = min(760, max(0, availableHeight - headerBudget - badgeBudget))
+        let statsMinHeight = min(760, max(0, availableHeight - headerBudget))
 
         return VStack(spacing: 0) {
             if let player {
@@ -143,11 +142,6 @@ extension PlayerProfileView {
             }
 
             pixelCombinedStats(scale: scale, minHeight: statsMinHeight)
-
-            if let player, showBadges, !player.badges.isEmpty {
-                pixelBadgeSection(player)
-                    .padding(.top, 10)
-            }
         }
         .padding(.bottom, 4)
     }
@@ -297,35 +291,6 @@ extension PlayerProfileView {
         .overlay(PixelPanelShape().stroke(PixelDesign.line, lineWidth: 1))
     }
 
-    private func pixelBadgeSection(_ player: Player) -> some View {
-        let grouped = Dictionary(grouping: player.badges, by: { $0.type })
-            .mapValues(\.count)
-            .sorted { $0.key.title < $1.key.title }
-
-        return pixelCustomSection(localized("label_badges"), sectionId: "badges", accent: PixelDesign.cyan) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    ForEach(grouped, id: \.key) { type, count in
-                        VStack(spacing: 5) {
-                            Image(type.assetName)
-                                .resizable()
-                                .interpolation(.none)
-                                .frame(width: 48, height: 48)
-                            Text(count > 1 ? "\(type.title) ×\(count)" : type.title)
-                                .font(.system(.caption2, design: .monospaced).weight(.bold))
-                                .foregroundStyle(PixelDesign.ink)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.6)
-                        }
-                        .frame(width: 88)
-                    }
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 10)
-            }
-        }
-    }
-
     private func pixelCombinedStats(scale: CGFloat, minHeight: CGFloat) -> some View {
         let careerCells = pixelCareerCells()
         let averageCells = pixelAverageCells()
@@ -404,35 +369,6 @@ extension PlayerProfileView {
                 .fill(PixelDesign.line)
                 .frame(height: 1)
         }
-    }
-
-    private func pixelCustomSection<Content: View>(_ title: String, sectionId: String, accent: Color, @ViewBuilder content: () -> Content) -> some View {
-        VStack(spacing: 8) {
-            pixelSectionHeader(title, sectionId: sectionId, accent: accent)
-            if expandedStatSections.contains(sectionId) {
-                content()
-            }
-        }
-        .padding(.horizontal, 12)
-    }
-
-    private func pixelSectionHeader(_ title: String, sectionId: String, accent: Color) -> some View {
-        Button { togglePixelSection(sectionId) } label: {
-            HStack(spacing: 8) {
-                Rectangle()
-                    .fill(accent)
-                    .frame(width: 6, height: 22)
-                Text(title)
-                    .font(.system(.headline, design: .monospaced).weight(.black))
-                    .foregroundStyle(accent)
-                Spacer()
-                Image(systemName: expandedStatSections.contains(sectionId) ? "chevron.down" : "chevron.right")
-                    .font(.caption.weight(.black))
-                    .foregroundStyle(accent)
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
     }
 
     private func pixelCombinedRow(career: StatCell, average: StatCell, icon: PixelStatIconKind, rowHeight: CGFloat, columnWidth: CGFloat, scale: CGFloat) -> some View {
@@ -515,11 +451,4 @@ extension PlayerProfileView {
         return String(format: NSLocalizedString("pixel_duration_format", comment: "Pixel profile duration"), total / 60, total % 60)
     }
 
-    private func togglePixelSection(_ sectionId: String) {
-        if expandedStatSections.contains(sectionId) {
-            expandedStatSections.remove(sectionId)
-        } else {
-            expandedStatSections.insert(sectionId)
-        }
-    }
 }

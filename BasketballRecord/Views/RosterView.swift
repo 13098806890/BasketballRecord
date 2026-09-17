@@ -20,8 +20,6 @@ struct RosterView: View {
     @State private var showingSettingsDocument: SettingsDocument?
     @State private var isShowingPurchase = false
 
-    @AppStorage("show_badges") private var showBadges = true
-    @AppStorage(AppSkin.storageKey) private var appSkinRaw = AppSkin.classic.rawValue
     @AppStorage(UnitSettings.heightUnitKey) private var heightRaw: String = ""
     @AppStorage(UnitSettings.weightUnitKey) private var weightRaw: String = ""
 
@@ -59,31 +57,6 @@ struct RosterView: View {
 
                         Toggle("", isOn: $store.showsBluetoothGamesButton)
                             .labelsHidden()
-                    }
-
-                    HStack(spacing: 12) {
-                        Image(systemName: "medal.fill")
-                            .font(.subheadline.weight(.semibold))
-                            .symbolRenderingMode(.monochrome)
-                            .foregroundStyle(.secondary)
-                            .frame(width: 28, height: 28)
-
-                        Text(LocalizedStringKey("settings_show_badges"))
-                            .font(.body.weight(.medium))
-
-                        Spacer()
-
-                        Toggle("", isOn: $showBadges)
-                            .labelsHidden()
-                    }
-
-                    Picker(selection: $appSkinRaw) {
-                        ForEach(AppSkin.allCases) { skin in
-                            Text(skin.title)
-                                .tag(skin.rawValue)
-                        }
-                    } label: {
-                        Label(LocalizedStringKey("settings_skin"), systemImage: "paintpalette.fill")
                     }
 
                     NavigationLink {
