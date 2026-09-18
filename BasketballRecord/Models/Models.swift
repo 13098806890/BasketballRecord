@@ -50,6 +50,7 @@ struct ExportedGamePackage: Codable, Hashable {
 struct ExportGameRecord: Codable, Hashable {
     var id: UUID
     var savedAt: Date
+    var modifiedAt: Date
     var snapshot: GameSnapshot
     var aiSummary: String?
     var previousSnapshot: GameSnapshot?
@@ -63,6 +64,7 @@ struct ExportGameRecord: Codable, Hashable {
     enum CodingKeys: String, CodingKey {
         case id
         case savedAt
+        case modifiedAt
         case snapshot
         case aiSummary
         case previousSnapshot
@@ -77,6 +79,7 @@ struct ExportGameRecord: Codable, Hashable {
     init(savedGame: SavedGame) {
         id = savedGame.id
         savedAt = savedGame.savedAt
+        modifiedAt = savedGame.modifiedAt
         snapshot = savedGame.snapshot
         aiSummary = savedGame.aiSummary
         previousSnapshot = savedGame.previousSnapshot
@@ -91,6 +94,7 @@ struct ExportGameRecord: Codable, Hashable {
     init(
         id: UUID,
         savedAt: Date,
+        modifiedAt: Date? = nil,
         snapshot: GameSnapshot,
         aiSummary: String?,
         previousSnapshot: GameSnapshot?,
@@ -103,6 +107,7 @@ struct ExportGameRecord: Codable, Hashable {
     ) {
         self.id = id
         self.savedAt = savedAt
+        self.modifiedAt = modifiedAt ?? savedAt
         self.snapshot = snapshot
         self.aiSummary = aiSummary
         self.previousSnapshot = previousSnapshot
@@ -118,6 +123,7 @@ struct ExportGameRecord: Codable, Hashable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         savedAt = try container.decode(Date.self, forKey: .savedAt)
+        modifiedAt = try container.decodeIfPresent(Date.self, forKey: .modifiedAt) ?? savedAt
         snapshot = try container.decode(GameSnapshot.self, forKey: .snapshot)
         aiSummary = try container.decodeIfPresent(String.self, forKey: .aiSummary)
         previousSnapshot = try container.decodeIfPresent(GameSnapshot.self, forKey: .previousSnapshot)
@@ -133,6 +139,7 @@ struct ExportGameRecord: Codable, Hashable {
         SavedGame(
             id: id,
             savedAt: savedAt,
+            modifiedAt: modifiedAt,
             snapshot: snapshot,
             aiSummary: aiSummary,
             previousSnapshot: previousSnapshot,
@@ -995,6 +1002,7 @@ struct GameSnapshot: Codable, Hashable {
 struct SavedGame: Identifiable, Codable, Hashable {
     var id = UUID()
     var savedAt: Date
+    var modifiedAt: Date
     var snapshot: GameSnapshot
     var aiSummary: String?
     var previousSnapshot: GameSnapshot?
@@ -1092,6 +1100,7 @@ struct SavedGame: Identifiable, Codable, Hashable {
     init(
         id: UUID = UUID(),
         savedAt: Date,
+        modifiedAt: Date? = nil,
         snapshot: GameSnapshot,
         aiSummary: String? = nil,
         previousSnapshot: GameSnapshot? = nil,
@@ -1106,6 +1115,7 @@ struct SavedGame: Identifiable, Codable, Hashable {
     ) {
         self.id = id
         self.savedAt = savedAt
+        self.modifiedAt = modifiedAt ?? savedAt
         self.snapshot = snapshot
         self.aiSummary = aiSummary
         self.previousSnapshot = previousSnapshot
@@ -1123,6 +1133,7 @@ struct SavedGame: Identifiable, Codable, Hashable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         savedAt = try container.decode(Date.self, forKey: .savedAt)
+        modifiedAt = try container.decodeIfPresent(Date.self, forKey: .modifiedAt) ?? savedAt
         snapshot = try container.decode(GameSnapshot.self, forKey: .snapshot)
         aiSummary = try container.decodeIfPresent(String.self, forKey: .aiSummary)
         previousSnapshot = try container.decodeIfPresent(GameSnapshot.self, forKey: .previousSnapshot)

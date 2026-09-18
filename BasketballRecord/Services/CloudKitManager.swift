@@ -78,14 +78,14 @@ final class CloudKitManager: ObservableObject {
                 print("[CloudKit] Checking for existing record: \(recordID.recordName)")
                 let existing = try await database.record(for: recordID)
                 let cloudUpdatedAt = (existing["updatedAt"] as? Date) ?? game.savedAt
-                if cloudUpdatedAt > game.savedAt {
-                    print("[CloudKit] Skipping upload - cloud newer (cloud=\(cloudUpdatedAt), local=\(game.savedAt))")
+                if cloudUpdatedAt >= game.modifiedAt {
+                    print("[CloudKit] Skipping upload - cloud current or newer (cloud=\(cloudUpdatedAt), local=\(game.modifiedAt))")
                     return
                 }
                 print("[CloudKit] Existing record found, updating...")
                 existing["gameData"] = CKAsset(fileURL: fileURL)
                 existing["version"] = (existing["version"] as? Int64 ?? 0) + 1
-                existing["updatedAt"] = Date()
+                existing["updatedAt"] = game.modifiedAt
                 let saved = try await database.save(existing)
                 print("[CloudKit] Record updated: \(saved.recordID.recordName)")
             } catch CKError.unknownItem {
@@ -96,7 +96,7 @@ final class CloudKitManager: ObservableObject {
                 record["savedAt"] = game.savedAt
                 record["gameData"] = CKAsset(fileURL: fileURL)
                 record["version"] = Int64(1)
-                record["updatedAt"] = Date()
+                record["updatedAt"] = game.modifiedAt
                 let saved = try await database.save(record)
                 print("[CloudKit] Record created: \(saved.recordID.recordName)")
             }
@@ -151,7 +151,10 @@ final class CloudKitManager: ObservableObject {
                     if let asset = record["gameData"] as? CKAsset,
                        let fileURL = asset.fileURL,
                        let data = try? Data(contentsOf: fileURL),
-                       let game = try? JSONDecoder().decode(SavedGame.self, from: data) {
+                       var game = try? JSONDecoder().decode(SavedGame.self, from: data) {
+                        if let cloudUpdatedAt = record["updatedAt"] as? Date {
+                            game.modifiedAt = cloudUpdatedAt
+                        }
                         games.append(game)
                     }
                 case .failure(let error):
@@ -195,14 +198,14 @@ final class CloudKitManager: ObservableObject {
                 newGames.append(cloudGame)
                 continue
             }
-            if cloudGame.savedAt > local.savedAt {
+            if cloudGame.modifiedAt > local.modifiedAt {
                 var updated = cloudGame
                 updated.groupIDs = local.groupIDs
                 if local.aiSummary != nil {
                     updated.aiSummary = local.aiSummary
                 }
                 updatedGames.append(updated)
-                print("[CloudKit] Cloud game newer (cloud=\(cloudGame.savedAt), local=\(local.savedAt)), will update local")
+                print("[CloudKit] Cloud game newer (cloud=\(cloudGame.modifiedAt), local=\(local.modifiedAt)), will update local")
             }
         }
         print("[CloudKit] \(newGames.count) new games, \(updatedGames.count) updated games to download")
