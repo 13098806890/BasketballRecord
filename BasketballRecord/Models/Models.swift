@@ -823,6 +823,7 @@ struct GameLogEditRecord: Codable, Hashable, Identifiable {
     var previousPlayerID: UUID?
     var previousTimestamp: Date?
     var previousPeriod: Int?
+    var previousPeriodElapsedSeconds: TimeInterval? = nil
     var currentMessage: String?
     var currentEventCode: String?
     var currentPlayerID: UUID?
@@ -1045,7 +1046,8 @@ struct SavedGame: Identifiable, Codable, Hashable {
 
     func playingTimeByPeriod() -> [Int: [UUID: TimeInterval]] {
         let relevantCodes: Set<String> = ["event.substitution", "event.period_start", "event.period_end"]
-        let events = snapshot.logs.filter { $0.eventCode.map(relevantCodes.contains) ?? false }
+        let events = GameLogEditLogic.activeLogs(snapshot.logs, history: snapshot.editHistory)
+            .filter { $0.eventCode.map(relevantCodes.contains) ?? false }
             .sorted { ($0.period ?? 0, $0.periodElapsedSeconds ?? 0) < ($1.period ?? 0, $1.periodElapsedSeconds ?? 0) }
         guard !events.isEmpty else { return [:] }
 

@@ -52,6 +52,7 @@ struct SavedGameAnalyzer {
         var awayOnCourt: Set<UUID> = []
 
         let allPlayerIDs = Set(game.homePlayerIDs + game.awayPlayerIDs)
+        let deletedEventIDs = GameLogEditLogic.deletedEventIDs(in: game.snapshot.editHistory)
         let homeIDs = Set(game.homePlayerIDs)
         if game.snapshot.homeTeamStatsMode {
             homeOnCourt = []
@@ -70,7 +71,7 @@ struct SavedGameAnalyzer {
             awayOnCourt = Set(game.awayPlayerIDs)
         }
 
-        for entry in game.snapshot.logs {
+        for entry in game.snapshot.logs.sorted(by: { $0.timestamp < $1.timestamp }) {
             let normalizedMessage = GameLogFormatter.normalizedMessage(entry.message)
             var inferredPeriod = entry.period
 
@@ -100,7 +101,7 @@ struct SavedGameAnalyzer {
             }
 
             // Handle control events for on-court tracking
-            if let code = entry.eventCode {
+            if !deletedEventIDs.contains(entry.id), let code = entry.eventCode {
                 if code == "event.substitution", let incoming = entry.playerID, let outgoing = entry.relatedPlayerID {
                     if homeOnCourt.contains(outgoing) { homeOnCourt.remove(outgoing); homeOnCourt.insert(incoming) }
                     if awayOnCourt.contains(outgoing) { awayOnCourt.remove(outgoing); awayOnCourt.insert(incoming) }
@@ -115,6 +116,8 @@ struct SavedGameAnalyzer {
                     resolvedPlayerID: resolvedPlayerID
                 )
             )
+
+            if deletedEventIDs.contains(entry.id) { continue }
 
             guard let period = inferredPeriod else { continue }
 

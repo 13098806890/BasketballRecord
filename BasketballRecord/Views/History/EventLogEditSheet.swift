@@ -21,32 +21,12 @@ struct EventLogEditSheet: View {
     @State private var selectedHour: Int
     @State private var selectedMinute: Int
     @State private var selectedSecond: Int
+    @State private var selectedExactTimestamp: Date
     @State private var usePeriodTime = false
     @State private var selectedPeriodNumber: Int
     @State private var selectedPeriodMinute: Int
     @State private var selectedPeriodSecond: Int
     @State private var showTimeError = false
-
-    private let timeFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "HH:mm:ss"
-        f.timeZone = TimeZone.current
-        f.locale = Locale.current
-        f.calendar = Calendar.current
-        return f
-    }()
-
-    private let shotActions: [StatAction] = [
-        .twoMade, .twoMissed, .threeMade, .threeMissed,
-        .layupMade, .layupMissed, .midRangeMade, .midRangeMissed, .paintMade, .paintMissed,
-        .dunkMade, .dunkMissed, .putbackMade, .putbackMissed, .bonusMade, .bonusMissed,
-        .freeThrowMade, .freeThrowMissed
-    ]
-
-    private let statActions: [StatAction] = [
-        .assist, .rebound, .offensiveRebound, .defensiveRebound,
-        .block, .steal, .turnover, .foul
-    ]
 
     private var eventTimestamps: [Date] { logs.map(\.timestamp) }
     private var availableDates: [Date] { Array(Set(eventTimestamps.map { Calendar.current.startOfDay(for: $0) })).sorted() }
@@ -62,7 +42,7 @@ struct EventLogEditSheet: View {
     private var availableSeconds: [Int] { Array(0...59) }
 
     private var onCourtPlayerIDs: [UUID] {
-        let ts = builtTimestamp
+        let ts = selectedTimestamp
         var homeOnCourt = Set(homeStarterIDs)
         var awayOnCourt = Set(awayStarterIDs)
         for log in logs.filter({ $0.timestamp <= ts }).sorted(by: { $0.timestamp < $1.timestamp }) {
@@ -95,6 +75,11 @@ struct EventLogEditSheet: View {
         return Calendar.current.date(from: dc) ?? selectedDate
     }
 
+    private var selectedTimestamp: Date {
+        guard existingEntry != nil else { return builtTimestamp }
+        return Calendar.current.date(bySetting: .second, value: selectedSecond, of: selectedExactTimestamp) ?? selectedExactTimestamp
+    }
+
     init(allPlayers: [Player], homePlayerIDs: [UUID], awayPlayerIDs: [UUID],
          logs: [GameLogEntry], homeStarterIDs: [UUID], awayStarterIDs: [UUID],
          gameStartTime: Date, gameEndTime: Date, defaultNewTimestamp: Date? = nil,
@@ -113,12 +98,14 @@ struct EventLogEditSheet: View {
 
         let ts = existingEntry?.timestamp ?? self.defaultNewTimestamp
         _selectedPlayerID = State(initialValue: existingEntry?.playerID ?? allPlayers.first?.id ?? UUID())
-        let action = StatAction.allCases.first(where: { $0.eventCode == existingEntry?.eventCode }) ?? .twoMade
+        let existingCode = existingEntry?.eventCode ?? existingEntry.flatMap { GameLogFormatter.extractEventCode(from: $0.message) }
+        let action = StatAction.allCases.first(where: { $0.eventCode == existingCode }) ?? .twoMade
         _selectedAction = State(initialValue: action)
         _selectedDate = State(initialValue: Calendar.current.startOfDay(for: ts))
         _selectedHour = State(initialValue: Calendar.current.component(.hour, from: ts))
         _selectedMinute = State(initialValue: Calendar.current.component(.minute, from: ts))
         _selectedSecond = State(initialValue: Calendar.current.component(.second, from: ts))
+        _selectedExactTimestamp = State(initialValue: ts)
         _selectedPeriodNumber = State(initialValue: existingEntry?.period ?? 1)
         let defaultMin: Int
         if let elapsed = existingEntry?.periodElapsedSeconds, elapsed > 0 {
@@ -154,24 +141,35 @@ struct EventLogEditSheet: View {
 
     private var periodMaxMinute: Int { periodMaxTotalSec / 60 }
 
+    private func inferredPeriod(for timestamp: Date) -> Int {
+        periodStartTimestamps
+            .filter { $0.value <= timestamp }
+            .keys
+            .max() ?? existingEntry?.period ?? 1
+    }
+
     var body: some View {
         NavigationStack {
             Form {
                 Section(LocalizedStringKey("label_time")) {
-                    if let entry = existingEntry {
-                        HStack {
-                            Text(LocalizedStringKey("label_time"))
-                            Spacer()
-                            Text(timeFormatter.string(from: entry.timestamp))
-                                .monospacedDigit()
-                                .foregroundStyle(.secondary)
+                    if existingEntry != nil {
+                        DatePicker(
+                            LocalizedStringKey("label_time"),
+                            selection: $selectedExactTimestamp,
+                            in: gameStartTime...gameEndTime,
+                            displayedComponents: [.date, .hourAndMinute]
+                        )
+                        Picker(NSLocalizedString("label_second", comment: ""), selection: $selectedSecond) {
+                            ForEach(0..<60, id: \.self) { second in
+                                Text(String(format: "%02d", second)).tag(second)
+                            }
                         }
                         HStack {
                             Text(NSLocalizedString("label_period_time", comment: ""))
                             Spacer()
-                            let period = entry.period ?? 1
-                            let start = periodStartTimestamps[period] ?? entry.timestamp
-                            let elapsed = Int(entry.timestamp.timeIntervalSince(start))
+                            let period = inferredPeriod(for: selectedTimestamp)
+                            let start = periodStartTimestamps[period] ?? selectedTimestamp
+                            let elapsed = max(0, Int(selectedTimestamp.timeIntervalSince(start)))
                             let min = elapsed / 60
                             let sec = elapsed % 60
                             Text("\(String(format: NSLocalizedString("data_range_period", comment: ""), period)) \(min):\(String(format: "%02d", sec))")
@@ -250,12 +248,12 @@ struct EventLogEditSheet: View {
                 Section(LocalizedStringKey("label_action")) {
                     Picker(LocalizedStringKey("label_type"), selection: $selectedAction) {
                         Section(LocalizedStringKey("stats_shooting")) {
-                            ForEach(shotActions, id: \.self) { action in
+                            ForEach(GameLogEditLogic.shotActions, id: \.self) { action in
                                 Text(NSLocalizedString(action.messageKey, comment: "")).tag(action)
                             }
                         }
                         Section(LocalizedStringKey("stats_other")) {
-                            ForEach(statActions, id: \.self) { action in
+                            ForEach(GameLogEditLogic.statActions, id: \.self) { action in
                                 Text(NSLocalizedString(action.messageKey, comment: "")).tag(action)
                             }
                         }
@@ -300,7 +298,7 @@ struct EventLogEditSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(NSLocalizedString("button_save", comment: "")) {
-                        let ts = existingEntry?.timestamp ?? builtTimestamp
+                        let ts = selectedTimestamp
                         if usePeriodTime {
                             let chosenSec = selectedPeriodMinute * 60 + selectedPeriodSecond
                             guard chosenSec <= periodMaxTotalSec else {
@@ -314,7 +312,7 @@ struct EventLogEditSheet: View {
                             showTimeError = true
                             return
                         }
-                        onSave(ts, selectedPlayerID, selectedAction, usePeriodTime ? selectedPeriodNumber : nil)
+                        onSave(ts, selectedPlayerID, selectedAction, usePeriodTime ? selectedPeriodNumber : inferredPeriod(for: ts))
                         dismiss()
                     }
                 }
