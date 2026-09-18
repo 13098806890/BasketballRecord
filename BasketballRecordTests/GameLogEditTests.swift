@@ -125,11 +125,9 @@ final class GameLogEditTests: XCTestCase {
             currentMessage: nil, currentEventCode: nil, currentPlayerID: nil
         ))
 
-        let addIDs = Set(store.savedGames[gi].snapshot.editHistory.filter { $0.action == "add" }.map(\.eventID))
-        let delIDs = Set(store.savedGames[gi].snapshot.editHistory.filter { $0.action == "delete" }.map(\.eventID))
-        let restIDs = Set(store.savedGames[gi].snapshot.editHistory.filter { $0.action == "restore" }.map(\.eventID))
-        let deletedVisible = delIDs.subtracting(restIDs).subtracting(addIDs)
-        XCTAssertFalse(deletedVisible.contains(e.id))
+        let hiddenIDs = GameLogEditLogic.addedThenDeletedEventIDs(in: store.savedGames[gi].snapshot.editHistory)
+        XCTAssertTrue(hiddenIDs.contains(e.id))
+        XCTAssertFalse(GameLogEditLogic.activeLogs(store.savedGames[gi].snapshot.logs, history: store.savedGames[gi].snapshot.editHistory).contains(where: { $0.id == e.id }))
     }
 
     func testStatsExcludeDeleted() throws {
@@ -144,9 +142,130 @@ final class GameLogEditTests: XCTestCase {
             currentMessage: nil, currentEventCode: nil, currentPlayerID: nil
         ))
 
-        let deletedIDs = Set(store.savedGames[gi].snapshot.editHistory.filter { $0.action == "delete" }.map(\.eventID))
-        let filteredLogs = store.savedGames[gi].snapshot.logs.filter { !deletedIDs.contains($0.id) }
+        let filteredLogs = GameLogEditLogic.activeLogs(store.savedGames[gi].snapshot.logs, history: store.savedGames[gi].snapshot.editHistory)
         let twoMadeCount = filteredLogs.filter { $0.eventCode == "stat.twoMade" }.count
         XCTAssertEqual(twoMadeCount, 0)
+    }
+
+    func testAnalyzerExcludesDeletedEventFromPeriodStats() throws {
+        let (store, gid) = makeGame()
+        guard let gameIndex = store.savedGames.firstIndex(where: { $0.id == gid }),
+              let event = store.savedGames[gameIndex].snapshot.logs.first(where: { $0.eventCode == "stat.twoMade" }),
+              let playerID = event.playerID else { XCTFail(); return }
+
+        store.savedGames[gameIndex].snapshot.editHistory.append(GameLogEditRecord(
+            timestamp: Date(), action: "delete", eventID: event.id,
+            previousMessage: event.message, previousEventCode: event.eventCode, previousPlayerID: event.playerID,
+            previousTimestamp: event.timestamp, previousPeriod: event.period,
+            currentMessage: nil, currentEventCode: nil, currentPlayerID: nil
+        ))
+
+        let analysis = SavedGameAnalyzer(game: store.savedGames[gameIndex]) { _ in nil }.analyze()
+
+        XCTAssertEqual(analysis.statsByPeriod[1]?[playerID]?.twoMade ?? 0, 0)
+    }
+
+    func testDeleteAfterRestoreIsStillExcludedFromPeriodStats() throws {
+        let (store, gid) = makeGame()
+        guard let gameIndex = store.savedGames.firstIndex(where: { $0.id == gid }),
+              let event = store.savedGames[gameIndex].snapshot.logs.first(where: { $0.eventCode == "stat.assist" }),
+              let playerID = event.playerID else { XCTFail(); return }
+
+        let deletion = GameLogEditRecord(
+            timestamp: Date(), action: "delete", eventID: event.id,
+            previousMessage: event.message, previousEventCode: event.eventCode, previousPlayerID: event.playerID,
+            previousTimestamp: event.timestamp, previousPeriod: event.period,
+            currentMessage: nil, currentEventCode: nil, currentPlayerID: nil
+        )
+        let restoration = GameLogEditRecord(
+            timestamp: Date(), action: "restore", eventID: event.id,
+            previousMessage: nil, previousEventCode: nil, previousPlayerID: nil,
+            previousTimestamp: nil, previousPeriod: nil,
+            currentMessage: nil, currentEventCode: nil, currentPlayerID: nil
+        )
+        store.savedGames[gameIndex].snapshot.editHistory.append(contentsOf: [deletion, restoration, deletion])
+
+        let analysis = SavedGameAnalyzer(game: store.savedGames[gameIndex]) { _ in nil }.analyze()
+
+        XCTAssertEqual(analysis.statsByPeriod[1]?[playerID]?.assists ?? 0, 0)
+    }
+
+    func testOnlySupportedStatEventsCanBeEditedAsStats() {
+        XCTAssertTrue(GameLogEditLogic.canEditAsStat("stat.twoMade"))
+        XCTAssertFalse(GameLogEditLogic.canEditAsStat("event.pause"))
+        XCTAssertFalse(GameLogEditLogic.canEditAsStat("event.substitution"))
+        XCTAssertFalse(GameLogEditLogic.canEditAsStat("stat.assistTwoMade"))
+        XCTAssertFalse(GameLogEditLogic.canEditAsStat(GameLogEntry(timestamp: Date(), message: "暂停 [event:event.pause]")))
+    }
+
+    func testLatestDeleteOrRestoreDeterminesEventState() {
+        let eventID = UUID()
+        let delete = GameLogEditRecord(
+            timestamp: Date(), action: "delete", eventID: eventID,
+            previousMessage: nil, previousEventCode: nil, previousPlayerID: nil,
+            previousTimestamp: nil, previousPeriod: nil,
+            currentMessage: nil, currentEventCode: nil, currentPlayerID: nil
+        )
+        let restore = GameLogEditRecord(
+            timestamp: Date(), action: "restore", eventID: eventID,
+            previousMessage: nil, previousEventCode: nil, previousPlayerID: nil,
+            previousTimestamp: nil, previousPeriod: nil,
+            currentMessage: nil, currentEventCode: nil, currentPlayerID: nil
+        )
+
+        XCTAssertEqual(GameLogEditLogic.deletedEventIDs(in: [delete, restore]), [])
+        XCTAssertEqual(GameLogEditLogic.deletedEventIDs(in: [delete, restore, delete]), [eventID])
+        XCTAssertEqual(GameLogEditLogic.addedThenDeletedEventIDs(in: [delete, restore]), [])
+    }
+
+    func testModifyUsesEventIDAfterLogOrderChangesAndCanRestoreTimestamp() {
+        var snapshot = GameSnapshot()
+        let originalTimestamp = Date(timeIntervalSince1970: 100)
+        let target = GameLogEntry(timestamp: originalTimestamp, message: "A 2分命中", eventCode: "stat.twoMade", period: 1, periodElapsedSeconds: 9)
+        let inserted = GameLogEntry(timestamp: originalTimestamp.addingTimeInterval(10), message: "B 篮板", eventCode: "stat.rebound")
+        snapshot.logs = [target, inserted]
+        snapshot.logs.insert(GameLogEntry(timestamp: originalTimestamp.addingTimeInterval(5), message: "新事件", eventCode: "stat.assist"), at: 1)
+        snapshot.editHistory.append(GameLogEditRecord(
+            timestamp: originalTimestamp, action: "modify", eventID: target.id,
+            previousMessage: "A 2分命中", previousEventCode: "stat.twoMade", previousPlayerID: nil,
+            previousTimestamp: nil, previousPeriod: nil,
+            currentMessage: "A 2分命中", currentEventCode: "stat.twoMade", currentPlayerID: nil
+        ))
+        let newTimestamp = originalTimestamp.addingTimeInterval(20)
+
+        let modified = GameLogEditLogic.modify(
+            snapshot: &snapshot,
+            eventID: target.id,
+            timestamp: newTimestamp,
+            playerID: UUID(),
+            eventCode: "stat.threeMade",
+            message: "A 3分命中",
+            period: 2,
+            periodElapsedSeconds: 42
+        )
+
+        XCTAssertTrue(modified)
+        XCTAssertEqual(snapshot.logs.first(where: { $0.id == target.id })?.timestamp, newTimestamp)
+        XCTAssertEqual(snapshot.logs.first(where: { $0.id == inserted.id })?.eventCode, "stat.rebound")
+        XCTAssertTrue(GameLogEditLogic.restoreModification(snapshot: &snapshot, eventID: target.id))
+        XCTAssertEqual(snapshot.logs.first(where: { $0.id == target.id })?.timestamp, originalTimestamp)
+        XCTAssertEqual(snapshot.logs.first(where: { $0.id == target.id })?.period, 1)
+        XCTAssertEqual(snapshot.logs.first(where: { $0.id == target.id })?.periodElapsedSeconds, 9)
+    }
+
+    func testOlderEditRecordWithoutPeriodElapsedSecondsStillDecodes() throws {
+        let record = GameLogEditRecord(
+            timestamp: Date(), action: "modify", eventID: UUID(),
+            previousMessage: nil, previousEventCode: nil, previousPlayerID: nil,
+            previousTimestamp: nil, previousPeriod: nil,
+            currentMessage: nil, currentEventCode: nil, currentPlayerID: nil
+        )
+        var payload = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(record)) as? [String: Any])
+        payload.removeValue(forKey: "previousPeriodElapsedSeconds")
+        let oldData = try JSONSerialization.data(withJSONObject: payload)
+
+        let decoded = try JSONDecoder().decode(GameLogEditRecord.self, from: oldData)
+
+        XCTAssertNil(decoded.previousPeriodElapsedSeconds)
     }
 }

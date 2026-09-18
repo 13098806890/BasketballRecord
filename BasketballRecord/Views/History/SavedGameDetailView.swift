@@ -26,7 +26,11 @@ struct SavedGameDetailView: View {
        self.displayMode = displayMode
 
        _selectedGroupID = State(initialValue: game.groupIDs.first)
-   }
+    }
+
+    private var currentSavedGame: SavedGame {
+        store.savedGames.first(where: { $0.id == game.id }) ?? game
+    }
 
     var body: some View {
         let l = List {
@@ -105,7 +109,7 @@ struct SavedGameDetailView: View {
 
             if displayMode == .history {
                 AISummaryView(
-                    game: game,
+                    game: currentSavedGame,
                     store: store,
                     periodAnalysis: periodAnalysis,
                     isShowingPurchase: $isShowingPurchase
@@ -118,6 +122,16 @@ struct SavedGameDetailView: View {
         .toolbar {
             if displayMode == .history {
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button {
+                        if store.isPro {
+                            isEditing = true
+                        } else {
+                            isShowingPurchase = true
+                        }
+                    } label: {
+                        Image(systemName: "pencil.and.list.clipboard")
+                    }
+                    .accessibilityLabel(LocalizedStringKey("label_edit_event_log"))
                     if store.isPro {
                         Button {
                             store.toggleCloudStorage(for: game.id)
@@ -129,7 +143,7 @@ struct SavedGameDetailView: View {
                         GameGroupPicker(store: store, selectedGroupID: $selectedGroupID, iconName: "folder.badge.plus", checkedGroupIDs: Set(store.groups(for: game.id).map(\.id)))
                     }
                     BasketballExcelExportButton {
-                        BasketballExcelReportBuilder.singleGame(game, players: store.players).exportFile
+                        BasketballExcelReportBuilder.singleGame(currentSavedGame, players: store.players).exportFile
                     }
                     Button {
                         isShowingExport = true
@@ -143,12 +157,13 @@ struct SavedGameDetailView: View {
         Group {
             if isEditing {
                 GameEventLogEditorView(
-                    game: game,
+                    game: currentSavedGame,
                     periodAnalysis: periodAnalysis,
                     selectedPeriod: selectedPeriods.isEmpty ? nil : selectedPeriods.first,
                     isEditing: $isEditing,
                     onRebuildAnalysis: {
                         rebuildPeriodAnalysis()
+                        cachedPlayingTimeByPeriod = currentSavedGame.playingTimeByPeriod()
                         editRefreshID = UUID()
                     }
                 )
@@ -166,14 +181,15 @@ struct SavedGameDetailView: View {
             }
             .task {
                 guard periodAnalysis.logs.isEmpty else { return }
-                let analyzer = SavedGameAnalyzer(game: game) { name in
-                    game.playerNamesByID.first(where: { $0.value == name })?.key
+                let currentGame = currentSavedGame
+                let analyzer = SavedGameAnalyzer(game: currentGame) { name in
+                    currentGame.playerNamesByID.first(where: { $0.value == name })?.key
                 }
                 periodAnalysis = await Task.detached(priority: .userInitiated) {
                     analyzer.analyze()
                 }.value
                 if cachedPlayingTimeByPeriod.isEmpty {
-                    cachedPlayingTimeByPeriod = game.playingTimeByPeriod()
+                    cachedPlayingTimeByPeriod = currentSavedGame.playingTimeByPeriod()
                 }
             }
             .onChange(of: store.cloudEnabledGameIDs) { _, _ in
@@ -183,7 +199,7 @@ struct SavedGameDetailView: View {
                ProSubscriptionStoreView()
            }
            .sheet(isPresented: $isShowingExport) {
-            ExportGameView(game: game)
+            ExportGameView(game: currentSavedGame)
         }
         .onChange(of: selectedGroupID) { _, newValue in
             if let groupID = newValue {
@@ -236,7 +252,7 @@ struct SavedGameDetailView: View {
             }
             playingTime = total > 0 ? GameView.durationFormatter(total) : "--:--"
         } else {
-            playingTime = GameView.durationFormatter(game.snapshot.playingSecondsByPlayerID[playerID, default: 0])
+            playingTime = GameView.durationFormatter(currentSavedGame.snapshot.playingSecondsByPlayerID[playerID, default: 0])
         }
         let plusMinus: Int
         let pmPeriods = selectedPeriods.isEmpty ? Set(availablePeriodOptions) : selectedPeriods
@@ -245,9 +261,9 @@ struct SavedGameDetailView: View {
 
         return NavigationLink {
             if store.player(for: playerID) != nil {
-                PlayerProfileView(playerID: playerID, fixedGame: game, selectedGroupID: .constant(nil))
+                PlayerProfileView(playerID: playerID, fixedGame: currentSavedGame, selectedGroupID: .constant(nil))
             } else {
-                PlayerGameDetailView(game: game, playerID: playerID)
+                PlayerGameDetailView(game: currentSavedGame, playerID: playerID)
             }
         } label: {
             HStack(spacing: 10) {
@@ -329,7 +345,7 @@ struct SavedGameDetailView: View {
                 return total + (ps[teamID]?.points ?? 0) + playerIDs(for: teamID).reduce(0) { $0 + (ps[$1]?.points ?? 0) }
             }
         }
-        return game.score(forTeamID: teamID)
+        return currentSavedGame.score(forTeamID: teamID)
     }
 
     private func fouls(for teamID: UUID?) -> Int {
@@ -340,7 +356,7 @@ struct SavedGameDetailView: View {
                 return total + (ps[teamID]?.fouls ?? 0) + playerIDs(for: teamID).reduce(0) { $0 + (ps[$1]?.fouls ?? 0) }
             }
         }
-        let teamFouls = game.snapshot.teamStatsByID[teamID, default: PlayerStats()].fouls
+        let teamFouls = currentSavedGame.snapshot.teamStatsByID[teamID, default: PlayerStats()].fouls
         let playerFouls = playerIDs(for: teamID).reduce(0) { total, playerID in
             total + displayStatsByPlayerID[playerID, default: PlayerStats()].fouls
         }
@@ -373,7 +389,7 @@ struct SavedGameDetailView: View {
                 }
             }
         } else {
-            total = game.snapshot.teamStatsByID[teamID, default: PlayerStats()]
+            total = currentSavedGame.snapshot.teamStatsByID[teamID, default: PlayerStats()]
         }
         for playerID in playerIDs(for: teamID) {
             let stats = displayStatsByPlayerID[playerID, default: PlayerStats()]
@@ -399,12 +415,12 @@ struct SavedGameDetailView: View {
     }
 
     private func playerIDs(for teamID: UUID?) -> [UUID] {
-        teamID == game.snapshot.homeTeamID ? game.homePlayerIDs : game.awayPlayerIDs
+        teamID == currentSavedGame.snapshot.homeTeamID ? currentSavedGame.homePlayerIDs : currentSavedGame.awayPlayerIDs
     }
 
     private var displayStatsByPlayerID: [UUID: PlayerStats] {
         if selectedPeriods.isEmpty {
-            return game.snapshot.statsByPlayerID
+            return currentSavedGame.snapshot.statsByPlayerID
         }
         var combined: [UUID: PlayerStats] = [:]
         for period in selectedPeriods {
@@ -472,12 +488,8 @@ struct SavedGameDetailView: View {
 
     private func rebuildGameSnapshotStats(gameIndex: Int) {
         let currentGame = store.savedGames[gameIndex]
-        let eh = currentGame.snapshot.editHistory
-        let addedIDs = Set(eh.filter { $0.action == "add" }.map(\.eventID))
-        let deletedIDs = Set(eh.filter { $0.action == "delete" }.map(\.eventID))
-        let restoredIDs = Set(eh.filter { $0.action == "restore" }.map(\.eventID))
-        let excludedIDs = deletedIDs.subtracting(restoredIDs).union(addedIDs.intersection(deletedIDs))
-        let logs = currentGame.snapshot.logs.sorted { $0.timestamp < $1.timestamp }.filter { !excludedIDs.contains($0.id) }
+        let logs = GameLogEditLogic.activeLogs(currentGame.snapshot.logs, history: currentGame.snapshot.editHistory)
+            .sorted { $0.timestamp < $1.timestamp }
        let homeIDs = Set(currentGame.homePlayerIDs)
        let awayIDs = Set(currentGame.awayPlayerIDs)
 
@@ -552,7 +564,7 @@ struct SavedGameDetailView: View {
     }
 
     private var gameDurationText: String? {
-        let sortedLogs = game.snapshot.logs
+        let sortedLogs = GameLogEditLogic.activeLogs(currentSavedGame.snapshot.logs, history: currentSavedGame.snapshot.editHistory)
             .sorted { $0.timestamp < $1.timestamp }
         guard let first = sortedLogs.first, let last = sortedLogs.last,
               first.timestamp != last.timestamp else { return nil }
