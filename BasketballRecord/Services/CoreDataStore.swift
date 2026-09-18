@@ -213,6 +213,7 @@ struct CoreDataStore {
             return SavedGame(
                 id: id,
                 savedAt: savedAt,
+                modifiedAt: obj.value(forKey: "modifiedAt") as? Date,
                 snapshot: snapshot,
                 aiSummary: obj.value(forKey: "aiSummary") as? String,
                 undoSnapshots: undoData.flatMap { try? JSONDecoder().decode([GameSnapshot].self, from: $0) } ?? [],
@@ -235,6 +236,7 @@ struct CoreDataStore {
         let obj = existing ?? NSEntityDescription.insertNewObject(forEntityName: "CDSavedGame", into: context)
         obj.setValue(game.id, forKey: "id")
         obj.setValue(game.savedAt, forKey: "savedAt")
+        obj.setValue(game.modifiedAt, forKey: "modifiedAt")
         let encodedSnap = try? JSONEncoder().encode(game.snapshot)
         obj.setValue(encodedSnap, forKey: "snapshotData")
         obj.setValue(game.homeTeamName, forKey: "homeTeamName")

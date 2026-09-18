@@ -189,6 +189,11 @@ struct CoreDataStack {
         gameSavedAt.attributeType = .dateAttributeType
         gameSavedAt.isOptional = false
 
+        let gameModifiedAt = NSAttributeDescription()
+        gameModifiedAt.name = "modifiedAt"
+        gameModifiedAt.attributeType = .dateAttributeType
+        gameModifiedAt.isOptional = true
+
         let gameSnapshotData = NSAttributeDescription()
         gameSnapshotData.name = "snapshotData"
         gameSnapshotData.attributeType = .binaryDataAttributeType
@@ -252,7 +257,7 @@ struct CoreDataStack {
         gameUndoData.isOptional = true
 
         savedGame.properties = [
-            gameID, gameSavedAt, gameSnapshotData,
+            gameID, gameSavedAt, gameModifiedAt, gameSnapshotData,
             gameHomeTeamName, gameAwayTeamName,
             gameHomePlayerIDs, gameAwayPlayerIDs, gamePlayerNamesData,
             gameGroupIDsData, gameIsLocked, gameDisplayName,

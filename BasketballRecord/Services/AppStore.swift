@@ -302,6 +302,7 @@ final class AppStore: ObservableObject {
     func updateAISummary(_ summary: String, for gameID: UUID) {
         guard let index = savedGames.firstIndex(where: { $0.id == gameID }) else { return }
         savedGames[index].aiSummary = summary
+        savedGames[index].modifiedAt = Date()
     }
 
     // MARK: - Game Group Management
@@ -736,5 +737,4 @@ final class AppStore: ObservableObject {
     }
 
 }
-
 
