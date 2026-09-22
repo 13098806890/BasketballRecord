@@ -1,0 +1,1 @@
+Spieldaten flexibler verwalten: Excel-Stapelexport, Spielerpositionen, mehrsprachige KI-Berichte sowie zuverlässige Ereignisbearbeitung und Neuberechnung.

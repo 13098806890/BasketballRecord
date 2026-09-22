@@ -1,0 +1,5 @@
+• Nuovo export Excel multiplo: seleziona più partite, raccoglile in un file ZIP e condividile. Puoi esportare per intervallo anche i dati di carriera, giocatori e squadre.
+• Aggiunti i ruoli dei giocatori e migliorato il layout delle statistiche nei dettagli del giocatore.
+• I riepiloghi IA delle partite supportano ora tutte le lingue dell’app, adattando date, statistiche e testo alla lingua e all’area geografica.
+• Ripristinata la modifica degli eventi e corretti il ricalcolo delle statistiche e i dati temporali dopo modifica, eliminazione o ripristino.
+• Completate le traduzioni mancanti e migliorati lo stato dell’export e le descrizioni degli eventi.
