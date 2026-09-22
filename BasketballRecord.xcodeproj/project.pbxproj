@@ -247,7 +247,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 58;
+				CURRENT_PROJECT_VERSION = 60;
 				DEVELOPMENT_TEAM = 86AC9J72SZ;
 				ENABLE_PREVIEWS = YES;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -257,10 +257,11 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Basketball Journal";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "To discover and connect nearby devices for syncing games and team data.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "用于语音识别以记录比赛数据";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "To select avatar photos for players.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "用于通过语音快速记录比赛数据";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = NO;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -412,7 +413,7 @@
 				CODE_SIGN_ENTITLEMENTS = BasketballRecord/BasketballRecord.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 58;
+				CURRENT_PROJECT_VERSION = 60;
 				DEVELOPMENT_TEAM = 86AC9J72SZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -420,10 +421,11 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Basketball Journal";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "To discover and connect nearby devices for syncing games and team data.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "用于语音识别以记录比赛数据";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "To select avatar photos for players.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "用于通过语音快速记录比赛数据";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = NO;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

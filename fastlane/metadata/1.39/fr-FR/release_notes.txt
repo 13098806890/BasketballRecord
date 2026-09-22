@@ -1,0 +1,5 @@
+• Nouvel export Excel groupé : sélectionnez plusieurs matchs, regroupez-les dans un ZIP et partagez-les. Les données de carrière, des joueurs et des équipes sont aussi exportables par plage.
+• Ajout des postes des joueurs et amélioration de la présentation des statistiques dans leur profil.
+• Les résumés de match par IA prennent désormais en charge toutes les langues de l’app et adaptent dates, statistiques et formulation à votre langue et région.
+• Rétablissement de l’édition des événements, avec correction du recalcul des statistiques et des horaires après modification, suppression ou restauration.
+• Traductions manquantes complétées et amélioration de la progression d’export et des descriptions d’événements.

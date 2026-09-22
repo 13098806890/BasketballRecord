@@ -1,0 +1,5 @@
+• Nueva exportación Excel por lotes: selecciona varios partidos, agrúpalos en un ZIP y compártelos. También puedes exportar por rango datos de carrera, jugadores y equipos.
+• Añadimos posiciones de jugadores y mejoramos el diseño de las estadísticas en su ficha.
+• Los resúmenes de partidos con IA ya admiten todos los idiomas de la app y adaptan fechas, estadísticas y redacción a tu idioma y región.
+• Recuperamos la edición de eventos y corregimos el recálculo de estadísticas y los datos de tiempo al modificar, eliminar o restaurar eventos.
+• Completamos traducciones y mejoramos el progreso de exportación y las descripciones de eventos.

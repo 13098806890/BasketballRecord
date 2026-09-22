@@ -43,7 +43,7 @@ platform :ios do
       force: true,
       skip_binary_upload: true,
       skip_screenshots: true,
-      skip_app_version_update: true,
+      skip_app_version_update: false,
       app_version: version,
       submit_for_review: false,
       automatic_release: false,

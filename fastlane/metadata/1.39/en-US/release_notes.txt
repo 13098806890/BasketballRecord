@@ -1,0 +1,5 @@
+• Added batch Excel export: select multiple games, package them as a ZIP, and share them. Career, player, and team data can also be exported by range.
+• Added player positions and improved the layout of player detail statistics.
+• AI game summaries now support every app language, with dates, team statistics, and wording adapted to your current language and region.
+• Restored game event editing and fixed stat recalculation and timing data after editing, deleting, or restoring events.
+• Completed missing translations and improved export progress, event descriptions, and Traditional Chinese wording.

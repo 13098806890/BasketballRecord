@@ -1,0 +1,5 @@
+• Neuer Excel-Stapelexport: Mehrere Spiele auswählen, als ZIP bündeln und teilen. Karriere-, Spieler- und Teamdaten lassen sich ebenfalls nach Bereich exportieren.
+• Spielerpositionen hinzugefügt und die Statistikdarstellung in den Spielerdetails verbessert.
+• KI-Spielberichte unterstützen jetzt alle App-Sprachen. Datum, Teamstatistiken und Formulierungen richten sich nach Sprache und Region.
+• Die Bearbeitung von Spielereignissen wurde wiederhergestellt. Statistik-Neuberechnung und Zeitangaben nach Ändern, Löschen oder Wiederherstellen wurden korrigiert.
+• Fehlende Übersetzungen ergänzt und Exportstatus sowie Ereignisbeschreibungen verbessert.
