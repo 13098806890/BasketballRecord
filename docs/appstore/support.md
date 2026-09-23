@@ -1,6 +1,6 @@
 # Support
 
-Welcome to Basketball Career (篮球生涯). If you encounter any issues, please use the following resources:
+Welcome to Basketball Journal (篮球生涯手帐). If you encounter any issues, please use the following resources:
 
 ## FAQ
 
@@ -34,7 +34,7 @@ Or contact us via email: classicalxie@163.com
 
 ## Version
 
-- App Name: Basketball Career (篮球生涯)
+- App Name: Basketball Journal (篮球生涯手帐)
 - Platform: iOS
 - Website: https://github.com/13098806890/BasketballRecord
 
@@ -42,7 +42,7 @@ Or contact us via email: classicalxie@163.com
 
 # 支持
 
-欢迎使用篮球生涯。如果你在使用过程中遇到问题，可通过以下方式获取帮助。
+欢迎使用篮球生涯手帐。如果你在使用过程中遇到问题，可通过以下方式获取帮助。
 
 ## 常见问题
 
@@ -76,6 +76,6 @@ https://github.com/13098806890/BasketballRecord/issues
 
 ## 版本信息
 
-- 应用名称：篮球生涯
+- 应用名称：篮球生涯手帐
 - 平台：iOS
 - 网站：https://github.com/13098806890/BasketballRecord

@@ -1,0 +1,1 @@
+marcador,estadísticas,baloncesto,anotador,puntos,equipo,entrenador,partido,registro,torneo,crack

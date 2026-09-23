@@ -4,7 +4,7 @@
 
 Hello App Review Team,
 
-This app "Basketball Career" (篮球生涯) is an offline basketball scorekeeping and stat tracking tool.
+This app "Basketball Journal" (篮球生涯手帐) is an offline basketball scorekeeping and stat tracking tool.
 
 ### Core Features
 
