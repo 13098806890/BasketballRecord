@@ -29,7 +29,7 @@ end
 platform :ios do
   desc "Upload metadata for a specific version to App Store Connect"
   lane :upload_metadata do |options|
-    version = options[:version] || "1.20"
+    version = options[:version] || "1.51"
 
     key_id, key_filepath = resolve_api_key
 
@@ -42,7 +42,7 @@ platform :ios do
     deliver(
       force: true,
       skip_binary_upload: true,
-      skip_screenshots: true,
+      skip_screenshots: options.fetch(:skip_screenshots, false),
       skip_app_version_update: false,
       app_version: version,
       submit_for_review: false,
@@ -55,7 +55,7 @@ platform :ios do
 
   desc "Release an approved version to the App Store"
   lane :release do |options|
-    version = options[:version] || "1.20"
+    version = options[:version] || "1.51"
 
     key_id, key_filepath = resolve_api_key
 
@@ -85,7 +85,7 @@ platform :ios do
 
   desc "Download current metadata from App Store Connect"
   lane :download_metadata do |options|
-    version = options[:version] || "1.33"
+    version = options[:version] || "1.51"
 
     key_id, key_filepath = resolve_api_key
 
@@ -112,6 +112,26 @@ platform :ios do
     project_root = File.expand_path("..", File.dirname(__FILE__))
     base = File.join(project_root, "fastlane/metadata/#{version}")
     FileUtils.mkdir_p(base)
+
+    app_info = app.fetch_live_app_info || app.fetch_latest_app_info
+    UI.user_error!("Could not find app info for #{version}") if app_info.nil?
+    app_info_localizations = app_info.get_app_info_localizations
+
+    app_info_localizations.each do |loc|
+      locale = loc.locale
+      dir = File.join(base, locale)
+      FileUtils.mkdir_p(dir)
+
+      {
+        name: "name.txt",
+        subtitle: "subtitle.txt"
+      }.each do |attr, filename|
+        val = loc.respond_to?(attr) ? loc.send(attr) : nil
+        next if val.nil? || val.to_s.strip.empty?
+        File.write(File.join(dir, filename), val.to_s.strip)
+        UI.message("  ✓ #{filename}")
+      end
+    end
 
     info.each do |loc|
       locale = loc.locale
