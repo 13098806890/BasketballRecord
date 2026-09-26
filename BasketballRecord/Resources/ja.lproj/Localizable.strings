@@ -308,7 +308,8 @@
 "section_basic_info" = "基本情報";
 "label_position" = "ポジション";
 "position_unspecified" = "未設定";
-"stats_games_short" = "GP";
+"stats_games_short" = "試合";
+"career_stat_games_played_short" = "試合";
 "stat_label_starter_short" = "GS";
 "stat_label_bench_short" = "BN";
 "stats_win_rate_short" = "W%";
@@ -375,6 +376,7 @@
 "button_select_month" = "月を選択";
 "button_share_all_segments" = "すべてのセグメントを共有する";
 "button_show_all" = "すべて表示";
+"button_show_less" = "折りたたむ";
 "button_switch_single_import" = "単一の区分モード";
 "count_games_format" = "%d ゲーム";
 "count_players_people_format" = "%d 選手";
@@ -419,6 +421,9 @@
 "label_player" = "プレイヤー";
 "label_segment_count" = "セグメント";
 "label_team" = "スタッフ";
+"label_team_icon" = "チームアイコン";
+"label_select_team_icon" = "チームアイコンを追加";
+"label_remove_team_icon" = "チームアイコンを削除";
 "label_this_game_stats" = "このゲーム";
 "label_total_stats" = "合計:";
 "label_weight" = "カートン";
@@ -879,7 +884,15 @@
 "pixel_group_discipline" = "規律";
 "settings_show_bluetooth_button" = "Bluetooth協同を表示";
 "settings_cloud_storage" = "iCloudストレージ";
+"settings_language" = "言語";
+"settings_language_alert_title" = "言語はiPhoneの設定に従います";
+"settings_language_alert_message" = "「設定 > 一般 > 言語と地域」でAppの言語を変更できます。";
 "stats_points_format_short" = "PTS";
+"stats_rebound_short" = "REB";
+"stats_assists_short" = "AST";
+"stats_steals_short" = "STL";
+"stats_blocks_short" = "BLK";
+"stats_turnovers_short" = "TO";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
 "stats_rebound_block" = "リバウンド / ブロック";
 "stats_rebound_detail" = "REB / OREB / DREB";
@@ -1003,6 +1016,7 @@
 "elo_label_gs_factor" = "GS 係数";
 "elo_computation_title" = "ELO 計算詳細";
 "label_elo" = "レーティング";
+"label_elo_history" = "ELO 履歴";
 "elo_format" = "レーティング %d";
 "elo_title_format" = "レーティング – %@";
 "elo_tier_bronze" = "ブロンズ";
@@ -1299,3 +1313,4 @@
 "excel_team_stats_none" = "選手統計";
 "excel_event_assist_format" = "%1$@のアシストで%2$@が%3$@";
 "excel_event_steal_turnover_format" = "%1$@が%2$@からスティール";
+"nav_player_detail" = "選手詳細";

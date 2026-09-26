@@ -1,0 +1,63 @@
+{
+  "action": "dispatch",
+  "to_stage": "ux-review",
+  "task_scope": "基于视觉契约、实际代码审查和模拟器阻塞证据做只读 UX 复盘，接受/调整/拒绝建议，并把可测试要求和剩余风险交给编排者。",
+  "task_prompt": "你是 UX Reviewer。请读取 10-visual-design.html、03-code-review.html、04-simulator-test.html、当前受影响 View 和中文截图。评估信息层级、页面连续性、导航和卡片视觉是否支持用户任务；区分静态代码/截图推断与模拟器实测，绝不把黑屏证据写成通过。明确每个建议是 accepted、revised 或 rejected，并给出后续可测试条件。记分操作界面是保护范围，不评价其视觉改动。只写 05-ux-review.html，不修改产品代码、Fastlane 或 App Store Connect。",
+  "acceptance_criteria": [
+    "criterion-01",
+    "criterion-03",
+    "criterion-05"
+  ],
+  "coverage_ids": [
+    "criterion-01",
+    "criterion-03",
+    "criterion-05"
+  ],
+  "required_outputs": [
+    "05-ux-review.html",
+    "按建议状态给出可测试要求",
+    "明确静态证据和运行时证据的区别"
+  ],
+  "input_files": [
+    "workflow-state.json",
+    "10-visual-design.html",
+    "03-code-review.html",
+    "04-simulator-test.html",
+    "BasketballRecord/Views/ContentView.swift",
+    "BasketballRecord/Views/RosterView.swift",
+    "BasketballRecord/Views/History/HistoryView.swift",
+    "BasketballRecord/Views/Career/CareerView.swift",
+    "BasketballRecord/Views/PlayerProfileView.swift",
+    "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/02-stats.png",
+    "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/03-review.png",
+    "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/04-team.png",
+    "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/05-growth.png"
+  ],
+  "changed_files": [],
+  "verification": [
+    "视觉报告含四个逐 surface 标注",
+    "代码审查无 blocking finding",
+    "模拟器报告已逐 surface 记录 blocked"
+  ],
+  "unresolved_issues": [
+    "运行时 screenshot/AX evidence 缺失",
+    "深色模式和动态字体未实测"
+  ],
+  "prohibited_actions": [
+    "不得修改产品代码或商店资产",
+    "不得进入记分操作",
+    "不得把静态推断写成运行时通过",
+    "不得自行 commit"
+  ],
+  "next_checks": [
+    "检查视觉 token 是否造成信息层级或导航可用性风险",
+    "把 accepted 建议改写为可复测条件",
+    "给出最终是否可 complete-with-gaps 的建议"
+  ],
+  "knowledge_context": {
+    "feature_ids": ["ui-editorial-theme"],
+    "flow_ids": ["management", "history", "career", "player-profile"],
+    "test_case_ids": ["ux-static-review", "runtime-gap-review"],
+    "known_issue_ids": ["simulator-window-capture", "light-theme-only"]
+  }
+}

@@ -255,21 +255,24 @@ struct ExportTeamV2: Codable, Hashable {
     var id: UUID
     var name: String
     var playerIDs: [UUID]
+    var iconData: Data?
 
     enum CodingKeys: String, CodingKey {
         case id = "i"
         case name = "n"
         case playerIDs = "p"
+        case iconData = "l"
     }
 
     init(legacy: ExportTeam) {
         id = legacy.id
         name = legacy.name
         playerIDs = legacy.playerIDs
+        iconData = legacy.iconData
     }
 
     var legacy: ExportTeam {
-        ExportTeam(id: id, name: name, playerIDs: playerIDs)
+        ExportTeam(id: id, name: name, playerIDs: playerIDs, iconData: iconData)
     }
 }
 

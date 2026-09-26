@@ -1,0 +1,73 @@
+{
+  "action": "return",
+  "from_stage": "visual-design",
+  "exchange_id": "exchange-0001",
+  "summary": "完成视觉设计契约：以中文 02–05 截图分别标注管理、历史、职业成长和球员资料四个 surface，固化 EditorialDesign token、状态边界和记分页面保护范围；未修改产品代码或商店资产。",
+  "result_status": "passed",
+  "output_files": [
+    {
+      "path": "10-visual-design.html",
+      "kind": "html",
+      "label": "视觉设计报告"
+    },
+    {
+      "path": "BasketballRecord/Views/Skin/EditorialDesign.swift",
+      "kind": "file",
+      "label": "共享视觉实现"
+    },
+    {
+      "path": "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/02-stats.png",
+      "kind": "image",
+      "label": "球员资料参考"
+    },
+    {
+      "path": "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/03-review.png",
+      "kind": "image",
+      "label": "历史参考"
+    },
+    {
+      "path": "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/04-team.png",
+      "kind": "image",
+      "label": "管理参考"
+    },
+    {
+      "path": "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/05-growth.png",
+      "kind": "image",
+      "label": "成长参考"
+    }
+  ],
+  "changed_files": [
+    "Artifacts/AgentWorkflow/20260924-114512-task/10-visual-design.html"
+  ],
+  "verification": [
+    "4 张参考图均存在且均为 1242 × 2688 px",
+    "报告引用相对路径，可在仓库内离线打开",
+    "git diff --name-only -- BasketballRecord/Views/Game/ 为空"
+  ],
+  "unresolved_issues": [
+    "模拟器运行时截图尚未成功捕获应用页面",
+    "深色模式、动态字体和 VoiceOver 未纳入本阶段实测"
+  ],
+  "coverage_dispositions": [
+    {
+      "coverage_id": "criterion-01",
+      "status": "passed",
+      "evidence": [
+        "10-visual-design.html",
+        "BasketballRecord/Views/Skin/EditorialDesign.swift",
+        "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/02-stats.png",
+        "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/03-review.png",
+        "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/04-team.png",
+        "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/05-growth.png"
+      ]
+    },
+    {
+      "coverage_id": "criterion-02",
+      "status": "passed",
+      "evidence": [
+        "10-visual-design.html",
+        "git diff --name-only -- BasketballRecord/Views/Game/"
+      ]
+    }
+  ]
+}

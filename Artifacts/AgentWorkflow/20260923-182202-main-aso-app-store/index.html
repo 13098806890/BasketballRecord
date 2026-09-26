@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>工作流总览 · main 分支 ASO</title><style>body{font:16px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;max-width:980px;margin:40px auto;padding:0 24px;color:#172033;background:#f7f8fa}main{background:#fff;padding:32px;border-radius:16px;box-shadow:0 6px 24px #17203312}code{background:#eef1f5;padding:.15em .35em;border-radius:4px}.state{display:inline-block;padding:4px 10px;border-radius:999px;background:#d1fae5;color:#065f46}li{margin:6px 0}.ok{background:#ecfdf5;border-left:4px solid #10b981;padding:10px 14px}</style></head><body><main>
+<h1>工作流总览</h1><p><strong>任务：</strong>main 分支 ASO 修复与 App Store 截图重制</p><p><strong>状态：</strong><span class="state">complete-with-gaps</span>　<strong>运行：</strong><code>20260923-182202-main-aso-app-store</code></p>
+<div class="ok">本轮为上一轮 ASO 任务的续跑。已先拉取 1.39 商店数据，再完成本地 metadata 修复、宣传页同步和逐语言截图生成。</div>
+<h2>主要报告</h2><ul><li><a href="01-orchestrator.html">编排记录</a></li><li><a href="13-aso-operations.html">ASO 操作与截图资产报告</a></li><li><a href="06-agent-evaluation.html">Agent 最终质量评估</a></li><li><a href="workflow-state.json">结构化工作流状态</a></li></ul>
+<h2>交付结果</h2><ul><li>10 个 locale 的 1.39 metadata 拉取与本地修复。</li><li>10 个 locale × 5 张功能介绍型截图，共 50 张，尺寸 1242×2688。</li><li>zh-Hans 名称保持“篮球生涯手帐”。</li><li>未上传 App Store Connect，未部署外部页面，未提交 Git。</li></ul>
+<h2>后续需要人工确认</h2><ul><li>非中文文案母语校审。</li><li>App Store Connect 当前类别、字段、截图与隐私 URL。</li><li>是否要从多语言 Simulator 重新采集 App 内界面。</li></ul>
+</main></body></html>

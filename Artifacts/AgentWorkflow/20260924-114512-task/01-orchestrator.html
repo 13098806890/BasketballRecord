@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>编排 Agent · 非记分界面编辑风格改造</title><style>
+body{font:16px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;max-width:960px;margin:40px auto;padding:0 24px;color:#172033;background:#f7f8fa}main{background:white;padding:32px;border-radius:16px;box-shadow:0 6px 24px #17203312}dt{font-weight:700}code{background:#eef1f5;padding:.15em .35em;border-radius:4px}.state{display:inline-block;padding:4px 10px;border-radius:999px;background:#fff3cd}</style></head>
+<body><main><h1>编排 Agent</h1><p><strong>任务：</strong>非记分界面编辑风格改造</p><p><strong>状态：</strong><span class="state">完成但有明确缺口</span></p>
+<h2>输入</h2><p>用户要求将现有非记分界面改造成已确认的截图参考风格，同时明确不修改记分操作界面。本 run 的原始请求、5 条验收项和 coverage matrix 保存在 <code>workflow-state.json</code>。</p><p>仓库当前分支为 <code>main</code>。工作区已有 Fastlane 截图/metadata 改动，本 run 保留这些用户改动；产品代码新增共享视觉主题并修改管理、历史、职业和球员资料页面，<code>BasketballRecord/Views/Game/</code> 未发生改动。</p>
+<h2>阶段计划</h2><p>已选择视觉设计、开发核验、代码审查、模拟器测试、UX 审查、ASO 与最终评估。架构、交互设计、无障碍、文案、发布合规、发布动作和社区增长阶段已分别记录 task-specific skip 原因与剩余风险。ASO 为项目配置要求的只读阶段，不执行上传。</p>
+<h2>完成的工作</h2><p>现有实现已经引入 <code>EditorialDesign</code> 共享颜色、背景、卡片和列表修饰器；ContentView、管理、历史、职业和球员资料页面接入该样式。记分页面明确列为保护范围。CloudKit 容器改为显式使用项目 entitlements 中的 identifier，仅为模拟器启动验证修复初始化问题，不改变业务 API 或记分交互。</p>
+<h2>证据与验证</h2><p>已完成 Debug iOS Simulator 构建：<code>xcodebuild -project BasketballRecord.xcodeproj -scheme BasketballRecord -sdk iphonesimulator -configuration Debug build CODE_SIGNING_ALLOWED=NO</code> 返回 <code>BUILD SUCCEEDED</code>。已准备视觉设计、代码审查和模拟器阶段的独立报告；模拟器此前出现启动后截图抓到桌面/黑屏的问题，必须在 simulator-test 中如实标记，不能把它当作页面视觉通过。</p>
+<h2>发现与风险</h2><p>当前最大风险是运行时截图证据尚未覆盖所有受影响页面；另有工作区中的 Fastlane 二进制截图和 metadata 改动不属于本次产品 UI 代码评审范围。视觉样式在深色模式、动态字体和 VoiceOver 下尚未形成专项实测证据。</p>
+<h2>下一步</h2><p>视觉设计交接、开发核验、代码审查、UX 复盘、ASO 只读审计和最终评估均已完成。最终状态为 <code>complete-with-gaps</code>：criterion-03/05 因 iPhone 17e 的 simctl screenshot 纯黑而保留运行时缺口；四个目标 surface 的 fixed-test plan 和复测条件写在 <a href="04-simulator-test.html">04-simulator-test.html</a>。后续只需要恢复可见 Simulator/AX evidence 后重跑，不需要重做视觉契约或代码审查。</p></main></body></html>

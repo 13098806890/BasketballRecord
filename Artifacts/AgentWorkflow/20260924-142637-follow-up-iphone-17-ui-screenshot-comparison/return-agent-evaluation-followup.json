@@ -1,0 +1,15 @@
+{
+  "action": "return",
+  "from_stage": "agent-evaluation",
+  "exchange_id": "exchange-0002",
+  "summary": "最终评估通过：四个验收条件均有真实截图、设计对比、保护边界和构建证据，运行时截图缺口已关闭。",
+  "result_status": "passed",
+  "output_files": ["06-agent-evaluation.html", "04-simulator-test.html", "10-visual-design.html", "screenshots/iphone-17/management.png", "screenshots/iphone-17/career.png", "screenshots/iphone-17/settings.png", "screenshots/iphone-17/score.png"],
+  "verification": ["xcodebuild Debug succeeded", "git diff --name-only -- BasketballRecord/Views/Game/ returned empty", "iPhone 17 screenshots are non-black stable UI"],
+  "coverage_dispositions": [
+    {"coverage_id": "criterion-01", "status": "passed", "evidence": ["04-simulator-test.html", "screenshots/iphone-17/management.png", "screenshots/iphone-17/career.png", "screenshots/iphone-17/settings.png", "screenshots/iphone-17/score.png"]},
+    {"coverage_id": "criterion-02", "status": "passed", "evidence": ["10-visual-design.html"]},
+    {"coverage_id": "criterion-03", "status": "passed", "evidence": ["06-agent-evaluation.html", "screenshots/iphone-17/score.png"]},
+    {"coverage_id": "criterion-04", "status": "passed", "evidence": ["04-simulator-test.html", "screenshots/iphone-17/management.png"]}
+  ]
+}

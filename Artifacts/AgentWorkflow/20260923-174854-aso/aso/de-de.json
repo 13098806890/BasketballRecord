@@ -1,0 +1,143 @@
+{
+  "provider": "public-apple",
+  "app": "6773215187",
+  "app_id": "6773215187",
+  "app_status": "ready-for-sale",
+  "mode": "postlaunch",
+  "rank_status": "proxy",
+  "rank_semantics": "公开 iTunes Search 前 50 结果中的代理位置；不是 Apple 官方自然搜索排名",
+  "storefront": "de",
+  "locale": "de-DE",
+  "measured_at": "2026-09-23T09:51:10.306133+00:00",
+  "methodology": {
+    "autocomplete": "Apple public autocomplete endpoint",
+    "ranking": "public-search-proxy: position in first 50 iTunes Search results when app-id is supplied",
+    "scores": "popularity/competition/opportunity are reproducible heuristics, not official search volume",
+    "fixed_keyword_set": true,
+    "keyword_set_id": "de-de-v1"
+  },
+  "keywords": [
+    {
+      "keyword": "Basketball Spielbericht",
+      "intent": "固定关键词集合",
+      "popularity": null,
+      "competition": 10,
+      "rank": 5,
+      "rank_kind": "public-search-proxy",
+      "trend": null,
+      "opportunity": null,
+      "source": "fixed-keyword+iTunes-search",
+      "measured_at": "2026-09-23T09:51:10.306133+00:00",
+      "signals": {
+        "autocomplete_rank": null,
+        "result_count": 5,
+        "top_apps": [
+          "RefBasket: Basketball Schiri",
+          "Basketball Coach",
+          "Basket Scorebook: Basketball",
+          "HOOPstory",
+          "Basketball Scorebook"
+        ],
+        "score_kind": "heuristic; not Apple search volume",
+        "rank_kind": "public-search-proxy; first 50 iTunes Search results, not official organic rank"
+      }
+    },
+    {
+      "keyword": "Basketball Statistik",
+      "intent": "固定关键词集合",
+      "popularity": null,
+      "competition": 86,
+      "rank": 39,
+      "rank_kind": "public-search-proxy",
+      "trend": null,
+      "opportunity": null,
+      "source": "fixed-keyword+iTunes-search",
+      "measured_at": "2026-09-23T09:51:10.306133+00:00",
+      "signals": {
+        "autocomplete_rank": null,
+        "result_count": 43,
+        "top_apps": [
+          "Basketball-Statistik",
+          "Basketball Statistik App",
+          "DBB.Scores",
+          "Basketball Coach",
+          "Swiss Basketball",
+          "Basket Scorebook: Basketball",
+          "iScout Basketball",
+          "Tally Hoops - Basketball Stats",
+          "Shot Count - Basketball AI",
+          "Oddify - Sport-Tipps"
+        ],
+        "score_kind": "heuristic; not Apple search volume",
+        "rank_kind": "public-search-proxy; first 50 iTunes Search results, not official organic rank"
+      }
+    },
+    {
+      "keyword": "Basketball Scoreboard",
+      "intent": "固定关键词集合",
+      "popularity": null,
+      "competition": 92,
+      "rank": null,
+      "rank_kind": "public-search-proxy",
+      "trend": null,
+      "opportunity": null,
+      "source": "fixed-keyword+iTunes-search",
+      "measured_at": "2026-09-23T09:51:10.306133+00:00",
+      "signals": {
+        "autocomplete_rank": null,
+        "result_count": 46,
+        "top_apps": [
+          "Virtual Scoreboard: Keep Score",
+          "Scoreboard Basketball - DL",
+          "Basket Timer - Anzeigetafel",
+          "My Scoreboard Basketball",
+          "Scoreboard Basket",
+          "BT Basketball Controller",
+          "Scoreboard - On The Go",
+          "BT Basketball Camera",
+          "Ultimate Scoreboard",
+          "Flashscore: Ergebnisse & News"
+        ],
+        "score_kind": "heuristic; not Apple search volume",
+        "rank_kind": "public-search-proxy; first 50 iTunes Search results, not official organic rank"
+      }
+    },
+    {
+      "keyword": "Basketball Spielstand",
+      "intent": "固定关键词集合",
+      "popularity": null,
+      "competition": 46,
+      "rank": 21,
+      "rank_kind": "public-search-proxy",
+      "trend": null,
+      "opportunity": null,
+      "source": "fixed-keyword+iTunes-search",
+      "measured_at": "2026-09-23T09:51:10.306133+00:00",
+      "signals": {
+        "autocomplete_rank": null,
+        "result_count": 23,
+        "top_apps": [
+          "Statastic Basketball Tracker",
+          "Basketball-Statistik",
+          "Virtuelle Anzeigetafel!",
+          "Anzeigetafel: Punkte verfolgen",
+          "Scoreboard: Punktezähler",
+          "Scoreboard Basket",
+          "MatchPoint: Watch Score Keeper",
+          "ScoreKeepers: Live-Spielstand",
+          "Whistle Time",
+          "Count Basketball - Merge by QR"
+        ],
+        "score_kind": "heuristic; not Apple search volume",
+        "rank_kind": "public-search-proxy; first 50 iTunes Search results, not official organic rank"
+      }
+    }
+  ],
+  "validation": {
+    "status": "待复测",
+    "baseline_run_id": "",
+    "query_fingerprint": "de:de-DE:de-de-v1:Basketball Scoreboard,Basketball Spielbericht,Basketball Spielstand,Basketball Statistik",
+    "note": "使用相同 storefront、locale、关键词集合、mode 和 app-id 再运行一次；不能把单次结果当作趋势。"
+  },
+  "errors": []
+}

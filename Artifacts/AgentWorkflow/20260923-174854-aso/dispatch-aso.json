@@ -1,0 +1,22 @@
+{
+  "action": "dispatch",
+  "exchange_id": "exchange-0001",
+  "to_stage": "aso-ops",
+  "task_scope": "由 Orchestrator 手动完成上架后 ASO 只读审计与优化提案，不启动临时 Agent。",
+  "task_prompt": "读取项目配置、AGENTS.md、Fastlane metadata、公开产品页和 Apple 官方规则。保留中文地区名称不变，检查 subtitle、keywords、promotional text、description、截图卖点、类别和页面一致性；使用 public-apple 公开数据生成按 locale 的关键词快照和可视化。明确 public-search-proxy 局限，不使用付费 provider、ASC 写入或外部发布。",
+  "acceptance_criteria": [
+    "区分仓库事实、公开页面事实、推断和未验证项",
+    "中文地区名称不改并给出其他字段方案",
+    "给出 locale 字符预算、优先级、风险和验证方法",
+    "生成可审计快照与独立可视化"
+  ],
+  "coverage_ids": ["criterion-01", "criterion-02", "criterion-03", "criterion-04"],
+  "required_outputs": ["13-aso-operations.html", "aso/cn-zh-Hans.json", "aso/aso-keyword-visualization-cn-zh-Hans.html"],
+  "input_files": ["AGENTS.md", ".codex/ios-agent-workflow.json", "fastlane/Fastfile", "fastlane/metadata/1.38/zh-Hans/keywords.txt", "docs/appstore/app-store-metadata.md"],
+  "changed_files": [],
+  "verification": ["公开 Apple 产品页可访问", "public-apple 快照已生成", "UTF-8 byte 预算已计算"],
+  "unresolved_issues": ["未读取 App Store Connect 当前字段", "仓库没有截图/preview 资产", "没有官方搜索量或真实自然排名数据"],
+  "prohibited_actions": ["不得修改中文名称", "不得上传或提交 App Store Connect", "不得使用 Apple Ads 或付费 ASO provider"],
+  "next_checks": ["确认候选文案和目标发行分支", "母语校审非中文候选词", "发布后用同一关键词集合复测"],
+  "knowledge_context": {"mode": "postlaunch", "provider": "public-apple", "app_id": "6773215187", "rank_kind": "public-search-proxy"}
+}

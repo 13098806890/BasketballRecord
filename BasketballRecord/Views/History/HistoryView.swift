@@ -1,5 +1,32 @@
 import SwiftUI
 
+private struct HistorySectionHeader: View {
+    let title: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            RoundedRectangle(cornerRadius: 2, style: .continuous)
+                .fill(EditorialDesign.orange)
+                .frame(width: 5, height: 20)
+            Text(title)
+                .font(.headline.weight(.bold))
+                .foregroundStyle(EditorialDesign.navy)
+            Spacer()
+        }
+        .padding(.vertical, 2)
+    }
+}
+
+private struct CareerHistoryListModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(Color.clear)
+            .tint(EditorialDesign.blue)
+    }
+}
+
 struct HistoryView: View {
     @EnvironmentObject private var store: AppStore
     var embedInNavigation: Bool = true
@@ -66,46 +93,14 @@ struct HistoryView: View {
                                 }
                             )) {
                                 ForEach(group.games) { game in
-                                    NavigationLink {
-                                        SavedGameDetailView(game: game)
-                                    } label: {
-                                        SavedGameRow(game: game)
-                                    }
-                                    .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                                        if store.isPro {
-                                            Button {
-                                                store.toggleCloudStorage(for: game.id)
-                                            } label: {
-                                                Label("iCloud", systemImage: store.cloudEnabledGameIDs.contains(game.id) ? "icloud.slash" : "icloud")
-                                            }
-                                            .tint(.blue)
-                                        }
-                                        Button {
-                                            if let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) {
-                                                store.savedGames[idx].isLocked.toggle()
-                                            }
-                                        } label: {
-                                            Label(LocalizedStringKey(game.isLocked ? "label_unlock" : "label_lock"), systemImage: game.isLocked ? "lock.open" : "lock")
-                                        }
-                                        .tint(.orange)
-                                    }
-                                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                        if !game.isLocked {
-                                            Button {
-                                                pendingSwipeDeleteGame = game
-                                            } label: {
-                                                Label(LocalizedStringKey("label_delete"), systemImage: "trash")
-                                            }
-                                            .tint(.red)
-                                        }
-                                    }
+                                    HistoryGameLink(game: game, pendingSwipeDeleteGame: $pendingSwipeDeleteGame)
                                 }
-                            } label: {
-                                Text(group.title)
-                                    .font(.headline)
+                        } label: {
+                                HistorySectionHeader(title: group.title)
                             }
                         }
                     }
+                    .editorialListStyle()
                     .navigationTitle(LocalizedStringKey("nav_game_history"))
                     .overlay {
                         if isLoadingGames {
@@ -187,46 +182,15 @@ struct HistoryView: View {
                             }
                         )) {
                             ForEach(group.games) { game in
-                                NavigationLink {
-                                    SavedGameDetailView(game: game)
-                                } label: {
-                                    SavedGameRow(game: game)
-                                }
-                                .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                                    if store.isPro {
-                                        Button {
-                                            store.toggleCloudStorage(for: game.id)
-                                        } label: {
-                                            Label("iCloud", systemImage: store.cloudEnabledGameIDs.contains(game.id) ? "icloud.slash" : "icloud")
-                                        }
-                                        .tint(.blue)
-                                    }
-                                    Button {
-                                        if let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) {
-                                            store.savedGames[idx].isLocked.toggle()
-                                        }
-                                    } label: {
-                                        Label(LocalizedStringKey(game.isLocked ? "label_unlock" : "label_lock"), systemImage: game.isLocked ? "lock.open" : "lock")
-                                    }
-                                    .tint(.orange)
-                                }
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    if !game.isLocked {
-                                        Button {
-                                            pendingSwipeDeleteGame = game
-                                        } label: {
-                                            Label(LocalizedStringKey("label_delete"), systemImage: "trash")
-                                        }
-                                        .tint(.red)
-                                    }
-                                }
+                                HistoryGameLink(game: game, pendingSwipeDeleteGame: $pendingSwipeDeleteGame)
                             }
-                        } label: {
-                            Text(group.title)
-                                .font(.headline)
+                    } label: {
+                            HistorySectionHeader(title: group.title)
                         }
+                        .listRowBackground(Color.clear)
                     }
                 }
+                .modifier(CareerHistoryListModifier())
                 .overlay {
                     if isLoadingGames {
                         VStack(spacing: 10) {
@@ -478,30 +442,62 @@ private struct DeleteSavedGamesView: View {
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
         return formatter
     }()
+
 }
 
-private struct SavedGameRow: View {
+struct SavedGameRow: View {
     @EnvironmentObject private var store: AppStore
     var game: SavedGame
 
+    init(game: SavedGame) {
+        self.game = game
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(title)
-                    .font(.headline)
-                    .lineLimit(1)
-                Spacer()
-                Text(scoreLine)
-                    .font(.headline.monospacedDigit())
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .center, spacing: 8) {
+                historyTeamMark(name: game.homeTeamName, color: EditorialDesign.orange)
+
+                Spacer(minLength: 4)
+
+                VStack(spacing: 4) {
+                    Text(LocalizedStringKey("section_result"))
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    Text(scoreLine)
+                        .font(.title2.monospacedDigit().weight(.black))
+                        .foregroundStyle(EditorialDesign.navy)
+                    Text(gameDateText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(resultTitle)
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(resultColor)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 5)
+                        .background(resultColor.opacity(0.12), in: Capsule())
+                }
+
+                Spacer(minLength: 4)
+
+                historyTeamMark(name: game.awayTeamName, color: EditorialDesign.blue)
             }
 
-            HStack {
+            HStack(spacing: 8) {
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
+                Spacer(minLength: 6)
                 if game.isLocked {
                     Image(systemName: "lock.fill")
                         .font(.caption2)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(EditorialDesign.orange)
                 }
-                                Text(game.gameTimeText)
+                Text(game.gameTimeText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
                 Spacer()
                 if store.cloudEnabledGameIDs.contains(game.id) {
                     Image(systemName: "icloud.fill")
@@ -512,7 +508,38 @@ private struct SavedGameRow: View {
             .font(.caption)
             .foregroundStyle(.secondary)
         }
-        .padding(.vertical, 4)
+        .padding(14)
+        .background(EditorialDesign.card, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 2, style: .continuous)
+                .fill(EditorialDesign.orange)
+                .frame(width: 4, height: 58)
+                .padding(.leading, 1)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(EditorialDesign.divider.opacity(0.5), lineWidth: 1)
+        }
+        .shadow(color: EditorialDesign.navy.opacity(0.05), radius: 10, y: 5)
+        .listRowBackground(Color.clear)
+        .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+    }
+
+    private func historyTeamMark(name: String, color: Color) -> some View {
+        VStack(spacing: 6) {
+            Image(systemName: "tshirt.fill")
+                .font(.system(size: 28, weight: .semibold))
+                .foregroundStyle(color)
+                .frame(width: 58, height: 58)
+                .background(color.opacity(0.12), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            Text(name)
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(EditorialDesign.navy)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.65)
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private var title: String {
@@ -528,6 +555,24 @@ private struct SavedGameRow: View {
         return game.score(forTeamID: teamID)
     }
 
+    private var gameDateText: String {
+        game.savedAt.formatted(date: .abbreviated, time: .omitted)
+    }
+
+    private var resultTitle: LocalizedStringKey {
+        let homeScore = score(for: game.snapshot.homeTeamID)
+        let awayScore = score(for: game.snapshot.awayTeamID)
+        if homeScore == awayScore { return LocalizedStringKey("excel_result_draw") }
+        return homeScore > awayScore ? LocalizedStringKey("elo_outcome_win") : LocalizedStringKey("elo_outcome_loss")
+    }
+
+    private var resultColor: Color {
+        let homeScore = score(for: game.snapshot.homeTeamID)
+        let awayScore = score(for: game.snapshot.awayTeamID)
+        if homeScore == awayScore { return .secondary }
+        return homeScore > awayScore ? EditorialDesign.orange : EditorialDesign.blue
+    }
+
     private func playerIDs(for teamID: UUID?) -> [UUID] {
         teamID == game.snapshot.homeTeamID ? game.homePlayerIDs : game.awayPlayerIDs
     }
@@ -538,6 +583,59 @@ private struct SavedGameRow: View {
         return formatter
     }()
 }
+}
+
+struct HistoryGameLink: View {
+    @EnvironmentObject private var store: AppStore
+    let game: SavedGame
+    @Binding var pendingSwipeDeleteGame: SavedGame?
+
+    var body: some View {
+        HStack(spacing: 8) {
+            NavigationLink {
+                SavedGameDetailView(game: game)
+            } label: {
+                HistoryView.SavedGameRow(game: game)
+            }
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if store.isPro {
+                Button {
+                    store.toggleCloudStorage(for: game.id)
+                } label: {
+                    Image(systemName: store.cloudEnabledGameIDs.contains(game.id) ? "icloud.fill" : "icloud")
+                        .font(.headline)
+                        .foregroundStyle(store.cloudEnabledGameIDs.contains(game.id) ? EditorialDesign.blue : .secondary)
+                        .frame(width: 36, height: 36)
+                        .background(EditorialDesign.paleBlue, in: Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(LocalizedStringKey("label_cloud"))
+            }
+        }
+        .contentShape(Rectangle())
+        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+            Button {
+                if let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) {
+                    store.savedGames[idx].isLocked.toggle()
+                }
+            } label: {
+                Label(LocalizedStringKey(game.isLocked ? "label_unlock" : "label_lock"), systemImage: game.isLocked ? "lock.open" : "lock")
+            }
+            .tint(.orange)
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            if !game.isLocked {
+                Button {
+                    pendingSwipeDeleteGame = game
+                } label: {
+                    Label(LocalizedStringKey("label_delete"), systemImage: "trash")
+                }
+                .tint(.red)
+            }
+        }
+    }
 }
 
 private extension SavedGame {

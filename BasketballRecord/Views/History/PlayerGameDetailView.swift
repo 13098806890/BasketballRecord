@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct PlayerGameDetailView: View {
+    @EnvironmentObject private var store: AppStore
     var game: SavedGame
     var playerID: UUID
     @State private var selectedPeriod: Int? = nil
@@ -19,6 +20,8 @@ struct PlayerGameDetailView: View {
 
     var body: some View {
         List {
+            playerIdentityPanel
+
             if game.snapshot.periodCount > 1 {
                 Section(LocalizedStringKey("section_data_range")) {
                     Picker(LocalizedStringKey("picker_period"), selection: $selectedPeriod) {
@@ -69,13 +72,78 @@ struct PlayerGameDetailView: View {
             }
 
         }
+        .editorialListStyle()
         .navigationTitle(playerName)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear(perform: rebuildPeriodAnalysis)
     }
 
+    private var playerIdentityPanel: some View {
+        HStack(spacing: 16) {
+            if let player = store.player(for: playerID) {
+                PlayerAvatarView(player: player, size: 84)
+            } else {
+                Circle()
+                    .fill(EditorialDesign.paleOrange)
+                    .frame(width: 84, height: 84)
+                    .overlay {
+                        Text(String(playerName.prefix(2)))
+                            .font(.title2.weight(.bold))
+                            .foregroundStyle(EditorialDesign.orange)
+                    }
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text(playerName)
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(EditorialDesign.navy)
+                    .lineLimit(2)
+
+                if let player = store.player(for: playerID), !player.position.isEmpty {
+                    Text(player.position)
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(EditorialDesign.orange)
+                }
+
+                HStack(spacing: 6) {
+                    if let role = game.role(of: playerID) {
+                        Text(role.title)
+                    }
+                    Text(teamName)
+                }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 0)
+
+            if let player = store.player(for: playerID), !player.number.isEmpty {
+                Text("#\(player.number)")
+                    .font(.headline.monospacedDigit().weight(.bold))
+                    .foregroundStyle(EditorialDesign.navy)
+                    .frame(maxHeight: .infinity, alignment: .top)
+            }
+        }
+        .padding(16)
+        .background(EditorialPlayerPanelBackground())
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(EditorialDesign.divider.opacity(0.42), lineWidth: 1)
+        }
+        .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+        .listRowBackground(Color.clear)
+    }
+
     private var playerName: String {
         game.playerNamesByID[playerID] ?? NSLocalizedString("unknown_player", comment: "Unknown player")
+    }
+
+    private var teamName: String {
+        if game.homePlayerIDs.contains(playerID) {
+            return game.homeTeamName
+        }
+        return game.awayTeamName
     }
 
     private func statLine(_ titleKey: String, _ value: String) -> some View {

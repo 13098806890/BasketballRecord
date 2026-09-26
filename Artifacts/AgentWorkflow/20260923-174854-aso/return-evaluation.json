@@ -1,0 +1,12 @@
+{
+  "action": "return",
+  "exchange_id": "exchange-0002",
+  "from_stage": "agent-evaluation",
+  "summary": "范围、证据、角色边界和效率均符合手动 ASO 任务；建议以 complete-with-gaps 收尾，保留 ASC 当前字段、截图和真实搜索量缺口。",
+  "result_status": "passed",
+  "output_files": ["06-agent-evaluation.html"],
+  "changed_files": [],
+  "verification": ["六维评分已记录", "最终建议已记录"],
+  "unresolved_issues": ["ASC 当前字段、截图资产和真实排名未验证"],
+  "coverage_dispositions": []
+}

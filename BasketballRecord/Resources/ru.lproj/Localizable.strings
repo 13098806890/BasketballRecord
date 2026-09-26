@@ -298,7 +298,8 @@
 "section_basic_info" = "Основная информация";
 "label_position" = "Позиция";
 "position_unspecified" = "Не указана";
-"stats_games_short" = "И";
+"stats_games_short" = "Игры";
+"career_stat_games_played_short" = "Игр";
 "stat_label_starter_short" = "С";
 "stat_label_bench_short" = "З";
 "stats_win_rate_short" = "%В";
@@ -365,6 +366,7 @@
 "button_select_month" = "Выберите месяц";
 "button_share_all_segments" = "Поделитесь всеми сегментами";
 "button_show_all" = "Показать все";
+"button_show_less" = "Свернуть";
 "button_switch_single_import" = "Односегментный режим";
 "count_games_format" = "%d игры";
 "count_players_people_format" = "%d Игроки";
@@ -409,6 +411,9 @@
 "label_player" = "Игрок";
 "label_segment_count" = "Сегменты";
 "label_team" = "Команда";
+"label_team_icon" = "Значок команды";
+"label_select_team_icon" = "Добавить значок команды";
+"label_remove_team_icon" = "Удалить значок команды";
 "label_this_game_stats" = "Эта игра";
 "label_total_stats" = "Всего";
 "label_weight" = "вес";
@@ -630,12 +635,20 @@
 "section_voice_nicknames_footer" = "Добавьте псевдонимы для голосового распознавания. Произнесите псевдоним во время игры, чтобы выбрать этого игрока.";
 "placeholder_nicknames" = "Введите псевдоним…";
 "settings_cloud_storage" = "Хранилище iCloud";
+"settings_language" = "Язык";
+"settings_language_alert_title" = "Язык зависит от настроек iPhone";
+"settings_language_alert_message" = "Измените язык приложения в разделе «Настройки > Основные > Язык и регион».";
 "stat_label_2pt" = "2PT";
 "stat_label_3pt" = "3PT";
 "stat_label_free_throw" = "FT";
 "stat_label_starter" = "Старт";
 "stat_label_bench" = "Запас";
 "stats_points_format_short" = "PTS";
+"stats_rebound_short" = "REB";
+"stats_assists_short" = "AST";
+"stats_steals_short" = "STL";
+"stats_blocks_short" = "BLK";
+"stats_turnovers_short" = "TO";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
 "stats_rebound_block" = "ПОДБ / БЛ";
 "stats_rebound_detail" = "ПОДБ / ОРБ / ДРБ";
@@ -992,6 +1005,7 @@
 "elo_label_gs_factor" = "Коэф. GS";
 "elo_computation_title" = "Расчёт ELO";
 "label_elo" = "ELO";
+"label_elo_history" = "История ELO";
 "elo_format" = "ELO %d";
 "elo_title_format" = "ELO – %@";
 "elo_tier_bronze" = "Бронза";
@@ -1288,3 +1302,4 @@
 "excel_team_stats_none" = "Статистика игроков";
 "excel_event_assist_format" = "%1$@ отдал результативную передачу %2$@, %3$@";
 "excel_event_steal_turnover_format" = "%1$@ перехватил мяч у %2$@";
+"nav_player_detail" = "Данные игрока";

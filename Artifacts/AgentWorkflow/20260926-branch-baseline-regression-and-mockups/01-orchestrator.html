@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>编排报告 · 双分支基线回归与 UI 审计</title><style>body{font:15px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;max-width:1000px;margin:28px auto;padding:0 18px;color:#172033;background:#f5f7fb}main{background:#fff;padding:28px;border-radius:18px;box-shadow:0 8px 28px #17203312}h1,h2{color:#102a43}li{margin:7px 0}.warn{color:#9b5a00}.pass{color:#117a4b}</style></head><body><main>
+<h1>编排报告 · 1.51 双分支基线回归与全页面 UI 审计</h1>
+<p><strong>时间：</strong>2026-09-26；<strong>当前工作区：</strong><code>main</code>，保留用户未提交改动。</p>
+<h2>任务范围</h2><p>更新 1.51 release note；准备 main/main_free_pro 双分支同步和 push；在隔离的 main_free_pro 基线与当前 main 之间做页面、功能和数据展示审计；记录遗漏截图；盘点未改进页面并给出 mockup；后续实现基于 main_free_pro。</p>
+<h2>已完成</h2><ul><li class="pass">已更新 <code>RELEASE_NOTES.md</code> 当前 1.51 section，记录记分页 B 方案 UI 与设备适配。</li><li class="pass">已建立隔离 baseline worktree：<code>/Users/xiedongze/.codex/worktrees/main-free-pro-baseline-review/BasketballRecord</code>，基于 <code>main_free_pro</code>。</li><li class="pass">已构建并截图旧版四个主入口；已构建并截图新版四个主入口、Career 三 tab、比赛详情、比赛球员详情、生涯球员详情。</li><li class="pass">已完成 GameView action key 和相关页面源码集合对照，没有发现记分页核心动作删除。</li><li class="pass">已生成 Settings、Voice & AI、Sync & Import 三个独立 mockup。</li></ul>
+<h2>关键证据</h2><p>详见 <a href="04-simulator-test.html">模拟器测试报告</a>、<a href="05-ux-review.html">UX 审查</a>。所有截图在 <code>screenshots/</code>，mockup 在 <code>screenshots/unimproved/</code>。</p>
+<h2>尚未执行</h2><ul><li class="warn">尚未 commit/push。项目 AGENTS.md 明确要求先获得用户确认；同时需要用户明确 main → main_free_pro 的同步方式。</li><li class="warn">尚未切换当前工作区到 main_free_pro，避免在未确认的脏工作区上造成覆盖。</li><li class="warn">Simulator UI channel 不可用，因此没有声称逐个点击所有功能；未点击路径在测试报告中明确标记。</li></ul>
+<h2>下一步决策点</h2><p>请确认：是否允许将当前工作区现有全部改动（包含代码、i18n、release note、fastlane 截图/metadata 和新 artifacts）提交；跨分支采用 cherry-pick 还是在 main_free_pro 上重新应用；确认后再执行 commit、push 两个分支，并把后续开发工作区切到 main_free_pro。</p>
+<p><strong>状态：</strong><span class="warn">needs-user-decision</span></p>
+</main></body></html>

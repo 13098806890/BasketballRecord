@@ -1,0 +1,10 @@
+{
+  "action": "return",
+  "from_stage": "aso-ops",
+  "exchange_id": "exchange-0001",
+  "summary": "已完成只读核对：中文 fastlane 参考图已用于视觉对比，本 follow-up 没有执行 App Store Connect 上传或修改商店资产。",
+  "result_status": "passed",
+  "output_files": ["13-aso-operations.html", "design-reference/zh-Hans/02-stats.png", "design-reference/zh-Hans/04-team.png", "design-reference/zh-Hans/05-growth.png"],
+  "verification": ["10-visual-design.html 已包含参考图与实际 UI 的成对对比"],
+  "coverage_dispositions": [{"coverage_id": "criterion-02", "status": "passed", "evidence": ["10-visual-design.html", "design-reference/zh-Hans/04-team.png"]}]
+}

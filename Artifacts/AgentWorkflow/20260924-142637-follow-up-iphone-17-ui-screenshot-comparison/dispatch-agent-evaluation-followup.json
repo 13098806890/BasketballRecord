@@ -1,0 +1,11 @@
+{
+  "action": "dispatch",
+  "to_stage": "agent-evaluation",
+  "task_scope": "最终交叉核对真实 UI 截图、设计对比、记分页保护和构建证据",
+  "task_prompt": "基于本 run 的报告和截图，逐条判断四个验收条件是否通过；如无缺口给出 complete。",
+  "acceptance_criteria": ["四个 criterion 均有证据", "报告不含未完成占位符"],
+  "coverage_ids": ["criterion-01", "criterion-02", "criterion-03", "criterion-04"],
+  "required_outputs": ["06-agent-evaluation.html"],
+  "input_files": ["04-simulator-test.html", "10-visual-design.html", "06-agent-evaluation.html"],
+  "verification": ["Debug 构建成功", "iPhone 17 四张截图已采集", "Views/Game 无 diff"]
+}

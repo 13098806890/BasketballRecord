@@ -123,55 +123,7 @@ struct GameView: View {
                     .animation(.easeOut(duration: 0.25), value: voiceSuccessItem != nil)
                     .allowsHitTesting(false)
                 }
-                .navigationTitle(LocalizedStringKey("nav_game"))
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItemGroup(placement: .topBarLeading) {
-                        Button {
-                            isShowingResetConfirmation = true
-                        } label: {
-                            Image(systemName: "arrow.counterclockwise")
-                                .font(.callout)
-                        }
-
-                        Button {
-                            isShowingFinishGameConfirmation = true
-                        } label: {
-                            Image(systemName: "flag.checkered.circle.fill")
-                        }
-                        .disabled(gameVM.snapshot.isComplete || gameVM.snapshot.logs.isEmpty)
-                    }
-
-                    ToolbarItemGroup(placement: .topBarTrailing) {
-                        Button {
-                            if gameVM.snapshot.isComplete {
-                                isShowingFinishedGameAlert = true
-                            } else if hasUnfinishedGameToConfirm {
-                                isShowingUnfinishedGameAlert = true
-                            } else {
-                                isShowingNewGameSetup = true
-                            }
-                        } label: {
-                            Label(LocalizedStringKey("button_new_game"), systemImage: "plus.circle")
-                        }
-
-                        if store.showsBluetoothGamesButton {
-                            Button {
-                                handleInviteSyncTapped()
-                            } label: {
-                                Label(LocalizedStringKey("button_invite_collab"), systemImage: "dot.radiowaves.left.and.right")
-                            }
-                            .disabled(currentGameRecordID == nil || needsNewGameSetup)
-                        }
-
-                        Button {
-                            saveCurrentGame()
-                        } label: {
-                            Label(LocalizedStringKey("button_save_history"), systemImage: "clock.badge.checkmark")
-                        }
-                        .disabled(gameVM.snapshot.logs.isEmpty)
-                    }
-                }
+                .toolbar(.hidden, for: .navigationBar)
         }
     }
 
@@ -374,6 +326,9 @@ struct GameView: View {
         AnyView(alertWrappedView
             .onAppear {
                 restoreLatestGameIfNeeded()
+#if DEBUG
+                seedScorePageForScreenshotIfNeeded()
+#endif
             }
             .onReceive(matchClockTicker) { date in
                 clockNow = date
@@ -591,6 +546,8 @@ struct GameView: View {
     private var gameLayout: some View {
         ScrollView {
             VStack(spacing: 8) {
+                scorePageHeader
+
                 teamPickers
                     .padding(.horizontal)
                     .padding(.top, 8)
@@ -610,31 +567,7 @@ struct GameView: View {
             }
         }
         .scrollBounceBehavior(.basedOnSize)
-        .overlay(alignment: .bottom) {
-            if store.showsVoiceButton, !needsNewGameSetup {
-                VStack(spacing: 6) {
-                    if let error = voiceErrorMessage {
-                        Text(error)
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(.red)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(.regularMaterial, in: Capsule())
-                            .transition(.opacity)
-                    }
-                    if let match = voiceMatch {
-                        Text(match.action.message)
-                            .font(.caption.weight(.semibold))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(.regularMaterial, in: Capsule())
-                            .transition(.opacity)
-                    }
-                    micButton
-                }
-                .padding(.bottom, 24)
-            }
-        }
+        .background(EditorialBackground().ignoresSafeArea())
         .overlay(alignment: .center) {
             Group {
                 if voiceRecognizer.isRecording {
@@ -649,6 +582,75 @@ struct GameView: View {
                 }
             }
         }
+    }
+
+    private var scorePageHeader: some View {
+        HStack(alignment: .top, spacing: 8) {
+            headerAction(LocalizedStringKey("button_reset_game"), systemImage: "arrow.counterclockwise") {
+                isShowingResetConfirmation = true
+            }
+
+            headerAction(LocalizedStringKey("button_finish_game"), systemImage: "flag.checkered.circle.fill") {
+                isShowingFinishGameConfirmation = true
+            }
+            .disabled(gameVM.snapshot.isComplete || gameVM.snapshot.logs.isEmpty)
+
+            Spacer(minLength: 0)
+
+            Button {
+                if gameVM.snapshot.isComplete {
+                    isShowingFinishedGameAlert = true
+                } else if hasUnfinishedGameToConfirm {
+                    isShowingUnfinishedGameAlert = true
+                } else {
+                    isShowingNewGameSetup = true
+                }
+            } label: {
+                Text(LocalizedStringKey("button_new_game"))
+                    .font(.title3.weight(.bold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .foregroundStyle(GamePalette.awayScoreboard)
+                    .frame(maxWidth: 130, minHeight: 66)
+            }
+            .buttonStyle(.plain)
+
+            Spacer(minLength: 0)
+
+            if store.showsBluetoothGamesButton {
+                headerAction(LocalizedStringKey("button_invite_collab"), systemImage: "dot.radiowaves.left.and.right") {
+                    handleInviteSyncTapped()
+                }
+                .disabled(currentGameRecordID == nil || needsNewGameSetup)
+            }
+
+            headerAction(LocalizedStringKey("button_save_history"), systemImage: "clock.badge.checkmark") {
+                saveCurrentGame()
+            }
+            .disabled(gameVM.snapshot.logs.isEmpty)
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, 6)
+    }
+
+    private func headerAction(_ title: LocalizedStringKey, systemImage: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 3) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 24, weight: .medium))
+                    .frame(height: 30)
+                Text(title)
+                    .font(.system(size: 10, weight: .medium))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .minimumScaleFactor(0.65)
+            }
+            .foregroundStyle(GamePalette.awayScoreboard)
+            .frame(width: 58)
+            .frame(minHeight: 66)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     private var liveGameDataEntry: some View {
@@ -679,77 +681,42 @@ struct GameView: View {
         .opacity(needsNewGameSetup ? 0.5 : 1)
     }
 
-    @Environment(\.verticalSizeClass) private var verticalSizeClass
-
     private var teamRows: some View {
-        let isLandscape = verticalSizeClass == .compact
-        return Group {
-            if isLandscape {
-                HStack(spacing: 8) {
-                    CompactTeamRow(
-                        side: .home,
-                        team: store.team(for: gameVM.snapshot.homeTeamID),
-                        players: onCourtPlayers(for: .home),
-                        score: score(for: gameVM.snapshot.homeTeamID),
-                        isScorePulsing: scorePulseSide == .home,
-                        fouls: displayedTeamFouls(for: .home),
-                        foulLabel: gameVM.snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
-                        onCourtPlayerIDs: gameVM.snapshot.homeOnCourtPlayerIDs,
-                        selectedPlayerID: selectedPlayerID,
-                        selectedSide: selectedSide,
-                        onSelect: selectPlayer,
-                        teamStatsMode: gameVM.snapshot.homeTeamStatsMode
-                    )
+        let availableWidth = max(UIScreen.main.bounds.width - 16, 0)
+        return HStack(alignment: .top, spacing: 6) {
+            CompactTeamRow(
+                side: .home,
+                team: store.team(for: gameVM.snapshot.homeTeamID),
+                players: onCourtPlayers(for: .home),
+                score: score(for: gameVM.snapshot.homeTeamID),
+                isScorePulsing: scorePulseSide == .home,
+                fouls: displayedTeamFouls(for: .home),
+                foulLabel: gameVM.snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
+                onCourtPlayerIDs: gameVM.snapshot.homeOnCourtPlayerIDs,
+                selectedPlayerID: selectedPlayerID,
+                selectedSide: selectedSide,
+                onSelect: selectPlayer,
+                teamStatsMode: gameVM.snapshot.homeTeamStatsMode
+            )
+            .frame(width: (availableWidth - 6) / 2, alignment: .top)
 
-                    CompactTeamRow(
-                        side: .away,
-                        team: store.team(for: gameVM.snapshot.awayTeamID),
-                        players: onCourtPlayers(for: .away),
-                        score: score(for: gameVM.snapshot.awayTeamID),
-                        isScorePulsing: scorePulseSide == .away,
-                        fouls: displayedTeamFouls(for: .away),
-                        foulLabel: gameVM.snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
-                        onCourtPlayerIDs: gameVM.snapshot.awayOnCourtPlayerIDs,
-                        selectedPlayerID: selectedPlayerID,
-                        selectedSide: selectedSide,
-                        onSelect: selectPlayer,
-                        teamStatsMode: gameVM.snapshot.awayTeamStatsMode
-                    )
-                }
-            } else {
-                VStack(spacing: 6) {
-                    CompactTeamRow(
-                        side: .home,
-                        team: store.team(for: gameVM.snapshot.homeTeamID),
-                        players: onCourtPlayers(for: .home),
-                        score: score(for: gameVM.snapshot.homeTeamID),
-                        isScorePulsing: scorePulseSide == .home,
-                        fouls: displayedTeamFouls(for: .home),
-                        foulLabel: gameVM.snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
-                        onCourtPlayerIDs: gameVM.snapshot.homeOnCourtPlayerIDs,
-                        selectedPlayerID: selectedPlayerID,
-                        selectedSide: selectedSide,
-                        onSelect: selectPlayer,
-                        teamStatsMode: gameVM.snapshot.homeTeamStatsMode
-                    )
-
-                    CompactTeamRow(
-                        side: .away,
-                        team: store.team(for: gameVM.snapshot.awayTeamID),
-                        players: onCourtPlayers(for: .away),
-                        score: score(for: gameVM.snapshot.awayTeamID),
-                        isScorePulsing: scorePulseSide == .away,
-                        fouls: displayedTeamFouls(for: .away),
-                        foulLabel: gameVM.snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
-                        onCourtPlayerIDs: gameVM.snapshot.awayOnCourtPlayerIDs,
-                        selectedPlayerID: selectedPlayerID,
-                        selectedSide: selectedSide,
-                        onSelect: selectPlayer,
-                        teamStatsMode: gameVM.snapshot.awayTeamStatsMode
-                    )
-                }
-            }
+            CompactTeamRow(
+                side: .away,
+                team: store.team(for: gameVM.snapshot.awayTeamID),
+                players: onCourtPlayers(for: .away),
+                score: score(for: gameVM.snapshot.awayTeamID),
+                isScorePulsing: scorePulseSide == .away,
+                fouls: displayedTeamFouls(for: .away),
+                foulLabel: gameVM.snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
+                onCourtPlayerIDs: gameVM.snapshot.awayOnCourtPlayerIDs,
+                selectedPlayerID: selectedPlayerID,
+                selectedSide: selectedSide,
+                onSelect: selectPlayer,
+                teamStatsMode: gameVM.snapshot.awayTeamStatsMode
+            )
+            .frame(width: (availableWidth - 6) / 2, alignment: .top)
         }
+        .frame(width: availableWidth)
     }
 
     private var teamPickers: some View {
@@ -798,6 +765,9 @@ struct GameView: View {
                 .background((collaborationStatus.isDisconnected ? Color.orange : Color.blue).opacity(0.12), in: Capsule())
             }
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(GamePalette.surface, in: RoundedRectangle(cornerRadius: 12))
     }
 
     private var collaborationStatus: (message: String, isDisconnected: Bool)? {
@@ -850,22 +820,22 @@ struct GameView: View {
     }
 
     private var actionButtons: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 8) {
+        VStack(spacing: 5) {
+            HStack(spacing: 5) {
                 actionButton(LocalizedStringKey("action_two_made"), systemImage: "2.circle.fill", style: .made) { record(.twoMade) }
                 actionButton(LocalizedStringKey("action_three_made"), systemImage: "3.circle.fill", style: .made) { record(.threeMade) }
                 actionButton(LocalizedStringKey("action_bonus_made"), systemImage: "plus.circle.fill", style: .made) { record(.bonusMade) }
                 actionButton(LocalizedStringKey("action_free_made"), systemImage: "f.circle.fill", style: .made) { record(.freeThrowMade) }
             }
 
-            HStack(spacing: 8) {
+            HStack(spacing: 5) {
                 actionButton(LocalizedStringKey("action_two_missed"), systemImage: "2.circle", style: .missed) { record(.twoMissed) }
                 actionButton(LocalizedStringKey("action_three_missed"), systemImage: "3.circle", style: .missed) { record(.threeMissed) }
                 actionButton(LocalizedStringKey("action_bonus_missed"), systemImage: "plus.circle", style: .missed) { record(.bonusMissed) }
                 actionButton(LocalizedStringKey("action_free_missed"), systemImage: "f.circle", style: .missed) { record(.freeThrowMissed) }
             }
 
-            HStack(spacing: 8) {
+            HStack(spacing: 5) {
                 if gameVM.snapshot.showsAssistButton {
                     actionButton(LocalizedStringKey("action_assist"), systemImage: "person.2.fill", style: .assist) { record(.assist) }
                 }
@@ -883,7 +853,7 @@ struct GameView: View {
                 }
             }
 
-            HStack(spacing: 8) {
+            HStack(spacing: 5) {
                 if gameVM.snapshot.showsOffensiveDefensiveRebound, gameVM.snapshot.showsStealButton {
                     actionButton(LocalizedStringKey("action_steal"), systemImage: "hand.raised.fill", style: .assist) { record(.steal) }
                 }
@@ -903,13 +873,13 @@ struct GameView: View {
                     .font(.caption.weight(.semibold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
-                    .frame(maxWidth: .infinity, minHeight: 34)
+                    .frame(maxWidth: .infinity, minHeight: 30)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .pause))
                 .disabled(gameVM.snapshot.isComplete)
             }
 
-            HStack(spacing: 8) {
+            HStack(spacing: 5) {
                 Button {
                     togglePeriod()
                     triggerTapFeedback()
@@ -922,7 +892,7 @@ struct GameView: View {
                     .font(.caption.weight(.semibold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
-                    .frame(maxWidth: .infinity, minHeight: 34)
+                    .frame(maxWidth: .infinity, minHeight: 30)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: gameVM.snapshot.periodIsRunning ? .periodEnd : .period))
                 .scaleEffect(actionButtonPulseKey == "period-toggle" ? 1.09 : 1)
@@ -939,7 +909,7 @@ struct GameView: View {
                     .font(.caption.weight(.semibold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
-                    .frame(maxWidth: .infinity, minHeight: 34)
+                    .frame(maxWidth: .infinity, minHeight: 30)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .assist))
                 .disabled(needsNewGameSetup)
@@ -954,13 +924,13 @@ struct GameView: View {
                     .font(.caption.weight(.semibold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
-                    .frame(maxWidth: .infinity, minHeight: 34)
+                    .frame(maxWidth: .infinity, minHeight: 30)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .rebound))
                 .disabled(needsNewGameSetup)
             }
 
-            HStack(spacing: 8) {
+            HStack(spacing: 5) {
                 Button {
                     undo()
                 } label: {
@@ -969,7 +939,7 @@ struct GameView: View {
                         Text(LocalizedStringKey("button_undo"))
                     }
                     .font(.caption.weight(.semibold))
-                    .frame(maxWidth: .infinity, minHeight: 34)
+                    .frame(maxWidth: .infinity, minHeight: 30)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .neutral))
                 .disabled(gameVM.undoStack.isEmpty)
@@ -982,7 +952,7 @@ struct GameView: View {
                         Text(LocalizedStringKey("button_redo"))
                     }
                     .font(.caption.weight(.semibold))
-                    .frame(maxWidth: .infinity, minHeight: 34)
+                    .frame(maxWidth: .infinity, minHeight: 30)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .neutral))
                 .disabled(gameVM.redoStack.isEmpty)
@@ -1030,6 +1000,34 @@ struct GameView: View {
                         }
                     }
                 }
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(GamePalette.surface.opacity(0.92), in: RoundedRectangle(cornerRadius: 12))
+        .overlay(alignment: .bottom) {
+            if store.showsVoiceButton, !needsNewGameSetup {
+                VStack(spacing: 6) {
+                    if let error = voiceErrorMessage {
+                        Text(error)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.red)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(.regularMaterial, in: Capsule())
+                            .transition(.opacity)
+                    }
+                    if let match = voiceMatch {
+                        Text(match.action.message)
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(.regularMaterial, in: Capsule())
+                            .transition(.opacity)
+                    }
+                    micButton
+                }
+                .padding(.bottom, 8)
             }
         }
     }
@@ -1103,14 +1101,14 @@ struct GameView: View {
     private var micButton: some View {
         ZStack {
             Circle()
-                .fill(.white.opacity(0.85))
+                .fill(.clear)
                 .frame(width: 72, height: 72)
             Circle()
-                .stroke(Color.primary.opacity(0.12), lineWidth: 0.5)
+                .stroke(GamePalette.homeScoreboard, lineWidth: 2)
                 .frame(width: 72, height: 72)
             Image(systemName: voiceRecognizer.isRecording ? "mic.fill" : "mic")
                 .font(.system(size: 26, weight: .semibold))
-                .foregroundStyle(voiceRecognizer.isRecording ? Color.blue : Color.primary)
+                .foregroundStyle(voiceRecognizer.isRecording ? Color.blue : GamePalette.homeScoreboard)
                 .scaleEffect(voiceRecognizer.isRecording ? 1.15 : 1)
                 .animation(.spring(response: 0.2), value: voiceRecognizer.isRecording)
         }
@@ -1294,7 +1292,7 @@ struct GameView: View {
                 Text(title)
             }
             .font(.caption.weight(.semibold))
-            .frame(maxWidth: .infinity, minHeight: 34)
+            .frame(maxWidth: .infinity, minHeight: 30)
         }
         .buttonStyle(PastelActionButtonStyle(style: style))
         .scaleEffect(actionButtonPulseKey == titleKey ? 1.09 : 1)
@@ -2721,6 +2719,76 @@ struct GameView: View {
 
         ensureInitialSelection()
     }
+
+#if DEBUG
+    private func seedScorePageForScreenshotIfNeeded() {
+        guard ProcessInfo.processInfo.arguments.contains("-seedScorePageData"),
+              let homeTeam = store.teams.first,
+              let awayTeam = store.teams.dropFirst().first else {
+            return
+        }
+
+        let homePlayers = players(in: homeTeam.id).prefix(3)
+        let awayPlayers = players(in: awayTeam.id).prefix(3)
+        guard !homePlayers.isEmpty, !awayPlayers.isEmpty else { return }
+
+        let now = Date()
+        func playerStats(twoMade: Int, threeMade: Int, freeThrowMade: Int, fouls: Int) -> PlayerStats {
+            var value = PlayerStats()
+            value.twoMade = twoMade
+            value.threeMade = threeMade
+            value.freeThrowMade = freeThrowMade
+            value.fouls = fouls
+            return value
+        }
+
+        let homeIDs = homePlayers.map(\.id)
+        let awayIDs = awayPlayers.map(\.id)
+        let statsByPlayerID: [UUID: PlayerStats] = [
+            homeIDs[0]: playerStats(twoMade: 15, threeMade: 2, freeThrowMade: 0, fouls: 1),
+            homeIDs[1]: playerStats(twoMade: 12, threeMade: 3, freeThrowMade: 3, fouls: 1),
+            homeIDs[2]: playerStats(twoMade: 14, threeMade: 2, freeThrowMade: 2, fouls: 1),
+            awayIDs[0]: playerStats(twoMade: 13, threeMade: 2, freeThrowMade: 0, fouls: 1),
+            awayIDs[1]: playerStats(twoMade: 13, threeMade: 1, freeThrowMade: 4, fouls: 1),
+            awayIDs[2]: playerStats(twoMade: 13, threeMade: 2, freeThrowMade: 0, fouls: 0)
+        ]
+        let logs = [
+            GameLogEntry(timestamp: now.addingTimeInterval(-45), message: "\(homePlayers[0].name) made 3PT", eventCode: "stat.threeMade", playerID: homeIDs[0], period: 3, periodElapsedSeconds: 345),
+            GameLogEntry(timestamp: now.addingTimeInterval(-36), message: "\(awayPlayers[0].name) turnover", eventCode: "stat.turnover", playerID: awayIDs[0], period: 3, periodElapsedSeconds: 354),
+            GameLogEntry(timestamp: now.addingTimeInterval(-27), message: "\(homePlayers[1].name) made 2PT", eventCode: "stat.twoMade", playerID: homeIDs[1], period: 3, periodElapsedSeconds: 363),
+            GameLogEntry(timestamp: now.addingTimeInterval(-18), message: "\(awayPlayers[1].name) foul", eventCode: "stat.foul", playerID: awayIDs[1], period: 3, periodElapsedSeconds: 372),
+            GameLogEntry(timestamp: now.addingTimeInterval(-9), message: "\(homePlayers[2].name) made 2PT", eventCode: "stat.twoMade", playerID: homeIDs[2], period: 3, periodElapsedSeconds: 381)
+        ]
+        gameVM.snapshot = GameSnapshot(
+            statsByPlayerID: statsByPlayerID,
+            logs: logs,
+            homeTeamID: homeTeam.id,
+            awayTeamID: awayTeam.id,
+            periodCount: 4,
+            originalPeriodCount: 4,
+            currentPeriod: 3,
+            periodIsRunning: true,
+            courtPlayerCount: 3,
+            homeOnCourtPlayerIDs: homePlayers.map(\.id),
+            awayOnCourtPlayerIDs: awayPlayers.map(\.id),
+            homeAvailablePlayerIDs: homePlayers.map(\.id),
+            awayAvailablePlayerIDs: awayPlayers.map(\.id),
+            starterPlayerIDs: homePlayers.map(\.id) + awayPlayers.map(\.id),
+            startersRecorded: true,
+            currentPeriodFoulsBySide: [TeamSide.home.rawValue: 3, TeamSide.away.rawValue: 2],
+            matchElapsedSeconds: 754,
+            matchActiveSince: now.addingTimeInterval(-754),
+            periodElapsedSeconds: 388,
+            periodActiveSince: now.addingTimeInterval(-388),
+            periodEndCondition: .manual
+        )
+        currentGameRecordID = nil
+        selectedPlayerID = homePlayers.first?.id
+        selectedSide = .home
+        store.showsVoiceButton = true
+        voiceRecognizer.currentSnapshot = gameVM.snapshot
+    }
+#endif
 
     private func startActiveStints(at date: Date) {
         (gameVM.snapshot.homeOnCourtPlayerIDs + gameVM.snapshot.awayOnCourtPlayerIDs).forEach { playerID in

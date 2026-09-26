@@ -126,7 +126,7 @@ extension AppStore {
             let remapped = team.playerIDs.map { $0 == sourceID ? targetID : $0 }
             let deduped = remapped.filter { seen.insert($0).inserted }
             updatedTeams += 1
-            return Team(id: team.id, name: team.name, playerIDs: deduped)
+            return Team(id: team.id, name: team.name, playerIDs: deduped, iconData: team.iconData)
         }
 
         var updatedGames = 0

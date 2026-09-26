@@ -298,7 +298,8 @@
 "section_basic_info" = "기본 정보";
 "label_position" = "포지션";
 "position_unspecified" = "설정 안 함";
-"stats_games_short" = "GP";
+"stats_games_short" = "경기";
+"career_stat_games_played_short" = "경기";
 "stat_label_starter_short" = "GS";
 "stat_label_bench_short" = "BN";
 "stats_win_rate_short" = "W%";
@@ -365,6 +366,7 @@
 "button_select_month" = "월 선택";
 "button_share_all_segments" = "모든 세그먼트를 공유";
 "button_show_all" = "모두보기";
+"button_show_less" = "접기";
 "button_switch_single_import" = "단일 세그먼트 모드";
 "count_games_format" = "%d 게임";
 "count_players_people_format" = "%d 플레이어";
@@ -409,6 +411,9 @@
 "label_player" = "이름 *";
 "label_segment_count" = "이름 *";
 "label_team" = "회사연혁";
+"label_team_icon" = "팀 아이콘";
+"label_select_team_icon" = "팀 아이콘 추가";
+"label_remove_team_icon" = "팀 아이콘 삭제";
 "label_this_game_stats" = "이 게임";
 "label_total_stats" = "전체보기";
 "label_weight" = "무게:";
@@ -887,7 +892,15 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "section_voice_nicknames_footer" = "음성 인식용 별명을 추가하세요. 경기 중 별명을 말하면 이 선수를 선택합니다.";
 "placeholder_nicknames" = "별명 입력…";
 "settings_cloud_storage" = "iCloud 저장소";
+"settings_language" = "언어";
+"settings_language_alert_title" = "언어는 iPhone 설정을 따릅니다";
+"settings_language_alert_message" = "설정 > 일반 > 언어 및 지역에서 앱 언어를 변경하세요.";
 "stats_points_format_short" = "PTS";
+"stats_rebound_short" = "REB";
+"stats_assists_short" = "AST";
+"stats_steals_short" = "STL";
+"stats_blocks_short" = "BLK";
+"stats_turnovers_short" = "TO";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
 "stats_rebound_block" = "리바운드 / 블록";
 "stats_rebound_detail" = "리바운드 / 공격 / 수비";
@@ -1011,6 +1024,7 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "elo_label_gs_factor" = "GS 계수";
 "elo_computation_title" = "ELO 계산 상세";
 "label_elo" = "ELO";
+"label_elo_history" = "ELO 기록";
 "elo_format" = "ELO %d";
 "elo_title_format" = "ELO – %@";
 "elo_tier_bronze" = "브론즈";
@@ -1307,3 +1321,4 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "excel_team_stats_none" = "선수 기록";
 "excel_event_assist_format" = "%1$@의 어시스트로 %2$@가 %3$@";
 "excel_event_steal_turnover_format" = "%1$@가 %2$@에게서 스틸";
+"nav_player_detail" = "선수 상세";

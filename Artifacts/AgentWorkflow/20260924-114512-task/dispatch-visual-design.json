@@ -1,0 +1,55 @@
+{
+  "action": "dispatch",
+  "to_stage": "visual-design",
+  "task_scope": "审查并固化已确认的 App Store 截图风格，针对非记分界面的主要 surface 输出实现型视觉契约和可离线核验的 mockup/标注；保护 BasketballRecord/Views/Game/ 不受影响。",
+  "task_prompt": "你是本 run 的 VIS 视觉设计师。请读取 workflow-state.json、当前产品代码和 zh-Hans 的 5 张 App Store 截图，核对暖米色背景、深海军蓝文字、橙色强调、浅蓝卡片、列表和导航栏的视觉系统。按管理首页、历史/详情、职业成长、球员资料四类 surface 分别给出实现型 mockup 或标注产物；明确哪些状态不适用。检查 HIG/SwiftUI 既有模式和记分页面保护边界。只写 10-visual-design.html 及必要的本地视觉产物，不修改产品代码，不修改 Fastlane 资产，不上传任何商店内容。每个 coverage_id 必须给出明确 disposition 和证据路径。",
+  "acceptance_criteria": [
+    "criterion-01",
+    "criterion-02"
+  ],
+  "coverage_ids": [
+    "criterion-01",
+    "criterion-02"
+  ],
+  "required_outputs": [
+    "10-visual-design.html",
+    "每个主要 surface 的实现型 mockup/标注或明确的不适用记录"
+  ],
+  "input_files": [
+    "workflow-state.json",
+    "BasketballRecord/Views/Skin/EditorialDesign.swift",
+    "BasketballRecord/Views/ContentView.swift",
+    "BasketballRecord/Views/RosterView.swift",
+    "BasketballRecord/Views/History/HistoryView.swift",
+    "BasketballRecord/Views/Career/CareerView.swift",
+    "BasketballRecord/Views/PlayerProfileView.swift",
+    "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/02-stats.png",
+    "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/03-review.png",
+    "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/04-team.png",
+    "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/05-growth.png"
+  ],
+  "changed_files": [],
+  "verification": [
+    "本地图片文件存在且可读取",
+    "git diff --name-only -- BasketballRecord/Views/Game/ 为空"
+  ],
+  "unresolved_issues": [
+    "模拟器截图此前出现桌面/黑屏，运行时视觉验证尚未完成"
+  ],
+  "prohibited_actions": [
+    "不得修改 BasketballRecord/Views/Game/ 下任何产品代码",
+    "不得修改产品源代码或 Fastlane 资产",
+    "不得上传或变更 App Store Connect",
+    "不得把文字建议冒充 mockup"
+  ],
+  "next_checks": [
+    "核对每个主要 surface 的颜色、间距、层级和状态",
+    "检查视觉建议是否与现有 EditorialDesign.swift 实现一致"
+  ],
+  "knowledge_context": {
+    "feature_ids": ["ui-editorial-theme"],
+    "flow_ids": ["management", "history", "career", "player-profile"],
+    "test_case_ids": ["visual-surface-review"],
+    "known_issue_ids": ["simulator-window-capture"]
+  }
+}

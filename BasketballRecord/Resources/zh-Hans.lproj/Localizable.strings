@@ -66,6 +66,9 @@
 "placeholder_nicknames" = "输入昵称…";
 "button_collab_games" = "蓝牙协同";
 "settings_cloud_storage" = "iCloud 存储";
+"settings_language" = "语言";
+"settings_language_alert_title" = "语言跟随 iPhone 设置";
+"settings_language_alert_message" = "请前往“设置 > 通用 > 语言与地区”修改 App 语言。";
 "cloud_storage_description" = "点击比赛来开启或关闭云存储。存储在云端的比赛会在各设备间同步。";
 "section_cloud_enabled" = "已存云端";
 "section_local_only" = "仅本地";
@@ -82,6 +85,11 @@
 "label_games_count" = "出场";
 "stats_total_points" = "总得分";
 "stats_points_format_short" = "得分";
+"stats_rebound_short" = "篮板";
+"stats_assists_short" = "助攻";
+"stats_steals_short" = "抢断";
+"stats_blocks_short" = "盖帽";
+"stats_turnovers_short" = "失误";
 "stats_pts_min" = "得分 / 时间";
 "stats_rebound_assist_steal_block" = "篮板 / 助攻 / 抢断 / 盖帽";
 "stats_rebound_block" = "篮板 / 盖帽";
@@ -397,7 +405,8 @@
 "section_basic_info" = "基本信息";
 "label_position" = "位置";
 "position_unspecified" = "未设置";
-"stats_games_short" = "GP";
+"stats_games_short" = "场次";
+"career_stat_games_played_short" = "比赛";
 "stat_label_starter_short" = "GS";
 "stat_label_bench_short" = "BN";
 "stats_win_rate_short" = "W%";
@@ -451,6 +460,7 @@
 "button_select_month" = "全选本月";
 "button_share_all_segments" = "分享全部分段";
 "button_show_all" = "全部显示";
+"button_show_less" = "收起";
 "button_switch_single_import" = "改为单段导入";
 "count_games_format" = "比赛 %d 场";
 "count_players_people_format" = "%d 人";
@@ -495,6 +505,9 @@
 "label_player" = "球员";
 "label_segment_count" = "分段数量";
 "label_team" = "球队";
+"label_team_icon" = "球队图标";
+"label_select_team_icon" = "添加球队图标";
+"label_remove_team_icon" = "移除球队图标";
 "label_this_game_stats" = "本场数据";
 "label_total_stats" = "总数据";
 "label_weight" = "体重";
@@ -1004,6 +1017,7 @@
 "elo_label_gs_factor" = "GS 系数";
 "elo_computation_title" = "ELO 计算详情";
 "label_elo" = "天梯积分";
+"label_elo_history" = "ELO 历史";
 "elo_format" = "天梯积分 %d";
 "elo_title_format" = "天梯积分 – %@";
 "elo_tier_bronze" = "青铜";
@@ -1299,3 +1313,4 @@
 "excel_team_stats_none" = "球员数据";
 "excel_event_assist_format" = "%1$@助攻%2$@，%3$@";
 "excel_event_steal_turnover_format" = "%1$@抢断了%2$@的球";
+"nav_player_detail" = "球员详情";

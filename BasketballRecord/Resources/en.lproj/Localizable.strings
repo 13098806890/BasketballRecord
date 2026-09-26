@@ -47,6 +47,9 @@
 "placeholder_nicknames" = "Enter nickname…";
 "button_collab_games" = "Bluetooth Games";
 "settings_cloud_storage" = "iCloud Storage";
+"settings_language" = "Language";
+"settings_language_alert_title" = "Language follows iPhone Settings";
+"settings_language_alert_message" = "Change the app language in Settings > General > Language & Region.";
 "cloud_storage_description" = "Tap a game to enable or disable cloud storage. Cloud-stored games sync across your devices.";
 "section_cloud_enabled" = "In iCloud";
 "section_local_only" = "Local Only";
@@ -63,6 +66,11 @@
 "label_games_count" = "Games";
 "stats_total_points" = "Total Points";
 "stats_points_format_short" = "PTS";
+"stats_rebound_short" = "REB";
+"stats_assists_short" = "AST";
+"stats_steals_short" = "STL";
+"stats_blocks_short" = "BLK";
+"stats_turnovers_short" = "TO";
 "stats_pts_min" = "PTS / MIN";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
 "stats_rebound_block" = "REB / OREB / DREB";
@@ -379,7 +387,8 @@
 "section_basic_info" = "Basic Info";
 "label_position" = "Position";
 "position_unspecified" = "Not set";
-"stats_games_short" = "GP";
+"stats_games_short" = "Games";
+"career_stat_games_played_short" = "Game";
 "stat_label_starter_short" = "GS";
 "stat_label_bench_short" = "BN";
 "stats_win_rate_short" = "W%";
@@ -449,6 +458,7 @@
 "button_select_month" = "Select Month";
 "button_share_all_segments" = "Share All Segments";
 "button_show_all" = "Show All";
+"button_show_less" = "Show Less";
 "button_switch_single_import" = "Single Segment Mode";
 "count_games_format" = "%d games";
 "count_players_people_format" = "%d players";
@@ -493,6 +503,9 @@
 "label_player" = "Player";
 "label_segment_count" = "Segments";
 "label_team" = "Team";
+"label_team_icon" = "Team Icon";
+"label_select_team_icon" = "Add Team Icon";
+"label_remove_team_icon" = "Remove Team Icon";
 "label_this_game_stats" = "This Game";
 "label_total_stats" = "Total";
 "label_weight" = "Weight";
@@ -1008,6 +1021,7 @@ Format:
 "elo_label_gs_factor" = "GS Factor";
 "elo_computation_title" = "ELO Calculation";
 "label_elo" = "ELO";
+"label_elo_history" = "ELO History";
 "elo_format" = "ELO %d";
 "elo_title_format" = "ELO – %@";
 "elo_tier_bronze" = "Bronze";
@@ -1303,3 +1317,4 @@ Format:
 "excel_team_stats_none" = "Player stats";
 "excel_event_assist_format" = "%1$@ assisted %2$@ for %3$@";
 "excel_event_steal_turnover_format" = "%1$@ stole the ball from %2$@";
+"nav_player_detail" = "Player Detail";

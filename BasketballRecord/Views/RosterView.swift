@@ -13,255 +13,256 @@ func localizedFormat(_ key: String, _ args: CVarArg...) -> String {
 
 struct RosterView: View {
     @EnvironmentObject private var store: AppStore
-    @State private var showingRosterImport = false
-    @State private var showingCloudUpload = false
-    @State private var showingMergeEntry = false
     @State private var showingDeepSeekConfig = false
     @State private var showingSettingsDocument: SettingsDocument?
     @State private var isShowingPurchase = false
+    @State private var isShowingLanguageInfo = false
 
     @AppStorage(UnitSettings.heightUnitKey) private var heightRaw: String = ""
     @AppStorage(UnitSettings.weightUnitKey) private var weightRaw: String = ""
 
     var body: some View {
         NavigationStack {
-            List {
-                Section(LocalizedStringKey("settings_section_game_prefs")) {
-                    HStack(spacing: 12) {
-                        Image(systemName: "sun.max")
-                            .font(.subheadline.weight(.semibold))
-                            .symbolRenderingMode(.monochrome)
-                            .foregroundStyle(.secondary)
-                            .frame(width: 28, height: 28)
+            ZStack {
+                EditorialBackground()
 
-                        Text(LocalizedStringKey("settings_keep_screen_awake"))
-                            .font(.body.weight(.medium))
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(LocalizedStringKey("settings_nav_title"))
+                            .font(.system(size: 40, weight: .bold, design: .rounded))
+                            .foregroundStyle(EditorialDesign.navy)
+                            .padding(.top, 8)
+                            .accessibilityAddTraits(.isHeader)
 
-                        Spacer()
-
-                        Toggle("", isOn: $store.keepsScreenAwake)
-                            .labelsHidden()
-                    }
-
-                    HStack(spacing: 12) {
-                        Image(systemName: "dot.radiowaves.left.and.right")
-                            .font(.subheadline.weight(.semibold))
-                            .symbolRenderingMode(.monochrome)
-                            .foregroundStyle(.secondary)
-                            .frame(width: 28, height: 28)
-
-                        Text(LocalizedStringKey("settings_show_bluetooth_button"))
-                            .font(.body.weight(.medium))
-
-                        Spacer()
-
-                        Toggle("", isOn: $store.showsBluetoothGamesButton)
-                            .labelsHidden()
-                    }
-
-                    NavigationLink {
-                        VoiceSettingsView(store: store)
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("settings_voice"),
-                            systemImage: "waveform.circle.fill",
-                            countText: nil
-                        )
-                    }
-
-                    NavigationLink {
-                        CloudStorageView()
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("settings_cloud_storage"),
-                            systemImage: "icloud.fill",
-                            countText: "\(store.cloudEnabledGameIDs.count)"
-                        )
-                    }
-                    .disabled(!store.isPro)
-                    .overlay {
-                        if !store.isPro {
-                            Color.clear
-                                .contentShape(Rectangle())
-                                .onTapGesture { isShowingPurchase = true }
+                        settingsSectionHeader("settings_section_game_prefs")
+                        settingsCard {
+                            settingsToggleRow(
+                                title: LocalizedStringKey("settings_keep_screen_awake"),
+                                systemImage: "sun.max",
+                                isOn: $store.keepsScreenAwake
+                            )
+                            settingsDivider()
+                            settingsToggleRow(
+                                title: LocalizedStringKey("settings_show_bluetooth_button"),
+                                systemImage: "dot.radiowaves.left.and.right",
+                                isOn: $store.showsBluetoothGamesButton
+                            )
+                            settingsDivider()
+                            NavigationLink {
+                                VoiceSettingsView(store: store)
+                            } label: {
+                                settingsRow(
+                                    title: LocalizedStringKey("settings_voice"),
+                                    systemImage: "waveform.circle.fill",
+                                    countText: nil,
+                                    iconColor: EditorialDesign.orange,
+                                    showsDisclosure: true
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            settingsDivider()
+                            NavigationLink {
+                                CloudStorageView()
+                            } label: {
+                                settingsRow(
+                                    title: LocalizedStringKey("settings_cloud_storage"),
+                                    systemImage: "icloud.fill",
+                                    countText: "\(store.cloudEnabledGameIDs.count)",
+                                    iconColor: EditorialDesign.paleOrange,
+                                    showsDisclosure: true
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(!store.isPro)
+                            .overlay {
+                                if !store.isPro {
+                                    Color.clear
+                                        .contentShape(Rectangle())
+                                        .onTapGesture { isShowingPurchase = true }
+                                }
+                            }
                         }
-                }
-                }
 
-                Section(LocalizedStringKey("settings_section_units")) {
-                    let heightBinding = Binding(
-                        get: { HeightUnit(rawValue: heightRaw) ?? UnitSettings.defaultHeightUnit },
-                        set: { heightRaw = $0.rawValue }
-                    )
-                    let weightBinding = Binding(
-                        get: { WeightUnit(rawValue: weightRaw) ?? UnitSettings.defaultWeightUnit },
-                        set: { weightRaw = $0.rawValue }
-                    )
+                        settingsSectionHeader("settings_section_units")
+                        settingsCard {
+                            let heightBinding = Binding(
+                                get: { HeightUnit(rawValue: heightRaw) ?? UnitSettings.defaultHeightUnit },
+                                set: { heightRaw = $0.rawValue }
+                            )
+                            let weightBinding = Binding(
+                                get: { WeightUnit(rawValue: weightRaw) ?? UnitSettings.defaultWeightUnit },
+                                set: { weightRaw = $0.rawValue }
+                            )
 
-                    Picker(selection: heightBinding) {
-                        ForEach(HeightUnit.allCases, id: \.rawValue) { unit in
-                            Text(unit.displayName).tag(unit)
+                            HStack(spacing: 12) {
+                                Image(systemName: "ruler")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(EditorialDesign.navy)
+                                    .frame(width: 28, height: 28)
+
+                                Text(LocalizedStringKey("label_height"))
+                                    .font(.body.weight(.semibold))
+                                    .foregroundStyle(EditorialDesign.navy)
+
+                                Spacer()
+
+                                Picker("", selection: heightBinding) {
+                                    ForEach(HeightUnit.allCases, id: \.rawValue) { unit in
+                                        Text(unit.displayName).tag(unit)
+                                    }
+                                }
+                                .labelsHidden()
+                                .pickerStyle(.menu)
+                                .tint(EditorialDesign.blue)
+                            }
+                            .padding(.horizontal, 16)
+                            .frame(minHeight: 68)
+                            .contentShape(Rectangle())
+                            settingsDivider()
+                            HStack(spacing: 12) {
+                                Image(systemName: "dumbbell.fill")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(EditorialDesign.navy)
+                                    .frame(width: 28, height: 28)
+
+                                Text(LocalizedStringKey("label_weight"))
+                                    .font(.body.weight(.semibold))
+                                    .foregroundStyle(EditorialDesign.navy)
+
+                                Spacer()
+
+                                Picker("", selection: weightBinding) {
+                                    ForEach(WeightUnit.allCases, id: \.rawValue) { unit in
+                                        Text(unit.displayName).tag(unit)
+                                    }
+                                }
+                                .labelsHidden()
+                                .pickerStyle(.menu)
+                                .tint(EditorialDesign.blue)
+                            }
+                            .padding(.horizontal, 16)
+                            .frame(minHeight: 68)
+                            .contentShape(Rectangle())
                         }
-                    } label: {
-                        Label(LocalizedStringKey("label_height"), systemImage: "ruler")
-                            .foregroundStyle(.primary)
-                    }
 
-                    Picker(selection: weightBinding) {
-                        ForEach(WeightUnit.allCases, id: \.rawValue) { unit in
-                            Text(unit.displayName).tag(unit)
+                        settingsCard {
+                            Button {
+                                isShowingPurchase = true
+                            } label: {
+                                settingsRow(
+                                    title: LocalizedStringKey("section_pro"),
+                                    systemImage: "crown.fill",
+                                    countText: nil,
+                                    iconColor: EditorialDesign.orange,
+                                    showsDisclosure: true
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            settingsDivider()
+                            NavigationLink {
+                                SettingsSyncImportView()
+                            } label: {
+                                settingsRow(
+                                    title: LocalizedStringKey("settings_section_sync_import"),
+                                    systemImage: "arrow.up.arrow.down",
+                                    countText: nil,
+                                    iconColor: EditorialDesign.orange,
+                                    showsDisclosure: true
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            settingsDivider()
+                            Button {
+                                isShowingLanguageInfo = true
+                            } label: {
+                                settingsRow(
+                                    title: LocalizedStringKey("settings_language"),
+                                    systemImage: "globe",
+                                    countText: nil,
+                                    iconColor: EditorialDesign.navy,
+                                    showsDisclosure: true
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
-                    } label: {
-                        Label(LocalizedStringKey("label_weight"), systemImage: "dumbbell.fill")
-                            .foregroundStyle(.primary)
-                    }
-                }
 
-                Section {
-                    Button {
-                        isShowingPurchase = true
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("section_pro"),
-                            systemImage: "crown.fill",
-                            countText: nil,
-                            showsDisclosure: true
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
+                        settingsSectionHeader("settings_section_ai")
+                        settingsCard {
+                            Button {
+                                showingDeepSeekConfig = true
+                            } label: {
+                                settingsRow(
+                                    title: LocalizedStringKey("settings_ai"),
+                                    systemImage: "sparkles",
+                                    countText: nil,
+                                    iconColor: EditorialDesign.blue,
+                                    showsDisclosure: true
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(!store.isPro)
+                            .overlay {
+                                if !store.isPro {
+                                    Color.clear
+                                        .contentShape(Rectangle())
+                                        .onTapGesture { isShowingPurchase = true }
+                                }
+                            }
+                        }
 
-                Section(LocalizedStringKey("settings_section_sync_import")) {
-                    NavigationLink {
-                        BluetoothSyncSettingsView()
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("settings_bluetooth_sync"),
-                            systemImage: "dot.radiowaves.left.and.right",
-                            countText: nil
-                        )
-                    }
-                    .disabled(!store.isPro)
-                    .overlay {
-                        if !store.isPro {
-                            Color.clear
-                                .contentShape(Rectangle())
-                                .onTapGesture { isShowingPurchase = true }
+                        settingsSectionHeader("settings_section_help_about")
+                        settingsCard {
+                            Button {
+                                showingSettingsDocument = .terms
+                            } label: {
+                                settingsRow(
+                                    title: LocalizedStringKey("settings_help"),
+                                    systemImage: "doc.text.fill",
+                                    countText: nil,
+                                    showsDisclosure: true
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            settingsDivider()
+                            Button {
+                                showingSettingsDocument = .privacy
+                            } label: {
+                                settingsRow(
+                                    title: LocalizedStringKey("settings_privacy"),
+                                    systemImage: "hand.raised.fill",
+                                    countText: nil,
+                                    showsDisclosure: true
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            settingsDivider()
+                            NavigationLink {
+                                AboutDeveloperView()
+                            } label: {
+                                settingsRow(
+                                    title: LocalizedStringKey("settings_contact_developer"),
+                                    systemImage: "envelope.fill",
+                                    countText: nil,
+                                    showsDisclosure: true
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            settingsDivider()
+                            settingsRow(
+                                title: LocalizedStringKey("settings_version"),
+                                systemImage: "info.circle.fill",
+                                countText: appVersionText,
+                                showsDisclosure: false
+                            )
                         }
                     }
-
-                    Button {
-                        showingCloudUpload = true
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("cloudshare_upload_button"),
-                            systemImage: "icloud.and.arrow.up.fill",
-                            countText: nil
-                        )
-                    }
-                    .buttonStyle(.plain)
-
-                    Button {
-                        showingRosterImport = true
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("settings_import"),
-                            systemImage: TransferSymbol.importData,
-                            countText: nil,
-                            showsDisclosure: true
-                        )
-                    }
-                    .buttonStyle(.plain)
-
-                    Button {
-                        showingMergeEntry = true
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("settings_merge"),
-                            systemImage: "arrow.triangle.merge",
-                            countText: nil,
-                            showsDisclosure: true
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                Section(LocalizedStringKey("settings_section_ai")) {
-                    Button {
-                        showingDeepSeekConfig = true
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("settings_ai"),
-                            systemImage: "sparkles",
-                            countText: nil,
-                            showsDisclosure: true
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(!store.isPro)
-                    .overlay {
-                        if !store.isPro {
-                            Color.clear
-                                .contentShape(Rectangle())
-                                .onTapGesture { isShowingPurchase = true }
-                        }
-                    }
-                }
-
-                Section(LocalizedStringKey("settings_section_help_about")) {
-                    Button {
-                        showingSettingsDocument = .terms
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("settings_help"),
-                            systemImage: "doc.text.fill",
-                            countText: nil,
-                            showsDisclosure: true
-                        )
-                    }
-                    .buttonStyle(.plain)
-
-                    Button {
-                        showingSettingsDocument = .privacy
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("settings_privacy"),
-                            systemImage: "hand.raised.fill",
-                            countText: nil,
-                            showsDisclosure: true
-                        )
-                    }
-                    .buttonStyle(.plain)
-
-                    NavigationLink {
-                        AboutDeveloperView()
-                    } label: {
-                        settingsRow(
-                            title: LocalizedStringKey("settings_contact_developer"),
-                            systemImage: "envelope.fill",
-                            countText: nil
-                        )
-                    }
-
-                    settingsRow(
-                        title: LocalizedStringKey("settings_version"),
-                        systemImage: "info.circle.fill",
-                        countText: appVersionText
-                    )
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    .padding(.bottom, 110)
                 }
             }
-
-            .navigationTitle(LocalizedStringKey("settings_nav_title"))
-            .sheet(isPresented: $showingCloudUpload) {
-                CloudShareUploadView()
-                    .environmentObject(store)
-            }
-            .sheet(isPresented: $showingRosterImport) {
-                ImportRosterPackageView()
-            }
-            .sheet(isPresented: $showingMergeEntry) {
-                MergeRosterUUIDView()
-            }
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingDeepSeekConfig) {
                 AISettingsView()
             }
@@ -274,7 +275,59 @@ struct RosterView: View {
             .sheet(item: $showingSettingsDocument) { document in
                 SettingsDocumentView(document: document)
             }
+            .alert(LocalizedStringKey("settings_language_alert_title"), isPresented: $isShowingLanguageInfo) {
+                Button(LocalizedStringKey("button_ok"), role: .cancel) { }
+            } message: {
+                Text(LocalizedStringKey("settings_language_alert_message"))
+            }
         }
+    }
+
+    private func settingsSectionHeader(_ key: String) -> some View {
+        Text(LocalizedStringKey(key))
+            .font(.title3.weight(.bold))
+            .foregroundStyle(EditorialDesign.navy.opacity(0.62))
+            .padding(.top, 8)
+            .padding(.horizontal, 12)
+    }
+
+    private func settingsCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        VStack(spacing: 0, content: content)
+            .padding(.horizontal, 2)
+            .editorialCard(tint: Color.white.opacity(0.94), radius: 24)
+    }
+
+    private func settingsDivider() -> some View {
+        Divider()
+            .padding(.leading, 64)
+            .overlay(EditorialDesign.divider.opacity(0.45))
+    }
+
+    private func settingsToggleRow(
+        title: LocalizedStringKey,
+        systemImage: String,
+        isOn: Binding<Bool>
+    ) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: systemImage)
+                .font(.title3.weight(.semibold))
+                .symbolRenderingMode(.monochrome)
+                .foregroundStyle(.secondary)
+                .frame(width: 40, height: 40)
+
+            Text(title)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(EditorialDesign.navy)
+
+            Spacer(minLength: 8)
+
+            Toggle("", isOn: isOn)
+                .labelsHidden()
+                .tint(EditorialDesign.blue)
+        }
+        .padding(.horizontal, 16)
+        .frame(minHeight: 72)
+        .contentShape(Rectangle())
     }
 
     private var appVersionText: String {
@@ -294,19 +347,130 @@ struct RosterView: View {
             Image(systemName: systemImage)
                 .font(.subheadline.weight(.semibold))
                 .symbolRenderingMode(.monochrome)
-                .foregroundStyle(iconColor)
+                .foregroundStyle(iconColor == .secondary ? EditorialDesign.orange : iconColor)
                 .frame(width: 28, height: 28)
 
             Text(title)
-                .font(.body.weight(.medium))
+                .font(.body.weight(.semibold))
+                .foregroundStyle(EditorialDesign.navy)
 
             Spacer()
 
             if let countText {
                 Text(countText)
                     .font(.subheadline.monospacedDigit())
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(EditorialDesign.blue)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(EditorialDesign.paleBlue, in: Capsule())
             }
+
+            if showsDisclosure {
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .contentShape(Rectangle())
+    }
+}
+
+struct SettingsSyncImportView: View {
+    @EnvironmentObject private var store: AppStore
+    @State private var showingCloudUpload = false
+    @State private var showingRosterImport = false
+    @State private var showingMergeEntry = false
+    @State private var isShowingPurchase = false
+
+    var body: some View {
+        List {
+            Section(LocalizedStringKey("settings_section_sync_import")) {
+                NavigationLink {
+                    BluetoothSyncSettingsView()
+                } label: {
+                    syncImportRow(
+                        title: LocalizedStringKey("settings_bluetooth_sync"),
+                        systemImage: "dot.radiowaves.left.and.right",
+                        showsDisclosure: true
+                    )
+                }
+                .disabled(!store.isPro)
+                .overlay {
+                    if !store.isPro {
+                        Color.clear
+                            .contentShape(Rectangle())
+                            .onTapGesture { isShowingPurchase = true }
+                    }
+                }
+
+                Button {
+                    showingCloudUpload = true
+                } label: {
+                    syncImportRow(
+                        title: LocalizedStringKey("cloudshare_upload_button"),
+                        systemImage: "icloud.and.arrow.up.fill",
+                        showsDisclosure: false
+                    )
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    showingRosterImport = true
+                } label: {
+                    syncImportRow(
+                        title: LocalizedStringKey("settings_import"),
+                        systemImage: TransferSymbol.importData,
+                        showsDisclosure: true
+                    )
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    showingMergeEntry = true
+                } label: {
+                    syncImportRow(
+                        title: LocalizedStringKey("settings_merge"),
+                        systemImage: "arrow.triangle.merge",
+                        showsDisclosure: true
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .editorialListStyle()
+        .navigationTitle(LocalizedStringKey("settings_section_sync_import"))
+        .sheet(isPresented: $showingCloudUpload) {
+            CloudShareUploadView()
+                .environmentObject(store)
+        }
+        .sheet(isPresented: $showingRosterImport) {
+            ImportRosterPackageView()
+        }
+        .sheet(isPresented: $showingMergeEntry) {
+            MergeRosterUUIDView()
+        }
+        .sheet(isPresented: $isShowingPurchase) {
+            ProSubscriptionStoreView()
+        }
+    }
+
+    private func syncImportRow(
+        title: LocalizedStringKey,
+        systemImage: String,
+        showsDisclosure: Bool
+    ) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: systemImage)
+                .font(.subheadline.weight(.semibold))
+                .symbolRenderingMode(.monochrome)
+                .foregroundStyle(EditorialDesign.orange)
+                .frame(width: 28, height: 28)
+
+            Text(title)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(EditorialDesign.navy)
+
+            Spacer()
 
             if showsDisclosure {
                 Image(systemName: "chevron.right")

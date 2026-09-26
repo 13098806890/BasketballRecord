@@ -1,0 +1,45 @@
+{
+  "action": "return",
+  "exchange_id": "exchange-0001",
+  "from_stage": "aso-ops",
+  "summary": "已完成上一轮 ASO 任务的 main 分支续跑：先通过 Fastlane 只读拉取 1.39 商店数据，再修复 10 个 locale 的 metadata、重复描述和 keywords byte 限制，并生成逐语言功能介绍型截图。简体中文名称“篮球生涯手帐”保持不变。",
+  "result_status": "passed",
+  "output_files": [
+    {"path": "13-aso-operations.html", "label": "ASO 操作与截图资产报告"},
+    {"path": "screenshot-previews/generate_localized_screenshots.rb", "label": "逐语言截图生成脚本"},
+    {"path": "../../../fastlane/Fastfile", "label": "Fastlane download lane"},
+    {"path": "../../../fastlane/metadata/1.39/zh-Hans/name.txt", "label": "简体中文名称"},
+    {"path": "../../../fastlane/metadata/1.39/zh-Hans/keywords.txt", "label": "简体中文关键词"},
+    {"path": "../../../fastlane/screenshots/zh-Hans/iPhone 6.5-inch/01-score.png", "label": "简体中文首张截图"},
+    {"path": "../../../fastlane/screenshots/ja/iPhone 6.5-inch/05-growth.png", "label": "日文第五张截图"},
+    {"path": "../../../docs/index.html", "label": "本地宣传页"}
+  ],
+  "changed_files": [
+    "fastlane/Fastfile",
+    "fastlane/metadata/1.39",
+    "fastlane/screenshots",
+    "docs/index.html",
+    "docs/appstore"
+  ],
+  "verification": [
+    "Fastlane download_metadata version:1.39 成功",
+    "10 个 locale 的 metadata 字段齐全",
+    "keywords 全部 ≤100 UTF-8 bytes",
+    "subtitle 全部 ≤30 字符",
+    "description 重复首行已清除",
+    "50 张截图全部为 1242x2688 PNG",
+    "未执行 App Store Connect 上传，未提交 Git"
+  ],
+  "unresolved_issues": [
+    "外部 GitHub Pages 尚未部署确认",
+    "非中文文案仍需对应语言母语校审",
+    "手机区域复用公开英文源截图；如需完整本地化需 Simulator 重采集",
+    "ASC 当前 primary category 和线上字段仍需只读确认"
+  ],
+  "coverage_dispositions": [
+    {"coverage_id": "criterion-01", "status": "passed", "evidence": ["13-aso-operations.html", "fastlane/Fastfile", "workflow-events.jsonl"]},
+    {"coverage_id": "criterion-02", "status": "passed", "evidence": ["fastlane/metadata/1.39/zh-Hans/name.txt", "13-aso-operations.html", "metadata 本地校验记录"]},
+    {"coverage_id": "criterion-03", "status": "passed", "evidence": ["fastlane/screenshots/", "screenshot-previews/generate_localized_screenshots.rb", "13-aso-operations.html"]},
+    {"coverage_id": "criterion-04", "status": "passed", "evidence": ["06-agent-evaluation.html", "workflow-state.json", "13-aso-operations.html"]}
+  ]
+}

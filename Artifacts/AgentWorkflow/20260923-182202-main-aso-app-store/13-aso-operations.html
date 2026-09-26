@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ASO 操作报告 · main 分支 1.39</title>
+<style>body{font:16px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;max-width:1120px;margin:32px auto;padding:0 22px;color:#172033;background:#f7f8fa}main{background:#fff;padding:30px;border-radius:16px;box-shadow:0 6px 24px #17203312}h2{margin-top:30px;border-bottom:1px solid #e5e7eb;padding-bottom:6px}h3{margin-top:22px}table{border-collapse:collapse;width:100%;margin:12px 0 20px}th,td{border:1px solid #dfe3e8;padding:8px;vertical-align:top;text-align:left}th{background:#f1f5f9}.state{display:inline-block;padding:4px 10px;border-radius:999px;background:#d1fae5;color:#065f46}.note{background:#fff7ed;border-left:4px solid #fb923c;padding:10px 14px}.ok{background:#ecfdf5;border-left:4px solid #10b981;padding:10px 14px}code{background:#eef1f5;padding:.12em .35em;border-radius:4px;word-break:break-word}li{margin:5px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.card{border:1px solid #dfe3e8;border-radius:12px;padding:14px}.small{color:#667085;font-size:14px}</style>
+</head>
+<body><main>
+<h1>ASO 操作与截图资产报告</h1>
+<p><strong>任务：</strong>main 分支 ASO 修复与 App Store 截图重制</p>
+<p><strong>状态：</strong><span class="state">已完成（带明确外部缺口）</span>　<strong>运行：</strong><code>20260923-182202-main-aso-app-store</code>　<strong>分支：</strong><code>main</code></p>
+
+<h2>1. 执行边界</h2>
+<ul>
+<li>本轮是上一轮 <code>20260923-174854-aso</code> 的同一任务续跑，不是新的独立 ASO 研究。</li>
+<li>先执行仓库已有的 <code>FASTLANE_SKIP_UPDATE_CHECK=1 fastlane ios download_metadata version:1.39</code>，将商店数据作为增量修复基线；没有执行上传。</li>
+<li>公开 App ID 为 <code>6773215187</code>，1.39 状态为 <code>READY_FOR_SALE</code>。</li>
+<li>用户约束“中文地区 App 名称不可修改”已遵守：<code>zh-Hans/name.txt</code> 保持为“篮球生涯手帐”。</li>
+<li>没有修改 App Store Connect、没有部署外部 Pages、没有提交 Git。</li>
+</ul>
+
+<h2>2. Fastlane 增量拉取与修复</h2>
+<div class="ok"><strong>拉取成功。</strong>原有 download lane 只读取版本本地化字段，无法补齐 name/subtitle；本轮在拉取流程中增加了 AppInfoLocalization 的 name/subtitle 读取，并重新拉取 1.39。该 lane 仍是只读下载流程。</div>
+<table><thead><tr><th>项目</th><th>结果</th></tr></thead><tbody>
+<tr><td>当前版本</td><td><code>1.39</code>，来源为 App Store Connect live version</td></tr>
+<tr><td>Locale</td><td>10 个：de-DE、en-US、es-ES、fr-FR、it、ja、ko、ru、zh-Hans、zh-Hant</td></tr>
+<tr><td>名称</td><td>从商店拉取并落盘为各 locale 的 <code>name.txt</code>；简体中文名称未改</td></tr>
+<tr><td>副标题</td><td>为 10 个 locale 写入第一版本地化候选；意大利语超长问题已修复</td></tr>
+<tr><td>描述</td><td>删除重复的开头段落，并统一各语言描述中的产品称呼</td></tr>
+<tr><td>关键词</td><td>修复上一轮发现的 UTF-8 byte 溢出；所有 locale 均不超过 100 bytes</td></tr>
+</tbody></table>
+
+<h2>3. Metadata 本地验证</h2>
+<table><thead><tr><th>Locale</th><th>名称</th><th>副标题</th><th>keywords UTF-8 bytes</th><th>结论</th></tr></thead><tbody>
+<tr><td>zh-Hans</td><td>篮球生涯手帐</td><td>语音记分·球员统计·AI复盘</td><td>80</td><td>通过，名称保持不变</td></tr>
+<tr><td>zh-Hant</td><td>籃球記分</td><td>語音記分·球員統計·AI復盤</td><td>86</td><td>通过</td></tr>
+<tr><td>en-US</td><td>Basketball Journal</td><td>Voice Scoring &amp; Game Stats</td><td>97</td><td>通过</td></tr>
+<tr><td>de-DE</td><td>Basketball Scorebook</td><td>Sprachscoring · Spielstatistik</td><td>96</td><td>通过</td></tr>
+<tr><td>es-ES</td><td>Diario Basket</td><td>Anotar partidos · Estadísticas</td><td>97</td><td>通过</td></tr>
+<tr><td>fr-FR</td><td>Basketball Scorebook</td><td>Score · Statistiques · IA</td><td>97</td><td>通过</td></tr>
+<tr><td>it</td><td>Basketball Scorebook</td><td>Segnapunti · Statistiche</td><td>97</td><td>通过</td></tr>
+<tr><td>ja</td><td>バスケ記録</td><td>音声記録・試合統計・AI分析</td><td>96</td><td>通过</td></tr>
+<tr><td>ko</td><td>농구 기록</td><td>음성 기록·경기 통계·AI 분석</td><td>83</td><td>通过</td></tr>
+<tr><td>ru</td><td>Basketball Scorebook</td><td>Голос · Статистика · Матчи</td><td>94</td><td>通过</td></tr>
+</tbody></table>
+<p class="small">校验同时确认每个 locale 都具备 name、subtitle、description、keywords、promotional_text、release_notes、marketing_url、support_url；description 首行只出现一次。</p>
+
+<h2>4. 本地上架文档与宣传页</h2>
+<ul>
+<li>更新 <a href="../../../docs/index.html">docs/index.html</a>：各语言名称、alt 文本、页脚和“已上架 App Store”状态与当前 listing 对齐。</li>
+<li>更新 <a href="../../../docs/appstore/app-store-metadata.md">app-store-metadata.md</a>、<a href="../../../docs/appstore/support.md">support.md</a>、<a href="../../../docs/appstore/review-notes.md">review-notes.md</a>、隐私政策和使用条款 Markdown 的旧产品名。</li>
+<li>这些修改只更新仓库源文件；GitHub Pages 是否已经部署、App Store Connect 的隐私 URL/分类是否已变更，仍需外部确认。</li>
+</ul>
+
+<h2>5. 逐语言截图资产</h2>
+<div class="ok"><strong>已生成 50 张。</strong>10 个 locale × 5 张功能介绍型截图，全部为 PNG、尺寸 1242×2688，落在 <code>fastlane/screenshots/&lt;locale&gt;/iPhone 6.5-inch/</code>。</div>
+<div class="grid">
+<div class="card"><strong>01-score</strong><br>实时记分与比赛现场<br><a href="../../../fastlane/screenshots/zh-Hans/iPhone%206.5-inch/01-score.png">简体中文预览</a></div>
+<div class="card"><strong>02-stats</strong><br>球员与球队统计<br><a href="../../../fastlane/screenshots/en-US/iPhone%206.5-inch/02-stats.png">英文预览</a></div>
+<div class="card"><strong>03-review</strong><br>AI 复盘与赛后总结<br><a href="../../../fastlane/screenshots/ja/iPhone%206.5-inch/03-review.png">日文预览</a></div>
+<div class="card"><strong>04-team</strong><br>球队管理与协同<br><a href="../../../fastlane/screenshots/ko/iPhone%206.5-inch/04-team.png">韩文预览</a></div>
+<div class="card"><strong>05-growth</strong><br>生涯成长与数据导出<br><a href="../../../fastlane/screenshots/zh-Hant/iPhone%206.5-inch/05-growth.png">繁中预览</a></div>
+</div>
+<p class="note">截图外层标题、副标题和底部卖点已按 locale 翻译；手机区域使用当前公开 App Store 截图，因此 App 内 UI 仍是现有英文界面。这是“基于当前截图生成”的可交付版本，不应误认为已经完成 App 内 UI 的本地化采集。</p>
+
+<h2>6. ASO 方案与下一轮建议</h2>
+<ol>
+<li>第一轮先测试“语音记分 + 球员统计 + AI 复盘”的副标题组合，名称保持不动；不要同时修改名称、类别、截图和关键词后再判断效果。</li>
+<li>截图顺序建议保持：实时记分 → 统计 → AI 复盘 → 球队协同 → 生涯成长；第一张承担“立即理解产品”的任务。</li>
+<li>非中文 subtitle、description 和截图文案应由对应语言母语者校审后再上传，尤其是德语、法语、意大利语、俄语的篮球术语。</li>
+<li>App Store Connect 只读确认 primary category、实际 metadata、截图版本和隐私 URL；公开页面当前曾显示“工具”，而 Xcode 项目类别是 Sports，二者不能互相替代证明。</li>
+<li>若需要截图中的 App 内界面也本地化，应在对应语言 Simulator 中重新采集，而不是继续复用英文源截图。</li>
+</ol>
+
+<h2>7. 参考与边界</h2>
+<ul>
+<li><a href="https://developer.apple.com/app-store/search/">Apple App Store Search</a>：keywords 100 bytes 等限制。</li>
+<li><a href="https://developer.apple.com/app-store/product-page/">Apple Creating Your Product Page</a>：产品页字段和截图/实验建议。</li>
+<li>本轮没有 Apple Ads、真实自然搜索排名、转化率或 App Analytics 数据；不要把公开搜索代理结果当成官方 ASO 指标。</li>
+</ul>
+</main></body></html>

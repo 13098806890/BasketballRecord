@@ -98,6 +98,15 @@ final class DataCompatibilityTests: XCTestCase {
         XCTAssertEqual(decoded.playerIDs, [uuid("4001"), uuid("4002")])
     }
 
+    func testLegacyTeamWithoutIconDecodes() throws {
+        let data = Data(#"{"id":"00000000-0000-0000-0000-000000005001","name":"LegacyTeam","playerIDs":["00000000-0000-0000-0000-000000004001"]}"#.utf8)
+        let decoded = try JSONDecoder().decode(Team.self, from: data)
+        XCTAssertEqual(decoded.id, uuid("5001"))
+        XCTAssertEqual(decoded.name, "LegacyTeam")
+        XCTAssertEqual(decoded.playerIDs, [uuid("4001")])
+        XCTAssertNil(decoded.iconData)
+    }
+
     func testGameGroupRoundTrip() throws {
         let group = GameGroup(id: uuid("6001"), name: "Tournament", description: "Summer league", createdAt: Date(), color: "#FF0000")
         let data = try JSONEncoder().encode(group)

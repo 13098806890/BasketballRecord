@@ -298,7 +298,8 @@
 "section_basic_info" = "Información básica";
 "label_position" = "Posición";
 "position_unspecified" = "Sin especificar";
-"stats_games_short" = "GP";
+"stats_games_short" = "Partidos";
+"career_stat_games_played_short" = "Partidos";
 "stat_label_starter_short" = "GS";
 "stat_label_bench_short" = "BN";
 "stats_win_rate_short" = "W%";
@@ -365,6 +366,7 @@
 "button_select_month" = "Seleccionar el mes";
 "button_share_all_segments" = "Compartir todos los segmentos";
 "button_show_all" = "Mostrar todos";
+"button_show_less" = "Mostrar menos";
 "button_switch_single_import" = "Modo de segmento único";
 "count_games_format" = "%d juegos";
 "count_players_people_format" = "%d jugadores";
@@ -409,6 +411,9 @@
 "label_player" = "Jugador";
 "label_segment_count" = "Segmentos";
 "label_team" = "Equipo";
+"label_team_icon" = "Icono del equipo";
+"label_select_team_icon" = "Añadir icono del equipo";
+"label_remove_team_icon" = "Eliminar icono del equipo";
 "label_this_game_stats" = "Este juego";
 "label_total_stats" = "Total";
 "label_weight" = "Peso";
@@ -627,12 +632,20 @@
 "section_voice_nicknames_footer" = "Añade apodos para el reconocimiento de voz. Di un apodo durante el partido para seleccionar a este jugador.";
 "placeholder_nicknames" = "Introducir apodo…";
 "settings_cloud_storage" = "Almacenamiento iCloud";
+"settings_language" = "Idioma";
+"settings_language_alert_title" = "El idioma sigue los ajustes del iPhone";
+"settings_language_alert_message" = "Cambia el idioma de la app en Ajustes > General > Idioma y región.";
 "stat_label_2pt" = "2PT";
 "stat_label_3pt" = "3PT";
 "stat_label_free_throw" = "TL";
 "stat_label_starter" = "Titular";
 "stat_label_bench" = "Banca";
 "stats_points_format_short" = "PTS";
+"stats_rebound_short" = "REB";
+"stats_assists_short" = "AST";
+"stats_steals_short" = "STL";
+"stats_blocks_short" = "BLK";
+"stats_turnovers_short" = "TO";
 "stats_rebound_assist_steal_block" = "REB / AST / STL / BLK";
 "stats_rebound_block" = "REB / TAP";
 "stats_rebound_detail" = "REB / OREB / DREB";
@@ -992,6 +1005,7 @@ Formato:
 "elo_label_gs_factor" = "Factor GS";
 "elo_computation_title" = "Cálculo ELO";
 "label_elo" = "ELO";
+"label_elo_history" = "Historial de ELO";
 "elo_format" = "ELO %d";
 "elo_title_format" = "ELO – %@";
 "elo_tier_bronze" = "Bronce";
@@ -1288,3 +1302,4 @@ Formato:
 "excel_team_stats_none" = "Estadísticas de jugadores";
 "excel_event_assist_format" = "%1$@ asistió a %2$@ en %3$@";
 "excel_event_steal_turnover_format" = "%1$@ robó el balón a %2$@";
+"nav_player_detail" = "Detalle del jugador";

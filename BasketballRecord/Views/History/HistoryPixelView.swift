@@ -249,22 +249,33 @@ struct HistoryPixelView: View {
     }
 
     private func pixelGameLink(_ game: SavedGame) -> some View {
-        NavigationLink {
-            SavedGameDetailView(game: game)
-        } label: {
-            PixelSavedGameRow(game: game)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+        HStack(spacing: 8) {
+            NavigationLink {
+                SavedGameDetailView(game: game)
+            } label: {
+                PixelSavedGameRow(game: game)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, alignment: .leading)
+
             if store.isPro {
                 Button {
                     store.toggleCloudStorage(for: game.id)
                 } label: {
-                    Label("iCloud", systemImage: store.cloudEnabledGameIDs.contains(game.id) ? "icloud.slash" : "icloud")
+                    Image(systemName: store.cloudEnabledGameIDs.contains(game.id) ? "icloud.fill" : "icloud")
+                        .font(.headline)
+                        .foregroundStyle(store.cloudEnabledGameIDs.contains(game.id) ? HistoryPixelDesign.cyan : HistoryPixelDesign.muted)
+                        .frame(width: 38, height: 58)
+                        .background(HistoryPixelDesign.panel)
+                        .overlay(HistoryPixelPanelShape().stroke(HistoryPixelDesign.line, lineWidth: 1))
                 }
-                .tint(.blue)
+                .buttonStyle(.plain)
+                .accessibilityLabel(LocalizedStringKey("label_cloud"))
             }
+        }
+        .contentShape(Rectangle())
+        .swipeActions(edge: .leading, allowsFullSwipe: false) {
             Button {
                 if let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) {
                     store.savedGames[idx].isLocked.toggle()

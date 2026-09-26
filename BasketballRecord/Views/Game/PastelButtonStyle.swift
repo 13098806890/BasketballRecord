@@ -2,10 +2,10 @@ import SwiftUI
 
 enum GamePalette {
     static let make = Color(uiColor: UIColor { tc in
-        tc.userInterfaceStyle == .dark ? UIColor(red: 0.20, green: 0.40, blue: 0.20, alpha: 1) : UIColor(red: 0.78, green: 0.93, blue: 0.78, alpha: 1)
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.72, green: 0.25, blue: 0.08, alpha: 1) : UIColor(red: 0.94, green: 0.30, blue: 0.08, alpha: 1)
     })
     static let miss = Color(uiColor: UIColor { tc in
-        tc.userInterfaceStyle == .dark ? UIColor(red: 0.20, green: 0.30, blue: 0.45, alpha: 1) : UIColor(red: 0.86, green: 0.92, blue: 0.98, alpha: 1)
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.20, green: 0.14, blue: 0.12, alpha: 1) : UIColor(red: 1.00, green: 0.98, blue: 0.97, alpha: 1)
     })
     static let assist = Color(uiColor: UIColor { tc in
         tc.userInterfaceStyle == .dark ? UIColor(red: 0.18, green: 0.28, blue: 0.45, alpha: 1) : UIColor(red: 0.74, green: 0.86, blue: 0.98, alpha: 1)
@@ -37,6 +37,12 @@ enum GamePalette {
     static let selectedBorder = Color(uiColor: UIColor { tc in
         tc.userInterfaceStyle == .dark ? UIColor(red: 0.50, green: 0.70, blue: 0.95, alpha: 1) : UIColor(red: 0.25, green: 0.55, blue: 0.90, alpha: 1)
     })
+    static let homeScoreboard = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.72, green: 0.25, blue: 0.08, alpha: 1) : UIColor(red: 0.94, green: 0.30, blue: 0.08, alpha: 1)
+    })
+    static let awayScoreboard = Color(uiColor: UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0.06, green: 0.18, blue: 0.34, alpha: 1) : UIColor(red: 0.05, green: 0.18, blue: 0.34, alpha: 1)
+    })
     static let onCourtBorder = Color(uiColor: UIColor { tc in
         tc.userInterfaceStyle == .dark ? UIColor(red: 0.55, green: 0.75, blue: 0.95, alpha: 1) : UIColor(red: 0.45, green: 0.69, blue: 0.93, alpha: 1)
     })
@@ -65,7 +71,20 @@ enum ActionButtonStyle {
         }
     }
 
-    var foreground: Color { GamePalette.text }
+    var foreground: Color {
+        switch self {
+        case .made:
+            return .white
+        case .missed:
+            return GamePalette.homeScoreboard
+        case .warning:
+            return .red
+        case .periodEnd:
+            return .white
+        default:
+            return GamePalette.text
+        }
+    }
 }
 
 struct PastelActionButtonStyle: ButtonStyle {
@@ -78,7 +97,7 @@ struct PastelActionButtonStyle: ButtonStyle {
             .background(style.background.opacity(configuration.isPressed ? 0.65 : 1), in: RoundedRectangle(cornerRadius: cornerRadius))
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(.white.opacity(0.7), lineWidth: 1)
+                    .stroke(style == .missed ? GamePalette.homeScoreboard.opacity(0.8) : .white.opacity(0.7), lineWidth: 1)
             )
             .opacity(configuration.isPressed ? 0.82 : 1)
     }

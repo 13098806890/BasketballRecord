@@ -95,7 +95,7 @@ extension AppStore {
                     teamIDMap[exportedTeam.id] = exportedTeam.id
                 } else {
                     let mappedPlayerIDs = exportedTeam.playerIDs.compactMap { playerIDMap[$0] ?? $0 }
-                    let newTeam = Team(id: exportedTeam.id, name: exportedTeam.name, playerIDs: mappedPlayerIDs)
+                    let newTeam = Team(id: exportedTeam.id, name: exportedTeam.name, playerIDs: mappedPlayerIDs, iconData: exportedTeam.iconData)
                     teams.append(newTeam)
                     teamIDMap[exportedTeam.id] = newTeam.id
                 }

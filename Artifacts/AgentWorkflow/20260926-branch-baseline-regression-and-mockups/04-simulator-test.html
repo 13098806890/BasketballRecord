@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>模拟器测试 · 新旧 UI 功能与数据对比</title><style>body{font:15px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;max-width:1100px;margin:28px auto;padding:0 18px;color:#172033;background:#f5f7fb}main{background:#fff;padding:28px;border-radius:18px;box-shadow:0 8px 28px #17203312}h1,h2{color:#102a43}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}.card{border:1px solid #dfe6ef;border-radius:14px;padding:14px;background:#fbfcfe}.pass{color:#117a4b}.warn{color:#9b5a00}.block{color:#b42318}table{width:100%;border-collapse:collapse}th,td{text-align:left;vertical-align:top;padding:9px;border-bottom:1px solid #e5eaf0}img{max-width:100%;border-radius:12px;border:1px solid #e2e8f0}code{background:#eef2f7;padding:2px 5px;border-radius:5px}</style></head><body><main>
+<h1>模拟器测试 · 新旧 UI 功能与数据对比</h1>
+<p><strong>设备：</strong>旧版基线 <code>BasketballRecord Old UI</code> / iOS 27，UDID <code>209F681B-62B0-4280-A995-2A936BD62F1A</code>；新版 <code>iPhone 17</code> / iOS 27，UDID <code>F7F6F3E8-AA77-4FC4-A65B-8BDA2CA78E92</code>。</p>
+<p><strong>测试方式：</strong>当前仓库没有 <code>.codex/ui-audit.json</code>，且 CUA 可用应用列表未暴露 Simulator，因此不能把本轮描述成完整的 live tap exploratory coverage。使用隔离的 <code>main_free_pro</code> 基线 worktree 构建、<code>simctl</code> 启动/截图、当前 DEBUG fixture，以及源码逐项功能矩阵；未能真实点击的路径均标为阻塞或待补测。</p>
+<h2>主页面截图</h2><div class="grid">
+<div class="card"><h3>Roster</h3><p>旧版：<a href="screenshots/baseline/tab-0.png">baseline</a>；新版：<a href="screenshots/new/tab-0-settled.png">new</a></p><img src="screenshots/new/tab-0-settled.png" alt="新版 Roster"></div>
+<div class="card"><h3>Score</h3><p>旧版：<a href="screenshots/baseline/tab-1.png">baseline</a>；新版：<a href="screenshots/new/tab-1-settled.png">new</a></p><img src="screenshots/new/tab-1-settled.png" alt="新版 Score"></div>
+<div class="card"><h3>Career</h3><p>旧版：<a href="screenshots/baseline/tab-2.png">baseline</a>；新版：<a href="screenshots/new/tab-2-settled.png">new</a>；球员 tab：<a href="screenshots/new/career-enum_player.png">new player board</a></p><img src="screenshots/new/career-enum_player.png" alt="新版 Career Player"></div>
+<div class="card"><h3>Settings</h3><p>旧版：<a href="screenshots/baseline/tab-3.png">baseline</a>；新版：<a href="screenshots/new/tab-3-settled.png">new</a></p><img src="screenshots/new/tab-3-settled.png" alt="新版 Settings"></div>
+</div>
+<h2>详情页截图</h2><div class="grid">
+<div class="card"><h3>比赛详情</h3><a href="screenshots/new/detail-game.png">完整截图</a><img src="screenshots/new/detail-game.png" alt="新版比赛详情"></div>
+<div class="card"><h3>比赛中的球员详情</h3><a href="screenshots/new/detail-player.png">完整截图</a><img src="screenshots/new/detail-player.png" alt="新版比赛球员详情"></div>
+<div class="card"><h3>生涯球员详情</h3><a href="screenshots/new/detail-careerPlayer.png">完整截图</a><img src="screenshots/new/detail-careerPlayer.png" alt="新版生涯球员详情"></div>
+</div>
+<h2>功能覆盖矩阵</h2><table><thead><tr><th>区域</th><th>旧版证据/源码</th><th>新版证据/源码</th><th>结论</th></tr></thead><tbody>
+<tr><td>记分页核心记分</td><td>旧版 Score 截图显示 2PT/3PT/And-1/FT 命中与未中、Assist、Rebound、Block、Steal、Foul、Turnover。</td><td>新版 Score 截图保留全部按钮；<code>GameView.swift</code> action keys 集合与基线一致。</td><td class="pass">通过：未发现功能按钮删除。</td></tr>
+<tr><td>篮板细分</td><td>基线源码包含 offensive/defensive rebound 分支；默认无球员时显示通用 Rebound。</td><td>新版 <code>GameView.swift</code> 保留两种分支和通用分支，未修改数据结构。</td><td class="pass">通过：逻辑保留。</td></tr>
+<tr><td>语音、事件、撤销重做</td><td>旧版源码有事件列表、Undo/Redo，语音显示由设置控制。</td><td>新版截图可见透明居中的麦克风覆盖在 Events；Undo/Redo、Events、Game Data 均可见。</td><td class="pass">通过：入口保留，布局变化已记录。</td></tr>
+<tr><td>换人、迟到球员、节次</td><td>旧版 <code>GameView.swift</code> 有 Substitute、Add Late Arrival、period toggle、overtime sheets。</td><td>新版截图可见 Substitute、Add Late Arrival、Period 3 End；源码 sheets/alerts 均保留。</td><td class="pass">通过：入口保留；实际点击弹窗待补测。</td></tr>
+<tr><td>比赛详情球员面板</td><td>旧版 SavedGameDetail 为球队球员统计列表。</td><td>新版截图显示两队球员、号码、头像、PTS/REB/AST/STL/BLK/TO，并可导航 PlayerProfile。</td><td class="pass">通过：展示内容未丢；布局重组。</td></tr>
+<tr><td>生涯三 tab</td><td>旧版 Career 有 Game History/Team/Player。</td><td>新版分别保存了 <a href="screenshots/new/career-nav_game_history.png">History</a>、<a href="screenshots/new/career-enum_team.png">Team</a>、<a href="screenshots/new/career-enum_player.png">Player</a> 证据。</td><td class="pass">通过：三 tab 和球员数据保留。</td></tr>
+<tr><td>设置及子页</td><td>旧版 Settings 主页可见 Voice、iCloud、Units、Pro 和下方 Sync/Import。</td><td>新版主页可见 Voice、iCloud、Units、Pro；屏幕内未实际进入 Voice/AI、导入导出等子页。</td><td class="warn">部分：子页 live tap 阻塞，已产出 mockup，见 UX 报告。</td></tr>
+<tr><td>真实点击回归</td><td>无可用 CUA Simulator surface；没有 UI Test target 配置。</td><td>同上。</td><td class="block">阻塞：本轮不能声称已逐按钮点击。</td></tr>
+</tbody></table>
+<h2>明确发现与风险</h2><ol><li>隔离基线首次启动因旧版 <code>CloudKitManager</code> 在 Simulator 调用 <code>CKContainer.default()</code> 崩溃；只在 baseline worktree 加了与当前 main 相同的 Simulator guard，未修改当前工作区。该问题应作为旧版环境缺陷保留记录。</li><li>旧版 Score 是空比赛状态，新版使用了 DEBUG fixture（108–97、每队 3 名球员、5 条事件）以覆盖数据密集布局，不能作为同状态像素对比，只能作为信息架构和功能集合对比。</li><li>当前 main 的源码 key 集合没有删除 Score action；发现的少量 removed key 是导航标题或 data range 文案被重命名为新 key，不是功能入口删除。</li></ol>
+<h2>下一轮补测</h2><p>需要先提供可操作的 Simulator UI channel 或配置 <code>.codex/ui-audit.json</code>，再逐项执行 tap/long-press/swipe：记分按钮、语音长按、换人、迟到球员、节次/加时、iCloud、导入导出、事件编辑、删除/合并确认框。</p>
+<p><strong>完成状态：</strong><span class="warn">有证据的静态/源码审计完成；交互逐点回归因工具面不可用而待补测。</span></p>
+</main></body></html>

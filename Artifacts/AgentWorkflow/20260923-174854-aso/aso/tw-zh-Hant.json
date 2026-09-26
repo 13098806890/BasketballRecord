@@ -1,0 +1,178 @@
+{
+  "provider": "public-apple",
+  "app": "6773215187",
+  "app_id": "6773215187",
+  "app_status": "ready-for-sale",
+  "mode": "postlaunch",
+  "rank_status": "proxy",
+  "rank_semantics": "公开 iTunes Search 前 50 结果中的代理位置；不是 Apple 官方自然搜索排名",
+  "storefront": "tw",
+  "locale": "zh-Hant",
+  "measured_at": "2026-09-23T09:50:17.908390+00:00",
+  "methodology": {
+    "autocomplete": "Apple public autocomplete endpoint",
+    "ranking": "public-search-proxy: position in first 50 iTunes Search results when app-id is supplied",
+    "scores": "popularity/competition/opportunity are reproducible heuristics, not official search volume",
+    "fixed_keyword_set": true,
+    "keyword_set_id": "tw-zh-hant-v1"
+  },
+  "keywords": [
+    {
+      "keyword": "籃球記分",
+      "intent": "固定关键词集合",
+      "popularity": null,
+      "competition": 96,
+      "rank": 1,
+      "rank_kind": "public-search-proxy",
+      "trend": null,
+      "opportunity": null,
+      "source": "fixed-keyword+iTunes-search",
+      "measured_at": "2026-09-23T09:50:17.908390+00:00",
+      "signals": {
+        "autocomplete_rank": null,
+        "result_count": 48,
+        "top_apps": [
+          "籃球記分",
+          "籃球計時器 - 記分板和進攻計時",
+          "計分板-比賽計分",
+          "記分牌 - 體育、得分、排球、手球、台球、球賽、滾球",
+          "籃球記分簿 - 比賽數據統計",
+          "运动记分器 - 运动计分牌丨得分记录板",
+          "記分牌: 體育, 運動, 羽毛球, 籃球, 足球, 乒乓球",
+          "籃球計分板",
+          "虎扑-评分篮球足球游戏影视",
+          "Virtual Scoreboard: 記分器"
+        ],
+        "score_kind": "heuristic; not Apple search volume",
+        "rank_kind": "public-search-proxy; first 50 iTunes Search results, not official organic rank"
+      }
+    },
+    {
+      "keyword": "籃球統計",
+      "intent": "固定关键词集合",
+      "popularity": null,
+      "competition": 92,
+      "rank": 11,
+      "rank_kind": "public-search-proxy",
+      "trend": null,
+      "opportunity": null,
+      "source": "fixed-keyword+iTunes-search",
+      "measured_at": "2026-09-23T09:50:17.908390+00:00",
+      "signals": {
+        "autocomplete_rank": null,
+        "result_count": 46,
+        "top_apps": [
+          "NBA：直播比賽和比分",
+          "Tally Hoops - 籃球投籃統計與計數",
+          "籃球簡易統計器",
+          "籃球記分簿 - 比賽數據統計",
+          "記分 · Gotop - 比賽記分、計時、統計",
+          "Sofascore：即時運動比分",
+          "365Scores: 即時比分及新聞",
+          "BasketballPredicts: 籃球AI預測",
+          "三双 - 篮球运动追踪、运动打卡记录、运动分析统计",
+          "計分器 - 桌遊記分板 撲克麻將卡牌骰子計時排行統計"
+        ],
+        "score_kind": "heuristic; not Apple search volume",
+        "rank_kind": "public-search-proxy; first 50 iTunes Search results, not official organic rank"
+      }
+    },
+    {
+      "keyword": "球員統計",
+      "intent": "固定关键词集合",
+      "popularity": null,
+      "competition": 96,
+      "rank": 25,
+      "rank_kind": "public-search-proxy",
+      "trend": null,
+      "opportunity": null,
+      "source": "fixed-keyword+iTunes-search",
+      "measured_at": "2026-09-23T09:50:17.908390+00:00",
+      "signals": {
+        "autocomplete_rank": null,
+        "result_count": 48,
+        "top_apps": [
+          "籃球簡易統計器",
+          "Vollog - 排球數據統計計分",
+          "籃球記分簿 - 比賽數據統計",
+          "Goalii - AI足球預測·統計分析",
+          "Soccer Lineup: Starting XI",
+          "足球簡易統計器",
+          "BasketballPredicts: 籃球AI預測",
+          "Football AI 足球预测专家",
+          "排球戰術板：戰術教學與比賽資訊系統",
+          "教練日誌 — 學員課程管理"
+        ],
+        "score_kind": "heuristic; not Apple search volume",
+        "rank_kind": "public-search-proxy; first 50 iTunes Search results, not official organic rank"
+      }
+    },
+    {
+      "keyword": "比賽記錄",
+      "intent": "固定关键词集合",
+      "popularity": null,
+      "competition": 98,
+      "rank": null,
+      "rank_kind": "public-search-proxy",
+      "trend": null,
+      "opportunity": null,
+      "source": "fixed-keyword+iTunes-search",
+      "measured_at": "2026-09-23T09:50:17.908390+00:00",
+      "signals": {
+        "autocomplete_rank": null,
+        "result_count": 49,
+        "top_apps": [
+          "棒球記錄 - 成績統計＆計分本",
+          "桌球筆記 - 比賽練習記錄",
+          "計分板-比賽計分",
+          "Virtual Scoreboard: 記分器",
+          "記分牌 - 體育、得分、排球、手球、台球、球賽、滾球",
+          "籃球記分簿 - 比賽數據統計",
+          "碼錶 計圈分段計時器 跑步訓練比賽圈速記錄分析統計",
+          "小球圈 - AI教練與運動記錄",
+          "飛盤比賽記錄",
+          "ToScore 籃球比賽記錄與規則檢核"
+        ],
+        "score_kind": "heuristic; not Apple search volume",
+        "rank_kind": "public-search-proxy; first 50 iTunes Search results, not official organic rank"
+      }
+    },
+    {
+      "keyword": "語音記分",
+      "intent": "固定关键词集合",
+      "popularity": null,
+      "competition": 94,
+      "rank": 19,
+      "rank_kind": "public-search-proxy",
+      "trend": null,
+      "opportunity": null,
+      "source": "fixed-keyword+iTunes-search",
+      "measured_at": "2026-09-23T09:50:17.908390+00:00",
+      "signals": {
+        "autocomplete_rank": null,
+        "result_count": 47,
+        "top_apps": [
+          "出口成帳 - 語音記帳簡單直接天天記",
+          "錄音筆記 - 錄音軟件與AI語音備忘錄轉文字專家",
+          "極簡記帳：日常・旅行・分帳",
+          "NoteSpeak: AI語音轉文字·會議記錄",
+          "一行記帳 - AI語音記帳、發票掃描、自動分類",
+          "桌球計分板 - 手機變身記分板·記分牌",
+          "MOZE",
+          "家計AI – 拍照/語音自動記帳・智能分類",
+          "哈記米-簡潔好看的AI智慧記帳本理財助手",
+          "好易算-計算器,真人語音,單位換算"
+        ],
+        "score_kind": "heuristic; not Apple search volume",
+        "rank_kind": "public-search-proxy; first 50 iTunes Search results, not official organic rank"
+      }
+    }
+  ],
+  "validation": {
+    "status": "待复测",
+    "baseline_run_id": "",
+    "query_fingerprint": "tw:zh-Hant:tw-zh-hant-v1:比賽記錄,球員統計,籃球統計,籃球記分,語音記分",
+    "note": "使用相同 storefront、locale、关键词集合、mode 和 app-id 再运行一次；不能把单次结果当作趋势。"
+  },
+  "errors": []
+}

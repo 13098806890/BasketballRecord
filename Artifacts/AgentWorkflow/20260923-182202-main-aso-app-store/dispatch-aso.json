@@ -1,0 +1,61 @@
+{
+  "action": "dispatch",
+  "exchange_id": "exchange-0001",
+  "to_stage": "aso-ops",
+  "task_scope": "沿用上一轮 ASO 审核结果，在 main 分支完成当前 App Store 数据拉取后的增量修复、逐语言截图资产生成与本地验证。",
+  "task_prompt": "先通过仓库现有 Fastlane lane 只读拉取 1.39 当前商店数据；保持 zh-Hans App 名称“篮球生涯手帐”不变，修复可由仓库直接修复的 metadata 与本地上架文档一致性，并基于当前公开商店截图生成每个维护语言的功能介绍型截图。不得上传 App Store Connect 或提交 Git。",
+  "acceptance_criteria": [
+    "Fastlane 拉取成功并记录为增量修复基线",
+    "中文地区名称不变，10 个 locale 的 metadata 通过 subtitle/keywords/描述校验",
+    "生成 10 个 locale、每个 5 张、1242x2688 的截图资产",
+    "报告清楚区分已完成、本地生成和仍需外部确认的事项"
+  ],
+  "coverage_ids": ["criterion-01", "criterion-02", "criterion-03", "criterion-04"],
+  "required_outputs": [
+    "13-aso-operations.html",
+    "fastlane/metadata/1.39",
+    "fastlane/screenshots",
+    "workflow-state.json"
+  ],
+  "input_files": [
+    "AGENTS.md",
+    ".codex/ios-agent-workflow.json",
+    "fastlane/Fastfile",
+    "fastlane/metadata/1.38/zh-Hans/keywords.txt",
+    "docs/appstore/app-store-metadata.md"
+  ],
+  "changed_files": [
+    "fastlane/Fastfile",
+    "fastlane/metadata/1.39",
+    "fastlane/screenshots",
+    "docs/index.html",
+    "docs/appstore"
+  ],
+  "verification": [
+    "Fastlane download_metadata version:1.39 成功",
+    "10 个 locale 的 metadata 字节与长度校验通过",
+    "50 张 PNG 截图尺寸校验通过"
+  ],
+  "unresolved_issues": [
+    "未上传 App Store Connect",
+    "非中文文案仍建议母语校审",
+    "App 内界面截图沿用当前公开英文源图，尚未从本地化 Simulator 重新采集"
+  ],
+  "prohibited_actions": [
+    "不得修改 zh-Hans App 名称",
+    "不得执行 upload_metadata 或其他 App Store Connect 写入",
+    "不得提交 Git"
+  ],
+  "next_checks": [
+    "由用户或本地化审核者确认非中文副标题与截图文案",
+    "部署 docs 页面并在 ASC 只读确认分类与隐私链接",
+    "如需完全本地化截图，从对应语言 Simulator 重新采集 App 内 UI"
+  ],
+  "knowledge_context": {
+    "mode": "manual",
+    "continuation_of_run": "20260923-174854-aso",
+    "app_id": "6773215187",
+    "version": "1.39",
+    "branch": "main"
+  }
+}

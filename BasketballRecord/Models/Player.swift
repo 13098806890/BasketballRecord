@@ -84,11 +84,13 @@ struct Team: Identifiable, Codable, Hashable {
     var id = UUID()
     var name: String
     var playerIDs: [UUID] = []
+    var iconData: Data?
 
-    init(id: UUID = UUID(), name: String, playerIDs: [UUID] = []) {
+    init(id: UUID = UUID(), name: String, playerIDs: [UUID] = [], iconData: Data? = nil) {
         self.id = id
         self.name = name
         self.playerIDs = playerIDs
+        self.iconData = iconData
     }
 
     init(from decoder: Decoder) throws {
@@ -96,6 +98,7 @@ struct Team: Identifiable, Codable, Hashable {
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         name = try container.decode(String.self, forKey: .name)
         playerIDs = try container.decodeIfPresent([UUID].self, forKey: .playerIDs) ?? []
+        iconData = try container.decodeIfPresent(Data.self, forKey: .iconData)
     }
 }
 
@@ -152,21 +155,24 @@ struct ExportTeam: Identifiable, Codable, Hashable {
     var id: UUID
     var name: String
     var playerIDs: [UUID]
+    var iconData: Data?
 
     init(team: Team) {
         id = team.id
         name = team.name
         playerIDs = team.playerIDs
+        iconData = team.iconData
     }
 
-    init(id: UUID, name: String, playerIDs: [UUID]) {
+    init(id: UUID, name: String, playerIDs: [UUID], iconData: Data? = nil) {
         self.id = id
         self.name = name
         self.playerIDs = playerIDs
+        self.iconData = iconData
     }
 
     var team: Team {
-        Team(id: id, name: name, playerIDs: playerIDs)
+        Team(id: id, name: name, playerIDs: playerIDs, iconData: iconData)
     }
 }
 

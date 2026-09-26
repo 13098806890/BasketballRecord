@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>工作流总览 · 新旧 UI 功能与数据对比</title><style>body{font:16px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;max-width:960px;margin:32px auto;padding:0 20px;color:#172033;background:#f7f8fa}main{background:#fff;padding:30px;border-radius:16px;box-shadow:0 6px 24px #17203312}.state{display:inline-block;padding:4px 10px;border-radius:999px;background:#ffe8e6;color:#a12622;font-weight:700}li{margin:6px 0}code{background:#eef1f5;padding:.12em .35em;border-radius:4px}</style></head>
+<body><main><h1>工作流总览</h1><p><strong>任务：</strong>新旧 UI 功能与数据对比审查</p><p><strong>状态：</strong><span class="state">发现需修复项</span></p>
+<h2>本轮报告</h2><ol><li><a href="01-orchestrator.html">编排报告</a> — 已完成</li><li><a href="03-code-review.html">代码审查</a> — 已完成，发现 P1/P2 回归</li><li><a href="04-simulator-test.html">模拟器测试</a> — 已完成同数据截图对比，完整点击受环境限制</li><li><a href="06-agent-evaluation.html">Agent 评估</a> — 已完成</li></ol>
+<h2>关键结论</h2><p>核心数值和主要入口仍存在，但新版默认隐藏了旧版直接显示的完整统计字段；实时模式还出现了不应出现的历史事件编辑卡片。修复前不通过。</p>
+<h2>证据</h2><p>截图与结构化状态见 <a href="workflow-state.json">workflow-state.json</a>；截图位于 <code>screenshots/</code>。</p>
+<h2>范围外阶段</h2><p>本任务没有代码实现、ASO、发布、合规、增长或独立视觉设计工作；这些阶段不应影响本轮 UI 回归结论。</p></main></body></html>
