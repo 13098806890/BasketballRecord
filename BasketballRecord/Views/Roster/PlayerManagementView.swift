@@ -39,6 +39,7 @@ struct PlayerManagementView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(player.name)
                             .font(.headline)
+                            .foregroundStyle(EditorialDesign.navy)
                         Text(rosterPlayerSubtitle(player))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -57,9 +58,11 @@ struct PlayerManagementView: View {
                     }
                     .buttonStyle(.plain)
                 }
+                .listRowBackground(EditorialDesign.card)
             }
             .onDelete(perform: store.deletePlayers)
         }
+        .editorialListStyle()
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: LocalizedStringKey("search_players"))
         .onChange(of: searchText) { _, _ in
             searchTask?.cancel()

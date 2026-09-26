@@ -1,0 +1,75 @@
+{
+  "action": "dispatch",
+  "to_stage": "code-review",
+  "task_scope": "对当前实际 diff 和相关调用方做只读审查，验证视觉改造的正确性、回归边界、交互保持和可维护性。",
+  "task_prompt": "你是只读 Code Reviewer。请读取 workflow-state.json、10-visual-design.html、02-developer.html，并审查实际 git diff、相关调用方和 Views/Game 保护边界。重点检查：共享 EditorialDesign 是否仅影响非记分页面；ContentView 的 tab bar modifier 与 AppSkin 分支是否安全；List 行点击区域、导航、数据模型和持久化是否保持；CloudKit 显式 container identifier 是否与 entitlements 一致；是否有新增硬编码用户文案或本地化缺失；构建证据是否真实。不要修改产品代码，不要修改 Fastlane，不要上传或 commit。报告按 blocking/non-blocking findings 给出文件/行号、失败条件、证据和有界修复建议；每个 coverage_id 明确 disposition。",
+  "acceptance_criteria": [
+    "criterion-01",
+    "criterion-02",
+    "criterion-03",
+    "criterion-04"
+  ],
+  "coverage_ids": [
+    "criterion-01",
+    "criterion-02",
+    "criterion-03",
+    "criterion-04"
+  ],
+  "required_outputs": [
+    "03-code-review.html",
+    "实际 diff 与调用方审查结论",
+    "blocking/non-blocking findings"
+  ],
+  "input_files": [
+    "workflow-state.json",
+    "10-visual-design.html",
+    "02-developer.html",
+    "BasketballRecord/Views/Skin/EditorialDesign.swift",
+    "BasketballRecord/Views/ContentView.swift",
+    "BasketballRecord/Views/Game/GameView.swift",
+    "BasketballRecord/Services/CloudKitManager.swift",
+    "BasketballRecord/BasketballRecord.entitlements"
+  ],
+  "changed_files": [
+    "BasketballRecord/Views/Skin/EditorialDesign.swift",
+    "BasketballRecord/Views/ContentView.swift",
+    "BasketballRecord/Views/Career/CareerView.swift",
+    "BasketballRecord/Views/History/AISummaryView.swift",
+    "BasketballRecord/Views/History/HistoryView.swift",
+    "BasketballRecord/Views/History/PlayerGameDetailView.swift",
+    "BasketballRecord/Views/History/SavedGameDetailView.swift",
+    "BasketballRecord/Views/PlayerProfileView.swift",
+    "BasketballRecord/Views/Roster/PlayerManagementView.swift",
+    "BasketballRecord/Views/Roster/TeamManagementView.swift",
+    "BasketballRecord/Views/RosterView.swift",
+    "BasketballRecord/Views/TeamManagementHomeView.swift",
+    "BasketballRecord/Services/CloudKitManager.swift"
+  ],
+  "verification": [
+    "02-developer.html",
+    "Debug iOS Simulator build returned BUILD SUCCEEDED",
+    "git diff --check passed",
+    "Views/Game diff is empty"
+  ],
+  "unresolved_issues": [
+    "Runtime simulator screenshot still captures desktop/black screen",
+    "Dark mode, Dynamic Type and VoiceOver are not specialized evidence"
+  ],
+  "prohibited_actions": [
+    "不得修改产品代码或测试代码",
+    "不得修改 Fastlane 资产",
+    "不得上传或提交 App Store Connect",
+    "不得自行 commit"
+  ],
+  "next_checks": [
+    "检查新增共享 modifier 的作用域和 SwiftUI 生命周期",
+    "检查每个 changed view 的既有交互/数据调用方",
+    "给出进入 simulator-test 的明确 gate"
+  ],
+  "knowledge_context": {
+    "feature_ids": ["ui-editorial-theme"],
+    "flow_ids": ["management", "history", "career", "player-profile", "game-scoring-protected"],
+    "test_case_ids": ["diff-scope-review", "localization-scan"],
+    "known_issue_ids": ["simulator-window-capture", "light-theme-only"]
+  }
+}

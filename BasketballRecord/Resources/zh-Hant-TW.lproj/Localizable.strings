@@ -154,7 +154,8 @@
 "section_basic_info" = "基本信息";
 "label_position" = "位置";
 "position_unspecified" = "未設定";
-"stats_games_short" = "GP";
+"stats_games_short" = "場次";
+"career_stat_games_played_short" = "比賽";
 "stat_label_starter_short" = "GS";
 "stat_label_bench_short" = "BN";
 "stats_win_rate_short" = "W%";
@@ -367,6 +368,7 @@
 "button_select_month" = "全選本月";
 "button_share_all_segments" = "分享全部分段";
 "button_show_all" = "全部顯示";
+"button_show_less" = "收起";
 "button_switch_single_import" = "改爲單段導入";
 "count_games_format" = "比賽 %d 場";
 "count_players_people_format" = "%d 人";
@@ -411,6 +413,9 @@
 "label_player" = "球員";
 "label_segment_count" = "分段數量";
 "label_team" = "球隊";
+"label_team_icon" = "球隊圖示";
+"label_select_team_icon" = "新增球隊圖示";
+"label_remove_team_icon" = "移除球隊圖示";
 "label_this_game_stats" = "本場數據";
 "label_total_stats" = "總數據";
 "label_weight" = "體重";
@@ -879,7 +884,15 @@
 "section_voice_nicknames_footer" = "添加暱稱用於語音識別。比賽中說出暱稱即可選中該球員。";
 "placeholder_nicknames" = "輸入暱稱…";
 "settings_cloud_storage" = "iCloud 儲存";
+"settings_language" = "語言";
+"settings_language_alert_title" = "語言會跟隨 iPhone 設定";
+"settings_language_alert_message" = "請前往「設定 > 一般 > 語言與地區」更改 App 語言。";
 "stats_points_format_short" = "得分";
+"stats_rebound_short" = "籃板";
+"stats_assists_short" = "助攻";
+"stats_steals_short" = "抄截";
+"stats_blocks_short" = "阻攻";
+"stats_turnovers_short" = "失誤";
 "stats_rebound_assist_steal_block" = "籃板 / 助攻 / 抄截 / 火鍋";
 "stats_rebound_block" = "籃板 / 火鍋";
 "stats_rebound_detail" = "板 / 前場 / 後場";
@@ -1002,6 +1015,7 @@
 "elo_label_gs_factor" = "GS 係數";
 "elo_computation_title" = "ELO 計算詳情";
 "label_elo" = "天梯積分";
+"label_elo_history" = "ELO 歷史";
 "elo_format" = "天梯積分 %d";
 "elo_title_format" = "天梯積分 – %@";
 "elo_tier_bronze" = "青銅";
@@ -1297,3 +1311,4 @@
 "excel_team_stats_none" = "球員統計";
 "excel_event_assist_format" = "%1$@ 助攻 %2$@，%3$@";
 "excel_event_steal_turnover_format" = "%1$@ 抄截 %2$@";
+"nav_player_detail" = "球員詳情";

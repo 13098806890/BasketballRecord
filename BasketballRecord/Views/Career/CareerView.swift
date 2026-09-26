@@ -18,7 +18,7 @@ enum PlayerSortField: String, CaseIterable {
 
 struct CareerView: View {
     @EnvironmentObject private var store: AppStore
-    @State private var boardKind: CareerBoardKind = .team
+    @State private var boardKind: CareerBoardKind = Self.initialBoardKind
     @State private var selectedGroupID: UUID?
     @State private var selectedPlayerGroupID: UUID?
     @State private var playerSortField: PlayerSortField = .avgPoints
@@ -27,10 +27,21 @@ struct CareerView: View {
 
     private var usesPixelSkin: Bool { AppSkin(rawValue: appSkinRaw) == .pixelEsports }
 
+    private static var initialBoardKind: CareerBoardKind {
+#if DEBUG
+        if let argumentIndex = ProcessInfo.processInfo.arguments.firstIndex(of: "-screenshotCareerBoard"),
+           argumentIndex + 1 < ProcessInfo.processInfo.arguments.count,
+           let boardKind = CareerBoardKind(rawValue: ProcessInfo.processInfo.arguments[argumentIndex + 1]) {
+            return boardKind
+        }
+#endif
+        return .team
+    }
+
     var body: some View {
         NavigationStack {
             careerRootContent
-            .navigationTitle(boardKind == .history ? LocalizedStringKey("nav_game_history") : LocalizedStringKey("tab_career"))
+            .navigationTitle(LocalizedStringKey("tab_career"))
             .modifier(CareerNavigationBarSkin(isPixelSkin: usesPixelSkin))
             .toolbar {
                 if !usesPixelSkin, boardKind == .player {
@@ -97,12 +108,14 @@ struct CareerView: View {
                 }
             }
             .pickerStyle(.segmented)
+            .tint(EditorialDesign.blue)
             .padding(.horizontal)
             .padding(.top, 8)
 
             classicFilters
             boardContent(usesPixelSkin: false)
         }
+        .background(EditorialBackground())
     }
 
     @ViewBuilder
@@ -182,37 +195,84 @@ struct TeamCareerBoardView: View {
                     if usesPixelSkin {
                         pixelTeamCard(summary)
                     } else {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text(summary.teamName)
-                                    .font(.headline)
-                                Spacer()
-                                Text("\(summary.wins)-\(summary.losses)")
-                                    .font(.subheadline.monospacedDigit().weight(.semibold))
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            HStack(spacing: 8) {
-                                teamCard(title: LocalizedStringKey("career_tile_games"), value: "\(summary.games)")
-                                teamCard(title: LocalizedStringKey("career_tile_win_rate"), value: summary.winRateText)
-                                teamCard(title: LocalizedStringKey("career_tile_net"), value: summary.diffText)
-                            }
-                            HStack(spacing: 8) {
-                                teamCard(title: LocalizedStringKey("career_tile_avg_points"), value: summary.avgForText)
-                                teamCard(title: LocalizedStringKey("career_tile_avg_points_against"), value: summary.avgAgainstText)
-                                teamCard(title: LocalizedStringKey("career_tile_total_score"), value: "\(summary.pointsFor)-\(summary.pointsAgainst)")
-                            }
-                        }
-                        .padding(12)
-                        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(.separator).opacity(0.15), lineWidth: 1))
+                        teamSummaryCard(summary)
                     }
                 }
             }
             .padding(.horizontal, usesPixelSkin ? 14 : 16)
             .padding(.bottom)
         }
-        .background(usesPixelSkin ? CareerPixelDesign.background : Color(.systemGroupedBackground))
+        .background(usesPixelSkin ? CareerPixelDesign.background : Color.clear)
+    }
+
+    private func teamSummaryCard(_ summary: TeamCareerSummary) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(summary.teamName)
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(EditorialDesign.navy)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+
+                    Text("\(summary.wins)-\(summary.losses)")
+                        .font(.system(size: 34, weight: .black, design: .rounded).monospacedDigit())
+                        .foregroundStyle(EditorialDesign.navy)
+                }
+
+                Spacer(minLength: 8)
+
+                ZStack {
+                    Circle()
+                        .stroke(EditorialDesign.orange.opacity(0.24), lineWidth: 8)
+                    Circle()
+                        .trim(from: 0, to: max(0.02, min(summary.winRate, 1)))
+                        .stroke(EditorialDesign.orange, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                    VStack(spacing: 1) {
+                        Text(summary.winRateText)
+                            .font(.headline.monospacedDigit().weight(.bold))
+                            .foregroundStyle(EditorialDesign.navy)
+                        Text(LocalizedStringKey("career_tile_win_rate"))
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.65)
+                    }
+                }
+                .frame(width: 78, height: 78)
+            }
+
+            Rectangle()
+                .fill(EditorialDesign.orange.opacity(0.2))
+                .frame(height: 1)
+
+            VStack(spacing: 8) {
+                HStack(spacing: 8) {
+                    teamCard(title: LocalizedStringKey("career_tile_games"), value: "\(summary.games)")
+                    teamCard(title: LocalizedStringKey("career_tile_net"), value: summary.diffText)
+                    teamCard(title: LocalizedStringKey("career_tile_total_score"), value: "\(summary.pointsFor)-\(summary.pointsAgainst)")
+                }
+                HStack(spacing: 8) {
+                    teamCard(title: LocalizedStringKey("career_tile_avg_points"), value: summary.avgForText)
+                    teamCard(title: LocalizedStringKey("career_tile_avg_points_against"), value: summary.avgAgainstText)
+                    teamCard(title: LocalizedStringKey("career_tile_win_rate"), value: summary.winRateText)
+                }
+            }
+        }
+        .padding(16)
+        .background(EditorialDesign.card, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 2, style: .continuous)
+                .fill(EditorialDesign.orange)
+                .frame(width: 4, height: 64)
+                .padding(.leading, 1)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(EditorialDesign.divider.opacity(0.5), lineWidth: 1)
+        }
+        .shadow(color: EditorialDesign.navy.opacity(0.06), radius: 12, y: 6)
     }
 
     private func pixelTeamCard(_ summary: TeamCareerSummary) -> some View {
@@ -337,8 +397,8 @@ struct TeamCareerBoardView: View {
         .frame(maxWidth: .infinity, minHeight: 52)
         .padding(.horizontal, 4)
         .padding(.vertical, 6)
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(.separator).opacity(0.15), lineWidth: 1))
+        .background(EditorialDesign.paleBlue, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(EditorialDesign.divider.opacity(0.35), lineWidth: 1))
     }
 }
 
@@ -359,43 +419,121 @@ struct PlayerCareerBoardView: View {
     }
 
     private var classicBody: some View {
-        List {
-            Section {
+        ScrollView(showsIndicators: false) {
+            LazyVStack(spacing: 12) {
                 sortRow
-            }
 
-            if summaries.isEmpty {
-                ContentUnavailableView(LocalizedStringKey("empty_no_player_data"), systemImage: "person.crop.circle.badge.questionmark")
-            }
+                if summaries.isEmpty {
+                    ContentUnavailableView(LocalizedStringKey("empty_no_player_data"), systemImage: "person.crop.circle.badge.questionmark")
+                        .padding(.top, 56)
+                }
 
-            ForEach(summaries) { summary in
-                NavigationLink {
-                    PlayerProfileView(playerID: summary.id, selectedGroupID: $selectedGroupID)
-                } label: {
-                    HStack(spacing: 10) {
-                        if let player = store.player(for: summary.id) {
-                            PlayerAvatarView(player: player, size: 40)
-                        }
-
-                        VStack(alignment: .leading, spacing: 5) {
-                            HStack {
-                                Text(summary.name)
-                                    .font(.subheadline.weight(.semibold))
-                                Spacer()
-                                Text(sortValueText(for: summary))
-                                    .font(.subheadline.monospacedDigit().weight(.semibold))
-                                    .foregroundStyle(.primary)
-                            }
-                            Text(String(format: NSLocalizedString("career_summary_format", comment: "Career summary"), summary.games, summary.avgPointsText, summary.avgReboundsText, summary.avgAssistsText, summary.avgMinutesText))
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                                .lineLimit(2)
-                        }
+                ForEach(summaries) { summary in
+                    NavigationLink {
+                        PlayerProfileView(playerID: summary.id, selectedGroupID: $selectedGroupID)
+                    } label: {
+                        playerSummaryCard(summary)
                     }
+                    .buttonStyle(.plain)
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.top, 4)
+            .padding(.bottom, 24)
         }
-        .listStyle(.plain)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            EditorialBackground()
+                .frame(height: 92)
+        }
+    }
+
+    private func playerSummaryCard(_ summary: PlayerCareerSummary) -> some View {
+        VStack(spacing: 14) {
+            HStack(spacing: 12) {
+                if let player = store.player(for: summary.id) {
+                    PlayerAvatarView(player: player, size: 58)
+                } else {
+                    Circle()
+                        .fill(EditorialDesign.paleOrange)
+                        .frame(width: 58, height: 58)
+                        .overlay {
+                            Image(systemName: "person.fill")
+                                .foregroundStyle(EditorialDesign.orange)
+                        }
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(summary.name)
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(EditorialDesign.navy)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+
+                    if let player = store.player(for: summary.id), !player.position.isEmpty {
+                        Text(player.position)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(EditorialDesign.blue)
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 4)
+                            .background(EditorialDesign.paleBlue, in: Capsule())
+                    }
+                }
+
+                Spacer(minLength: 8)
+
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(sortValueText(for: summary))
+                        .font(.title2.monospacedDigit().weight(.bold))
+                        .foregroundStyle(EditorialDesign.navy)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                    Text(sortField.title)
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(.secondary)
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+
+            Divider()
+                .overlay(EditorialDesign.divider)
+
+            HStack(spacing: 0) {
+                playerMetric(title: localized("career_stat_games_played_short"), value: "\(summary.games)")
+                playerMetric(title: localized("stats_points_format_short"), value: summary.avgPointsText)
+                playerMetric(title: metricLabel(from: "stats_rebound_detail"), value: summary.avgReboundsText)
+                playerMetric(title: metricLabel(from: "stats_assist_steal_block"), value: summary.avgAssistsText)
+                playerMetric(title: localized("stats_minutes"), value: summary.avgMinutesText)
+            }
+        }
+        .padding(16)
+        .editorialCard(tint: EditorialDesign.card, radius: 24)
+        .contentShape(Rectangle())
+    }
+
+    private func playerMetric(title: String, value: String) -> some View {
+        VStack(spacing: 4) {
+            Text(title)
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
+            Text(value)
+                .font(.subheadline.monospacedDigit().weight(.bold))
+                .foregroundStyle(EditorialDesign.navy)
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func metricLabel(from key: String) -> String {
+        localized(key)
+            .components(separatedBy: "/")
+            .first?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? localized(key)
     }
 
     private var pixelBody: some View {
@@ -518,8 +656,8 @@ struct PlayerCareerBoardView: View {
     private var sortRow: some View {
         HStack {
             Text(NSLocalizedString("label_sort_by", comment: "Sort by"))
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(EditorialDesign.navy)
             Spacer()
             Menu {
                 ForEach(PlayerSortField.allCases, id: \.self) { field in
@@ -542,15 +680,17 @@ struct PlayerCareerBoardView: View {
             } label: {
                 HStack(spacing: 4) {
                     Text(sortField.title)
-                        .font(.caption.weight(.semibold))
+                        .font(.subheadline.weight(.semibold))
                     Image(systemName: sortAscending ? "chevron.up" : "chevron.down")
-                        .font(.caption2.weight(.semibold))
+                        .font(.caption.weight(.semibold))
                 }
+                .foregroundStyle(EditorialDesign.blue)
                 .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(.ultraThinMaterial, in: Capsule())
+                .padding(.vertical, 8)
+                .background(EditorialDesign.paleBlue, in: Capsule())
             }
         }
+        .padding(.horizontal, 2)
     }
 
     private var summaries: [PlayerCareerSummary] {

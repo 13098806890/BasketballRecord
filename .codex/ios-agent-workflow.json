@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "report_root": "Artifacts/AgentWorkflow",
+  "commit_reports": false,
+  "agent_defaults": {
+    "model": "gpt-5.6-luna",
+    "thinking": "high"
+  },
+  "required_stages": [
+    "aso-ops",
+    "agent-evaluation"
+  ],
+  "governance": {
+    "max_rework_cycles_per_stage": 2,
+    "stall_checks_before_user_decision": 3,
+    "long_stage_check_minutes": 5,
+    "max_stage_runtime_minutes": 240,
+    "minimum_evaluation_score": 3
+  },
+  "test_knowledge": {
+    "enabled": false,
+    "root": ".codex/product",
+    "features": "features.json",
+    "user_flows": "user-flows",
+    "test_cases": "test-cases",
+    "automation_map": "automation.json",
+    "known_issues": "known-issues.json",
+    "required_coverage_tiers": [
+      "direct",
+      "dependency",
+      "critical-smoke"
+    ]
+  },
+  "release": {
+    "enabled": false,
+    "fastlane_directory": "fastlane",
+    "release_notes_path": "RELEASE_NOTES.md",
+    "metadata_path": "fastlane/metadata/{version}",
+    "required_locales": [
+      "zh-Hans",
+      "en-US"
+    ],
+    "lanes": {
+      "prepare": "prepare_release",
+      "metadata-upload": "upload_metadata",
+      "binary-upload": "upload_build",
+      "submit-for-review": "submit_review",
+      "release-to-users": "release"
+    },
+    "default_actions": [],
+    "require_explicit_approval": [
+      "metadata-upload",
+      "binary-upload",
+      "submit-for-review",
+      "release-to-users"
+    ]
+  }
+}

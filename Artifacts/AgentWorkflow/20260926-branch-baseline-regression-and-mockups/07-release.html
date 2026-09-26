@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Release 准备报告</title><style>body{font:15px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;max-width:1000px;margin:28px auto;padding:0 18px;color:#172033;background:#f5f7fb}main{background:#fff;padding:28px;border-radius:18px;box-shadow:0 8px 28px #17203312}h1,h2{color:#102a43}.pass{color:#117a4b}.warn{color:#9b5a00}code{background:#eef2f7;padding:2px 5px;border-radius:5px}</style></head><body><main>
+<h1>Release 准备报告</h1>
+<p><strong>版本：</strong>main 1.51；main_free_pro 2.51。<strong>Fastlane：</strong><code>/Users/xiedongze/Desktop/Github/BasketballRecord/fastlane</code>。</p>
+<h2>本轮已完成</h2><ul><li class="pass"><code>RELEASE_NOTES.md</code> 顶部 1.51 section 已追加记分页 B 方案 UI、设备适配、全局视觉统一三条改进。</li><li class="pass">当前 fastlane 1.51 多语言截图目录存在 9 个 locale 目录，每种 5 张 6.5-inch 截图；本轮未执行 App Store Connect 外部上传。</li><li class="pass">已完成当前 main 的 Debug build：<code>xcodebuild ... -derivedDataPath /tmp/BasketballRecord-current-audit ... build</code>，结果 BUILD SUCCEEDED。</li><li class="pass">已完成 main_free_pro 隔离 baseline Debug build；为 Simulator audit 临时增加了隔离 CloudKit guard，结果 BUILD SUCCEEDED。</li></ul>
+<h2>尚未执行的外部变更</h2><ul><li class="warn">没有 commit。</li><li class="warn">没有 push main。</li><li class="warn">没有 push main_free_pro。</li><li class="warn">没有切换当前工作区分支。</li><li class="warn">没有执行 metadata-upload、binary-upload、submit-for-review 或 release lane。</li></ul>
+<h2>必须先确认</h2><p>项目规则要求在 commit 前询问用户。并且 main 与 main_free_pro 有发行版/Pro 版本差异，不能直接 merge。请确认：提交当前工作区全部改动，还是只提交指定文件；跨分支使用 cherry-pick 还是重新应用；确认后是否立即 push 两个远端分支。</p>
+<p><strong>状态：</strong><span class="warn">needs-user-decision</span></p>
+</main></body></html>

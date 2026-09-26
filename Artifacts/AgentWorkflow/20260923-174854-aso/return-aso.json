@@ -1,0 +1,29 @@
+{
+  "action": "return",
+  "exchange_id": "exchange-0001",
+  "from_stage": "aso-ops",
+  "summary": "已完成手动 ASO 只读审计，生成详细报告、5 个 storefront/locale 关键词快照和可视化；保留中文名称不变，并给出 subtitle、keywords、描述首屏、截图顺序和验证计划。",
+  "result_status": "passed",
+  "output_files": [
+    "13-aso-operations.html",
+    "aso/cn-zh-Hans.json",
+    "aso/tw-zh-Hant.json",
+    "aso/jp-ja.json",
+    "aso/de-de.json",
+    "aso/us-en-US.json",
+    "aso/aso-keyword-visualization-cn-zh-Hans.html",
+    "aso/aso-keyword-visualization-tw-zh-Hant.html",
+    "aso/aso-keyword-visualization-jp-ja.html",
+    "aso/aso-keyword-visualization-de-de.html",
+    "aso/aso-keyword-visualization-us-en-US.html"
+  ],
+  "changed_files": [],
+  "verification": ["Apple 官方 metadata 规则已核对", "关键词按 UTF-8 bytes 审计", "没有执行外部写入"],
+  "unresolved_issues": ["App Store Connect 当前 metadata、真实截图和官方搜索量仍未验证"],
+  "coverage_dispositions": [
+    {"coverage_id": "criterion-01", "status": "passed", "evidence": ["13-aso-operations.html", "AGENTS.md", "fastlane/Fastfile", "公开中国区产品页"]},
+    {"coverage_id": "criterion-02", "status": "passed", "evidence": ["13-aso-operations.html 第 5 节"]},
+    {"coverage_id": "criterion-03", "status": "passed", "evidence": ["13-aso-operations.html 第 5-7 节"]},
+    {"coverage_id": "criterion-04", "status": "passed", "evidence": ["aso/*.json", "aso/aso-keyword-visualization-*.html"]}
+  ]
+}

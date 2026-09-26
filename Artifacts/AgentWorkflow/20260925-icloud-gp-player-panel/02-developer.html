@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>开发 Agent · GP本地化与比赛记录球员面板修复</title><style>
+body{font:16px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;max-width:960px;margin:40px auto;padding:0 24px;color:#172033;background:#f7f8fa}main{background:white;padding:32px;border-radius:16px;box-shadow:0 6px 24px #17203312}dt{font-weight:700}code{background:#eef1f5;padding:.15em .35em;border-radius:4px}.state{display:inline-block;padding:4px 10px;border-radius:999px;background:#fff3cd}</style></head>
+<body><main><h1>开发 Agent</h1><p><strong>任务：</strong>GP本地化与比赛记录球员面板修复</p><p><strong>状态：</strong><span class="state">已完成</span></p>
+<h2>完成内容</h2><ul><li>将 <code>stats_games_short</code> 在 en、de、es、fr、it、ja、ko、ru、zh-Hans、zh-Hant-TW 十种语言中改为对应语言文案；中文显示“场次/場次”。</li><li>比赛记录的 iCloud 操作改为独立 Button，和 NavigationLink 分离；经典列表与 Pixel 列表都保留锁定、删除和详情导航。</li><li>球员比赛详情新增与生涯头像卡一致的身份面板；保留周期选择、投篮、罚球、其他、高级统计；面板复用篮球背景资源，并支持已登记球员头像和未登记球员首字母。</li></ul>
+<h2>验证</h2><ul><li>Debug 模拟器构建：通过。</li><li>Release 模拟器构建：通过。</li><li><code>git diff --check</code>：通过。</li><li>i18n key 覆盖检查：10/10 locale 均存在且已翻译。</li></ul>
+<h2>限制与风险</h2><p>当前 iPhone 17 模拟器没有可直接进入的已保存比赛入口，无法在本轮对真实比赛记录中完成 iCloud 点按和球员详情链路的端到端操作验收；代码级检查确认按钮 action 只调用云存储切换，不再包在导航链接内。未修改数据模型、持久化字段或存储迁移逻辑。</p>
+<h2>下一步</h2><p>需要一条可进入比赛记录的测试 fixture 后，再做一次 Simulator 点按回归，重点确认 iCloud 不导航、头像卡背景和不同语言的“场次”渲染。</p></main></body></html>

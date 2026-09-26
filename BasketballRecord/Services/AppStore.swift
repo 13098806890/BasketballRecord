@@ -223,6 +223,14 @@ final class AppStore: ObservableObject {
         photosDir.appendingPathComponent("\(playerID.uuidString).jpg")
     }
 
+    var teamIconsDir: URL {
+        documentsDir.appendingPathComponent("team_icons", isDirectory: true)
+    }
+
+    func teamIconFile(for teamID: UUID) -> URL {
+        teamIconsDir.appendingPathComponent("\(teamID.uuidString).jpg")
+    }
+
     private struct StoreMeta: Codable {
         var players: [Player]
         var teams: [Team]
@@ -239,6 +247,11 @@ final class AppStore: ObservableObject {
 
     init() {
         load()
+#if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-seedScreenshotData") {
+            seedScreenshotData()
+        }
+#endif
         loadCloudEnabledGameIDs()
         NotificationCenter.default.addObserver(self, selector: #selector(cloudStoreDidChange), name: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: NSUbiquitousKeyValueStore.default)
         Task { await syncCloudGames() }
@@ -533,10 +546,29 @@ final class AppStore: ObservableObject {
             strippedPlayers[i].photoData = nil
         }
 
+        var strippedTeams = teams
+        if dirtyKeys.contains(.teams) {
+            try? FileManager.default.createDirectory(at: teamIconsDir, withIntermediateDirectories: true)
+            for i in strippedTeams.indices {
+                let fileURL = teamIconFile(for: strippedTeams[i].id)
+                if let data = strippedTeams[i].iconData {
+                    let existingData = try? Data(contentsOf: fileURL)
+                    if data != existingData {
+                        try? data.write(to: fileURL, options: .atomic)
+                    }
+                } else {
+                    try? FileManager.default.removeItem(at: fileURL)
+                }
+            }
+        }
+        for i in strippedTeams.indices {
+            strippedTeams[i].iconData = nil
+        }
+
         // Save meta (players, teams, settings) — always write as single blob
         let meta = StoreMeta(
             players: strippedPlayers,
-            teams: teams,
+            teams: strippedTeams,
             gameGroups: gameGroups,
             playerGroups: playerGroups,
             hiddenCareerStatItems: hiddenCareerStatItems,
@@ -616,7 +648,7 @@ final class AppStore: ObservableObject {
         // Try loading from Core Data first
         if coreDataStore.hasData() {
             var restoredPlayers = coreDataStore.fetchAllPlayers()
-            teams = coreDataStore.fetchAllTeams()
+            var restoredTeams = coreDataStore.fetchAllTeams()
             gameGroups = coreDataStore.fetchAllGameGroups()
             playerGroups = coreDataStore.fetchAllPlayerGroups()
             savedGames = coreDataStore.fetchAllSavedGames()
@@ -627,7 +659,14 @@ final class AppStore: ObservableObject {
                     restoredPlayers[i].photoData = photoData
                 }
             }
+            for i in restoredTeams.indices {
+                let fileURL = teamIconFile(for: restoredTeams[i].id)
+                if let iconData = try? Data(contentsOf: fileURL), !iconData.isEmpty {
+                    restoredTeams[i].iconData = iconData
+                }
+            }
             players = restoredPlayers
+            teams = restoredTeams
             hasMigratedToCoreData = true
             print("[LoadCheck] CoreData → players=\(players.count) teams=\(teams.count) gameGroups=\(gameGroups.count) playerGroups=\(playerGroups.count) savedGames=\(savedGames.count)")
 
@@ -666,7 +705,14 @@ final class AppStore: ObservableObject {
             }
 
             players = restoredPlayers
-            teams = meta.teams
+            var restoredTeams = meta.teams
+            for i in restoredTeams.indices {
+                let fileURL = teamIconFile(for: restoredTeams[i].id)
+                if let iconData = try? Data(contentsOf: fileURL), !iconData.isEmpty {
+                    restoredTeams[i].iconData = iconData
+                }
+            }
+            teams = restoredTeams
             gameGroups = meta.gameGroups
             playerGroups = meta.playerGroups
             hiddenCareerStatItems = meta.hiddenCareerStatItems
@@ -736,5 +782,113 @@ final class AppStore: ObservableObject {
         ]
     }
 
-}
+#if DEBUG
+    private func seedScreenshotData() {
+        let marker = "UI Audit Demo"
+        guard !savedGames.contains(where: { $0.displayName.hasPrefix(marker) }) else { return }
 
+        if players.count < 6 || teams.count < 2 {
+            seedSampleData()
+        }
+
+        guard players.count >= 6, teams.count >= 2 else { return }
+
+        let homeTeam = teams[0]
+        let awayTeam = teams[1]
+        let homePlayerIDs = Array(players.prefix(3).map(\.id))
+        let awayPlayerIDs = Array(players.dropFirst(3).prefix(3).map(\.id))
+        teams[0].playerIDs = homePlayerIDs
+        teams[1].playerIDs = awayPlayerIDs
+
+        let playerNames = Dictionary(uniqueKeysWithValues: players.map { ($0.id, $0.name) })
+        let calendar = Calendar(identifier: .gregorian)
+        let dates = [
+            calendar.date(from: DateComponents(year: 2025, month: 3, day: 8, hour: 10, minute: 0))!,
+            calendar.date(from: DateComponents(year: 2025, month: 2, day: 22, hour: 14, minute: 30))!,
+            calendar.date(from: DateComponents(year: 2025, month: 1, day: 18, hour: 16, minute: 0))!
+        ]
+        let scorePairs = [(78, 62), (65, 70), (81, 75)]
+
+        func stats(_ points: Int, rebounds: Int, assists: Int, steals: Int, blocks: Int, turnovers: Int) -> PlayerStats {
+            var value = PlayerStats()
+            value.twoMade = points / 2
+            value.twoAttempts = value.twoMade + 2
+            value.threeMade = points % 2
+            value.threeAttempts = value.threeMade + 1
+            value.rebounds = rebounds
+            value.assists = assists
+            value.steals = steals
+            value.blocks = blocks
+            value.turnovers = turnovers
+            value.fouls = 1
+            return value
+        }
+
+        func makeGame(index: Int, date: Date, score: (Int, Int)) -> SavedGame {
+            let homeStats = [
+                stats(score.0 / 3, rebounds: 7, assists: 4, steals: 2, blocks: 1, turnovers: 2),
+                stats(score.0 / 3, rebounds: 5, assists: 6, steals: 1, blocks: 0, turnovers: 1),
+                stats(score.0 - (score.0 / 3) * 2, rebounds: 8, assists: 3, steals: 1, blocks: 2, turnovers: 2)
+            ]
+            let awayStats = [
+                stats(score.1 / 3, rebounds: 6, assists: 3, steals: 1, blocks: 0, turnovers: 2),
+                stats(score.1 / 3, rebounds: 4, assists: 5, steals: 2, blocks: 1, turnovers: 2),
+                stats(score.1 - (score.1 / 3) * 2, rebounds: 7, assists: 2, steals: 1, blocks: 1, turnovers: 3)
+            ]
+            var statsByPlayerID: [UUID: PlayerStats] = [:]
+            for (id, value) in zip(homePlayerIDs, homeStats) { statsByPlayerID[id] = value }
+            for (id, value) in zip(awayPlayerIDs, awayStats) { statsByPlayerID[id] = value }
+
+            var logs: [GameLogEntry] = []
+            for period in 1...4 {
+                logs.append(GameLogEntry(timestamp: date.addingTimeInterval(Double(period) * 60), message: "Period \(period) started", eventCode: "event.period_start", period: period, periodElapsedSeconds: 0))
+                let homeID = homePlayerIDs[(period - 1) % homePlayerIDs.count]
+                let awayID = awayPlayerIDs[(period - 1) % awayPlayerIDs.count]
+                logs.append(GameLogEntry(timestamp: date.addingTimeInterval(Double(period) * 120), message: "\(playerNames[homeID] ?? "Player") scored", eventCode: "stat.twoMade", playerID: homeID, period: period, periodElapsedSeconds: 120))
+                logs.append(GameLogEntry(timestamp: date.addingTimeInterval(Double(period) * 180), message: "\(playerNames[awayID] ?? "Player") assisted", eventCode: "stat.assist", playerID: awayID, period: period, periodElapsedSeconds: 180))
+                logs.append(GameLogEntry(timestamp: date.addingTimeInterval(Double(period) * 600), message: "Period \(period) ended", eventCode: "event.period_end", period: period, periodElapsedSeconds: 600))
+            }
+
+            var snapshot = GameSnapshot(
+                statsByPlayerID: statsByPlayerID,
+                logs: logs,
+                homeTeamID: homeTeam.id,
+                awayTeamID: awayTeam.id,
+                periodCount: 4,
+                originalPeriodCount: 4,
+                currentPeriod: 4,
+                isComplete: true,
+                homeOnCourtPlayerIDs: homePlayerIDs,
+                awayOnCourtPlayerIDs: awayPlayerIDs,
+                homeAvailablePlayerIDs: homePlayerIDs,
+                awayAvailablePlayerIDs: awayPlayerIDs,
+                starterPlayerIDs: homePlayerIDs + awayPlayerIDs,
+                startersRecorded: true,
+                playingSecondsByPlayerID: Dictionary(uniqueKeysWithValues: (homePlayerIDs + awayPlayerIDs).map { ($0, 1_920) }),
+                plusMinusByPlayerID: Dictionary(uniqueKeysWithValues: homePlayerIDs.map { ($0, 16) } + awayPlayerIDs.map { ($0, -16) })
+            )
+            snapshot.matchElapsedSeconds = 3_600
+            snapshot.periodElapsedSeconds = 600
+
+            return SavedGame(
+                savedAt: date,
+                modifiedAt: date,
+                snapshot: snapshot,
+                aiSummary: "A balanced game with strong ball movement and active defense.",
+                homeTeamName: homeTeam.name,
+                awayTeamName: awayTeam.name,
+                homePlayerIDs: homePlayerIDs,
+                awayPlayerIDs: awayPlayerIDs,
+                playerNamesByID: playerNames,
+                displayName: "\(marker) \(index + 1)"
+            )
+        }
+
+        savedGames = zip(dates, scorePairs).enumerated().map { index, pair in
+            makeGame(index: index, date: pair.0, score: pair.1)
+        }.sorted { $0.savedAt > $1.savedAt }
+        saveIfNeeded()
+    }
+#endif
+
+}

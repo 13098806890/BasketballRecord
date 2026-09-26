@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>编排报告 · 新旧 UI 功能与数据对比</title><style>body{font:16px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;max-width:960px;margin:32px auto;padding:0 20px;color:#172033;background:#f7f8fa}main{background:#fff;padding:30px;border-radius:16px;box-shadow:0 6px 24px #17203312}.state{display:inline-block;padding:4px 10px;border-radius:999px;background:#ffe8e6;color:#a12622;font-weight:700}code{background:#eef1f5;padding:.12em .35em;border-radius:4px}</style></head>
+<body><main><h1>编排 Agent：新旧 UI 功能与数据对比</h1><p><strong>状态：</strong><span class="state">审查完成，但产品改动需返工</span></p>
+<h2>本轮执行</h2><ul><li>代码审查：对照 HEAD 与当前工作树的比赛详情、球员详情。</li><li>模拟器测试：克隆当前 iPhone 17 数据，分别启动旧版和新版，采集同一场比赛和同一名球员的截图。</li><li>Agent 评估：确认边界、证据质量和未完成项。</li></ul>
+<h2>结果</h2><p>核心功能入口仍在：返回、导出、比赛名称编辑、周期、球队统计、球员导航、事件日志、AI 总结、分组、Cloud 和 Excel。发现三个需要处理的问题：比赛详情球员表默认隐藏旧版的 Time/FG/FT/FOUL/+/-/Points per Shot 等字段；球员详情完整统计默认折叠；实时详情无条件出现历史事件编辑卡片。</p>
+<h2>覆盖状态</h2><ul><li>同数据旧/新页面对比：已完成，截图证据已保存。</li><li>旧数据是否被删除：当前证据未发现删除，属于展示可见性回退。</li><li>完整点击/滚动操作：未完全完成，原因是 CUA 没有暴露 Simulator 窗口；源码入口已核对。</li><li>本轮不修改产品代码，不提交。</li></ul>
+<h2>报告</h2><p><a href="03-code-review.html">代码审查报告</a> · <a href="04-simulator-test.html">模拟器测试报告</a> · <a href="06-agent-evaluation.html">Agent 评估报告</a></p>
+<h2>下一步</h2><p>需要先修复统计字段可见性和实时模式边界，再复测两台模拟器；当前审查不应标记为完全通过。</p></main></body></html>

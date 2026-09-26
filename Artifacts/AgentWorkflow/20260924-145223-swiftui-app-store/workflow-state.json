@@ -1,0 +1,936 @@
+{
+  "acceptance_criteria" : [
+    "验收标准必须要求独立 SwiftUI 原型，而不是直接修改现有产品 UI。",
+    "原项目产品代码不得新增或修改；记分操作页面必须保持不变。",
+    "原项目数据结构和展示内容必须建立字段映射，并使用 mock 数据复现。",
+    "原型必须复现 App Store 中文截图的页面布局、层级、间距、颜色、字体和卡片结构，而不是只换主题色或添加背景。",
+    "原型必须在 iPhone 17 Simulator 上运行并采集真实 UI 截图，且与设计参考图逐页对比。",
+    "workflow 只有在上述证据齐全、代码 review 无阻塞问题后才能通过；本轮不执行产品代码落地或 App Store Connect 上传。"
+  ],
+  "active_stage" : null,
+  "agent_defaults" : {
+    "model" : "gpt-5.6-luna",
+    "thinking" : "high"
+  },
+  "cancellation_reason" : "用户通过 macOS Workflow Monitor 取消未启动 run",
+  "cancelled_at" : "2026-09-24T10:04:08Z",
+  "completion" : {
+    "gaps" : [
+
+    ],
+    "mode" : "not-verified",
+    "status" : "planned",
+    "user_approved_deferrals" : [
+
+    ]
+  },
+  "coverage_matrix" : [
+    {
+      "design_artifacts" : [
+
+      ],
+      "evidence" : [
+
+      ],
+      "id" : "criterion-01",
+      "notes" : "",
+      "owner" : null,
+      "required" : true,
+      "status" : "not-run",
+      "text" : "验收标准必须要求独立 SwiftUI 原型，而不是直接修改现有产品 UI。",
+      "user_approved_deferral" : false
+    },
+    {
+      "design_artifacts" : [
+
+      ],
+      "evidence" : [
+
+      ],
+      "id" : "criterion-02",
+      "notes" : "",
+      "owner" : null,
+      "required" : true,
+      "status" : "not-run",
+      "text" : "原项目产品代码不得新增或修改；记分操作页面必须保持不变。",
+      "user_approved_deferral" : false
+    },
+    {
+      "design_artifacts" : [
+
+      ],
+      "evidence" : [
+
+      ],
+      "id" : "criterion-03",
+      "notes" : "",
+      "owner" : null,
+      "required" : true,
+      "status" : "not-run",
+      "text" : "原项目数据结构和展示内容必须建立字段映射，并使用 mock 数据复现。",
+      "user_approved_deferral" : false
+    },
+    {
+      "design_artifacts" : [
+
+      ],
+      "evidence" : [
+
+      ],
+      "id" : "criterion-04",
+      "notes" : "",
+      "owner" : null,
+      "required" : true,
+      "status" : "not-run",
+      "text" : "原型必须复现 App Store 中文截图的页面布局、层级、间距、颜色、字体和卡片结构，而不是只换主题色或添加背景。",
+      "user_approved_deferral" : false
+    },
+    {
+      "design_artifacts" : [
+
+      ],
+      "evidence" : [
+
+      ],
+      "id" : "criterion-05",
+      "notes" : "",
+      "owner" : null,
+      "required" : true,
+      "status" : "not-run",
+      "text" : "原型必须在 iPhone 17 Simulator 上运行并采集真实 UI 截图，且与设计参考图逐页对比。",
+      "user_approved_deferral" : false
+    },
+    {
+      "design_artifacts" : [
+
+      ],
+      "evidence" : [
+
+      ],
+      "id" : "criterion-06",
+      "notes" : "",
+      "owner" : null,
+      "required" : true,
+      "status" : "not-run",
+      "text" : "workflow 只有在上述证据齐全、代码 review 无阻塞问题后才能通过；本轮不执行产品代码落地或 App Store Connect 上传。",
+      "user_approved_deferral" : false
+    }
+  ],
+  "created_at" : "2026-09-24T06:52:23.744641+00:00",
+  "current_handoff" : {
+    "acceptance_criteria" : [
+
+    ],
+    "changed_files" : [
+
+    ],
+    "coverage_ids" : [
+
+    ],
+    "exchange_id" : null,
+    "from_stage" : "orchestrator",
+    "input_files" : [
+
+    ],
+    "knowledge_context" : {
+      "automation_ids" : [
+
+      ],
+      "feature_ids" : [
+
+      ],
+      "flow_ids" : [
+
+      ],
+      "known_issue_ids" : [
+
+      ],
+      "proposed_updates" : [
+
+      ],
+      "test_case_ids" : [
+
+      ]
+    },
+    "next_checks" : [
+
+    ],
+    "prohibited_actions" : [
+
+    ],
+    "required_outputs" : [
+
+    ],
+    "task_prompt" : "",
+    "task_scope" : "",
+    "to_stage" : null,
+    "unresolved_issues" : [
+
+    ],
+    "verification" : [
+
+    ]
+  },
+  "evaluation" : {
+    "checkpoints" : [
+
+    ],
+    "final_recommendations" : [
+
+    ]
+  },
+  "governance" : {
+    "long_stage_check_minutes" : 5,
+    "max_rework_cycles_per_stage" : 2,
+    "max_stage_runtime_minutes" : 240,
+    "minimum_evaluation_score" : 3,
+    "stall_checks_before_user_decision" : 3
+  },
+  "handoff_interactions" : [
+
+  ],
+  "handoffs" : [
+
+  ],
+  "intent" : {
+    "captured_at" : "2026-09-24T06:52:23.744641+00:00",
+    "immutable" : true,
+    "normalized_goal" : "独立 SwiftUI 原型：App Store 截图布局复现",
+    "original_request" : "自动模式\n你的上一次任务，我看了，我让你生成app store截图里面的那种ui，但是不要改积分页面。你修改了部分代码，我看了一下，app的主题颜色变成了橙色，然后给对应的页面加了背景图片。仅此而已，然后你的agent竟然验收成功了。\n我想要的是你根据app store的截图里面的页面布局和样式，来修改现在对应的页面布局和样式，但是要保留现在的数据结构和展示内容不变。所以首先修改你的验收agent，上次的修改标准完全达不到验收的条件。然后再按照我的要求继续优化ui界面。\n你也可以先这样，把我们app里面的数据结构拿出来，然后mock数据，然后用独立swfit ui playground 实现对应的 ui代码，这样你就不需要在原来的项目代码里改。最终我们保留对应的独立的ui代码，等你验收成功，我review之后，再决定要不要把这些ui实施到我们的项目代码里。",
+    "source" : "intent-file"
+  },
+  "release" : {
+    "approvals" : [
+
+    ],
+    "build" : null,
+    "executed_actions" : [
+
+    ],
+    "metadata_validated" : false,
+    "pending_decision" : null,
+    "prepared" : false,
+    "requested_actions" : [
+
+    ],
+    "version" : null
+  },
+  "run_id" : "20260924-145223-swiftui-app-store",
+  "stage_plan" : {
+    "accessibility" : {
+      "coverage_ids" : [
+
+      ],
+      "decided_at" : null,
+      "decided_by" : null,
+      "decision" : "pending",
+      "expected_savings" : "",
+      "reason" : "等待阶段结果后按任务缺口决定",
+      "risk_if_skipped" : ""
+    },
+    "agent-evaluation" : {
+      "coverage_ids" : [
+
+      ],
+      "decided_at" : "2026-09-24T06:52:23.744641+00:00",
+      "decided_by" : "orchestrator",
+      "decision" : "run",
+      "expected_savings" : "",
+      "reason" : "configured required stage",
+      "risk_if_skipped" : ""
+    },
+    "architecture" : {
+      "coverage_ids" : [
+
+      ],
+      "decided_at" : null,
+      "decided_by" : null,
+      "decision" : "pending",
+      "expected_savings" : "",
+      "reason" : "等待阶段结果后按任务缺口决定",
+      "risk_if_skipped" : ""
+    },
+    "aso-ops" : {
+      "coverage_ids" : [
+
+      ],
+      "decided_at" : "2026-09-24T06:52:23.744641+00:00",
+      "decided_by" : "orchestrator",
+      "decision" : "run",
+      "expected_savings" : "",
+      "reason" : "configured required stage",
+      "risk_if_skipped" : ""
+    },
+    "code-review" : {
+      "coverage_ids" : [
+
+      ],
+      "decided_at" : null,
+      "decided_by" : null,
+      "decision" : "pending",
+      "expected_savings" : "",
+      "reason" : "等待阶段结果后按任务缺口决定",
+      "risk_if_skipped" : ""
+    },
+    "copywriting" : {
+      "coverage_ids" : [
+
+      ],
+      "decided_at" : null,
+      "decided_by" : null,
+      "decision" : "pending",
+      "expected_savings" : "",
+      "reason" : "等待阶段结果后按任务缺口决定",
+      "risk_if_skipped" : ""
+    },
+    "developer" : {
+      "coverage_ids" : [
+
+      ],
+      "decided_at" : null,
+      "decided_by" : null,
+      "decision" : "pending",
+      "expected_savings" : "",
+      "reason" : "等待阶段结果后按任务缺口决定",
+      "risk_if_skipped" : ""
+    },
+    "growth-community" : {
+      "coverage_ids" : [
+
+      ],
+      "decided_at" : null,
+      "decided_by" : null,
+      "decision" : "pending",
+      "expected_savings" : "",
+      "reason" : "等待阶段结果后按任务缺口决定",
+      "risk_if_skipped" : ""
+    },
+    "interaction-design" : {
+      "coverage_ids" : [
+
+      ],
+      "decided_at" : null,
+      "decided_by" : null,
+      "decision" : "pending",
+      "expected_savings" : "",
+      "reason" : "等待阶段结果后按任务缺口决定",
+      "risk_if_skipped" : ""
+    },
+    "release" : {
+      "coverage_ids" : [
+
+      ],
+      "decided_at" : null,
+      "decided_by" : null,
+      "decision" : "pending",
+      "expected_savings" : "",
+      "reason" : "等待阶段结果后按任务缺口决定",
+      "risk_if_skipped" : ""
+    },
+    "release-compliance" : {
+      "coverage_ids" : [
+
+      ],
+      "decided_at" : null,
+      "decided_by" : null,
+      "decision" : "pending",
+      "expected_savings" : "",
+      "reason" : "等待阶段结果后按任务缺口决定",
+      "risk_if_skipped" : ""
+    },
+    "simulator-test" : {
+      "coverage_ids" : [
+
+      ],
+      "decided_at" : null,
+      "decided_by" : null,
+      "decision" : "pending",
+      "expected_savings" : "",
+      "reason" : "等待阶段结果后按任务缺口决定",
+      "risk_if_skipped" : ""
+    },
+    "ux-review" : {
+      "coverage_ids" : [
+
+      ],
+      "decided_at" : null,
+      "decided_by" : null,
+      "decision" : "pending",
+      "expected_savings" : "",
+      "reason" : "等待阶段结果后按任务缺口决定",
+      "risk_if_skipped" : ""
+    },
+    "visual-design" : {
+      "coverage_ids" : [
+
+      ],
+      "decided_at" : null,
+      "decided_by" : null,
+      "decision" : "pending",
+      "expected_savings" : "",
+      "reason" : "等待阶段结果后按任务缺口决定",
+      "risk_if_skipped" : ""
+    }
+  },
+  "stages" : {
+    "accessibility" : {
+      "artifacts" : [
+
+      ],
+      "completed_at" : null,
+      "consecutive_stall_checks" : 0,
+      "duration_seconds" : 0,
+      "metrics" : {
+        "duration_source" : "ledger",
+        "duration_status" : "not-started",
+        "usage_source" : "agent-host",
+        "usage_status" : "unavailable"
+      },
+      "rework_count" : 0,
+      "skip_reason" : null,
+      "started_at" : null,
+      "state" : "pending",
+      "token_usage" : {
+        "cached_tokens" : 0,
+        "input_tokens" : 0,
+        "output_tokens" : 0,
+        "requests" : 0,
+        "total_tokens" : 0
+      },
+      "watchdog" : {
+        "consecutive_stall_checks" : 0,
+        "last_checked_at" : null,
+        "last_progress_at" : null,
+        "max_runtime_minutes" : 240,
+        "message" : "尚未检查",
+        "status" : "unknown"
+      },
+      "work_sessions" : [
+
+      ]
+    },
+    "agent-evaluation" : {
+      "artifacts" : [
+
+      ],
+      "completed_at" : null,
+      "consecutive_stall_checks" : 0,
+      "duration_seconds" : 0,
+      "metrics" : {
+        "duration_source" : "ledger",
+        "duration_status" : "not-started",
+        "usage_source" : "agent-host",
+        "usage_status" : "unavailable"
+      },
+      "rework_count" : 0,
+      "skip_reason" : null,
+      "started_at" : null,
+      "state" : "not-started",
+      "token_usage" : {
+        "cached_tokens" : 0,
+        "input_tokens" : 0,
+        "output_tokens" : 0,
+        "requests" : 0,
+        "total_tokens" : 0
+      },
+      "watchdog" : {
+        "consecutive_stall_checks" : 0,
+        "last_checked_at" : null,
+        "last_progress_at" : null,
+        "max_runtime_minutes" : 240,
+        "message" : "尚未检查",
+        "status" : "unknown"
+      },
+      "work_sessions" : [
+
+      ]
+    },
+    "architecture" : {
+      "artifacts" : [
+
+      ],
+      "completed_at" : null,
+      "consecutive_stall_checks" : 0,
+      "duration_seconds" : 0,
+      "metrics" : {
+        "duration_source" : "ledger",
+        "duration_status" : "not-started",
+        "usage_source" : "agent-host",
+        "usage_status" : "unavailable"
+      },
+      "rework_count" : 0,
+      "skip_reason" : null,
+      "started_at" : null,
+      "state" : "pending",
+      "token_usage" : {
+        "cached_tokens" : 0,
+        "input_tokens" : 0,
+        "output_tokens" : 0,
+        "requests" : 0,
+        "total_tokens" : 0
+      },
+      "watchdog" : {
+        "consecutive_stall_checks" : 0,
+        "last_checked_at" : null,
+        "last_progress_at" : null,
+        "max_runtime_minutes" : 240,
+        "message" : "尚未检查",
+        "status" : "unknown"
+      },
+      "work_sessions" : [
+
+      ]
+    },
+    "aso-ops" : {
+      "artifacts" : [
+
+      ],
+      "completed_at" : null,
+      "consecutive_stall_checks" : 0,
+      "duration_seconds" : 0,
+      "metrics" : {
+        "duration_source" : "ledger",
+        "duration_status" : "not-started",
+        "usage_source" : "agent-host",
+        "usage_status" : "unavailable"
+      },
+      "rework_count" : 0,
+      "skip_reason" : null,
+      "started_at" : null,
+      "state" : "not-started",
+      "token_usage" : {
+        "cached_tokens" : 0,
+        "input_tokens" : 0,
+        "output_tokens" : 0,
+        "requests" : 0,
+        "total_tokens" : 0
+      },
+      "watchdog" : {
+        "consecutive_stall_checks" : 0,
+        "last_checked_at" : null,
+        "last_progress_at" : null,
+        "max_runtime_minutes" : 240,
+        "message" : "尚未检查",
+        "status" : "unknown"
+      },
+      "work_sessions" : [
+
+      ]
+    },
+    "code-review" : {
+      "artifacts" : [
+
+      ],
+      "completed_at" : null,
+      "consecutive_stall_checks" : 0,
+      "duration_seconds" : 0,
+      "metrics" : {
+        "duration_source" : "ledger",
+        "duration_status" : "not-started",
+        "usage_source" : "agent-host",
+        "usage_status" : "unavailable"
+      },
+      "rework_count" : 0,
+      "skip_reason" : null,
+      "started_at" : null,
+      "state" : "pending",
+      "token_usage" : {
+        "cached_tokens" : 0,
+        "input_tokens" : 0,
+        "output_tokens" : 0,
+        "requests" : 0,
+        "total_tokens" : 0
+      },
+      "watchdog" : {
+        "consecutive_stall_checks" : 0,
+        "last_checked_at" : null,
+        "last_progress_at" : null,
+        "max_runtime_minutes" : 240,
+        "message" : "尚未检查",
+        "status" : "unknown"
+      },
+      "work_sessions" : [
+
+      ]
+    },
+    "copywriting" : {
+      "artifacts" : [
+
+      ],
+      "completed_at" : null,
+      "consecutive_stall_checks" : 0,
+      "duration_seconds" : 0,
+      "metrics" : {
+        "duration_source" : "ledger",
+        "duration_status" : "not-started",
+        "usage_source" : "agent-host",
+        "usage_status" : "unavailable"
+      },
+      "rework_count" : 0,
+      "skip_reason" : null,
+      "started_at" : null,
+      "state" : "pending",
+      "token_usage" : {
+        "cached_tokens" : 0,
+        "input_tokens" : 0,
+        "output_tokens" : 0,
+        "requests" : 0,
+        "total_tokens" : 0
+      },
+      "watchdog" : {
+        "consecutive_stall_checks" : 0,
+        "last_checked_at" : null,
+        "last_progress_at" : null,
+        "max_runtime_minutes" : 240,
+        "message" : "尚未检查",
+        "status" : "unknown"
+      },
+      "work_sessions" : [
+
+      ]
+    },
+    "developer" : {
+      "artifacts" : [
+
+      ],
+      "completed_at" : null,
+      "consecutive_stall_checks" : 0,
+      "duration_seconds" : 0,
+      "metrics" : {
+        "duration_source" : "ledger",
+        "duration_status" : "not-started",
+        "usage_source" : "agent-host",
+        "usage_status" : "unavailable"
+      },
+      "rework_count" : 0,
+      "skip_reason" : null,
+      "started_at" : null,
+      "state" : "pending",
+      "token_usage" : {
+        "cached_tokens" : 0,
+        "input_tokens" : 0,
+        "output_tokens" : 0,
+        "requests" : 0,
+        "total_tokens" : 0
+      },
+      "watchdog" : {
+        "consecutive_stall_checks" : 0,
+        "last_checked_at" : null,
+        "last_progress_at" : null,
+        "max_runtime_minutes" : 240,
+        "message" : "尚未检查",
+        "status" : "unknown"
+      },
+      "work_sessions" : [
+
+      ]
+    },
+    "growth-community" : {
+      "artifacts" : [
+
+      ],
+      "completed_at" : null,
+      "consecutive_stall_checks" : 0,
+      "duration_seconds" : 0,
+      "metrics" : {
+        "duration_source" : "ledger",
+        "duration_status" : "not-started",
+        "usage_source" : "agent-host",
+        "usage_status" : "unavailable"
+      },
+      "rework_count" : 0,
+      "skip_reason" : null,
+      "started_at" : null,
+      "state" : "pending",
+      "token_usage" : {
+        "cached_tokens" : 0,
+        "input_tokens" : 0,
+        "output_tokens" : 0,
+        "requests" : 0,
+        "total_tokens" : 0
+      },
+      "watchdog" : {
+        "consecutive_stall_checks" : 0,
+        "last_checked_at" : null,
+        "last_progress_at" : null,
+        "max_runtime_minutes" : 240,
+        "message" : "尚未检查",
+        "status" : "unknown"
+      },
+      "work_sessions" : [
+
+      ]
+    },
+    "interaction-design" : {
+      "artifacts" : [
+
+      ],
+      "completed_at" : null,
+      "consecutive_stall_checks" : 0,
+      "duration_seconds" : 0,
+      "metrics" : {
+        "duration_source" : "ledger",
+        "duration_status" : "not-started",
+        "usage_source" : "agent-host",
+        "usage_status" : "unavailable"
+      },
+      "rework_count" : 0,
+      "skip_reason" : null,
+      "started_at" : null,
+      "state" : "pending",
+      "token_usage" : {
+        "cached_tokens" : 0,
+        "input_tokens" : 0,
+        "output_tokens" : 0,
+        "requests" : 0,
+        "total_tokens" : 0
+      },
+      "watchdog" : {
+        "consecutive_stall_checks" : 0,
+        "last_checked_at" : null,
+        "last_progress_at" : null,
+        "max_runtime_minutes" : 240,
+        "message" : "尚未检查",
+        "status" : "unknown"
+      },
+      "work_sessions" : [
+
+      ]
+    },
+    "release" : {
+      "artifacts" : [
+
+      ],
+      "completed_at" : null,
+      "consecutive_stall_checks" : 0,
+      "duration_seconds" : 0,
+      "metrics" : {
+        "duration_source" : "ledger",
+        "duration_status" : "not-started",
+        "usage_source" : "agent-host",
+        "usage_status" : "unavailable"
+      },
+      "rework_count" : 0,
+      "skip_reason" : null,
+      "started_at" : null,
+      "state" : "pending",
+      "token_usage" : {
+        "cached_tokens" : 0,
+        "input_tokens" : 0,
+        "output_tokens" : 0,
+        "requests" : 0,
+        "total_tokens" : 0
+      },
+      "watchdog" : {
+        "consecutive_stall_checks" : 0,
+        "last_checked_at" : null,
+        "last_progress_at" : null,
+        "max_runtime_minutes" : 240,
+        "message" : "尚未检查",
+        "status" : "unknown"
+      },
+      "work_sessions" : [
+
+      ]
+    },
+    "release-compliance" : {
+      "artifacts" : [
+
+      ],
+      "completed_at" : null,
+      "consecutive_stall_checks" : 0,
+      "duration_seconds" : 0,
+      "metrics" : {
+        "duration_source" : "ledger",
+        "duration_status" : "not-started",
+        "usage_source" : "agent-host",
+        "usage_status" : "unavailable"
+      },
+      "rework_count" : 0,
+      "skip_reason" : null,
+      "started_at" : null,
+      "state" : "pending",
+      "token_usage" : {
+        "cached_tokens" : 0,
+        "input_tokens" : 0,
+        "output_tokens" : 0,
+        "requests" : 0,
+        "total_tokens" : 0
+      },
+      "watchdog" : {
+        "consecutive_stall_checks" : 0,
+        "last_checked_at" : null,
+        "last_progress_at" : null,
+        "max_runtime_minutes" : 240,
+        "message" : "尚未检查",
+        "status" : "unknown"
+      },
+      "work_sessions" : [
+
+      ]
+    },
+    "simulator-test" : {
+      "artifacts" : [
+
+      ],
+      "completed_at" : null,
+      "consecutive_stall_checks" : 0,
+      "duration_seconds" : 0,
+      "metrics" : {
+        "duration_source" : "ledger",
+        "duration_status" : "not-started",
+        "usage_source" : "agent-host",
+        "usage_status" : "unavailable"
+      },
+      "rework_count" : 0,
+      "skip_reason" : null,
+      "started_at" : null,
+      "state" : "pending",
+      "token_usage" : {
+        "cached_tokens" : 0,
+        "input_tokens" : 0,
+        "output_tokens" : 0,
+        "requests" : 0,
+        "total_tokens" : 0
+      },
+      "watchdog" : {
+        "consecutive_stall_checks" : 0,
+        "last_checked_at" : null,
+        "last_progress_at" : null,
+        "max_runtime_minutes" : 240,
+        "message" : "尚未检查",
+        "status" : "unknown"
+      },
+      "work_sessions" : [
+
+      ]
+    },
+    "ux-review" : {
+      "artifacts" : [
+
+      ],
+      "completed_at" : null,
+      "consecutive_stall_checks" : 0,
+      "duration_seconds" : 0,
+      "metrics" : {
+        "duration_source" : "ledger",
+        "duration_status" : "not-started",
+        "usage_source" : "agent-host",
+        "usage_status" : "unavailable"
+      },
+      "rework_count" : 0,
+      "skip_reason" : null,
+      "started_at" : null,
+      "state" : "pending",
+      "token_usage" : {
+        "cached_tokens" : 0,
+        "input_tokens" : 0,
+        "output_tokens" : 0,
+        "requests" : 0,
+        "total_tokens" : 0
+      },
+      "watchdog" : {
+        "consecutive_stall_checks" : 0,
+        "last_checked_at" : null,
+        "last_progress_at" : null,
+        "max_runtime_minutes" : 240,
+        "message" : "尚未检查",
+        "status" : "unknown"
+      },
+      "work_sessions" : [
+
+      ]
+    },
+    "visual-design" : {
+      "artifacts" : [
+
+      ],
+      "completed_at" : null,
+      "consecutive_stall_checks" : 0,
+      "duration_seconds" : 0,
+      "metrics" : {
+        "duration_source" : "ledger",
+        "duration_status" : "not-started",
+        "usage_source" : "agent-host",
+        "usage_status" : "unavailable"
+      },
+      "rework_count" : 0,
+      "skip_reason" : null,
+      "started_at" : null,
+      "state" : "pending",
+      "token_usage" : {
+        "cached_tokens" : 0,
+        "input_tokens" : 0,
+        "output_tokens" : 0,
+        "requests" : 0,
+        "total_tokens" : 0
+      },
+      "watchdog" : {
+        "consecutive_stall_checks" : 0,
+        "last_checked_at" : null,
+        "last_progress_at" : null,
+        "max_runtime_minutes" : 240,
+        "message" : "尚未检查",
+        "status" : "unknown"
+      },
+      "work_sessions" : [
+
+      ]
+    }
+  },
+  "test_knowledge" : {
+    "baseline" : {
+      "feature_ids" : [
+
+      ],
+      "flow_ids" : [
+
+      ],
+      "known_issue_ids" : [
+
+      ],
+      "paths_inspected" : [
+
+      ],
+      "test_case_ids" : [
+
+      ]
+    },
+    "enabled" : false,
+    "impact" : {
+      "changed_feature_ids" : [
+
+      ],
+      "coverage_gaps" : [
+
+      ],
+      "coverage_tiers" : {
+
+      },
+      "dependent_feature_ids" : [
+
+      ],
+      "selected_flow_ids" : [
+
+      ],
+      "selected_test_case_ids" : [
+
+      ],
+      "selection_rationale" : ""
+    },
+    "review" : {
+      "reviewed_by" : null,
+      "status" : "not-required",
+      "summary" : ""
+    },
+    "updates" : [
+
+    ]
+  },
+  "title" : "独立 SwiftUI 原型：App Store 截图布局复现",
+  "unresolved_blockers" : [
+
+  ],
+  "version" : 9,
+  "workflow_state" : "cancelled"
+}
