@@ -13,8 +13,8 @@ struct PlayerProfileView: View {
     @State private var selectedPeriod: Int? = nil
     @State private var fixedGameAnalysis = SavedGamePeriodAnalysis()
     @State var showingELOHistory = false
-    @State var expandedStatSections: Set<String> = []
-    @State private var isShowingFullGameStats = false
+    @State var expandedStatSections: Set<String> = ["career", "average"]
+    @State private var isShowingFullGameStats = true
 
     var player: Player? { store.player(for: playerID) }
     private var usesPixelSkin: Bool { AppSkin(rawValue: appSkinRaw) == .pixelEsports }
@@ -160,22 +160,17 @@ struct PlayerProfileView: View {
                 titleKey: "nav_career",
                 icon: "chart.bar.fill",
                 metrics: careerMetricValues,
-                sectionID: "career"
+                sectionID: "career",
+                rows: buildClassicCareerStatRows()
             )
             metricSummaryCard(
                 titleKey: "stat_section_average",
                 icon: "function",
                 metrics: averageMetricValues,
-                sectionID: "average"
+                sectionID: "average",
+                rows: buildClassicAverageStatRows()
             )
             eloHistoryCard
-
-            if expandedStatSections.contains("career") {
-                statSection(localized("label_career_stats"), rows: buildClassicCareerStatRows(), sectionId: "career")
-            }
-            if expandedStatSections.contains("average") {
-                statSection(localized("label_average_stats"), rows: buildClassicAverageStatRows(), sectionId: "average")
-            }
         }
     }
 
@@ -229,7 +224,7 @@ struct PlayerProfileView: View {
                     isShowingFullGameStats.toggle()
                 } label: {
                     HStack {
-                        Text(LocalizedStringKey("button_show_all"))
+                        Text(LocalizedStringKey(isShowingFullGameStats ? "button_show_less" : "button_show_all"))
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(EditorialDesign.blue)
                         Spacer()
@@ -282,42 +277,44 @@ struct PlayerProfileView: View {
     }
 
     private var header: some View {
-        HStack(spacing: 16) {
+        HStack(alignment: .top, spacing: 16) {
             if let player {
-                PlayerAvatarView(player: player, size: fixedGame == nil ? 72 : 84)
+                PlayerAvatarView(player: player, size: 76)
                 VStack(alignment: .leading, spacing: 8) {
                     Text(player.name)
                         .font(.title2.weight(.bold))
                         .foregroundStyle(EditorialDesign.navy)
-                    if let fg = fixedGame, let role = fg.role(of: playerID) {
-                        HStack(spacing: 6) {
-                            if !player.position.isEmpty {
-                                Text(player.position)
-                                Text("·")
-                            }
-                            Text(role.title)
-                        }
+                    if !player.position.isEmpty {
+                        Text(player.position)
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(.secondary)
+                    }
+                    Text(profileSubtitle(player))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+
+                    if let fg = fixedGame {
                         Text(teamName(for: fg))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
+                        if let role = fg.role(of: playerID) {
+                            Text(role.title)
+                                .font(.caption.weight(.semibold))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(.ultraThinMaterial, in: Capsule())
+                        }
                     } else {
-                        let roleLine = careerRoleLine(player)
-                        if !roleLine.isEmpty {
-                            Text(roleLine)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                        standardCareerOverview
+                        HStack(spacing: 6) {
+                            Text(String(format: NSLocalizedString("elo_format", comment: "ELO value"), Int(playerELO)))
+                                .font(.caption.monospacedDigit().weight(.semibold))
                         }
-                        if let teamName = careerTeamName {
-                            Text(teamName)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        } else if roleLine.isEmpty {
-                            Text(profileSubtitle(player))
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .contentShape(Rectangle())
+                        .onTapGesture { DispatchQueue.main.async { showingELOHistory = true } }
                     }
                 }
                 Spacer()
@@ -330,13 +327,7 @@ struct PlayerProfileView: View {
             }
         }
         .padding(16)
-        .background {
-            if fixedGame == nil {
-                EditorialDesign.card
-            } else {
-                EditorialPlayerPanelBackground()
-            }
-        }
+        .background(EditorialPlayerPanelBackground())
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -353,7 +344,7 @@ struct PlayerProfileView: View {
         .padding(.horizontal)
     }
 
-    private func metricSummaryCard(titleKey: String, icon: String, metrics: [(String, String)], sectionID: String) -> some View {
+    private func metricSummaryCard(titleKey: String, icon: String, metrics: [(String, String)], sectionID: String, rows: [StatRow]) -> some View {
         Button {
             withAnimation(.easeInOut(duration: 0.2)) {
                 if expandedStatSections.contains(sectionID) {
@@ -400,12 +391,53 @@ struct PlayerProfileView: View {
                         }
                     }
                 }
+
+                if expandedStatSections.contains(sectionID) {
+                    Divider()
+                        .overlay(EditorialDesign.divider.opacity(0.45))
+                    statRowsContent(rows)
+                }
             }
             .padding(14)
             .editorialCard(tint: EditorialDesign.card, radius: 18)
         }
         .buttonStyle(.plain)
         .padding(.horizontal)
+    }
+
+    @ViewBuilder
+    private func statRowsContent(_ rows: [StatRow]) -> some View {
+        VStack(spacing: 8) {
+            ForEach(rows) { row in
+                HStack(spacing: 8) {
+                    if let split = row.leftSplit {
+                        HStack(spacing: 8) {
+                            makeStatCard(row.left)
+                            makeStatCard(split)
+                        }
+                        .frame(maxWidth: .infinity)
+                    } else {
+                        makeStatCard(row.left)
+                            .frame(maxWidth: .infinity)
+                    }
+                    if let split = row.rightSplit {
+                        HStack(spacing: 8) {
+                            makeStatCard(split)
+                            if let right = row.right {
+                                makeStatCard(right)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                    } else if let right = row.right {
+                        makeStatCard(right)
+                            .frame(maxWidth: .infinity)
+                    } else {
+                        Spacer()
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+            }
+        }
     }
 
     private var careerMetricValues: [(String, String)] {
@@ -506,29 +538,6 @@ struct PlayerProfileView: View {
         return game.awayTeamName
     }
 
-    private var careerTeamName: String? {
-        var names: [String] = []
-        for game in allPlayerGames {
-            let name = teamName(for: game)
-            if !name.isEmpty, !names.contains(name) {
-                names.append(name)
-            }
-        }
-        return names.first
-    }
-
-    private func careerRoleLine(_ player: Player) -> String {
-        var parts: [String] = []
-        if !player.position.isEmpty {
-            parts.append(player.position)
-        }
-        if starterGameCount > 0 || benchGameCount > 0 {
-            let roleKey = starterGameCount >= benchGameCount ? "stat_label_starter" : "stat_label_bench"
-            parts.append(localized(roleKey))
-        }
-        return parts.joined(separator: " · ")
-    }
-
     private var standardCareerOverview: some View {
         let totalGames = filteredGames.count
         let winRate = totalGames > 0 ? String(format: "%.1f%%", Double(statsGroup.winCount) / Double(totalGames) * 100) : "--"
@@ -602,76 +611,6 @@ struct PlayerProfileView: View {
         .padding(.horizontal, 10)
         .background(Color.white.opacity(0.78), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(EditorialDesign.divider.opacity(0.32), lineWidth: 1))
-    }
-
-    private func statSection(_ title: String, rows: [StatRow], sectionId: String = "") -> some View {
-        let isExpanded = Binding(
-            get: { expandedStatSections.contains(sectionId) },
-            set: { if $0 { expandedStatSections.insert(sectionId) } else { expandedStatSections.remove(sectionId) } }
-        )
-        return DisclosureGroup(isExpanded: isExpanded) {
-            if rows.isEmpty {
-                Text(LocalizedStringKey("text_no_stats_in_group"))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(12)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
-            } else {
-                VStack(spacing: 8) {
-                    ForEach(rows) { row in
-                        HStack(spacing: 8) {
-                            if let split = row.leftSplit {
-                                HStack(spacing: 8) {
-                                    makeStatCard(row.left)
-                                    makeStatCard(split)
-                                }
-                                .frame(maxWidth: .infinity)
-                            } else {
-                                makeStatCard(row.left)
-                                    .frame(maxWidth: .infinity)
-                            }
-                            if let split = row.rightSplit {
-                                HStack(spacing: 8) {
-                                    makeStatCard(split)
-                                    if let right = row.right {
-                                        makeStatCard(right)
-                                    }
-                                }
-                                .frame(maxWidth: .infinity)
-                            } else if let right = row.right {
-                                makeStatCard(right)
-                                    .frame(maxWidth: .infinity)
-                            } else {
-                                Spacer()
-                                    .frame(maxWidth: .infinity)
-                            }
-                        }
-                    }
-                }
-            }
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: statSectionIcon(sectionId))
-                    .foregroundStyle(sectionId == "game" ? EditorialDesign.orange : EditorialDesign.blue)
-                Text(title)
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(EditorialDesign.navy)
-                Spacer()
-            }
-        }
-        .tint(EditorialDesign.navy)
-        .padding(14)
-        .editorialCard(tint: EditorialDesign.card, radius: 18)
-        .padding(.horizontal)
-    }
-
-    private func statSectionIcon(_ sectionId: String) -> String {
-        switch sectionId {
-        case "game": return "basketball.fill"
-        case "career": return "chart.bar.fill"
-        default: return "function"
-        }
     }
 
     private enum StatCardStyle {
@@ -1471,6 +1410,7 @@ struct CloudStorageView: View {
                 }
             }
         }
+        .editorialSettingsListStyle()
         .navigationTitle(LocalizedStringKey("settings_cloud_storage"))
         .onAppear { refreshCloudOnly() }
         .onChange(of: store.savedGames.count) { _, _ in refreshCloudOnly() }

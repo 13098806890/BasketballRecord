@@ -17,6 +17,9 @@ struct RosterView: View {
     @State private var showingSettingsDocument: SettingsDocument?
     @State private var isShowingPurchase = false
     @State private var isShowingLanguageInfo = false
+#if DEBUG
+    @State private var rosterRecoveryMessage: String?
+#endif
 
     @AppStorage(UnitSettings.heightUnitKey) private var heightRaw: String = ""
     @AppStorage(UnitSettings.weightUnitKey) private var weightRaw: String = ""
@@ -116,7 +119,7 @@ struct RosterView: View {
                                 .tint(EditorialDesign.blue)
                             }
                             .padding(.horizontal, 16)
-                            .frame(minHeight: 68)
+                            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
                             .contentShape(Rectangle())
                             settingsDivider()
                             HStack(spacing: 12) {
@@ -141,7 +144,7 @@ struct RosterView: View {
                                 .tint(EditorialDesign.blue)
                             }
                             .padding(.horizontal, 16)
-                            .frame(minHeight: 68)
+                            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
                             .contentShape(Rectangle())
                         }
 
@@ -248,6 +251,19 @@ struct RosterView: View {
                             }
                             .buttonStyle(.plain)
                             settingsDivider()
+                            Button {
+                                requestAppReview()
+                            } label: {
+                                settingsRow(
+                                    title: LocalizedStringKey("settings_rate_app"),
+                                    systemImage: "star.fill",
+                                    countText: nil,
+                                    iconColor: EditorialDesign.orange,
+                                    showsDisclosure: false
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            settingsDivider()
                             settingsRow(
                                 title: LocalizedStringKey("settings_version"),
                                 systemImage: "info.circle.fill",
@@ -255,10 +271,48 @@ struct RosterView: View {
                                 showsDisclosure: false
                             )
                         }
+
+#if DEBUG
+                        settingsSectionHeader("settings_section_debug")
+                        settingsCard {
+                            Button {
+                                let playerCountBefore = store.players.count
+                                let teamCountBefore = store.teams.count
+                                store.recoverRosterFromSavedGames()
+                                let playersAdded = max(0, store.players.count - playerCountBefore)
+                                let teamsAdded = max(0, store.teams.count - teamCountBefore)
+                                rosterRecoveryMessage = localizedFormat(
+                                    "settings_recover_roster_result",
+                                    playersAdded,
+                                    teamsAdded,
+                                    store.players.count,
+                                    store.teams.count
+                                )
+                            } label: {
+                                settingsRow(
+                                    title: LocalizedStringKey("settings_recover_roster_from_games"),
+                                    systemImage: "arrow.triangle.2.circlepath",
+                                    countText: nil,
+                                    iconColor: EditorialDesign.orange,
+                                    showsDisclosure: false
+                                )
+                            }
+                            .buttonStyle(.plain)
+
+                            if let rosterRecoveryMessage {
+                                Text(rosterRecoveryMessage)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .padding(.horizontal, 16)
+                                    .padding(.bottom, 14)
+                            }
+                        }
+#endif
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, 8)
-                    .padding(.bottom, 110)
+                    .padding(.bottom, 16)
+                    .safeAreaPadding(.bottom, 12)
                 }
             }
             .navigationTitle("")
@@ -326,7 +380,7 @@ struct RosterView: View {
                 .tint(EditorialDesign.blue)
         }
         .padding(.horizontal, 16)
-        .frame(minHeight: 72)
+        .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
         .contentShape(Rectangle())
     }
 
@@ -334,6 +388,15 @@ struct RosterView: View {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "-"
         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "-"
         return "\(version).\(build)"
+    }
+
+    private func requestAppReview() {
+        guard let scene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive }) else {
+            return
+        }
+        SKStoreReviewController.requestReview(in: scene)
     }
 
     private func settingsRow(
@@ -371,6 +434,8 @@ struct RosterView: View {
                     .foregroundStyle(.tertiary)
             }
         }
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
         .contentShape(Rectangle())
     }
 }
@@ -437,7 +502,7 @@ struct SettingsSyncImportView: View {
                 .buttonStyle(.plain)
             }
         }
-        .editorialListStyle()
+        .editorialSettingsListStyle()
         .navigationTitle(LocalizedStringKey("settings_section_sync_import"))
         .sheet(isPresented: $showingCloudUpload) {
             CloudShareUploadView()
@@ -479,6 +544,7 @@ struct SettingsSyncImportView: View {
             }
         }
         .contentShape(Rectangle())
+        .frame(minHeight: 58)
     }
 }
 

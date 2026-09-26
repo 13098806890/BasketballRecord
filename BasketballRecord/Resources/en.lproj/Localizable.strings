@@ -120,6 +120,9 @@
 "settings_help" = "Help";
 "settings_privacy" = "Privacy";
 "settings_version" = "Version";
+"settings_section_debug" = "Temporary Tools";
+"settings_recover_roster_from_games" = "Recover Teams & Players from Games";
+"settings_recover_roster_result" = "Added %d players and %d teams. Total: %d players, %d teams.";
 
 "deepseek_enter_api_key" = "Enter AI API Key";
 "deepseek_testing" = "Testing...";
@@ -1049,6 +1052,7 @@ Format:
 
 "settings_section_about" = "About";
 "settings_contact_developer" = "Contact Developer";
+"settings_rate_app" = "Rate This App";
 "voice_instruction_combined" = "Combined Commands";
 "settings_about_content" = "Hi! I'm an independent developer who loves basketball.\n\nI built this app to help basketball enthusiasts around the world track their games. I have limited ability, but I'll do my best to improve it and add new features.\n\nIf you have any suggestions or feedback, feel free to email me:\nclassicalxie@163.com\n\nThank you for using %@!";
 "voice_tutorial_tab_tasks" = "Tasks";

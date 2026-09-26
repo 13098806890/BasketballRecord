@@ -9,19 +9,22 @@ struct AboutDeveloperView: View {
             VStack(spacing: 20) {
                 Image(systemName: "person.circle.fill")
                     .font(.system(size: 64))
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(EditorialDesign.orange)
                     .padding(.top, 24)
 
                 let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? ""
                 Text(String(format: NSLocalizedString("settings_about_content", comment: ""), appName))
                     .font(.body)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(EditorialDesign.navy)
                     .padding(.horizontal, 20)
+                    .padding(.vertical, 18)
                     .fixedSize(horizontal: false, vertical: true)
+                    .editorialCard(tint: EditorialDesign.card, radius: 18)
             }
             .padding(.vertical)
+            .padding(.bottom, 24)
         }
-        .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
+        .editorialSettingsPageStyle()
         .navigationTitle(LocalizedStringKey("settings_contact_developer"))
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -63,6 +66,7 @@ struct ProSubscriptionStoreView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            .editorialSettingsPageStyle()
         } else {
             SubscriptionStoreView(subscriptions: products) {
                 ScrollView {
@@ -70,7 +74,7 @@ struct ProSubscriptionStoreView: View {
                         HStack(spacing: 12) {
                             Image(systemName: "crown.fill")
                                 .font(.title2)
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(EditorialDesign.orange)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(LocalizedStringKey("section_pro"))
                                     .font(.headline)
@@ -86,6 +90,7 @@ struct ProSubscriptionStoreView: View {
                         }
                     }
                     .padding(16)
+                    .padding(.bottom, 24)
                 }
             }
             .storeButton(.visible, for: .restorePurchases)
@@ -98,6 +103,7 @@ struct ProSubscriptionStoreView: View {
             .subscriptionStorePolicyDestination(for: .termsOfService) {
                 SafariWebView(url: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
             }
+            .editorialSettingsPageStyle()
             .task { await PurchaseManager.shared.checkSubscriptionStatus() }
         }
     }
@@ -108,7 +114,7 @@ struct ProSubscriptionStoreView: View {
             HStack(spacing: 8) {
                 Image(systemName: section.icon)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(EditorialDesign.orange)
                     .frame(width: 22)
 
                 Text(section.title)
@@ -132,8 +138,8 @@ struct ProSubscriptionStoreView: View {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(EditorialDesign.card)
         )
     }
 }
@@ -171,7 +177,7 @@ enum SettingsDocument: String, Identifiable {
     }
 
     var accentColor: Color {
-        Color.blue
+        EditorialDesign.blue
     }
 
     var featureSections: [SettingsFeatureSection]? {
@@ -324,7 +330,7 @@ struct SettingsDocumentView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(Color(uiColor: .secondarySystemBackground))
+                                .fill(EditorialDesign.card)
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -335,8 +341,9 @@ struct SettingsDocumentView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
+                .padding(.bottom, 24)
             }
-            .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
+            .editorialSettingsPageStyle()
             .navigationTitle(document.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -367,7 +374,7 @@ struct SettingsDocumentView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(document.accentColor.opacity(0.10))
+                .fill(EditorialDesign.paleBlue)
         )
     }
 
@@ -403,7 +410,7 @@ struct SettingsDocumentView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color(uiColor: .secondarySystemBackground))
+                .fill(EditorialDesign.card)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)

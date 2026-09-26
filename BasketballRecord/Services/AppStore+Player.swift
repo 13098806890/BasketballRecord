@@ -130,10 +130,11 @@ extension AppStore {
         }
 
         var updatedGames = 0
+        let modifiedAt = Date()
         savedGames = savedGames.map { game in
             guard gameContainsPlayer(game, sourceID: sourceID) else { return game }
             updatedGames += 1
-            return remappedGameForPlayerMerge(game, sourceID: sourceID, targetID: targetID, targetName: targetPlayer.name)
+            return remappedGameForPlayerMerge(game, sourceID: sourceID, targetID: targetID, targetName: targetPlayer.name, modifiedAt: modifiedAt)
         }
 
         return PlayerMergeSummary(updatedTeams: updatedTeams, updatedGames: updatedGames)
@@ -161,7 +162,8 @@ extension AppStore {
         _ game: SavedGame,
         sourceID: UUID,
         targetID: UUID,
-        targetName: String
+        targetName: String,
+        modifiedAt: Date? = nil
     ) -> SavedGame {
         let snapshot = remappedSnapshotForPlayerMerge(game.snapshot, sourceID: sourceID, targetID: targetID)
 
@@ -172,7 +174,7 @@ extension AppStore {
         return SavedGame(
             id: game.id,
             savedAt: game.savedAt,
-            modifiedAt: game.modifiedAt,
+            modifiedAt: modifiedAt ?? game.modifiedAt,
             snapshot: snapshot,
             aiSummary: game.aiSummary,
             previousSnapshot: game.previousSnapshot.map { remappedSnapshotForPlayerMerge($0, sourceID: sourceID, targetID: targetID) },

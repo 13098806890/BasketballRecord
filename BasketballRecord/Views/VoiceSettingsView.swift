@@ -129,6 +129,7 @@ struct VoiceSettingsView: View {
                 }
             }
         }
+        .editorialSettingsListStyle()
         .navigationTitle(LocalizedStringKey("settings_voice"))
     }
 
@@ -137,7 +138,7 @@ struct VoiceSettingsView: View {
             Image(systemName: systemImage)
                 .font(.subheadline.weight(.semibold))
                 .symbolRenderingMode(.monochrome)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(EditorialDesign.orange)
                 .frame(width: 28, height: 28)
 
             Text(title)
@@ -154,5 +155,7 @@ struct VoiceSettingsView: View {
                     .background(Capsule().fill(Color(.systemGray6)))
             }
         }
+        .frame(minHeight: 58)
+        .contentShape(Rectangle())
     }
 }

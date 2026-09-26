@@ -99,6 +99,7 @@ struct VoiceTutorialView: View {
                 Spacer()
             }
         }
+        .background(EditorialBackground())
         .navigationTitle(LocalizedStringKey("settings_voice_tutorial"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -152,7 +153,7 @@ struct VoiceTutorialView: View {
             )
         }
         .padding(.vertical, 8)
-        .background(Color(.systemGray6))
+        .background(EditorialDesign.card)
     }
 
     private func teamRow(side: TeamSide, teamName: String, players: [Player]) -> some View {
@@ -688,4 +689,3 @@ struct VoiceTutorialView: View {
         UserDefaults.standard.removeObject(forKey: Self.resultsKey)
     }
 }
-

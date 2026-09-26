@@ -28,6 +28,7 @@ struct SavedGameDetailView: View {
        self.displayMode = displayMode
 
        _selectedGroupID = State(initialValue: game.groupIDs.first)
+       _expandedTeamIDs = State(initialValue: Set([game.snapshot.homeTeamID, game.snapshot.awayTeamID].compactMap { $0 }))
     }
 
     private var currentSavedGame: SavedGame {
@@ -67,7 +68,7 @@ struct SavedGameDetailView: View {
                 if !game.snapshot.homeTeamStatsMode { homePlayerSection }
                 if !game.snapshot.awayTeamStatsMode { awayPlayerSection }
 
-                eventLogCard
+                if displayMode == .history { eventLogCard }
                 if displayMode == .history { aiSummaryCard }
             }
             .padding(.horizontal, 16)
@@ -90,13 +91,6 @@ struct SavedGameDetailView: View {
                         Image(systemName: "pencil.and.list.clipboard")
                     }
                     .accessibilityLabel(LocalizedStringKey("label_edit_event_log"))
-                    if store.isPro {
-                        Button {
-                            store.toggleCloudStorage(for: game.id)
-                        } label: {
-                            Label(LocalizedStringKey("label_cloud"), systemImage: store.cloudEnabledGameIDs.contains(game.id) ? "icloud.fill" : "icloud")
-                        }
-                    }
                     if store.isPro {
                         GameGroupPicker(store: store, selectedGroupID: $selectedGroupID, iconName: "folder.badge.plus", checkedGroupIDs: Set(store.groups(for: game.id).map(\.id)))
                     }
@@ -227,6 +221,7 @@ struct SavedGameDetailView: View {
                     .onSubmit {
                         if let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) {
                             store.savedGames[idx].displayName = editDisplayName
+                            store.markSavedGameModified(game.id)
                             if store.cloudEnabledGameIDs.contains(game.id) {
                                 Task {
                                     await CloudKitManager.shared.uploadGame(store.savedGames[idx])
@@ -299,9 +294,6 @@ struct SavedGameDetailView: View {
                     Text(LocalizedStringKey("label_edit_event_log"))
                         .font(.headline.weight(.bold))
                         .foregroundStyle(EditorialDesign.navy)
-                    Text(LocalizedStringKey("label_edit_event_log"))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
@@ -514,9 +506,15 @@ struct SavedGameDetailView: View {
                     .frame(width: 30, alignment: .leading)
                 HStack(spacing: 7) {
                     playerAvatar(for: playerID)
-                    Text(game.playerNamesByID[playerID] ?? NSLocalizedString("unknown_player", comment: "Unknown player"))
-                        .font(.subheadline.weight(.semibold))
-                        .lineLimit(1)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(game.playerNamesByID[playerID] ?? NSLocalizedString("unknown_player", comment: "Unknown player"))
+                            .font(.subheadline.weight(.semibold))
+                            .lineLimit(1)
+                        compactPlayerDetailText(playerID: playerID, stats: stats)
+                            .font(.caption2.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 compactStatValue(stats.points, isPrimary: true)
@@ -531,6 +529,23 @@ struct SavedGameDetailView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    private func compactPlayerDetailText(playerID: UUID, stats: PlayerStats) -> Text {
+        let playingTime: String
+        if !selectedPeriods.isEmpty {
+            let total = selectedPeriods.reduce(0) { sum, period in
+                sum + (cachedPlayingTimeByPeriod[period]?[playerID] ?? 0)
+            }
+            playingTime = total > 0 ? GameView.durationFormatter(total) : "--:--"
+        } else {
+            playingTime = GameView.durationFormatter(currentSavedGame.snapshot.playingSecondsByPlayerID[playerID, default: 0])
+        }
+        let pmPeriods = selectedPeriods.isEmpty ? Set(availablePeriodOptions) : selectedPeriods
+        let plusMinus = pmPeriods.reduce(0) { $0 + (periodAnalysis.plusMinusByPlayerID(for: $1)[playerID] ?? 0) }
+        let plusMinusText = plusMinus > 0 ? "+\(plusMinus)" : "\(plusMinus)"
+        return Text(String(format: NSLocalizedString("stats_line_format", comment: "Stats line"), playingTime, stats.made, stats.attempts, stats.allFreeThrowMade, stats.allFreeThrowAttempts, stats.totalRebounds, stats.assists, stats.fouls, stats.blocks, stats.steals, stats.turnovers))
+            + Text("  \(NSLocalizedString("stats_plus_minus", comment: "")) \(plusMinusText)  \(NSLocalizedString("stats_points_per_shot", comment: "")) \(String(format: "%.2f", stats.pointsPerShot))")
     }
 
     private func compactStatValue(_ value: Int, isPrimary: Bool = false) -> some View {
@@ -838,6 +853,7 @@ struct SavedGameDetailView: View {
         savedGame.snapshot.playingSecondsByPlayerID = playingSeconds
         savedGame.snapshot.plusMinusByPlayerID = plusMinus
         store.savedGames[gameIndex] = savedGame
+        store.markSavedGameModified(savedGame.id)
     }
 
     private var gameDurationText: String? {

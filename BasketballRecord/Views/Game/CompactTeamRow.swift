@@ -167,8 +167,13 @@ struct CompactTeamRow: View {
                             .foregroundStyle(.white)
                             .padding(.horizontal, 3)
                             .padding(.vertical, 2)
-                            .background(scoreboardColor, in: Capsule())
-                            .offset(x: 3, y: 3)
+                            .background(scoreboardColor.opacity(0.72), in: Capsule())
+                            .overlay {
+                                Capsule()
+                                    .stroke(.white.opacity(0.45), lineWidth: 0.5)
+                            }
+                            .padding(2)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                     }
                 }
 

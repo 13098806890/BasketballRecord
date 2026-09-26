@@ -28,6 +28,9 @@
 "settings_help" = "Aide";
 "settings_privacy" = "Confidentialité";
 "settings_version" = "Version";
+"settings_section_debug" = "Outils temporaires";
+"settings_recover_roster_from_games" = "Récupérer les équipes et joueurs depuis les matchs";
+"settings_recover_roster_result" = "%d joueurs et %d équipes ajoutés. Total : %d joueurs, %d équipes.";
 
 "deepseek_enter_api_key" = "Entrez la clé DeepSeek API";
 "deepseek_testing" = "Test en cours...";
@@ -1033,6 +1036,7 @@ Format :
 
 "settings_section_about" = "À propos";
 "settings_contact_developer" = "Contacter le développeur";
+"settings_rate_app" = "Évaluer l’app";
 "voice_instruction_combined" = "Commandes combinées";
 "settings_about_content" = "Bonjour ! Je suis un développeur indépendant passionné de basket-ball.\n\nJ’ai créé cette app pour aider les amateurs de basket du monde entier à suivre leurs matchs. Mes moyens sont limités, mais je ferai de mon mieux pour l’améliorer et ajouter de nouvelles fonctionnalités.\n\nSi vous avez des suggestions ou des commentaires, écrivez-moi :\nclassicalxie@163.com\n\nMerci d’utiliser %@ !";
 "voice_tutorial_tab_tasks" = "Tâches";

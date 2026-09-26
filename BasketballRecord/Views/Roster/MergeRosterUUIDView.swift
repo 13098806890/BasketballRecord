@@ -23,6 +23,7 @@ struct MergeRosterUUIDView: View {
                     MergeTeamUUIDView(embedded: true)
                 }
             }
+            .editorialSettingsPageStyle()
             .navigationTitle(LocalizedStringKey("settings_merge"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

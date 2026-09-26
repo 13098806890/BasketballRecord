@@ -96,6 +96,9 @@
 "settings_help" = "Помощь";
 "settings_privacy" = "Конфиденциальность";
 "settings_version" = "Версия";
+"settings_section_debug" = "Временные инструменты";
+"settings_recover_roster_from_games" = "Восстановить команды и игроков из игр";
+"settings_recover_roster_result" = "Добавлено игроков: %d, команд: %d. Всего игроков: %d, команд: %d.";
 
 "deepseek_enter_api_key" = "Введите ключ AI API";
 "deepseek_testing" = "Тестирование...";
@@ -1033,6 +1036,7 @@
 
 "settings_section_about" = "О приложении";
 "settings_contact_developer" = "Связаться с разработчиком";
+"settings_rate_app" = "Оценить приложение";
 "voice_instruction_combined" = "Комбинированные команды";
 "settings_about_content" = "Привет! Я независимый разработчик и люблю баскетбол.\n\nЯ создал это приложение, чтобы помочь любителям баскетбола по всему миру записывать свои матчи. Мои возможности ограничены, но я постараюсь улучшать приложение и добавлять новые функции.\n\nЕсли у вас есть предложения или отзывы, напишите мне:\nclassicalxie@163.com\n\nСпасибо, что пользуетесь %@!";
 "voice_tutorial_tab_tasks" = "Задания";

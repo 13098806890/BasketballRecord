@@ -72,6 +72,7 @@ struct VoiceLogView: View {
                 }
             }
         }
+        .editorialSettingsListStyle()
         .navigationTitle(LocalizedStringKey("settings_voice_log"))
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {

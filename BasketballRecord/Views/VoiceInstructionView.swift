@@ -38,6 +38,7 @@ struct VoiceInstructionView: View {
             }
             .padding()
         }
+        .editorialSettingsPageStyle()
         .navigationTitle(LocalizedStringKey("settings_voice_instruction"))
     }
 
@@ -57,6 +58,8 @@ struct VoiceInstructionView: View {
                 .lineSpacing(4)
                 .padding(.leading, 42)
         }
+        .padding(14)
+        .editorialCard(tint: EditorialDesign.card, radius: 18)
     }
 
     private var header: some View {
@@ -64,7 +67,7 @@ struct VoiceInstructionView: View {
             HStack(spacing: 10) {
                 Image(systemName: "mic.fill")
                     .font(.largeTitle.weight(.semibold))
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(EditorialDesign.orange)
                 Text(headerTitle)
                     .font(.largeTitle.weight(.bold))
             }
@@ -72,6 +75,8 @@ struct VoiceInstructionView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
+        .padding(16)
+        .editorialCard(tint: EditorialDesign.card, radius: 18)
     }
 
     private var headerTitle: String {

@@ -286,6 +286,7 @@ struct GameEventLogEditorView: View {
             currentPlayerID: entry.playerID
         ))
         store.savedGames[gameIndex] = savedGame
+        store.markSavedGameModified(savedGame.id)
         onRebuildAnalysis()
     }
 
@@ -307,6 +308,7 @@ struct GameEventLogEditorView: View {
             periodElapsedSeconds: max(0, elapsed)
         ) else { return }
         store.savedGames[gameIndex] = savedGame
+        store.markSavedGameModified(savedGame.id)
         onRebuildAnalysis()
     }
 
@@ -327,6 +329,7 @@ struct GameEventLogEditorView: View {
             currentPlayerID: nil
         ))
         store.savedGames[gameIndex] = savedGame
+        store.markSavedGameModified(savedGame.id)
         onRebuildAnalysis()
     }
 
@@ -336,6 +339,7 @@ struct GameEventLogEditorView: View {
         var savedGame = store.savedGames[gameIndex]
         guard GameLogEditLogic.restoreModification(snapshot: &savedGame.snapshot, eventID: eventID) else { return }
         store.savedGames[gameIndex] = savedGame
+        store.markSavedGameModified(savedGame.id)
         onRebuildAnalysis()
     }
 
@@ -349,6 +353,7 @@ struct GameEventLogEditorView: View {
             currentMessage: nil, currentEventCode: nil, currentPlayerID: nil
         ))
         store.savedGames[gameIndex] = savedGame
+        store.markSavedGameModified(savedGame.id)
         onRebuildAnalysis()
     }
 }

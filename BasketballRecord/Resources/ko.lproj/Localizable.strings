@@ -28,6 +28,9 @@
 "settings_help" = "도움말";
 "settings_privacy" = "개인정보";
 "settings_version" = "버전";
+"settings_section_debug" = "임시 도구";
+"settings_recover_roster_from_games" = "경기에서 팀과 선수 복구";
+"settings_recover_roster_result" = "선수 %d명과 팀 %d개를 추가했습니다. 합계: 선수 %d명, 팀 %d개.";
 
 "deepseek_enter_api_key" = "AI API 키 입력";
 "deepseek_testing" = "테스트 중...";
@@ -1052,6 +1055,7 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 
 "settings_section_about" = "정보";
 "settings_contact_developer" = "개발자에게 연락";
+"settings_rate_app" = "앱 평가하기";
 "voice_instruction_combined" = "복합 명령";
 "settings_about_content" = "안녕하세요! 농구를 사랑하는 독립 개발자입니다.\n\n전 세계 농구 팬들이 경기를 기록하는 데 도움이 되도록 이 앱을 만들었습니다. 제 능력은 부족하지만 앱을 개선하고 새 기능을 추가하기 위해 최선을 다하겠습니다.\n\n제안이나 의견이 있으시면 이메일로 알려주세요:\nclassicalxie@163.com\n\n%@를 이용해 주셔서 감사합니다!";
 "voice_tutorial_tab_tasks" = "과제";

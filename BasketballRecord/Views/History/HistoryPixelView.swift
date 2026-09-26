@@ -249,36 +249,20 @@ struct HistoryPixelView: View {
     }
 
     private func pixelGameLink(_ game: SavedGame) -> some View {
-        HStack(spacing: 8) {
-            NavigationLink {
-                SavedGameDetailView(game: game)
-            } label: {
-                PixelSavedGameRow(game: game)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            if store.isPro {
-                Button {
-                    store.toggleCloudStorage(for: game.id)
-                } label: {
-                    Image(systemName: store.cloudEnabledGameIDs.contains(game.id) ? "icloud.fill" : "icloud")
-                        .font(.headline)
-                        .foregroundStyle(store.cloudEnabledGameIDs.contains(game.id) ? HistoryPixelDesign.cyan : HistoryPixelDesign.muted)
-                        .frame(width: 38, height: 58)
-                        .background(HistoryPixelDesign.panel)
-                        .overlay(HistoryPixelPanelShape().stroke(HistoryPixelDesign.line, lineWidth: 1))
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(LocalizedStringKey("label_cloud"))
-            }
+        NavigationLink {
+            SavedGameDetailView(game: game)
+        } label: {
+            PixelSavedGameRow(game: game)
+                .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
         .swipeActions(edge: .leading, allowsFullSwipe: false) {
             Button {
                 if let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) {
                     store.savedGames[idx].isLocked.toggle()
+                    store.markSavedGameModified(game.id)
                 }
             } label: {
                 Label(LocalizedStringKey(game.isLocked ? "label_unlock" : "label_lock"), systemImage: game.isLocked ? "lock.open" : "lock")
