@@ -11,17 +11,20 @@ extension AppStore {
     @discardableResult
     func autoSaveGame(_ snapshot: GameSnapshot, gameID: UUID?, undoSnapshots: [GameSnapshot] = []) -> UUID {
         let targetID = gameID ?? UUID()
+        let existingGame = savedGames.first(where: { $0.id == targetID })
+        let savedAt = existingGame?.savedAt ?? Date()
+        let modifiedAt = Date()
         let ts = snapshot.teamStatsByID
         if !ts.isEmpty || snapshot.homeTeamStatsMode || snapshot.awayTeamStatsMode {
             print("[AutoSave] snapshot teamStats=\(ts.count) pts=\(ts.values.reduce(0){$0+$1.points}) homeMode=\(snapshot.homeTeamStatsMode) awayMode=\(snapshot.awayTeamStatsMode)")
         }
-        var game = buildSavedGame(id: targetID, snapshot: snapshot, savedAt: Date())
+        var game = buildSavedGame(id: targetID, snapshot: snapshot, savedAt: savedAt, modifiedAt: modifiedAt)
         let savedTS = game.snapshot.teamStatsByID
         let savedPts = savedTS.values.reduce(0) { $0 + $1.points }
         if savedPts > 0 || game.snapshot.homeTeamStatsMode || game.snapshot.awayTeamStatsMode {
             print("[AutoSave] builtSavedGame teamStats=\(savedTS.count) pts=\(savedPts) homeMode=\(game.snapshot.homeTeamStatsMode) awayMode=\(game.snapshot.awayTeamStatsMode)")
         }
-        if let existingGame = savedGames.first(where: { $0.id == targetID }) {
+        if let existingGame {
             game.aiSummary = existingGame.aiSummary
         }
 
@@ -167,7 +170,7 @@ extension AppStore {
 
     // MARK: - Private helpers
 
-    private func buildSavedGame(id: UUID, snapshot: GameSnapshot, savedAt: Date) -> SavedGame {
+    private func buildSavedGame(id: UUID, snapshot: GameSnapshot, savedAt: Date, modifiedAt: Date? = nil) -> SavedGame {
         let homeTeam = team(for: snapshot.homeTeamID)
         let awayTeam = team(for: snapshot.awayTeamID)
         let homeRosterIDs = dedupedPlayerIDs(primary: snapshot.homeAvailablePlayerIDs, fallback: homeTeam?.playerIDs ?? snapshot.homeOnCourtPlayerIDs)
@@ -193,6 +196,7 @@ extension AppStore {
         return SavedGame(
             id: id,
             savedAt: savedAt,
+            modifiedAt: modifiedAt,
             snapshot: snapshot,
             homeTeamName: homeTeam?.name ?? NSLocalizedString("team_home_default", comment: "Home team"),
             awayTeamName: awayTeam?.name ?? NSLocalizedString("team_away_default", comment: "Away team"),

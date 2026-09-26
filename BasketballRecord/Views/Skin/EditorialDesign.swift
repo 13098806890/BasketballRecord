@@ -28,11 +28,24 @@ struct EditorialBackground: View {
 struct EditorialPlayerPanelBackground: View {
     var body: some View {
         ZStack {
+            LinearGradient(
+                colors: [
+                    Color(uiColor: UIColor { tc in
+                        tc.userInterfaceStyle == .dark ? UIColor(red: 0.20, green: 0.30, blue: 0.22, alpha: 1) : UIColor(red: 0.82, green: 0.88, blue: 0.82, alpha: 1)
+                    }),
+                    Color(uiColor: UIColor { tc in
+                        tc.userInterfaceStyle == .dark ? UIColor(red: 0.30, green: 0.24, blue: 0.18, alpha: 1) : UIColor(red: 0.90, green: 0.84, blue: 0.78, alpha: 1)
+                    })
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
             Image("EditorialBackground")
                 .resizable()
                 .scaledToFill()
+                .opacity(0.16)
             LinearGradient(
-                colors: [Color.white.opacity(0.78), Color.white.opacity(0.92)],
+                colors: [Color.white.opacity(0.12), .clear, Color.black.opacity(0.05)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -81,6 +94,33 @@ struct EditorialListModifier: ViewModifier {
     }
 }
 
+struct EditorialSettingsListModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(EditorialBackground())
+            .tint(EditorialDesign.blue)
+    }
+}
+
+struct EditorialSettingsPageModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .background(EditorialBackground())
+            .tint(EditorialDesign.blue)
+    }
+}
+
+struct EditorialSettingsFormModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .scrollContentBackground(.hidden)
+            .background(EditorialBackground())
+            .tint(EditorialDesign.blue)
+    }
+}
+
 struct EditorialTabBarModifier: ViewModifier {
     let isEnabled: Bool
 
@@ -105,6 +145,18 @@ extension View {
 
     func editorialListStyle() -> some View {
         modifier(EditorialListModifier())
+    }
+
+    func editorialSettingsListStyle() -> some View {
+        modifier(EditorialSettingsListModifier())
+    }
+
+    func editorialSettingsPageStyle() -> some View {
+        modifier(EditorialSettingsPageModifier())
+    }
+
+    func editorialSettingsFormStyle() -> some View {
+        modifier(EditorialSettingsFormModifier())
     }
 
 }

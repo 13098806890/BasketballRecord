@@ -12,9 +12,13 @@ struct CoreDataStack {
             description.shouldMigrateStoreAutomatically = true
             description.shouldInferMappingModelAutomatically = true
         }
-        container.loadPersistentStores { _, error in
+        container.loadPersistentStores { store, error in
             if let error {
                 print("[CoreData] Load error: \(error)")
+                print("[RecoveryCheck] core-data-load success=false error=\(error)")
+            } else {
+                let storeURL = store.url?.path ?? "nil"
+                print("[RecoveryCheck] core-data-load success=true type=\(store.type) url=\(storeURL)")
             }
         }
         container.viewContext.automaticallyMergesChangesFromParent = true

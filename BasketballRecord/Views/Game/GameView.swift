@@ -58,6 +58,7 @@ struct GameView: View {
     @State private var voiceMatchDismissTask: Task<Void, Never>?
     @State private var voiceFlashDismissTask: Task<Void, Never>?
     @State private var voiceErrorDismissTask: Task<Void, Never>?
+    @State private var isVoiceButtonPressed = false
     @State private var showAutoEndAlert = false
     @State private var autoEndAlertMessage = ""
     @State private var isShowingPurchase = false
@@ -111,8 +112,15 @@ struct GameView: View {
                                 .shadow(color: .black.opacity(0.15), radius: 12, y: 6)
 
                                 Text(item.action.message)
-                                    .font(.title.weight(.bold))
-                                    .foregroundStyle(.primary)
+                                    .font(.title2.weight(.semibold))
+                                    .foregroundStyle(GamePalette.text)
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 10)
+                                    .background(GamePalette.surface.opacity(0.96), in: Capsule())
+                                    .overlay {
+                                        Capsule()
+                                            .stroke(GamePalette.homeScoreboard.opacity(0.35), lineWidth: 1)
+                                    }
                             }
                         }
                     }
@@ -567,6 +575,31 @@ struct GameView: View {
             }
         }
         .scrollBounceBehavior(.basedOnSize)
+        .overlay(alignment: .bottom) {
+            if store.showsVoiceButton, !needsNewGameSetup {
+                VStack(spacing: 6) {
+                    if let error = voiceErrorMessage {
+                        Text(error)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.red)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(.regularMaterial, in: Capsule())
+                            .transition(.opacity)
+                    }
+                    if let match = voiceMatch {
+                        Text(match.action.message)
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(.regularMaterial, in: Capsule())
+                            .transition(.opacity)
+                    }
+                    micButton
+                }
+                .padding(.bottom, 24)
+            }
+        }
         .background(EditorialBackground().ignoresSafeArea())
         .overlay(alignment: .center) {
             Group {
@@ -585,10 +618,12 @@ struct GameView: View {
     }
 
     private var scorePageHeader: some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: 0) {
             headerAction(LocalizedStringKey("button_reset_game"), systemImage: "arrow.counterclockwise") {
                 isShowingResetConfirmation = true
             }
+
+            Spacer(minLength: 0)
 
             headerAction(LocalizedStringKey("button_finish_game"), systemImage: "flag.checkered.circle.fill") {
                 isShowingFinishGameConfirmation = true
@@ -597,7 +632,7 @@ struct GameView: View {
 
             Spacer(minLength: 0)
 
-            Button {
+            headerAction(LocalizedStringKey("button_new_game"), systemImage: "plus.circle.fill") {
                 if gameVM.snapshot.isComplete {
                     isShowingFinishedGameAlert = true
                 } else if hasUnfinishedGameToConfirm {
@@ -605,24 +640,18 @@ struct GameView: View {
                 } else {
                     isShowingNewGameSetup = true
                 }
-            } label: {
-                Text(LocalizedStringKey("button_new_game"))
-                    .font(.title3.weight(.bold))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                    .foregroundStyle(GamePalette.awayScoreboard)
-                    .frame(maxWidth: 130, minHeight: 66)
             }
-            .buttonStyle(.plain)
-
-            Spacer(minLength: 0)
 
             if store.showsBluetoothGamesButton {
+                Spacer(minLength: 0)
+
                 headerAction(LocalizedStringKey("button_invite_collab"), systemImage: "dot.radiowaves.left.and.right") {
                     handleInviteSyncTapped()
                 }
                 .disabled(currentGameRecordID == nil || needsNewGameSetup)
             }
+
+            Spacer(minLength: 0)
 
             headerAction(LocalizedStringKey("button_save_history"), systemImage: "clock.badge.checkmark") {
                 saveCurrentGame()
@@ -1005,31 +1034,6 @@ struct GameView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
         .background(GamePalette.surface.opacity(0.92), in: RoundedRectangle(cornerRadius: 12))
-        .overlay(alignment: .bottom) {
-            if store.showsVoiceButton, !needsNewGameSetup {
-                VStack(spacing: 6) {
-                    if let error = voiceErrorMessage {
-                        Text(error)
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(.red)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(.regularMaterial, in: Capsule())
-                            .transition(.opacity)
-                    }
-                    if let match = voiceMatch {
-                        Text(match.action.message)
-                            .font(.caption.weight(.semibold))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(.regularMaterial, in: Capsule())
-                            .transition(.opacity)
-                    }
-                    micButton
-                }
-                .padding(.bottom, 8)
-            }
-        }
     }
 
     private var selectedPlayer: Player? {
@@ -1101,26 +1105,28 @@ struct GameView: View {
     private var micButton: some View {
         ZStack {
             Circle()
-                .fill(.clear)
+                .fill(isVoiceButtonPressed ? GamePalette.homeScoreboard.opacity(0.22) : .white.opacity(0.85))
                 .frame(width: 72, height: 72)
             Circle()
-                .stroke(GamePalette.homeScoreboard, lineWidth: 2)
+                .stroke(isVoiceButtonPressed ? GamePalette.homeScoreboard : Color.primary.opacity(0.12), lineWidth: isVoiceButtonPressed ? 2 : 0.5)
                 .frame(width: 72, height: 72)
             Image(systemName: voiceRecognizer.isRecording ? "mic.fill" : "mic")
                 .font(.system(size: 26, weight: .semibold))
-                .foregroundStyle(voiceRecognizer.isRecording ? Color.blue : GamePalette.homeScoreboard)
-                .scaleEffect(voiceRecognizer.isRecording ? 1.15 : 1)
-                .animation(.spring(response: 0.2), value: voiceRecognizer.isRecording)
+                .foregroundStyle(isVoiceButtonPressed ? GamePalette.homeScoreboard : Color.primary)
+                .scaleEffect(isVoiceButtonPressed ? 1.15 : 1)
+                .animation(.spring(response: 0.2), value: isVoiceButtonPressed)
         }
         .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in
-                    if !voiceRecognizer.isRecording {
+                    if !isVoiceButtonPressed {
+                        isVoiceButtonPressed = true
                         voiceRecognizer.startRecording()
                     }
                 }
                 .onEnded { _ in
+                    isVoiceButtonPressed = false
                     voiceRecognizer.stopRecording()
                 }
         )

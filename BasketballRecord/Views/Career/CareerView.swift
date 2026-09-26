@@ -441,10 +441,6 @@ struct PlayerCareerBoardView: View {
             .padding(.top, 4)
             .padding(.bottom, 24)
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            EditorialBackground()
-                .frame(height: 92)
-        }
     }
 
     private func playerSummaryCard(_ summary: PlayerCareerSummary) -> some View {

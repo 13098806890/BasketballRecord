@@ -38,6 +38,9 @@
 "settings_help" = "ヘルプ";
 "settings_privacy" = "プライバシー";
 "settings_version" = "バージョン";
+"settings_section_debug" = "一時ツール";
+"settings_recover_roster_from_games" = "試合データからチームと選手を復元";
+"settings_recover_roster_result" = "%d 人の選手と %d チームを追加しました。合計: 選手 %d 人、チーム %d。";
 
 "deepseek_enter_api_key" = "AI API キーを入力";
 "deepseek_testing" = "テスト中...";
@@ -1044,6 +1047,7 @@
 
 "settings_section_about" = "このアプリについて";
 "settings_contact_developer" = "開発者に連絡";
+"settings_rate_app" = "アプリを評価する";
 "voice_instruction_combined" = "複合コマンド";
 "settings_about_content" = "こんにちは！バスケットボールが大好きな個人開発者です。\n\n世界中のバスケットボール愛好家が試合を記録できるよう、このアプリを作りました。できることには限りがありますが、改善や新機能の追加に努めていきます。\n\nご意見やご提案がありましたら、ぜひメールでお知らせください：\nclassicalxie@163.com\n\n%@をご利用いただきありがとうございます！";
 "voice_tutorial_tab_tasks" = "タスク";

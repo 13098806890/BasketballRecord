@@ -226,6 +226,7 @@ struct BluetoothSyncSettingsView: View {
                 }
             }
         }
+        .editorialSettingsListStyle()
         .navigationTitle(LocalizedStringKey("nav_bluetooth_sync"))
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {

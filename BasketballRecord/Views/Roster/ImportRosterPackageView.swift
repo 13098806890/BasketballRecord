@@ -223,6 +223,7 @@ struct ImportRosterPackageView: View {
                     .environmentObject(store)
             }
             .scrollDismissesKeyboard(.immediately)
+            .editorialSettingsFormStyle()
             .navigationTitle(LocalizedStringKey("nav_import_data"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -577,4 +578,3 @@ struct ImportRosterPackageView: View {
         isCloudImporting = false
     }
 }
-

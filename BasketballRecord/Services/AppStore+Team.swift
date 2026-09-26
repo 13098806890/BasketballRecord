@@ -137,20 +137,26 @@ extension AppStore {
         var seenPlayerIDs = Set(targetTeam.playerIDs)
         let addedPlayers = sourceTeam.playerIDs.filter { seenPlayerIDs.insert($0).inserted }
         targetTeam.playerIDs.append(contentsOf: addedPlayers)
+        if targetTeam.iconData == nil {
+            targetTeam.iconData = sourceTeam.iconData
+        }
 
         teams = teams.compactMap { team in
             if team.id == sourceID { return nil }
             if team.id == targetID {
-                return Team(id: team.id, name: team.name, playerIDs: targetTeam.playerIDs, iconData: team.iconData)
+                return Team(id: team.id, name: team.name, playerIDs: targetTeam.playerIDs, iconData: targetTeam.iconData)
             }
             return team
         }
 
+        try? FileManager.default.removeItem(at: teamIconFile(for: sourceID))
+
         var updatedGames = 0
+        let modifiedAt = Date()
         savedGames = savedGames.map { game in
             guard gameContainsTeam(game, sourceID: sourceID) else { return game }
             updatedGames += 1
-            return remappedGameForTeamMerge(game, sourceID: sourceID, targetID: targetID, targetName: targetTeam.name)
+            return remappedGameForTeamMerge(game, sourceID: sourceID, targetID: targetID, targetName: targetTeam.name, modifiedAt: modifiedAt)
         }
 
         return TeamMergeSummary(mergedPlayers: addedPlayers.count, updatedGames: updatedGames)
@@ -174,7 +180,8 @@ extension AppStore {
         _ game: SavedGame,
         sourceID: UUID,
         targetID: UUID,
-        targetName: String
+        targetName: String,
+        modifiedAt: Date? = nil
     ) -> SavedGame {
         let snapshot = remappedSnapshotForTeamMerge(game.snapshot, sourceID: sourceID, targetID: targetID)
         let homeChanged = game.snapshot.homeTeamID == sourceID
@@ -183,7 +190,7 @@ extension AppStore {
         return SavedGame(
             id: game.id,
             savedAt: game.savedAt,
-            modifiedAt: game.modifiedAt,
+            modifiedAt: modifiedAt ?? game.modifiedAt,
             snapshot: snapshot,
             aiSummary: game.aiSummary,
             previousSnapshot: game.previousSnapshot.map { remappedSnapshotForTeamMerge($0, sourceID: sourceID, targetID: targetID) },

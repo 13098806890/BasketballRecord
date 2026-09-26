@@ -28,6 +28,9 @@
 "settings_help" = "使用說明";
 "settings_privacy" = "隱私說明";
 "settings_version" = "版本";
+"settings_section_debug" = "暫時工具";
+"settings_recover_roster_from_games" = "從比賽資料恢復球隊和球員";
+"settings_recover_roster_result" = "新增 %d 名球員和 %d 支球隊。目前共 %d 名球員、%d 支球隊。";
 
 "deepseek_enter_api_key" = "請輸入 DeepSeek API Key";
 "deepseek_testing" = "測試中...";
@@ -1043,6 +1046,7 @@
 
 "settings_section_about" = "關於";
 "settings_contact_developer" = "聯繫開發者";
+"settings_rate_app" = "前往評分";
 "voice_instruction_combined" = "複合指令";
 "settings_about_content" = "你好！我是一名熱愛籃球的獨立開發者。\n\n我創建這個應用，希望能幫助世界各地的籃球愛好者記錄比賽。我能力有限，但會盡力完善各項功能。\n\n如果你有任何建議或意見，歡迎發送郵件至：\nclassicalxie@163.com\n\n感謝你使用 %@！";
 "voice_tutorial_tab_tasks" = "任務";

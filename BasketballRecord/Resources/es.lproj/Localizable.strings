@@ -28,6 +28,9 @@
 "settings_help" = "Ayuda";
 "settings_privacy" = "Privacidad";
 "settings_version" = "Versión";
+"settings_section_debug" = "Herramientas temporales";
+"settings_recover_roster_from_games" = "Recuperar equipos y jugadores de los partidos";
+"settings_recover_roster_result" = "Añadidos %d jugadores y %d equipos. Total: %d jugadores, %d equipos.";
 
 "deepseek_enter_api_key" = "Introduce la clave DeepSeek API";
 "deepseek_testing" = "Probando...";
@@ -1033,6 +1036,7 @@ Formato:
 
 "settings_section_about" = "Acerca de";
 "settings_contact_developer" = "Contactar al desarrollador";
+"settings_rate_app" = "Calificar la app";
 "voice_instruction_combined" = "Comandos combinados";
 "settings_about_content" = "¡Hola! Soy un desarrollador independiente al que le encanta el baloncesto.\n\nCreé esta app para ayudar a los aficionados de todo el mundo a registrar sus partidos. Mis recursos son limitados, pero haré todo lo posible por mejorarla y añadir nuevas funciones.\n\nSi tienes sugerencias o comentarios, escríbeme:\nclassicalxie@163.com\n\n¡Gracias por usar %@!";
 "voice_tutorial_tab_tasks" = "Tareas";

@@ -290,6 +290,8 @@ final class AppStoreOperationsTests: XCTestCase {
         XCTAssertEqual(store.savedGames[0].homeTeamName, "目标队")
         XCTAssertEqual(store.savedGames[1].snapshot.awayTeamID, targetTeamID)
         XCTAssertEqual(store.savedGames[1].awayTeamName, "目标队")
+        XCTAssertGreaterThan(store.savedGames[0].modifiedAt, store.savedGames[0].savedAt)
+        XCTAssertGreaterThan(store.savedGames[1].modifiedAt, store.savedGames[1].savedAt)
     }
 
     func testMergePlayerPreservesPreviousAndUndoSnapshots() throws {
@@ -426,6 +428,29 @@ final class AppStoreOperationsTests: XCTestCase {
             .value as? Date
         XCTAssertNotNil(modifiedAt)
         XCTAssertGreaterThan(try XCTUnwrap(modifiedAt), savedAt)
+    }
+
+    func testAutoSavePreservesCreationDateAndAdvancesModificationDate() throws {
+        let gameID = uuid("00000000-0000-0000-0000-00000000A001")
+        let savedAt = Date(timeIntervalSince1970: 2_000)
+        let game = SavedGame(
+            id: gameID,
+            savedAt: savedAt,
+            snapshot: GameSnapshot(),
+            homeTeamName: "主队",
+            awayTeamName: "客队",
+            homePlayerIDs: [],
+            awayPlayerIDs: [],
+            playerNamesByID: [:]
+        )
+        let store = AppStore()
+        store.savedGames = [game]
+
+        _ = store.autoSaveGame(GameSnapshot(), gameID: gameID)
+
+        let updated = try XCTUnwrap(store.savedGames.first)
+        XCTAssertEqual(updated.savedAt, savedAt)
+        XCTAssertGreaterThan(updated.modifiedAt, savedAt)
     }
 
     func testMergePlayerRemapsRelatedPlayerIDsInAllSnapshots() throws {

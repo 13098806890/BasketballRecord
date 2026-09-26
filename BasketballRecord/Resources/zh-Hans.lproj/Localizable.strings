@@ -139,6 +139,9 @@
 "settings_help" = "使用说明";
 "settings_privacy" = "隐私说明";
 "settings_version" = "版本";
+"settings_section_debug" = "临时工具";
+"settings_recover_roster_from_games" = "根据比赛恢复球队和球员";
+"settings_recover_roster_result" = "新增 %d 名球员和 %d 支球队。当前共 %d 名球员、%d 支球队。";
 
 "deepseek_enter_api_key" = "请输入 DeepSeek API Key";
 "deepseek_testing" = "测试连接中...";
@@ -1045,6 +1048,7 @@
 
 "settings_section_about" = "关于";
 "settings_contact_developer" = "联系开发者";
+"settings_rate_app" = "去评分";
 "voice_instruction_combined" = "复合指令";
 "settings_about_content" = "你好！我是一名热爱篮球的独立开发者。\n\n我创建这个应用，希望能帮助世界各地的篮球爱好者记录比赛。我能力有限，但会尽力完善各项功能。\n\n如果你有任何建议或意见，欢迎发送邮件至：\nclassicalxie@163.com\n\n感谢你使用 %@！";
 "voice_tutorial_tab_tasks" = "任务";

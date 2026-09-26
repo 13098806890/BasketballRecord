@@ -28,6 +28,9 @@
 "settings_help" = "Aiuto";
 "settings_privacy" = "Privacy";
 "settings_version" = "Versione";
+"settings_section_debug" = "Strumenti temporanei";
+"settings_recover_roster_from_games" = "Recupera squadre e giocatori dalle partite";
+"settings_recover_roster_result" = "Aggiunti %d giocatori e %d squadre. Totale: %d giocatori, %d squadre.";
 
 "deepseek_enter_api_key" = "Inserisci AI API Key";
 "deepseek_testing" = "Test in corso...";
@@ -1033,6 +1036,7 @@ Formato:
 
 "settings_section_about" = "Informazioni";
 "settings_contact_developer" = "Contatta lo sviluppatore";
+"settings_rate_app" = "Valuta l’app";
 "voice_instruction_combined" = "Comandi combinati";
 "settings_about_content" = "Ciao! Sono uno sviluppatore indipendente appassionato di basket.\n\nHo creato questa app per aiutare gli appassionati di tutto il mondo a registrare le loro partite. Le mie risorse sono limitate, ma farò del mio meglio per migliorarla e aggiungere nuove funzioni.\n\nPer suggerimenti o commenti, scrivimi:\nclassicalxie@163.com\n\nGrazie per usare %@!";
 "voice_tutorial_tab_tasks" = "Compiti";

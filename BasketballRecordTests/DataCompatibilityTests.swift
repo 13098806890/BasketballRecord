@@ -302,12 +302,24 @@ final class DataCompatibilityTests: XCTestCase {
     // MARK: - Cloud Enabled Game IDs
 
     func testCloudEnabledGameIDPersistence() {
-        let ids: Set<UUID> = [uuid("C001"), uuid("C002")]
-        let array = ids.map(\.uuidString)
-        NSUbiquitousKeyValueStore.default.set(array, forKey: "cloud_enabled_game_ids")
-        let loaded = (NSUbiquitousKeyValueStore.default.array(forKey: "cloud_enabled_game_ids") as? [String])?
+        let gameID = uuid("C001")
+        let game = SavedGame(
+            id: gameID,
+            savedAt: Date(),
+            snapshot: GameSnapshot(),
+            homeTeamName: "主队",
+            awayTeamName: "客队",
+            homePlayerIDs: [],
+            awayPlayerIDs: [],
+            playerNamesByID: [:]
+        )
+        let store = AppStore()
+        store.savedGames = [game]
+        store.toggleCloudStorage(for: game.id)
+
+        let loaded = (UserDefaults.standard.array(forKey: "cloud_enabled_game_ids") as? [String])?
             .compactMap(UUID.init)
-        XCTAssertEqual(Set(loaded ?? []), ids)
+        XCTAssertEqual(Set(loaded ?? []), [game.id])
     }
 
     // MARK: - Helpers

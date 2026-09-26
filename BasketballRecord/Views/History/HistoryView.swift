@@ -499,11 +499,6 @@ struct SavedGameRow: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 Spacer()
-                if store.cloudEnabledGameIDs.contains(game.id) {
-                    Image(systemName: "icloud.fill")
-                        .font(.caption2)
-                        .foregroundStyle(.blue)
-                }
             }
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -589,13 +584,15 @@ struct HistoryGameLink: View {
     @EnvironmentObject private var store: AppStore
     let game: SavedGame
     @Binding var pendingSwipeDeleteGame: SavedGame?
+    @State private var isShowingDetail = false
 
     var body: some View {
-        HStack(spacing: 8) {
-            NavigationLink {
-                SavedGameDetailView(game: game)
+        ZStack(alignment: .bottomTrailing) {
+            Button {
+                isShowingDetail = true
             } label: {
                 HistoryView.SavedGameRow(game: game)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -604,21 +601,28 @@ struct HistoryGameLink: View {
                 Button {
                     store.toggleCloudStorage(for: game.id)
                 } label: {
-                    Image(systemName: store.cloudEnabledGameIDs.contains(game.id) ? "icloud.fill" : "icloud")
-                        .font(.headline)
-                        .foregroundStyle(store.cloudEnabledGameIDs.contains(game.id) ? EditorialDesign.blue : .secondary)
-                        .frame(width: 36, height: 36)
-                        .background(EditorialDesign.paleBlue, in: Circle())
+                    Image(systemName: store.cloudEnabledGameIDs.contains(game.id) ? "icloud.fill" : "icloud.and.arrow.up")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(store.cloudEnabledGameIDs.contains(game.id) ? EditorialDesign.blue : EditorialDesign.orange)
+                        .frame(width: 34, height: 34)
+                        .background(
+                            store.cloudEnabledGameIDs.contains(game.id) ? EditorialDesign.paleBlue : EditorialDesign.paleOrange,
+                            in: Circle()
+                        )
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(LocalizedStringKey("label_cloud"))
+                .padding(.trailing, 14)
+                .padding(.bottom, 14)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
         .swipeActions(edge: .leading, allowsFullSwipe: false) {
             Button {
                 if let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) {
                     store.savedGames[idx].isLocked.toggle()
+                    store.markSavedGameModified(game.id)
                 }
             } label: {
                 Label(LocalizedStringKey(game.isLocked ? "label_unlock" : "label_lock"), systemImage: game.isLocked ? "lock.open" : "lock")
@@ -634,6 +638,9 @@ struct HistoryGameLink: View {
                 }
                 .tint(.red)
             }
+        }
+        .navigationDestination(isPresented: $isShowingDetail) {
+            SavedGameDetailView(game: game)
         }
     }
 }
