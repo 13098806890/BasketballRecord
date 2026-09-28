@@ -655,8 +655,9 @@
 "empty_no_player_data" = "No player data yet";
 "empty_no_game_history" = "No game history yet";
 "career_tile_games" = "Games";
+"career_tile_record" = "Record";
 "career_tile_win_rate" = "Win %";
-"career_tile_net" = "Net";
+"career_tile_net" = "Avg Net";
 "career_tile_avg_points" = "Avg Pts";
 "career_tile_avg_points_against" = "Avg Allowed";
 "career_tile_total_score" = "Total Score";
@@ -1026,6 +1027,10 @@ Format:
 "elo_computation_title" = "ELO Calculation";
 "label_elo" = "ELO";
 "label_elo_history" = "ELO History";
+"label_player_performance_trend" = "Trend";
+"label_average_points" = "Avg PTS";
+"label_field_goal_percentage" = "FG%";
+"label_average_short" = "AVG";
 "elo_format" = "ELO %d";
 "elo_title_format" = "ELO – %@";
 "elo_tier_bronze" = "Bronze";

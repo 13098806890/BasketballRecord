@@ -157,11 +157,11 @@
 "section_basic_info" = "基本信息";
 "label_position" = "位置";
 "position_unspecified" = "未設定";
-"stats_games_short" = "場次";
+"stats_games_short" = "出場";
 "career_stat_games_played_short" = "比賽";
-"stat_label_starter_short" = "GS";
-"stat_label_bench_short" = "BN";
-"stats_win_rate_short" = "W%";
+"stat_label_starter_short" = "先發";
+"stat_label_bench_short" = "替補";
+"stats_win_rate_short" = "勝率";
 "placeholder_name_required" = "姓名（必填）";
 "placeholder_number" = "號碼";
 "placeholder_height_cm" = "身高 cm";
@@ -563,8 +563,9 @@
 "empty_no_player_data" = "還沒有球員資料";
 "empty_no_game_history" = "還沒有歷史比賽";
 "career_tile_games" = "場次";
+"career_tile_record" = "戰績";
 "career_tile_win_rate" = "勝率";
-"career_tile_net" = "淨勝";
+"career_tile_net" = "場均淨勝";
 "career_tile_avg_points" = "場均得分";
 "career_tile_avg_points_against" = "場均失分";
 "career_tile_total_score" = "總得失";
@@ -1019,6 +1020,10 @@
 "elo_computation_title" = "ELO 計算詳情";
 "label_elo" = "天梯積分";
 "label_elo_history" = "ELO 歷史";
+"label_player_performance_trend" = "趨勢";
+"label_average_points" = "場均得分";
+"label_field_goal_percentage" = "命中率";
+"label_average_short" = "AVG";
 "elo_format" = "天梯積分 %d";
 "elo_title_format" = "天梯積分 – %@";
 "elo_tier_bronze" = "青銅";

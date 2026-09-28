@@ -713,8 +713,9 @@
 "empty_no_player_data" = "Ancora nessun dato giocatore";
 "empty_no_game_history" = "Ancora nessuna cronologia partite";
 "career_tile_games" = "Partite";
+"career_tile_record" = "Bilancio";
 "career_tile_win_rate" = "Vittoria %";
-"career_tile_net" = "Netto";
+"career_tile_net" = "Diff. media";
 "career_tile_avg_points" = "Media Pts";
 "career_tile_avg_points_against" = "Media subiti";
 "career_tile_total_score" = "Punteggio totale";
@@ -1009,6 +1010,10 @@ Formato:
 "elo_computation_title" = "Calcolo ELO";
 "label_elo" = "ELO";
 "label_elo_history" = "Cronologia ELO";
+"label_player_performance_trend" = "Tendenza";
+"label_average_points" = "PTS a partita";
+"label_field_goal_percentage" = "FG%";
+"label_average_short" = "AVG";
 "elo_format" = "ELO %d";
 "elo_title_format" = "ELO – %@";
 "elo_tier_bronze" = "Bronzo";

@@ -148,6 +148,7 @@ struct RosterView: View {
                             .contentShape(Rectangle())
                         }
 
+                        settingsSectionHeader("settings_section_data_management")
                         settingsCard {
                             Button {
                                 isShowingPurchase = true
@@ -343,6 +344,7 @@ struct RosterView: View {
             .foregroundStyle(EditorialDesign.navy.opacity(0.62))
             .padding(.top, 8)
             .padding(.horizontal, 12)
+            .accessibilityAddTraits(.isHeader)
     }
 
     private func settingsCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {

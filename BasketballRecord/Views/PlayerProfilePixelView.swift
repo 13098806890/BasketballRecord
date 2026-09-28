@@ -195,11 +195,13 @@ extension PlayerProfileView {
                                 .font(.system(size: min(14, max(11, 12 * scale)), weight: .black, design: .monospaced))
                                 .foregroundStyle(PixelDesign.amber)
                         }
-                        Text(profileSubtitle(player))
-                            .font(.system(size: min(14, max(11, 12.5 * scale)), weight: .bold, design: .monospaced))
-                            .foregroundStyle(PixelDesign.ink.opacity(0.88))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.55)
+                        if let subtitle = profileSubtitle(player) {
+                            Text(subtitle)
+                                .font(.system(size: min(14, max(11, 12.5 * scale)), weight: .bold, design: .monospaced))
+                                .foregroundStyle(PixelDesign.ink.opacity(0.88))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.55)
+                        }
                     }
                 }
 
