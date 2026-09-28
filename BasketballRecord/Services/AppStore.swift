@@ -277,14 +277,6 @@ final class AppStore: ObservableObject {
         }
         logRecoveryState(phase: "before-load")
         load()
-#if DEBUG
-        let hasRecoveryArgument = ProcessInfo.processInfo.arguments.contains("-recoverRosterFromGames")
-        let hasSuspiciouslySmallRoster = !savedGames.isEmpty && (players.count <= 1 || teams.count <= 1)
-        if hasRecoveryArgument || hasSuspiciouslySmallRoster {
-            print("[RecoveryCheck] game-roster-recovery trigger=\(hasRecoveryArgument ? "launch-argument" : "small-roster")")
-            recoverRosterFromSavedGames()
-        }
-#endif
         logRecoveryState(phase: "after-load")
         loadCloudEnabledGameIDs()
         NotificationCenter.default.addObserver(self, selector: #selector(cloudStoreDidChange), name: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: NSUbiquitousKeyValueStore.default)

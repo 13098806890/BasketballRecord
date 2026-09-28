@@ -28,6 +28,8 @@ struct CoreDataStore {
                 name: name,
                 height: obj.value(forKey: "height") as? String ?? "",
                 weight: obj.value(forKey: "weight") as? String ?? "",
+                heightUnit: HeightUnit(rawValue: obj.value(forKey: "heightUnit") as? String ?? "") ?? UnitSettings.heightUnit(),
+                weightUnit: WeightUnit(rawValue: obj.value(forKey: "weightUnit") as? String ?? "") ?? UnitSettings.weightUnit(),
                 number: obj.value(forKey: "number") as? String ?? "",
                 position: obj.value(forKey: "position") as? String ?? "",
                 photoData: nil,
@@ -49,6 +51,8 @@ struct CoreDataStore {
             obj.setValue(player.name, forKey: "name")
             obj.setValue(player.height, forKey: "height")
             obj.setValue(player.weight, forKey: "weight")
+            obj.setValue(player.heightUnit.rawValue, forKey: "heightUnit")
+            obj.setValue(player.weightUnit.rawValue, forKey: "weightUnit")
             obj.setValue(player.number, forKey: "number")
             obj.setValue(player.position, forKey: "position")
             obj.setValue(try? JSONEncoder().encode(player.playerGroupIDs), forKey: "playerGroupIDsData")

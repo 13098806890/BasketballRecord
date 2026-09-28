@@ -10,23 +10,19 @@ struct GameGroupManagementView: View {
         NavigationStack {
             List {
                 if store.gameGroups.isEmpty {
-                    VStack(alignment: .center, spacing: 12) {
-                        Image(systemName: "folder")
-                            .font(.system(size: 40))
-                            .foregroundColor(.gray)
-                        Text(NSLocalizedString("game_group_no_groups", comment: "No groups yet"))
-                            .foregroundColor(.gray)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 40)
-                    .listRowInsets(EdgeInsets())
+                    ContentUnavailableView(LocalizedStringKey("game_group_no_groups"), systemImage: "folder.badge.plus")
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                 } else {
                     ForEach(store.gameGroups, id: \.id) { group in
                         NavigationLink {
                             GameGroupEditView(store: store, group: group)
                         } label: {
                             GameGroupRowView(group: group, gameCount: store.gamesInGroup(group.id).count)
+                                .contentShape(Rectangle())
                         }
+                        .listRowBackground(EditorialDesign.card)
+                        .listRowSeparator(.hidden)
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                             Button(role: .destructive) {
                                 groupToDelete = group
@@ -38,6 +34,7 @@ struct GameGroupManagementView: View {
                     }
                 }
             }
+            .editorialListStyle()
             .navigationTitle(NSLocalizedString("game_group_nav_title", comment: "Game Groups"))
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -76,31 +73,36 @@ struct GameGroupRowView: View {
     let gameCount: Int
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(group.name)
-                        .font(.headline)
+        HStack(spacing: 12) {
+            Image(systemName: "folder.fill")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(EditorialDesign.orange)
+                .frame(width: 34, height: 34)
+                .background(EditorialDesign.paleOrange, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-                    if let description = group.description, !description.isEmpty {
-                        Text(description)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
+            VStack(alignment: .leading, spacing: 3) {
+                Text(group.name)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(EditorialDesign.navy)
 
-                Spacer()
-
-                HStack(spacing: 4) {
-                    Image(systemName: "gamecontroller")
+                if let description = group.description, !description.isEmpty {
+                    Text(description)
                         .font(.caption)
-                    Text(String(format: NSLocalizedString("game_group_games_count", comment: "%d games"), gameCount))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
                 }
             }
+
+            Spacer(minLength: 8)
+
+            Text(String(format: NSLocalizedString("game_group_games_count", comment: "%d games"), gameCount))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(EditorialDesign.blue)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 5)
+                .background(EditorialDesign.paleBlue, in: Capsule())
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 5)
     }
 }
 
@@ -123,53 +125,65 @@ struct GameGroupEditView: View {
     }
 
     var body: some View {
-        Form {
+        List {
             Section {
                 TextField(NSLocalizedString("game_group_name_placeholder", comment: "Group name"), text: $name)
 
                 TextField(NSLocalizedString("game_group_description_placeholder", comment: "Description"), text: $description)
             }
+            .listRowBackground(EditorialDesign.card)
 
             if group != nil {
                 Section(NSLocalizedString("game_group_games_section", comment: "Games")) {
                     if allGames.isEmpty {
                         Text(NSLocalizedString("game_group_no_games_available", comment: "No games available"))
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     } else {
                         ForEach(allGames, id: \.id) { game in
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(game.displayTitle)
-                                        .font(.subheadline)
-                                    HStack(spacing: 6) {
-                                        Text(dateFormatter.string(from: game.savedAt))
-                                            .font(.caption2)
-                                            .foregroundColor(.secondary)
-                                        Text(scoreLine(for: game))
-                                            .font(.caption2.monospacedDigit())
-                                            .foregroundColor(.secondary)
-                                    }
-                                }
-
-                                Spacer()
-
-                                Image(systemName: selectedGameIDs.contains(game.id) ? "checkmark.circle.fill" : "circle")
-                                    .foregroundColor(selectedGameIDs.contains(game.id) ? .blue : .secondary)
-                            }
-                            .contentShape(Rectangle())
-                            .onTapGesture {
+                            Button {
                                 if selectedGameIDs.contains(game.id) {
                                     selectedGameIDs.remove(game.id)
                                 } else {
                                     selectedGameIDs.insert(game.id)
                                 }
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "calendar.badge.clock")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(EditorialDesign.blue)
+                                        .frame(width: 32, height: 32)
+                                        .background(EditorialDesign.paleBlue, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text(game.displayTitle)
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundStyle(EditorialDesign.navy)
+                                        HStack(spacing: 6) {
+                                            Text(dateFormatter.string(from: game.savedAt))
+                                            Text(scoreLine(for: game))
+                                                .font(.caption2.monospacedDigit())
+                                        }
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                    }
+
+                                    Spacer(minLength: 8)
+
+                                    Image(systemName: selectedGameIDs.contains(game.id) ? "checkmark.circle.fill" : "circle")
+                                        .font(.title3)
+                                        .foregroundStyle(selectedGameIDs.contains(game.id) ? EditorialDesign.blue : EditorialDesign.divider)
+                                }
+                                .contentShape(Rectangle())
                             }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
+                .listRowBackground(EditorialDesign.card)
             }
         }
+        .editorialListStyle()
         .navigationTitle(group == nil ? NSLocalizedString("game_group_add_button", comment: "New Group") : NSLocalizedString("game_group_edit_button", comment: "Edit Group"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

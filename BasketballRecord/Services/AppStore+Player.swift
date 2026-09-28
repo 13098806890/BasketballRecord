@@ -96,8 +96,14 @@ extension AppStore {
 
         let sourcePlayer = players[sourceIndex]
         var targetPlayer = players[targetIndex]
-        if targetPlayer.height.isEmpty { targetPlayer.height = sourcePlayer.height }
-        if targetPlayer.weight.isEmpty { targetPlayer.weight = sourcePlayer.weight }
+        if targetPlayer.height.isEmpty {
+            targetPlayer.height = sourcePlayer.height
+            targetPlayer.heightUnit = sourcePlayer.heightUnit
+        }
+        if targetPlayer.weight.isEmpty {
+            targetPlayer.weight = sourcePlayer.weight
+            targetPlayer.weightUnit = sourcePlayer.weightUnit
+        }
         if targetPlayer.number.isEmpty { targetPlayer.number = sourcePlayer.number }
         if targetPlayer.position.isEmpty { targetPlayer.position = sourcePlayer.position }
         if targetPlayer.photoData == nil { targetPlayer.photoData = sourcePlayer.photoData }

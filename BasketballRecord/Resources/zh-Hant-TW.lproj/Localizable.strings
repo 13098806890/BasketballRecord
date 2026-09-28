@@ -166,6 +166,8 @@
 "placeholder_number" = "號碼";
 "placeholder_height_cm" = "身高 cm";
 "placeholder_weight_kg" = "體重 kg";
+"placeholder_height_ft_in" = "身高 英尺/英吋";
+"placeholder_weight_lbs" = "體重 磅";
 "section_uuid" = "UUID";
 "text_generated_after_save" = "保存後生成";
 "nav_new_player" = "新建球員";
@@ -298,6 +300,7 @@
 "stats_record_misc_format" = "罰球 %d/%d  板 %d  助 %d  犯 %d  蓋 %d  斷 %d  失 %d";
 "stats_full_misc_format" = "板(前-後) / 助 / 犯 / 蓋 / 斷 / 失";
 "stats_plus_minus" = "正負值";
+"stats_plus_minus_short" = "+/-";
 "stats_plus_minus_footnote" = "在場淨勝分";
 "stats_playing_time" = "上場時間";
 "select_player" = "選擇球員";
@@ -419,6 +422,11 @@
 "label_team_icon" = "球隊圖示";
 "label_select_team_icon" = "新增球隊圖示";
 "label_remove_team_icon" = "移除球隊圖示";
+"label_default_team_icons" = "預設球隊圖示";
+"label_default_team_icon" = "預設球隊圖示";
+"label_select_default_team_icon" = "選擇預設圖示";
+"label_dota1_skill_icons" = "DotA 1 技能圖示";
+"label_dota1_skill_icon" = "DotA 1 技能圖示";
 "label_this_game_stats" = "本場數據";
 "label_total_stats" = "總數據";
 "label_weight" = "體重";
@@ -863,19 +871,6 @@
 "label_games_count" = "出場";
 "stats_total_points" = "總得分";
 "settings_show_badges" = "顯示勳章";
-"settings_skin" = "皮膚";
-"skin_classic" = "經典";
-"skin_pixel_esports" = "電競像素";
-"pixel_career_profile" = "球員生涯";
-"pixel_elo_label" = "天梯積分";
-"pixel_stat_career" = "生涯";
-"pixel_stat_log" = "數據記錄";
-"pixel_stat_average" = "場均";
-"pixel_duration_format" = "%d m %d s";
-"pixel_group_scoring" = "得分";
-"pixel_group_shooting" = "投籃";
-"pixel_group_impact" = "影響力";
-"pixel_group_discipline" = "紀律";
 "settings_show_bluetooth_button" = "顯示藍牙協同邀請";
 "settings_show_voice_button" = "顯示語音按鈕";
 "settings_voice_log" = "語音日誌";
@@ -1035,7 +1030,7 @@
 "elo_tier_king" = "最強王者";
 
 "player_group_nav_title" = "球員分組";
-"player_group_all_players" = "所有球員";
+"player_group_all_players" = "全部";
 "player_group_add_button" = "新增球員分組";
 "player_group_edit_button" = "編輯球員分組";
 "player_group_name_placeholder" = "分組名稱";
@@ -1215,10 +1210,6 @@
 "alert_manual_end_period_time_format" = "第 %d 節時間尚未結束（上限：%d 分鐘）。要現在結束嗎？";
 "alert_manual_end_period_score_format" = "第 %d 節尚未達到得分上限（%d 分）。要現在結束嗎？";
 "search_players" = "搜尋球員";
-"pixel_efficiency_efg" = "eFG%";
-"pixel_efficiency_ts" = "TS%";
-"pixel_efficiency_pps" = "PPS";
-"pixel_group_all_around" = "綜合表現";
 "pro_feature_excel_1" = "將比賽、歷史、球員、生涯和名冊資料完整匯出為 Excel。";
 "button_export_excel" = "匯出 Excel";
 "export_preparing" = "正在準備匯出…";
@@ -1321,3 +1312,14 @@
 "excel_event_assist_format" = "%1$@ 助攻 %2$@，%3$@";
 "excel_event_steal_turnover_format" = "%1$@ 抄截 %2$@";
 "nav_player_detail" = "球員詳情";
+"stats_field_goal_short" = "投籃";
+"stat_label_2pt_short" = "2分";
+"stat_label_3pt_short" = "3分";
+"stat_label_free_throw_short" = "罰球";
+"stats_rebound_detail_short" = "板 / 前場 / 後場";
+"stats_assist_steal_block_short" = "助攻 / 抄截 / 火鍋";
+"stats_foul_turnover_short" = "犯規 / 失誤";
+"stats_points_per_shot_short" = "每次出手得分";
+"stats_fast_break_points_short" = "快攻得分";
+"stats_full_misc_short" = "籃板 / 助攻 / 犯規 / 火鍋 / 抄截 / 失誤";
+"stats_advanced_short" = "高階";

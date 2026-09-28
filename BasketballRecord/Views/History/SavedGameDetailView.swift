@@ -7,6 +7,7 @@ struct SavedGameDetailView: View {
     }
 
     @EnvironmentObject private var store: AppStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var game: SavedGame
     var displayMode: DisplayMode = .history
     @State private var isShowingExport = false
@@ -36,43 +37,45 @@ struct SavedGameDetailView: View {
     }
 
     var body: some View {
-        let l = ScrollView {
-            VStack(spacing: 12) {
-                Text(LocalizedStringKey("nav_game_detail"))
-                    .font(.largeTitle.weight(.bold))
+        let l = ScrollViewReader { proxy in
+            ScrollView {
+                VStack(spacing: 12) {
+                    Text(LocalizedStringKey("nav_game_detail"))
+                        .font(.largeTitle.weight(.bold))
+                        .foregroundStyle(EditorialDesign.navy)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    groupAssignmentCard
+                    matchupCard
+
+                    if game.snapshot.periodCount > 1, !availablePeriodOptions.isEmpty {
+                        periodSection
+                    }
+
+                    TeamStatsDisclosureView(
+                        homeName: game.homeTeamName,
+                        awayName: game.awayTeamName,
+                        homeStats: aggregateStats(for: game.snapshot.homeTeamID),
+                        awayStats: aggregateStats(for: game.snapshot.awayTeamID),
+                        homeFouls: fouls(for: game.snapshot.homeTeamID),
+                        awayFouls: fouls(for: game.snapshot.awayTeamID),
+                        style: .scoreboard
+                    )
+                    .padding(12)
+                    .editorialCard(tint: EditorialDesign.card, radius: 18)
                     .foregroundStyle(EditorialDesign.navy)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .tint(EditorialDesign.navy)
+                    .frame(maxWidth: .infinity)
 
-                groupAssignmentCard
-                matchupCard
+                    if !game.snapshot.homeTeamStatsMode { homePlayerSection(scrollProxy: proxy) }
+                    if !game.snapshot.awayTeamStatsMode { awayPlayerSection(scrollProxy: proxy) }
 
-                if game.snapshot.periodCount > 1, !availablePeriodOptions.isEmpty {
-                    periodSection
+                    if displayMode == .history { eventLogCard }
+                    if displayMode == .history { aiSummaryCard }
                 }
-
-                TeamStatsDisclosureView(
-                    homeName: game.homeTeamName,
-                    awayName: game.awayTeamName,
-                    homeStats: aggregateStats(for: game.snapshot.homeTeamID),
-                    awayStats: aggregateStats(for: game.snapshot.awayTeamID),
-                    homeFouls: fouls(for: game.snapshot.homeTeamID),
-                    awayFouls: fouls(for: game.snapshot.awayTeamID),
-                    style: .scoreboard
-                )
-                .padding(12)
-                .editorialCard(tint: EditorialDesign.card, radius: 18)
-                .foregroundStyle(EditorialDesign.navy)
-                .tint(EditorialDesign.navy)
-                .frame(maxWidth: .infinity)
-
-                if !game.snapshot.homeTeamStatsMode { homePlayerSection }
-                if !game.snapshot.awayTeamStatsMode { awayPlayerSection }
-
-                if displayMode == .history { eventLogCard }
-                if displayMode == .history { aiSummaryCard }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
         }
         .background(EditorialBackground())
 
@@ -107,7 +110,9 @@ struct SavedGameDetailView: View {
         }
 
         Group {
-            if isEditing {
+            l
+        }
+            .navigationDestination(isPresented: $isEditing) {
                 GameEventLogEditorView(
                     game: currentSavedGame,
                     periodAnalysis: periodAnalysis,
@@ -121,10 +126,7 @@ struct SavedGameDetailView: View {
                 )
                 .environmentObject(store)
                 .id(editRefreshID)
-            } else {
-                l
             }
-        }
             .overlay {
                 if periodAnalysis.logs.isEmpty {
                     ProgressView()
@@ -398,25 +400,27 @@ struct SavedGameDetailView: View {
         .listRowBackground(EditorialDesign.card)
     }
 
-    private var homePlayerSection: some View {
+    private func homePlayerSection(scrollProxy: ScrollViewProxy) -> some View {
         teamPlayersTable(
             teamID: game.snapshot.homeTeamID,
             title: game.homeTeamName,
             playerIDs: game.homePlayerIDs,
-            color: EditorialDesign.blue
+            color: EditorialDesign.blue,
+            scrollProxy: scrollProxy
         )
     }
 
-    private var awayPlayerSection: some View {
+    private func awayPlayerSection(scrollProxy: ScrollViewProxy) -> some View {
         teamPlayersTable(
             teamID: game.snapshot.awayTeamID,
             title: game.awayTeamName,
             playerIDs: game.awayPlayerIDs,
-            color: EditorialDesign.blue
+            color: EditorialDesign.blue,
+            scrollProxy: scrollProxy
         )
     }
 
-    private func teamPlayersTable(teamID: UUID?, title: String, playerIDs: [UUID], color: Color) -> some View {
+    private func teamPlayersTable(teamID: UUID?, title: String, playerIDs: [UUID], color: Color, scrollProxy: ScrollViewProxy) -> some View {
         let isExpanded = teamID.map { expandedTeamIDs.contains($0) } ?? true
         let visibleIDs = isExpanded ? playerIDs : Array(playerIDs.prefix(3))
 
@@ -437,6 +441,7 @@ struct SavedGameDetailView: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
+            .id(teamID.map(teamPlayerHeaderID))
 
             Divider()
 
@@ -451,8 +456,9 @@ struct SavedGameDetailView: View {
                     Text(LocalizedStringKey(key))
                         .frame(width: 34, alignment: .trailing)
                 }
-                Text(LocalizedStringKey("stats_plus_minus"))
+                Text(LocalizedStringKey("stats_plus_minus_short"))
                     .frame(width: 34, alignment: .trailing)
+                    .padding(.leading, 8)
             }
             .font(.caption2.weight(.semibold))
             .foregroundStyle(.secondary)
@@ -465,15 +471,15 @@ struct SavedGameDetailView: View {
                     Divider().padding(.leading, 14)
                 }
             }
+            .transition(.asymmetric(
+                insertion: .move(edge: .top).combined(with: .opacity),
+                removal: .move(edge: .top).combined(with: .opacity)
+            ))
 
             if playerIDs.count > 3 {
                 Button {
                     if let teamID {
-                        if isExpanded {
-                            expandedTeamIDs.remove(teamID)
-                        } else {
-                            expandedTeamIDs.insert(teamID)
-                        }
+                        toggleTeamPlayers(teamID: teamID, isExpanded: isExpanded, scrollProxy: scrollProxy)
                     }
                 } label: {
                     HStack {
@@ -481,17 +487,50 @@ struct SavedGameDetailView: View {
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(EditorialDesign.blue)
                         Spacer()
-                        Image(systemName: "chevron.right")
+                        Image(systemName: "chevron.down")
                             .font(.caption.weight(.bold))
                             .foregroundStyle(EditorialDesign.blue)
+                            .rotationEffect(.degrees(isExpanded ? 180 : 0))
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
                 }
                 .buttonStyle(.plain)
             }
+
+            if let teamID {
+                Color.clear
+                    .frame(height: 1)
+                    .id(teamPlayerBottomID(teamID))
+            }
         }
         .editorialCard(tint: EditorialDesign.card, radius: 18)
+    }
+
+    private func toggleTeamPlayers(teamID: UUID, isExpanded: Bool, scrollProxy: ScrollViewProxy) {
+        withAnimation(accordionAnimation) {
+            if isExpanded {
+                expandedTeamIDs.remove(teamID)
+                scrollProxy.scrollTo(teamPlayerHeaderID(teamID), anchor: .top)
+            } else {
+                expandedTeamIDs.insert(teamID)
+                scrollProxy.scrollTo(teamPlayerBottomID(teamID), anchor: .bottom)
+            }
+        }
+    }
+
+    private var accordionAnimation: Animation {
+        reduceMotion
+            ? .easeOut(duration: 0.15)
+            : .timingCurve(0.23, 1, 0.32, 1, duration: 0.24)
+    }
+
+    private func teamPlayerHeaderID(_ teamID: UUID) -> String {
+        "game-detail-team-header-\(teamID.uuidString)"
+    }
+
+    private func teamPlayerBottomID(_ teamID: UUID) -> String {
+        "game-detail-team-bottom-\(teamID.uuidString)"
     }
 
     private func compactPlayerRow(playerID: UUID) -> some View {
@@ -555,6 +594,7 @@ struct SavedGameDetailView: View {
             .font(.caption.monospacedDigit())
             .foregroundStyle(.primary)
             .frame(width: 34, alignment: .trailing)
+            .padding(.leading, 8)
     }
 
     private func isChinesePlayerName(_ name: String) -> Bool {

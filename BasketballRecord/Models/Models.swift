@@ -207,6 +207,8 @@ struct ExportPlayerV2: Codable, Hashable {
     var name: String
     var height: String
     var weight: String
+    var heightUnit: HeightUnit
+    var weightUnit: WeightUnit
     var number: String
     var position: String
     var photoData: Data?
@@ -217,6 +219,8 @@ struct ExportPlayerV2: Codable, Hashable {
         case name = "n"
         case height = "h"
         case weight = "w"
+        case heightUnit = "hu"
+        case weightUnit = "wu"
         case number = "o"
         case position = "r"
         case photoData = "f"
@@ -228,6 +232,8 @@ struct ExportPlayerV2: Codable, Hashable {
         name = legacy.name
         height = legacy.height
         weight = legacy.weight
+        heightUnit = legacy.heightUnit
+        weightUnit = legacy.weightUnit
         number = legacy.number
         position = legacy.position
         photoData = legacy.photoData
@@ -240,6 +246,8 @@ struct ExportPlayerV2: Codable, Hashable {
         name = try container.decode(String.self, forKey: .name)
         height = try container.decode(String.self, forKey: .height)
         weight = try container.decode(String.self, forKey: .weight)
+        heightUnit = try container.decodeIfPresent(HeightUnit.self, forKey: .heightUnit) ?? UnitSettings.heightUnit()
+        weightUnit = try container.decodeIfPresent(WeightUnit.self, forKey: .weightUnit) ?? UnitSettings.weightUnit()
         number = try container.decodeIfPresent(String.self, forKey: .number) ?? ""
         position = try container.decodeIfPresent(String.self, forKey: .position) ?? ""
         photoData = try container.decodeIfPresent(Data.self, forKey: .photoData)
@@ -247,7 +255,7 @@ struct ExportPlayerV2: Codable, Hashable {
     }
 
     var legacy: ExportPlayer {
-        ExportPlayer(id: id, name: name, height: height, weight: weight, number: number, position: position, photoData: photoData, nicknames: nicknames)
+        ExportPlayer(id: id, name: name, height: height, weight: weight, heightUnit: heightUnit, weightUnit: weightUnit, number: number, position: position, photoData: photoData, nicknames: nicknames)
     }
 }
 

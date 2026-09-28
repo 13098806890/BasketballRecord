@@ -1,25 +1,46 @@
 import SwiftUI
 import WebKit
 
+enum PlayerProfileDebugLog {
+    static func log(_ message: @autoclosure () -> String) {
+#if DEBUG
+        print(message())
+#endif
+    }
+}
+
+private enum PlayerProfileScrollAnchor {
+    static let coordinateSpace = "player-profile-scroll"
+    static let gameHistoryHeader = "player-profile-game-history-header"
+    static let gameHistoryBottom = "player-profile-game-history-bottom"
+
+    static func statHeader(_ sectionID: String) -> String {
+        "player-profile-stat-header-\(sectionID)"
+    }
+
+    static func statBottom(_ sectionID: String) -> String {
+        "player-profile-stat-bottom-\(sectionID)"
+    }
+}
+
 struct PlayerProfileView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @EnvironmentObject var store: AppStore
     var playerID: UUID
     var fixedGame: SavedGame? = nil
     @Binding var selectedGroupID: UUID?
     @State var selectedGameIDs: Set<UUID> = []
     @State private var hasInitializedGameSelection = false
-    @AppStorage(AppSkin.storageKey) private var appSkinRaw = AppSkin.classic.rawValue
     @State private var selectedPeriod: Int? = nil
     @State private var fixedGameAnalysis = SavedGamePeriodAnalysis()
-    @State var showingELOHistory = false
-    @State var expandedStatSections: Set<String> = ["career", "average"]
-    @State private var isShowingFullGameStats = true
+    @State private var showingELOHistory = false
+    @State private var isGameHistoryExpanded = true
+    @State var expandedStatSections: Set<String> = ["game", "career", "average"]
     @State private var selectedTrendIndex: Int?
+    @State private var chooseGamesCellFrame = CGRect.zero
 
     var player: Player? { store.player(for: playerID) }
-    private var usesPixelSkin: Bool { AppSkin(rawValue: appSkinRaw) == .pixelEsports }
-
     var body: some View {
         ZStack {
             profileScrollContent
@@ -28,57 +49,53 @@ struct PlayerProfileView: View {
         .navigationTitle(LocalizedStringKey("settings_players"))
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(false)
-        .modifier(PlayerProfileNavigationBarSkin(isPixelSkin: usesPixelSkin))
         .toolbar {
             if fixedGame == nil {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     BasketballExcelExportButton {
                         BasketballExcelReportBuilder.playerProfile(playerID: playerID, games: filteredGames, players: store.players).exportFile
                     }
-                    if usesPixelSkin {
-                        pixelGameSelectionToolbarItem
-                    }
                 }
             }
         }
+        .sheet(isPresented: $showingELOHistory) {
+            ELOHistoryView(playerID: playerID, playerName: player?.name ?? "", games: filteredGames)
+        }
         .onAppear {
+            PlayerProfileDebugLog.log("xdz PlayerProfileView appeared playerID=\(playerID) fixedGame=\(fixedGame?.id.uuidString ?? "nil") games=\(allPlayerGames.count)")
             syncSelectedGamesIfNeeded()
             rebuildFixedGameAnalysisIfNeeded()
+        }
+        .onDisappear {
+            PlayerProfileDebugLog.log("xdz PlayerProfileView disappeared playerID=\(playerID) fixedGame=\(fixedGame?.id.uuidString ?? "nil")")
         }
         .onChange(of: store.savedGames) { _, _ in
             syncSelectedGamesIfNeeded()
             rebuildFixedGameAnalysisIfNeeded()
         }
-        .sheet(isPresented: $showingELOHistory) {
-            ELOHistoryView(playerID: playerID, playerName: player?.name ?? "", games: filteredGames)
-        }
     }
 
     @ViewBuilder
     private var profileScrollContent: some View {
-        if fixedGame == nil, usesPixelSkin {
-            GeometryReader { proxy in
-                ScrollView {
-                    careerPixelContent(availableHeight: proxy.size.height, availableWidth: proxy.size.width)
-                }
-            }
-        } else {
+        ScrollViewReader { proxy in
             ScrollView {
-                standardProfileContent
+                standardProfileContent(scrollProxy: proxy)
             }
+            .coordinateSpace(name: PlayerProfileScrollAnchor.coordinateSpace)
+            .simultaneousGesture(
+                SpatialTapGesture(coordinateSpace: .named(PlayerProfileScrollAnchor.coordinateSpace)).onEnded { value in
+                    let isInsideChooseGamesCell = chooseGamesCellFrame.contains(value.location)
+                    PlayerProfileDebugLog.log("xdz PlayerProfileView received tap playerID=\(playerID) x=\(Int(value.location.x)) y=\(Int(value.location.y)) insideChooseCell=\(isInsideChooseGamesCell) cellX=\(Int(chooseGamesCellFrame.minX)) cellY=\(Int(chooseGamesCellFrame.minY)) cellWidth=\(Int(chooseGamesCellFrame.width)) cellHeight=\(Int(chooseGamesCellFrame.height))")
+                }
+            )
         }
     }
 
-    @ViewBuilder
     private var profileBackground: some View {
-        if fixedGame == nil, usesPixelSkin {
-            PixelArenaBackground()
-        } else {
-            EditorialBackground()
-        }
+        EditorialBackground()
     }
 
-    private var standardProfileContent: some View {
+    private func standardProfileContent(scrollProxy: ScrollViewProxy) -> some View {
         VStack(spacing: 12) {
             if let fixedGame {
                 Text(LocalizedStringKey("nav_player_detail"))
@@ -93,16 +110,16 @@ struct PlayerProfileView: View {
                     fixedGamePeriodCard(fixedGame)
                 }
 
-                fixedGameStatSection
+                fixedGameStatSection(scrollProxy: scrollProxy)
                 eventSection
             } else {
-                careerEditorialContent
+                careerEditorialContent(scrollProxy: scrollProxy)
             }
         }
         .padding(.vertical)
     }
 
-    private var careerEditorialContent: some View {
+    private func careerEditorialContent(scrollProxy: ScrollViewProxy) -> some View {
         VStack(spacing: 12) {
             Text(LocalizedStringKey("nav_player_detail"))
                 .font(.largeTitle.weight(.bold))
@@ -112,26 +129,64 @@ struct PlayerProfileView: View {
 
             NavigationLink {
                 PlayerGameSelectionView(games: allPlayerGames, selectedIDs: $selectedGameIDs)
+                    .environmentObject(store)
+                    .onAppear {
+                        PlayerProfileDebugLog.log("xdz choose games destination appeared playerID=\(playerID) games=\(allPlayerGames.count) selected=\(selectedGameIDs.count)")
+                    }
             } label: {
                 HStack(spacing: 10) {
                     Image(systemName: "calendar")
                         .foregroundStyle(EditorialDesign.blue)
                     Text(LocalizedStringKey("button_choose_games"))
                         .font(.subheadline.weight(.semibold))
+                        .simultaneousGesture(
+                            TapGesture().onEnded {
+                                PlayerProfileDebugLog.log("xdz choose games title received tap playerID=\(playerID)")
+                            }
+                        )
                     Spacer()
                     Text(selectionSummaryText)
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
+                        .simultaneousGesture(
+                            TapGesture().onEnded {
+                                PlayerProfileDebugLog.log("xdz choose games summary received tap playerID=\(playerID)")
+                            }
+                        )
                     Image(systemName: "chevron.right")
                         .font(.caption.weight(.bold))
                         .foregroundStyle(.secondary)
+                        .simultaneousGesture(
+                            TapGesture().onEnded {
+                                PlayerProfileDebugLog.log("xdz choose games chevron received tap playerID=\(playerID)")
+                            }
+                        )
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(14)
                 .editorialCard(tint: EditorialDesign.card, radius: 16)
+                .contentShape(Rectangle())
+                .simultaneousGesture(
+                    TapGesture().onEnded {
+                        PlayerProfileDebugLog.log("xdz choose games label received tap playerID=\(playerID)")
+                    }
+                )
+                .onGeometryChange(for: CGRect.self) { proxy in
+                    proxy.frame(in: .named(PlayerProfileScrollAnchor.coordinateSpace))
+                } action: { frame in
+                    chooseGamesCellFrame = frame
+                    PlayerProfileDebugLog.log("xdz choose games cell frame changed playerID=\(playerID) x=\(Int(frame.minX)) y=\(Int(frame.minY)) width=\(Int(frame.width)) height=\(Int(frame.height))")
+                }
             }
             .buttonStyle(.plain)
+            .frame(maxWidth: .infinity)
             .padding(.horizontal)
             .contentShape(Rectangle())
+            .simultaneousGesture(
+                TapGesture().onEnded {
+                    PlayerProfileDebugLog.log("xdz choose games NavigationLink received tap playerID=\(playerID) games=\(allPlayerGames.count) selected=\(selectedGameIDs.count)")
+                }
+            )
 
             header
 
@@ -163,7 +218,8 @@ struct PlayerProfileView: View {
                 metrics: careerMetricValues,
                 headerMetrics: careerHeaderMetrics,
                 sectionID: "career",
-                rows: buildClassicCareerStatRows()
+                rows: buildClassicCareerStatRows(),
+                scrollProxy: scrollProxy
             )
             metricSummaryCard(
                 titleKey: "stat_section_average",
@@ -171,9 +227,11 @@ struct PlayerProfileView: View {
                 metrics: averageMetricValues,
                 headerMetrics: averageHeaderMetrics,
                 sectionID: "average",
-                rows: buildClassicAverageStatRows()
+                rows: buildClassicAverageStatRows(),
+                scrollProxy: scrollProxy
             )
             eloHistoryCard
+            playerGameHistoryCard(scrollProxy: scrollProxy)
         }
     }
 
@@ -193,142 +251,77 @@ struct PlayerProfileView: View {
         .padding(.horizontal)
     }
 
-    private var fixedGameStatSection: some View {
-        let stats = totalStats
-        return VStack(spacing: 12) {
-            VStack(spacing: 0) {
-                HStack(spacing: 8) {
-                    Image(systemName: "basketball.fill")
-                        .foregroundStyle(EditorialDesign.blue)
-                    Text(LocalizedStringKey("label_this_game_stats"))
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(EditorialDesign.navy)
-                    Spacer()
-                    if let fixedGame {
-                        Text(teamName(for: fixedGame))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(.horizontal, 14)
-                .padding(.top, 14)
-
-                HStack(spacing: 0) {
-                    fixedGameMetric(value: "\(stats.points)", label: NSLocalizedString("stats_points_format_short", comment: "Points"), isHighlighted: true)
-                    fixedGameMetric(value: "\(stats.totalRebounds)", label: NSLocalizedString("stats_rebound_short", comment: "Rebounds"))
-                    fixedGameMetric(value: "\(stats.assists)", label: NSLocalizedString("stats_assists_short", comment: "Assists"))
-                    fixedGameMetric(value: "\(stats.steals)", label: NSLocalizedString("stats_steals_short", comment: "Steals"))
-                    fixedGameMetric(value: "\(stats.blocks)", label: NSLocalizedString("stats_blocks_short", comment: "Blocks"))
-                    fixedGameMetric(value: "\(stats.turnovers)", label: NSLocalizedString("stats_turnovers_short", comment: "Turnovers"))
-                }
-                .padding(.vertical, 14)
-
-                Button {
-                    isShowingFullGameStats.toggle()
-                } label: {
-                    HStack {
-                        Text(LocalizedStringKey(isShowingFullGameStats ? "button_show_less" : "button_show_all"))
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(EditorialDesign.blue)
-                        Spacer()
-                        Image(systemName: isShowingFullGameStats ? "chevron.up" : "chevron.down")
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(EditorialDesign.blue)
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 10)
-                }
-                .buttonStyle(.plain)
-
-                if isShowingFullGameStats {
-                    VStack(spacing: 8) {
-                        ForEach(buildGameStatRows()) { row in
-                            HStack(spacing: 8) {
-                                makeStatCard(row.left)
-                                if let leftSplit = row.leftSplit { makeStatCard(leftSplit) }
-                                if let right = row.right { makeStatCard(right) }
-                                if let rightSplit = row.rightSplit { makeStatCard(rightSplit) }
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 12)
-                }
-            }
-            .editorialCard(tint: EditorialDesign.card, radius: 18)
-            .padding(.horizontal)
-        }
-    }
-
-    private func fixedGameMetric(value: String, label: String, isHighlighted: Bool = false) -> some View {
-        VStack(spacing: 4) {
-            Text(value)
-                .font(.title3.monospacedDigit().weight(.bold))
-                .foregroundStyle(isHighlighted ? EditorialDesign.orange : EditorialDesign.navy)
-            Text(label)
-                .font(.caption2.weight(.medium))
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-        }
-        .frame(maxWidth: .infinity)
-        .overlay(alignment: .trailing) {
-            Rectangle()
-                .fill(EditorialDesign.divider.opacity(0.45))
-                .frame(width: 1, height: 34)
-        }
+    private func fixedGameStatSection(scrollProxy: ScrollViewProxy) -> some View {
+        metricSummaryCard(
+            titleKey: "label_this_game_stats",
+            icon: .system("basketball.fill"),
+            metrics: fixedGameMetricValues,
+            headerMetrics: fixedGameHeaderMetrics,
+            sectionID: "game",
+            rows: buildClassicGameStatRows(),
+            scrollProxy: scrollProxy
+        )
     }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 14) {
             if let player {
-                HStack(alignment: .top, spacing: 14) {
-                    PlayerAvatarView(player: player, size: 72)
-                    VStack(alignment: .leading, spacing: 7) {
-                        HStack(alignment: .firstTextBaseline, spacing: 6) {
-                            Text(player.name)
-                                .font(.title3.weight(.bold))
-                                .foregroundStyle(EditorialDesign.navy)
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.8)
-                                .layoutPriority(1)
-                            if !player.number.isEmpty {
-                                Text("#\(player.number)")
-                                    .font(.caption.monospacedDigit().weight(.bold))
-                                    .foregroundStyle(EditorialDesign.blue)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 3)
-                                    .background(EditorialDesign.paleBlue, in: Capsule())
+                if let fixedGame {
+                    HStack(alignment: .top, spacing: 16) {
+                        PlayerAvatarView(player: player, size: 76)
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(alignment: .center, spacing: 8) {
+                                Text(player.name)
+                                    .font(.title2.weight(.bold))
+                                    .foregroundStyle(EditorialDesign.navy)
+                                if let role = fixedGame.role(of: playerID) {
+                                    Text(role.title)
+                                        .font(.caption.weight(.semibold))
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 5)
+                                        .background(.ultraThinMaterial, in: Capsule())
+                                }
                             }
-                        }
-                        if let fg = fixedGame {
-                            playerIdentityMetadata(player)
-                            Text(teamName(for: fg))
+                            if !player.position.isEmpty {
+                                Text(player.position)
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(.secondary)
+                            }
+                            Text(profileSubtitle(player) ?? NSLocalizedString("player_profile_missing_basic", comment: "Missing player details"))
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
-                            if let role = fg.role(of: playerID) {
-                                Text(role.title)
-                                    .font(.caption.weight(.semibold))
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 5)
-                                    .background(.ultraThinMaterial, in: Capsule())
+                            Text(teamName(for: fixedGame))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                } else {
+                    HStack(alignment: .top, spacing: 14) {
+                        PlayerAvatarView(player: player, size: 72)
+                        VStack(alignment: .leading, spacing: 7) {
+                            HStack(alignment: .center, spacing: 6) {
+                                Text(player.name)
+                                    .font(.title3.weight(.bold))
+                                    .foregroundStyle(EditorialDesign.navy)
+                                    .lineLimit(2)
+                                    .minimumScaleFactor(0.8)
+                                    .layoutPriority(1)
                             }
-                        } else {
                             HStack(spacing: 8) {
                                 playerIdentityMetadata(player)
                                     .layoutPriority(1)
                                 Spacer(minLength: 4)
                                 careerELOBadge
                             }
+                            careerParticipationSummary
                         }
                     }
-                }
-                if fixedGame == nil {
-                    standardCareerOverview
                 }
             }
         }
         .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(EditorialPlayerPanelBackground())
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay {
@@ -343,25 +336,21 @@ struct PlayerProfileView: View {
             showingELOHistory = true
         } label: {
             Text(String(format: NSLocalizedString("elo_format", comment: "ELO value"), Int(playerELO)))
-                .font(.caption.monospacedDigit().weight(.bold))
+                .font(.caption2.monospacedDigit().weight(.bold))
                 .foregroundStyle(EditorialDesign.orange)
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
         }
         .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .background(EditorialDesign.paleOrange, in: Capsule())
-        .overlay {
-            Capsule()
-                .stroke(EditorialDesign.orange.opacity(0.25), lineWidth: 1)
-        }
+        .padding(.vertical, 4)
+        .background(EditorialDesign.paleOrange.opacity(0.7), in: Capsule())
         .buttonStyle(.plain)
-        .contentShape(Rectangle())
+        .contentShape(Capsule())
     }
 
     @ViewBuilder
     private func playerIdentityMetadata(_ player: Player) -> some View {
-        if !player.position.isEmpty || profileSubtitle(player, includesNumber: false) != nil {
+        if !player.position.isEmpty || profileSubtitle(player) != nil {
             HStack(spacing: 7) {
                 if !player.position.isEmpty {
                     Text(player.position)
@@ -371,7 +360,7 @@ struct PlayerProfileView: View {
                         .padding(.vertical, 3)
                         .background(EditorialDesign.paleBlue, in: Capsule())
                 }
-                if let subtitle = profileSubtitle(player, includesNumber: false) {
+                if let subtitle = profileSubtitle(player) {
                     Text(subtitle)
                         .font(.caption.weight(.medium))
                         .foregroundStyle(EditorialDesign.navy.opacity(0.7))
@@ -387,15 +376,9 @@ struct PlayerProfileView: View {
         case average
     }
 
-    private func metricSummaryCard(titleKey: String, icon: MetricSummaryIcon, metrics: [(String, String)], headerMetrics: [(String, String)] = [], sectionID: String, rows: [StatRow]) -> some View {
+    private func metricSummaryCard(titleKey: String, icon: MetricSummaryIcon, metrics: [(String, String)], headerMetrics: [(String, String)] = [], sectionID: String, rows: [StatRow], scrollProxy: ScrollViewProxy) -> some View {
         Button {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                if expandedStatSections.contains(sectionID) {
-                    expandedStatSections.remove(sectionID)
-                } else {
-                    expandedStatSections.insert(sectionID)
-                }
-            }
+            toggleStatSection(sectionID, scrollProxy: scrollProxy)
         } label: {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 8) {
@@ -412,7 +395,7 @@ struct PlayerProfileView: View {
                                     Text("\(metric.0):")
                                         .foregroundStyle(.secondary)
                                     Text(metric.1)
-                                        .foregroundStyle(EditorialDesign.navy)
+                                        .foregroundStyle(metricValueColor(label: metric.0, value: metric.1))
                                 }
                                 .font(.caption.monospacedDigit().weight(.semibold))
                                 .lineLimit(1)
@@ -424,6 +407,7 @@ struct PlayerProfileView: View {
                         .font(.caption.weight(.bold))
                         .foregroundStyle(.secondary)
                 }
+                .id(PlayerProfileScrollAnchor.statHeader(sectionID))
 
                 HStack(spacing: 0) {
                     ForEach(Array(metrics.enumerated()), id: \.offset) { index, metric in
@@ -454,13 +438,31 @@ struct PlayerProfileView: View {
                     Divider()
                         .overlay(EditorialDesign.divider.opacity(0.45))
                     statRowsContent(rows)
+                        .transition(accordionTransition)
                 }
+
+                Color.clear
+                    .frame(height: 1)
+                    .id(PlayerProfileScrollAnchor.statBottom(sectionID))
             }
             .padding(14)
             .editorialCard(tint: EditorialDesign.card, radius: 18)
         }
         .buttonStyle(.plain)
         .padding(.horizontal)
+    }
+
+    private func toggleStatSection(_ sectionID: String, scrollProxy: ScrollViewProxy) {
+        let isExpanded = expandedStatSections.contains(sectionID)
+        withAnimation(accordionAnimation) {
+            if isExpanded {
+                expandedStatSections.remove(sectionID)
+                scrollProxy.scrollTo(PlayerProfileScrollAnchor.statHeader(sectionID), anchor: .top)
+            } else {
+                expandedStatSections.insert(sectionID)
+                scrollProxy.scrollTo(PlayerProfileScrollAnchor.statBottom(sectionID), anchor: .bottom)
+            }
+        }
     }
 
     @ViewBuilder
@@ -522,7 +524,7 @@ struct PlayerProfileView: View {
         let stats = totalStats
         return [
             (localized("stats_points_format_short"), "\(stats.points)"),
-            (localized("stats_rebound_short"), "\(stats.totalRebounds)"),
+                (localized("stats_rebound_short"), "\(stats.totalRebounds)"),
             (localized("stats_assists_short"), "\(stats.assists)"),
             (localized("stats_steals_short"), "\(stats.steals)"),
             (localized("stats_blocks_short"), "\(stats.blocks)"),
@@ -530,11 +532,23 @@ struct PlayerProfileView: View {
         ]
     }
 
+    private var fixedGameMetricValues: [(String, String)] {
+        careerMetricValues
+    }
+
+    private var fixedGameHeaderMetrics: [(String, String)] {
+        let plusMinus = isFixedPeriodMode ? "--" : (totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)")
+        return [
+            (localized("stats_minutes"), GameView.durationFormatter(totalMinutes * 60)),
+            (localized("stats_plus_minus_short"), plusMinus)
+        ]
+    }
+
     private var careerHeaderMetrics: [(String, String)] {
         let plusMinus = totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)"
         return [
             (localized("stats_minutes"), GameView.durationFormatter(totalMinutes * 60)),
-            (localized("stats_plus_minus"), plusMinus)
+            (localized("stats_plus_minus_short"), plusMinus)
         ]
     }
 
@@ -557,7 +571,7 @@ struct PlayerProfileView: View {
         let plusMinusText = plusMinus > 0 ? String(format: "+%.1f", plusMinus) : String(format: "%.1f", plusMinus)
         return [
             (localized("stats_minutes"), GameView.durationFormatter(totalMinutes / Double(games) * 60)),
-            (localized("stats_plus_minus"), plusMinusText)
+            (localized("stats_plus_minus_short"), plusMinusText)
         ]
     }
 
@@ -585,6 +599,208 @@ struct PlayerProfileView: View {
         .editorialCard(tint: EditorialDesign.card, radius: 18)
         .padding(.horizontal)
         .contentShape(Rectangle())
+    }
+
+    private func playerGameHistoryCard(scrollProxy: ScrollViewProxy) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(EditorialDesign.orange)
+                    .frame(width: 5, height: 20)
+                Text(LocalizedStringKey("nav_history"))
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(EditorialDesign.navy)
+                Spacer()
+
+                if !filteredGames.isEmpty {
+                    Button {
+                        toggleGameHistory(scrollProxy: scrollProxy)
+                    } label: {
+                        HStack(spacing: 5) {
+                            Text(LocalizedStringKey(isGameHistoryExpanded ? "button_show_less" : "button_show_all"))
+                                .font(.caption.weight(.semibold))
+                            Image(systemName: isGameHistoryExpanded ? "chevron.up" : "chevron.down")
+                                .font(.caption2.weight(.bold))
+                        }
+                        .foregroundStyle(EditorialDesign.blue)
+                        .padding(.vertical, 6)
+                        .padding(.leading, 8)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .id(PlayerProfileScrollAnchor.gameHistoryHeader)
+
+            if filteredGames.isEmpty {
+                Text(LocalizedStringKey("empty_no_game_history"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 8)
+            } else if isGameHistoryExpanded {
+                VStack(spacing: 0) {
+                    ForEach(Array(filteredGames.enumerated()), id: \.element.id) { index, game in
+                        NavigationLink {
+                            if store.player(for: playerID) != nil {
+                                PlayerProfileView(playerID: playerID, fixedGame: game, selectedGroupID: .constant(nil))
+                            } else {
+                                PlayerGameDetailView(game: game, playerID: playerID)
+                            }
+                        } label: {
+                            playerGameHistoryRow(game)
+                        }
+                        .buttonStyle(.plain)
+
+                        if index < filteredGames.count - 1 {
+                            Divider()
+                                .overlay(EditorialDesign.divider.opacity(0.45))
+                                .padding(.leading, 14)
+                        }
+                    }
+                }
+                .transition(accordionTransition)
+            }
+
+            Color.clear
+                .frame(height: 1)
+                .id(PlayerProfileScrollAnchor.gameHistoryBottom)
+        }
+        .padding(14)
+        .editorialCard(tint: EditorialDesign.card, radius: 18)
+        .padding(.horizontal)
+    }
+
+    private func toggleGameHistory(scrollProxy: ScrollViewProxy) {
+        withAnimation(accordionAnimation) {
+            if isGameHistoryExpanded {
+                isGameHistoryExpanded = false
+                scrollProxy.scrollTo(PlayerProfileScrollAnchor.gameHistoryHeader, anchor: .top)
+            } else {
+                isGameHistoryExpanded = true
+                scrollProxy.scrollTo(PlayerProfileScrollAnchor.gameHistoryBottom, anchor: .bottom)
+            }
+        }
+    }
+
+    private var accordionAnimation: Animation {
+        reduceMotion
+            ? .easeOut(duration: 0.15)
+            : .timingCurve(0.23, 1, 0.32, 1, duration: 0.24)
+    }
+
+    private var accordionTransition: AnyTransition {
+        reduceMotion
+            ? .opacity
+            : .opacity.combined(with: .move(edge: .top))
+    }
+
+    private func playerGameHistoryRow(_ game: SavedGame) -> some View {
+        let stats = game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+        let isHome = game.homePlayerIDs.contains(playerID)
+        let myScore = playerGameScore(for: game, isHome: isHome)
+        let opponentScore = playerGameScore(for: game, isHome: !isHome)
+        let resultColor: Color = myScore > opponentScore ? EditorialDesign.orange : .secondary
+        let resultText = myScore > opponentScore
+            ? localized("elo_outcome_win")
+            : (myScore < opponentScore ? localized("elo_outcome_loss") : localized("elo_outcome_draw"))
+        let opponentName = isHome ? game.awayTeamName : game.homeTeamName
+        let plusMinus = plusMinusText(for: game)
+
+        return HStack(spacing: 10) {
+            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                .fill(resultColor)
+                .frame(width: 4)
+
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 6) {
+                    Text(opponentName)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(EditorialDesign.navy)
+                        .lineLimit(1)
+                    Text(resultText)
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(resultColor)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(resultColor.opacity(0.12), in: Capsule())
+                    Text(game.savedAt, format: .dateTime.year().month().day())
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                    Spacer(minLength: 4)
+                    Text(String(format: "%d - %d", myScore, opponentScore))
+                        .font(.headline.monospacedDigit().weight(.bold))
+                        .foregroundStyle(EditorialDesign.navy)
+                }
+
+                HStack(spacing: 0) {
+                    playerGameHistoryMetric(label: localized("stats_points_format_short"), value: String(stats.points))
+                    playerGameHistoryMetric(label: localized("stats_rebound_short"), value: String(stats.totalRebounds))
+                    playerGameHistoryMetric(label: localized("stats_assists_short"), value: String(stats.assists))
+                    playerGameHistoryMetric(
+                        label: localized("stats_plus_minus_short"),
+                        value: plusMinus,
+                        valueColor: plusMinusColor(plusMinus)
+                    )
+                }
+            }
+
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(.tertiary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 9)
+        .contentShape(Rectangle())
+    }
+
+    private func playerGameHistoryMetric(label: String, value: String, valueColor: Color = EditorialDesign.navy) -> some View {
+        HStack(spacing: 3) {
+            Text(label)
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            Text(value)
+                .font(.caption.monospacedDigit().weight(.semibold))
+                .foregroundStyle(valueColor)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func playerGameScore(for game: SavedGame, isHome: Bool) -> Int {
+        let teamID = isHome ? game.snapshot.homeTeamID : game.snapshot.awayTeamID
+        if let teamID {
+            return game.score(forTeamID: teamID)
+        }
+
+        let playerIDs = isHome ? game.homePlayerIDs : game.awayPlayerIDs
+        return playerIDs.reduce(0) { total, id in
+            total + (game.snapshot.statsByPlayerID[id]?.points ?? 0)
+        }
+    }
+
+    private func plusMinusText(for game: SavedGame) -> String {
+        let value = game.snapshot.plusMinusByPlayerID[playerID, default: 0]
+        return value > 0 ? "+" + String(value) : String(value)
+    }
+
+    private func metricValueColor(label: String, value: String) -> Color {
+        guard label == localized("stats_plus_minus_short") else {
+            return EditorialDesign.navy
+        }
+        return plusMinusColor(value)
+    }
+
+    private func plusMinusColor(_ value: String) -> Color {
+        if value.hasPrefix("+") {
+            return EditorialDesign.orange
+        }
+        if value.hasPrefix("-") {
+            return .secondary
+        }
+        return .secondary
     }
 
     private var performanceTrendLegend: some View {
@@ -743,42 +959,36 @@ struct PlayerProfileView: View {
         return game.awayTeamName
     }
 
-    private var standardCareerOverview: some View {
+    private var careerParticipationSummary: some View {
         let totalGames = filteredGames.count
         let winRate = totalGames > 0 ? String(format: "%.1f%%", Double(statsGroup.winCount) / Double(totalGames) * 100) : "--"
         let items: [(String, String)] = [
-            (localized("stats_games_short"), "\(totalGames)"),
+            (localized("stats_games"), "\(totalGames)"),
             (localized("stat_label_starter_short"), "\(starterGameCount)"),
-            (localized("stat_label_bench_short"), "\(benchGameCount)"),
             (localized("stats_win_rate_short"), winRate)
         ]
 
-        return HStack(spacing: 0) {
+        return HStack(spacing: 6) {
             ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                VStack(spacing: 3) {
-                    Text(item.1)
-                        .font(.subheadline.monospacedDigit().weight(.bold))
-                        .foregroundStyle(index == items.count - 1 ? EditorialDesign.orange : EditorialDesign.navy)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                    Text(item.0)
-                        .font(.caption2.weight(.semibold))
+                if index > 0 {
+                    Text("·")
+                        .font(.caption2.weight(.medium))
                         .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
                 }
-                .frame(maxWidth: .infinity)
-                .overlay(alignment: .trailing) {
-                    if index < items.count - 1 {
-                        Rectangle()
-                            .fill(.secondary.opacity(0.25))
-                            .frame(width: 1, height: 30)
-                    }
+                HStack(spacing: 3) {
+                    Text(item.0)
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(.secondary)
+                    Text(item.1)
+                        .font(.caption2.monospacedDigit().weight(.semibold))
+                        .foregroundStyle(item.0 == localized("stats_win_rate_short") ? EditorialDesign.orange : EditorialDesign.navy)
                 }
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
             }
         }
-        .padding(.vertical, 8)
-        .background(.white.opacity(0.5), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .lineLimit(1)
+        .minimumScaleFactor(0.65)
     }
 
     var playerELO: Double {
@@ -829,7 +1039,7 @@ struct PlayerProfileView: View {
                 .foregroundStyle(.secondary)
             Text(cell.value)
                 .font(.caption.monospacedDigit().weight(.bold))
-                .foregroundStyle(.primary)
+                .foregroundStyle(EditorialDesign.navy.opacity(0.88))
                 .lineLimit(2)
                 .minimumScaleFactor(0.6)
         }
@@ -869,15 +1079,15 @@ struct PlayerProfileView: View {
 
         let pts = StatCell(label: localized("stats_points_format_short"), value: avg?(s.points) ?? "\(s.points)")
         let min = StatCell(label: localized("stats_minutes"), value: mins)
-        let reb = StatCell(label: localized("stats_rebound_detail"), value: "\(avg?(s.totalRebounds) ?? "\(s.totalRebounds)") / \(avg?(s.offensiveRebounds) ?? "\(s.offensiveRebounds)") / \(avg?(s.defensiveRebounds) ?? "\(s.defensiveRebounds)")")
-        let astStlBlk = StatCell(label: localized("stats_assist_steal_block"), value: "\(avg?(s.assists) ?? "\(s.assists)") / \(avg?(s.steals) ?? "\(s.steals)") / \(avg?(s.blocks) ?? "\(s.blocks)")")
-        let foul = StatCell(label: localized("stats_foul_turnover") + " / " + localized("stats_plus_minus"), value: "\(avg?(s.fouls) ?? "\(s.fouls)") / \(avg?(s.turnovers) ?? "\(s.turnovers)") / \(pm)")
+        let reb = StatCell(label: localized("stats_rebound_detail_short"), value: "\(avg?(s.totalRebounds) ?? "\(s.totalRebounds)") / \(avg?(s.offensiveRebounds) ?? "\(s.offensiveRebounds)") / \(avg?(s.defensiveRebounds) ?? "\(s.defensiveRebounds)")")
+        let astStlBlk = StatCell(label: localized("stats_assist_steal_block_short"), value: "\(avg?(s.assists) ?? "\(s.assists)") / \(avg?(s.steals) ?? "\(s.steals)") / \(avg?(s.blocks) ?? "\(s.blocks)")")
+        let foul = StatCell(label: localized("stats_foul_turnover_short") + " / " + localized("stats_plus_minus_short"), value: "\(avg?(s.fouls) ?? "\(s.fouls)") / \(avg?(s.turnovers) ?? "\(s.turnovers)") / \(pm)")
         let fg = StatCell(label: localized("stats_shooting"), value: "\(avg?(s.made) ?? "\(s.made)")/\(avg?(s.attempts) ?? "\(s.attempts)")\n\(pct(s.fieldGoalRate))")
-        let ft = StatCell(label: localized("stat_label_free_throw"), value: "\(avg?(s.allFreeThrowMade) ?? "\(s.allFreeThrowMade)")/\(avg?(s.allFreeThrowAttempts) ?? "\(s.allFreeThrowAttempts)")\n\(pct(s.freeThrowRate))")
-        let two = StatCell(label: localized("stat_label_2pt"), value: "\(avg?(s.twoMade) ?? "\(s.twoMade)")/\(avg?(s.twoAttempts) ?? "\(s.twoAttempts)")\n\(pct(s.twoPointRate))")
-        let three = StatCell(label: localized("stat_label_3pt"), value: "\(avg?(s.threeMade) ?? "\(s.threeMade)")/\(avg?(s.threeAttempts) ?? "\(s.threeAttempts)")\n\(pct(s.threePointRate))")
+        let ft = StatCell(label: localized("stat_label_free_throw_short"), value: "\(avg?(s.allFreeThrowMade) ?? "\(s.allFreeThrowMade)")/\(avg?(s.allFreeThrowAttempts) ?? "\(s.allFreeThrowAttempts)")\n\(pct(s.freeThrowRate))")
+        let two = StatCell(label: localized("stat_label_2pt_short"), value: "\(avg?(s.twoMade) ?? "\(s.twoMade)")/\(avg?(s.twoAttempts) ?? "\(s.twoAttempts)")\n\(pct(s.twoPointRate))")
+        let three = StatCell(label: localized("stat_label_3pt_short"), value: "\(avg?(s.threeMade) ?? "\(s.threeMade)")/\(avg?(s.threeAttempts) ?? "\(s.threeAttempts)")\n\(pct(s.threePointRate))")
         let efg = StatCell(label: "eFG / TS", value: "\(pct(s.effectiveFieldGoalRate)) / \(pct(s.trueShootingRate))")
-        let pps = StatCell(label: NSLocalizedString("stats_points_per_shot", comment: "PTS/FGA"), value: String(format: "%.2f", s.pointsPerShot))
+        let pps = StatCell(label: NSLocalizedString("stats_points_per_shot_short", comment: "PTS/FGA"), value: String(format: "%.2f", s.pointsPerShot))
 
         switch style {
         case .game:
@@ -890,7 +1100,7 @@ struct PlayerProfileView: View {
         case .career:
             let totalGames = filteredGames.count
             let winRate = totalGames > 0 ? String(format: "%.1f%%", Double(statsGroup.winCount) / Double(totalGames) * 100) : "--"
-            let sb = StatCell(label: "\(localized("stats_games")) / \(localized("stat_label_starter")) / \(localized("stat_label_bench")) / \(localized("stats_win_rate"))", value: "\(totalGames) / \(starterGameCount) / \(benchGameCount) / \(winRate)")
+            let sb = StatCell(label: "\(localized("stats_games")) / \(localized("stat_label_starter_short")) / \(localized("stat_label_bench_short")) / \(localized("stats_win_rate_short"))", value: "\(totalGames) / \(starterGameCount) / \(benchGameCount) / \(winRate)")
             return [
                 StatRow(id: "row1", left: pts, leftSplit: min, rightSplit: sb),
                 StatRow(id: "row2", left: fg, leftSplit: ft, right: three, rightSplit: two),
@@ -898,7 +1108,7 @@ struct PlayerProfileView: View {
                 StatRow(id: "row4", left: foul, right: efg, rightSplit: pps),
             ]
         case .average:
-            let sb = StatCell(label: "\(localized("stats_games")) / \(localized("stat_label_starter")) / \(localized("stat_label_bench"))", value: "\(filteredGames.count) / \(starterGameCount) / \(benchGameCount)")
+            let sb = StatCell(label: "\(localized("stats_games")) / \(localized("stat_label_starter_short")) / \(localized("stat_label_bench_short"))", value: "\(filteredGames.count) / \(starterGameCount) / \(benchGameCount)")
             return [
                 StatRow(id: "row1", left: pts, leftSplit: min, rightSplit: sb),
                 StatRow(id: "row2", left: fg, leftSplit: ft, right: three, rightSplit: two),
@@ -914,18 +1124,43 @@ struct PlayerProfileView: View {
 
     private func buildClassicCareerStatRows() -> [StatRow] {
         let rows = buildCareerStatRows()
-        guard rows.count == 4 else { return rows }
+        guard rows.count == 4,
+              let efficiency = rows[3].right,
+              let pointsPerShot = rows[3].rightSplit else { return rows }
+        let rebounds = rows[2].left
+        let fouls = rows[3].left
         return [
             rows[1],
-            StatRow(id: rows[2].id, left: rows[2].left),
-            rows[3]
+            StatRow(id: rows[2].id, left: rebounds, right: fouls),
+            StatRow(id: rows[3].id, left: efficiency, right: pointsPerShot)
         ]
     }
 
     private func buildClassicAverageStatRows() -> [StatRow] {
         let rows = buildAverageStatRows()
-        guard rows.count == 4 else { return rows }
-        return Array(rows.dropFirst())
+        guard rows.count == 4,
+              let efficiency = rows[3].rightSplit,
+              let pointsPerShot = rows[3].right else { return rows }
+        let rebounds = rows[2].left
+        let fouls = rows[3].left
+        return [
+            rows[1],
+            StatRow(id: rows[2].id, left: rebounds, right: fouls),
+            StatRow(id: rows[3].id, left: efficiency, right: pointsPerShot)
+        ]
+    }
+
+    private func buildClassicGameStatRows() -> [StatRow] {
+        let rows = buildGameStatRows()
+        guard rows.count == 4,
+              let rebounds = rows[0].right,
+              let fouls = rows[1].leftSplit,
+              let efficiency = rows[3].rightSplit else { return rows }
+        return [
+            rows[2],
+            StatRow(id: rows[1].id, left: rebounds, right: fouls),
+            StatRow(id: rows[3].id, left: efficiency, right: rows[3].left)
+        ]
     }
 
     private var eventSection: some View {
@@ -1220,8 +1455,8 @@ struct PlayerProfileView: View {
     func profileSubtitle(_ player: Player, includesNumber: Bool = true) -> String? {
         var parts: [String] = []
         if includesNumber, !player.number.isEmpty { parts.append("No. \(player.number)") }
-        if !player.height.isEmpty { parts.append(UnitSettings.displayHeight(player.height)) }
-        if !player.weight.isEmpty { parts.append(UnitSettings.displayWeight(player.weight)) }
+        if !player.height.isEmpty { parts.append(UnitSettings.displayHeight(player.height, unit: player.heightUnit)) }
+        if !player.weight.isEmpty { parts.append(UnitSettings.displayWeight(player.weight, unit: player.weightUnit)) }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
@@ -1397,6 +1632,7 @@ struct PlayerGameSelectionView: View {
             }
         }
         .onAppear {
+            PlayerProfileDebugLog.log("xdz PlayerGameSelectionView body appeared games=\(currentGames.count) selected=\(selectedIDs.count) loadsAllGames=\(loadsAllGamesFromStore)")
             guard loadsAllGamesFromStore || refreshGames != nil else { return }
             refreshCurrentGames()
         }
