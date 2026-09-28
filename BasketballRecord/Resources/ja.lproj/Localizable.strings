@@ -572,8 +572,9 @@
 "empty_no_player_data" = "選手データがまだありません";
 "empty_no_game_history" = "試合履歴がまだありません";
 "career_tile_games" = "試合数";
+"career_tile_record" = "戦績";
 "career_tile_win_rate" = "勝率";
-"career_tile_net" = "得失差";
+"career_tile_net" = "平均得失差";
 "career_tile_avg_points" = "平均得点";
 "career_tile_avg_points_against" = "平均失点";
 "career_tile_total_score" = "総得点";
@@ -1020,6 +1021,10 @@
 "elo_computation_title" = "ELO 計算詳細";
 "label_elo" = "レーティング";
 "label_elo_history" = "ELO 履歴";
+"label_player_performance_trend" = "推移";
+"label_average_points" = "平均得点";
+"label_field_goal_percentage" = "FG%";
+"label_average_short" = "AVG";
 "elo_format" = "レーティング %d";
 "elo_title_format" = "レーティング – %@";
 "elo_tier_bronze" = "ブロンズ";

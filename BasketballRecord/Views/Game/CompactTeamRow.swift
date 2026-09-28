@@ -96,7 +96,7 @@ struct CompactTeamRow: View {
             .layoutPriority(1)
 
             Text("\(score)")
-                .font(.system(size: usesRoomyLayout ? 34 : 30, weight: .bold, design: .rounded).monospacedDigit())
+                .font(.system(size: usesRoomyLayout ? 34 : 30, weight: .bold, design: .monospaced))
                 .lineLimit(1)
                 .minimumScaleFactor(0.55)
                 .frame(minWidth: usesRoomyLayout ? 52 : 44, alignment: .trailing)
@@ -163,7 +163,7 @@ struct CompactTeamRow: View {
 
                     if !player.number.isEmpty {
                         Text("#\(player.number)")
-                            .font(.system(size: 8, weight: .bold, design: .rounded))
+                            .font(.system(size: 8, weight: .bold, design: .monospaced))
                             .foregroundStyle(.white)
                             .padding(.horizontal, 3)
                             .padding(.vertical, 2)

@@ -9,6 +9,7 @@ struct BasketballRecordApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .monospacedDigit()
                 .environmentObject(store)
                 .environmentObject(bluetoothSync)
                 .onAppear {

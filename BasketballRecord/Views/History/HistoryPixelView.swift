@@ -74,7 +74,6 @@ private struct HistoryPixelBackground: View {
 struct HistoryPixelView: View {
     @EnvironmentObject private var store: AppStore
     var embedInNavigation: Bool
-    @Binding var searchText: String
     @Binding var selectedGroupID: UUID?
     @Binding var isShowingImport: Bool
     @Binding var isShowingDelete: Bool
@@ -147,7 +146,6 @@ struct HistoryPixelView: View {
         }
         .navigationTitle(LocalizedStringKey("nav_game_history"))
         .navigationBarTitleDisplayMode(.inline)
-        .searchable(text: $searchText, prompt: LocalizedStringKey("search_player_prompt"))
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if store.isPro {
@@ -284,6 +282,7 @@ struct HistoryPixelView: View {
 }
 
 private struct PixelSavedGameRow: View {
+    @EnvironmentObject private var store: AppStore
     var game: SavedGame
 
     var body: some View {
@@ -310,14 +309,20 @@ private struct PixelSavedGameRow: View {
                         .lineLimit(1)
                 }
 
-                Text(game.homeTeamName)
-                    .font(.system(size: 14, weight: .black, design: .monospaced))
-                    .foregroundStyle(HistoryPixelDesign.ink)
-                    .lineLimit(1)
-                Text(game.awayTeamName)
-                    .font(.system(size: 14, weight: .black, design: .monospaced))
-                    .foregroundStyle(HistoryPixelDesign.ink.opacity(0.8))
-                    .lineLimit(1)
+                HStack(spacing: 6) {
+                    TeamBadgeView(teamID: game.snapshot.homeTeamID, fallbackName: game.homeTeamName, size: 24, usesPixelSkin: true)
+                    Text(game.homeTeamName)
+                        .font(.system(size: 14, weight: .black, design: .monospaced))
+                        .foregroundStyle(HistoryPixelDesign.ink)
+                        .lineLimit(1)
+                }
+                HStack(spacing: 6) {
+                    TeamBadgeView(teamID: game.snapshot.awayTeamID, fallbackName: game.awayTeamName, size: 24, usesPixelSkin: true)
+                    Text(game.awayTeamName)
+                        .font(.system(size: 14, weight: .black, design: .monospaced))
+                        .foregroundStyle(HistoryPixelDesign.ink.opacity(0.8))
+                        .lineLimit(1)
+                }
 
                 HStack(spacing: 4) {
                     Image(systemName: game.snapshot.isComplete ? "checkmark.circle.fill" : "play.circle.fill")

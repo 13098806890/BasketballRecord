@@ -2,27 +2,37 @@ import SwiftUI
 
 private struct HistorySectionHeader: View {
     let title: String
+    let isExpanded: Bool
+    let action: () -> Void
 
     var body: some View {
-        HStack(spacing: 8) {
-            RoundedRectangle(cornerRadius: 2, style: .continuous)
-                .fill(EditorialDesign.orange)
-                .frame(width: 5, height: 20)
-            Text(title)
-                .font(.headline.weight(.bold))
-                .foregroundStyle(EditorialDesign.navy)
-            Spacer()
+        Button(action: action) {
+            HStack(spacing: 8) {
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                    .fill(EditorialDesign.orange)
+                    .frame(width: 5, height: 20)
+                Text(title)
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(EditorialDesign.navy)
+                Spacer()
+                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.secondary)
+            }
         }
+        .buttonStyle(.plain)
+        .contentShape(Rectangle())
+        .padding(.horizontal, 12)
         .padding(.vertical, 2)
     }
 }
 
-private struct CareerHistoryListModifier: ViewModifier {
+private struct HistoryListModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
-            .background(Color.clear)
+            .background(EditorialBackground())
             .tint(EditorialDesign.blue)
     }
 }
@@ -30,7 +40,6 @@ private struct CareerHistoryListModifier: ViewModifier {
 struct HistoryView: View {
     @EnvironmentObject private var store: AppStore
     var embedInNavigation: Bool = true
-    @State private var searchText = ""
     @State private var selectedGroupID: UUID?
     @State private var isShowingImport = false
     @State private var isShowingDelete = false
@@ -48,7 +57,6 @@ struct HistoryView: View {
             if usesPixelSkin {
                 HistoryPixelView(
                     embedInNavigation: embedInNavigation,
-                    searchText: $searchText,
                     selectedGroupID: $selectedGroupID,
                     isShowingImport: $isShowingImport,
                     isShowingDelete: $isShowingDelete,
@@ -85,22 +93,22 @@ struct HistoryView: View {
                         }
 
                         ForEach(monthGroups) { group in
-                            DisclosureGroup(isExpanded: Binding(
-                                get: { expandedSections.contains(group.id) },
-                                set: { expanded in
-                                    if expanded { expandedSections.insert(group.id) }
-                                    else { expandedSections.remove(group.id) }
+                            Section {
+                                if expandedSections.contains(group.id) {
+                                    ForEach(group.games) { game in
+                                        HistoryGameLink(game: game, pendingSwipeDeleteGame: $pendingSwipeDeleteGame)
+                                    }
                                 }
-                            )) {
-                                ForEach(group.games) { game in
-                                    HistoryGameLink(game: game, pendingSwipeDeleteGame: $pendingSwipeDeleteGame)
-                                }
-                        } label: {
-                                HistorySectionHeader(title: group.title)
+                            } header: {
+                                HistorySectionHeader(
+                                    title: group.title,
+                                    isExpanded: expandedSections.contains(group.id),
+                                    action: { toggleSection(group.id) }
+                                )
                             }
                         }
                     }
-                    .editorialListStyle()
+                    .modifier(HistoryListModifier())
                     .navigationTitle(LocalizedStringKey("nav_game_history"))
                     .overlay {
                         if isLoadingGames {
@@ -115,7 +123,6 @@ struct HistoryView: View {
                             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                         }
                     }
-                    .searchable(text: $searchText, prompt: LocalizedStringKey("search_player_prompt"))
                     .toolbar {
                         ToolbarItemGroup(placement: .topBarTrailing) {
                             if store.isPro {
@@ -174,23 +181,22 @@ struct HistoryView: View {
                     }
 
                     ForEach(monthGroups) { group in
-                        DisclosureGroup(isExpanded: Binding(
-                            get: { expandedSections.contains(group.id) },
-                            set: { expanded in
-                                if expanded { expandedSections.insert(group.id) }
-                                else { expandedSections.remove(group.id) }
+                        Section {
+                            if expandedSections.contains(group.id) {
+                                ForEach(group.games) { game in
+                                    HistoryGameLink(game: game, pendingSwipeDeleteGame: $pendingSwipeDeleteGame)
+                                }
                             }
-                        )) {
-                            ForEach(group.games) { game in
-                                HistoryGameLink(game: game, pendingSwipeDeleteGame: $pendingSwipeDeleteGame)
-                            }
-                    } label: {
-                            HistorySectionHeader(title: group.title)
+                        } header: {
+                            HistorySectionHeader(
+                                title: group.title,
+                                isExpanded: expandedSections.contains(group.id),
+                                action: { toggleSection(group.id) }
+                            )
                         }
-                        .listRowBackground(Color.clear)
                     }
                 }
-                .modifier(CareerHistoryListModifier())
+                .modifier(HistoryListModifier())
                 .overlay {
                     if isLoadingGames {
                         VStack(spacing: 10) {
@@ -204,7 +210,6 @@ struct HistoryView: View {
                         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
                 }
-                .searchable(text: $searchText, prompt: LocalizedStringKey("search_player_prompt"))
                 .toolbar {
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         if store.isPro {
@@ -287,22 +292,11 @@ struct HistoryView: View {
     }
 
     private var filteredGames: [SavedGame] {
-        filterGames(displayedGames)
-    }
-
-    private func filterGames(_ source: [SavedGame]) -> [SavedGame] {
-        var games = source
-
-        // Filter by group if selected (Pro only)
+        var games = displayedGames
         if store.isPro, let selectedGroupID = selectedGroupID {
             games = games.filter { $0.groupIDs.contains(selectedGroupID) }
         }
-
-        // Filter by search text
-        guard !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return games }
-        return games.filter { game in
-            game.playerNamesByID.values.contains { $0.localizedCaseInsensitiveContains(searchText) }
-        }
+        return games
     }
 
     private var monthGroups: [GameMonthGroup] {
@@ -318,6 +312,16 @@ struct HistoryView: View {
 
     private func deleteGame(id: UUID) {
         store.deleteSavedGames(ids: Set([id]))
+    }
+
+    private func toggleSection(_ id: String) {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            if expandedSections.contains(id) {
+                expandedSections.remove(id)
+            } else {
+                expandedSections.insert(id)
+            }
+        }
     }
 
     private func loadGamesAsync(showLoading: Bool) {
@@ -446,87 +450,107 @@ private struct DeleteSavedGamesView: View {
 }
 
 struct SavedGameRow: View {
-    @EnvironmentObject private var store: AppStore
     var game: SavedGame
+    var lockAction: (() -> Void)?
+    var lockIsEnabled: Bool = false
+    var cloudAction: (() -> Void)?
+    var cloudIsEnabled: Bool = false
 
-    init(game: SavedGame) {
+    init(
+        game: SavedGame,
+        lockAction: (() -> Void)? = nil,
+        lockIsEnabled: Bool = false,
+        cloudAction: (() -> Void)? = nil,
+        cloudIsEnabled: Bool = false
+    ) {
         self.game = game
+        self.lockAction = lockAction
+        self.lockIsEnabled = lockIsEnabled
+        self.cloudAction = cloudAction
+        self.cloudIsEnabled = cloudIsEnabled
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center, spacing: 8) {
-                historyTeamMark(name: game.homeTeamName, color: EditorialDesign.orange)
-
-                Spacer(minLength: 4)
-
-                VStack(spacing: 4) {
-                    Text(LocalizedStringKey("section_result"))
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                    Text(scoreLine)
-                        .font(.title2.monospacedDigit().weight(.black))
-                        .foregroundStyle(EditorialDesign.navy)
-                    Text(gameDateText)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text(resultTitle)
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(resultColor)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 5)
-                        .background(resultColor.opacity(0.12), in: Capsule())
-                }
-
-                Spacer(minLength: 4)
-
-                historyTeamMark(name: game.awayTeamName, color: EditorialDesign.blue)
-            }
-
-            HStack(spacing: 8) {
-                Text(title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.7)
-                Spacer(minLength: 6)
-                if game.isLocked {
-                    Image(systemName: "lock.fill")
-                        .font(.caption2)
-                        .foregroundStyle(EditorialDesign.orange)
-                }
-                Text(game.gameTimeText)
+        VStack(alignment: .leading, spacing: 8) {
+            if !game.displayName.isEmpty {
+                Text(game.displayTitle)
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(EditorialDesign.navy)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                Spacer()
             }
-            .font(.caption)
-            .foregroundStyle(.secondary)
+
+            HStack(alignment: .top, spacing: 12) {
+                historyTeamMark(name: game.homeTeamName, teamID: game.snapshot.homeTeamID)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                VStack(spacing: 3) {
+                    Text(compactGameTimeText)
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.45)
+                        .frame(maxWidth: .infinity)
+                    HStack(spacing: 8) {
+                        Text("\(score(for: game.snapshot.homeTeamID))")
+                        Text("-")
+                            .foregroundStyle(.secondary)
+                        Text("\(score(for: game.snapshot.awayTeamID))")
+                    }
+                    .font(.system(size: 30, weight: .bold, design: .monospaced))
+                    .foregroundStyle(EditorialDesign.navy)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+
+                    HStack(spacing: 8) {
+                        if let lockAction {
+                            Button(action: lockAction) {
+                                Image(systemName: lockIsEnabled ? "lock.fill" : "lock")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(lockIsEnabled ? EditorialDesign.orange : .secondary)
+                                    .frame(width: 28, height: 28)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(LocalizedStringKey(lockIsEnabled ? "label_unlock" : "label_lock"))
+                        }
+
+                        if let cloudAction {
+                            Button(action: cloudAction) {
+                                Image(systemName: cloudIsEnabled ? "icloud.fill" : "icloud.and.arrow.up")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(cloudIsEnabled ? EditorialDesign.blue : EditorialDesign.orange)
+                                    .frame(width: 32, height: 32)
+                                    .background(
+                                        cloudIsEnabled ? EditorialDesign.paleBlue : EditorialDesign.paleOrange,
+                                        in: Circle()
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(LocalizedStringKey("label_cloud"))
+                        }
+                    }
+                }
+                .frame(width: 132)
+
+                historyTeamMark(name: game.awayTeamName, teamID: game.snapshot.awayTeamID)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            .frame(maxWidth: .infinity)
         }
-        .padding(14)
+        .padding(12)
         .background(EditorialDesign.card, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(alignment: .leading) {
-            RoundedRectangle(cornerRadius: 2, style: .continuous)
-                .fill(EditorialDesign.orange)
-                .frame(width: 4, height: 58)
-                .padding(.leading, 1)
-        }
         .overlay {
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .stroke(EditorialDesign.divider.opacity(0.5), lineWidth: 1)
         }
         .shadow(color: EditorialDesign.navy.opacity(0.05), radius: 10, y: 5)
+        .frame(maxWidth: .infinity)
         .listRowBackground(Color.clear)
-        .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
     }
 
-    private func historyTeamMark(name: String, color: Color) -> some View {
-        VStack(spacing: 6) {
-            Image(systemName: "tshirt.fill")
-                .font(.system(size: 28, weight: .semibold))
-                .foregroundStyle(color)
-                .frame(width: 58, height: 58)
-                .background(color.opacity(0.12), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    private func historyTeamMark(name: String, teamID: UUID?) -> some View {
+        return VStack(alignment: .center, spacing: 6) {
+            TeamBadgeView(teamID: teamID, fallbackName: name, size: 58)
             Text(name)
                 .font(.subheadline.weight(.bold))
                 .foregroundStyle(EditorialDesign.navy)
@@ -534,15 +558,7 @@ struct SavedGameRow: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.65)
         }
-        .frame(maxWidth: .infinity)
-    }
-
-    private var title: String {
-        game.displayTitle
-    }
-
-    private var scoreLine: String {
-        "\(score(for: game.snapshot.homeTeamID)) - \(score(for: game.snapshot.awayTeamID))"
+        .frame(minHeight: 84)
     }
 
     private func score(for teamID: UUID?) -> Int {
@@ -550,22 +566,19 @@ struct SavedGameRow: View {
         return game.score(forTeamID: teamID)
     }
 
-    private var gameDateText: String {
-        game.savedAt.formatted(date: .abbreviated, time: .omitted)
-    }
-
-    private var resultTitle: LocalizedStringKey {
-        let homeScore = score(for: game.snapshot.homeTeamID)
-        let awayScore = score(for: game.snapshot.awayTeamID)
-        if homeScore == awayScore { return LocalizedStringKey("excel_result_draw") }
-        return homeScore > awayScore ? LocalizedStringKey("elo_outcome_win") : LocalizedStringKey("elo_outcome_loss")
-    }
-
-    private var resultColor: Color {
-        let homeScore = score(for: game.snapshot.homeTeamID)
-        let awayScore = score(for: game.snapshot.awayTeamID)
-        if homeScore == awayScore { return .secondary }
-        return homeScore > awayScore ? EditorialDesign.orange : EditorialDesign.blue
+    private var compactGameTimeText: String {
+        let start = game.snapshot.logs.first?.timestamp ?? game.savedAt
+        let end = game.savedAt
+        let calendar = Calendar.current
+        let dateFormatter = DateFormatter()
+        let timeFormatter = DateFormatter()
+        if calendar.isDate(start, inSameDayAs: end) {
+            dateFormatter.dateFormat = "M/d"
+            timeFormatter.dateFormat = "HH:mm"
+            return "\(dateFormatter.string(from: start)) \(timeFormatter.string(from: start))–\(timeFormatter.string(from: end))"
+        }
+        dateFormatter.dateFormat = "M/d HH:mm"
+        return "\(dateFormatter.string(from: start))–\(dateFormatter.string(from: end))"
     }
 
     private func playerIDs(for teamID: UUID?) -> [UUID] {
@@ -587,43 +600,22 @@ struct HistoryGameLink: View {
     @State private var isShowingDetail = false
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            Button {
-                isShowingDetail = true
-            } label: {
-                HistoryView.SavedGameRow(game: game)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            if store.isPro {
-                Button {
-                    store.toggleCloudStorage(for: game.id)
-                } label: {
-                    Image(systemName: store.cloudEnabledGameIDs.contains(game.id) ? "icloud.fill" : "icloud.and.arrow.up")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(store.cloudEnabledGameIDs.contains(game.id) ? EditorialDesign.blue : EditorialDesign.orange)
-                        .frame(width: 34, height: 34)
-                        .background(
-                            store.cloudEnabledGameIDs.contains(game.id) ? EditorialDesign.paleBlue : EditorialDesign.paleOrange,
-                            in: Circle()
-                        )
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(LocalizedStringKey("label_cloud"))
-                .padding(.trailing, 14)
-                .padding(.bottom, 14)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        HistoryView.SavedGameRow(
+            game: game,
+            lockAction: { toggleLock() },
+            lockIsEnabled: game.isLocked,
+            cloudAction: store.isPro ? { store.toggleCloudStorage(for: game.id) } : nil,
+            cloudIsEnabled: store.cloudEnabledGameIDs.contains(game.id)
+        )
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 12)
+        .listRowInsets(EdgeInsets(top: 3, leading: 0, bottom: 3, trailing: 0))
+        .listRowBackground(Color.clear)
         .contentShape(Rectangle())
+        .onTapGesture { isShowingDetail = true }
         .swipeActions(edge: .leading, allowsFullSwipe: false) {
             Button {
-                if let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) {
-                    store.savedGames[idx].isLocked.toggle()
-                    store.markSavedGameModified(game.id)
-                }
+                toggleLock()
             } label: {
                 Label(LocalizedStringKey(game.isLocked ? "label_unlock" : "label_lock"), systemImage: game.isLocked ? "lock.open" : "lock")
             }
@@ -641,6 +633,13 @@ struct HistoryGameLink: View {
         }
         .navigationDestination(isPresented: $isShowingDetail) {
             SavedGameDetailView(game: game)
+        }
+    }
+
+    private func toggleLock() {
+        if let idx = store.savedGames.firstIndex(where: { $0.id == game.id }) {
+            store.savedGames[idx].isLocked.toggle()
+            store.markSavedGameModified(game.id)
         }
     }
 }

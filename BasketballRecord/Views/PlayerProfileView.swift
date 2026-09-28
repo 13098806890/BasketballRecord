@@ -15,6 +15,7 @@ struct PlayerProfileView: View {
     @State var showingELOHistory = false
     @State var expandedStatSections: Set<String> = ["career", "average"]
     @State private var isShowingFullGameStats = true
+    @State private var selectedTrendIndex: Int?
 
     var player: Player? { store.player(for: playerID) }
     private var usesPixelSkin: Bool { AppSkin(rawValue: appSkinRaw) == .pixelEsports }
@@ -109,8 +110,6 @@ struct PlayerProfileView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
 
-            header
-
             NavigationLink {
                 PlayerGameSelectionView(games: allPlayerGames, selectedIDs: $selectedGameIDs)
             } label: {
@@ -133,6 +132,8 @@ struct PlayerProfileView: View {
             .buttonStyle(.plain)
             .padding(.horizontal)
             .contentShape(Rectangle())
+
+            header
 
             if store.isPro, let groupID = selectedGroupID, let group = store.gameGroups.first(where: { $0.id == groupID }) {
                 HStack {
@@ -158,15 +159,17 @@ struct PlayerProfileView: View {
 
             metricSummaryCard(
                 titleKey: "nav_career",
-                icon: "chart.bar.fill",
+                icon: .system("chart.bar.fill"),
                 metrics: careerMetricValues,
+                headerMetrics: careerHeaderMetrics,
                 sectionID: "career",
                 rows: buildClassicCareerStatRows()
             )
             metricSummaryCard(
                 titleKey: "stat_section_average",
-                icon: "function",
+                icon: .average,
                 metrics: averageMetricValues,
+                headerMetrics: averageHeaderMetrics,
                 sectionID: "average",
                 rows: buildClassicAverageStatRows()
             )
@@ -277,52 +280,51 @@ struct PlayerProfileView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .top, spacing: 16) {
+        VStack(alignment: .leading, spacing: 14) {
             if let player {
-                PlayerAvatarView(player: player, size: 76)
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(player.name)
-                        .font(.title2.weight(.bold))
-                        .foregroundStyle(EditorialDesign.navy)
-                    if !player.position.isEmpty {
-                        Text(player.position)
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(.secondary)
-                    }
-                    Text(profileSubtitle(player))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-
-                    if let fg = fixedGame {
-                        Text(teamName(for: fg))
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        if let role = fg.role(of: playerID) {
-                            Text(role.title)
-                                .font(.caption.weight(.semibold))
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
-                                .background(.ultraThinMaterial, in: Capsule())
+                HStack(alignment: .top, spacing: 14) {
+                    PlayerAvatarView(player: player, size: 72)
+                    VStack(alignment: .leading, spacing: 7) {
+                        HStack(alignment: .firstTextBaseline, spacing: 6) {
+                            Text(player.name)
+                                .font(.title3.weight(.bold))
+                                .foregroundStyle(EditorialDesign.navy)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.8)
+                                .layoutPriority(1)
+                            if !player.number.isEmpty {
+                                Text("#\(player.number)")
+                                    .font(.caption.monospacedDigit().weight(.bold))
+                                    .foregroundStyle(EditorialDesign.blue)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 3)
+                                    .background(EditorialDesign.paleBlue, in: Capsule())
+                            }
                         }
-                    } else {
-                        standardCareerOverview
-                        HStack(spacing: 6) {
-                            Text(String(format: NSLocalizedString("elo_format", comment: "ELO value"), Int(playerELO)))
-                                .font(.caption.monospacedDigit().weight(.semibold))
+                        if let fg = fixedGame {
+                            playerIdentityMetadata(player)
+                            Text(teamName(for: fg))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            if let role = fg.role(of: playerID) {
+                                Text(role.title)
+                                    .font(.caption.weight(.semibold))
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 5)
+                                    .background(.ultraThinMaterial, in: Capsule())
+                            }
+                        } else {
+                            HStack(spacing: 8) {
+                                playerIdentityMetadata(player)
+                                    .layoutPriority(1)
+                                Spacer(minLength: 4)
+                                careerELOBadge
+                            }
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(.ultraThinMaterial, in: Capsule())
-                        .contentShape(Rectangle())
-                        .onTapGesture { DispatchQueue.main.async { showingELOHistory = true } }
                     }
                 }
-                Spacer()
-                if !player.number.isEmpty {
-                    Text("#\(player.number)")
-                        .font(.headline.monospacedDigit().weight(.bold))
-                        .foregroundStyle(EditorialDesign.navy)
-                        .frame(maxHeight: .infinity, alignment: .top)
+                if fixedGame == nil {
+                    standardCareerOverview
                 }
             }
         }
@@ -333,18 +335,59 @@ struct PlayerProfileView: View {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .stroke(EditorialDesign.divider.opacity(0.42), lineWidth: 1)
         }
-        .overlay(alignment: .leading) {
-            if fixedGame == nil {
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(EditorialDesign.orange)
-                    .frame(width: 5, height: 42)
-                    .padding(.leading, 1)
-            }
-        }
         .padding(.horizontal)
     }
 
-    private func metricSummaryCard(titleKey: String, icon: String, metrics: [(String, String)], sectionID: String, rows: [StatRow]) -> some View {
+    private var careerELOBadge: some View {
+        Button {
+            showingELOHistory = true
+        } label: {
+            Text(String(format: NSLocalizedString("elo_format", comment: "ELO value"), Int(playerELO)))
+                .font(.caption.monospacedDigit().weight(.bold))
+                .foregroundStyle(EditorialDesign.orange)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background(EditorialDesign.paleOrange, in: Capsule())
+        .overlay {
+            Capsule()
+                .stroke(EditorialDesign.orange.opacity(0.25), lineWidth: 1)
+        }
+        .buttonStyle(.plain)
+        .contentShape(Rectangle())
+    }
+
+    @ViewBuilder
+    private func playerIdentityMetadata(_ player: Player) -> some View {
+        if !player.position.isEmpty || profileSubtitle(player, includesNumber: false) != nil {
+            HStack(spacing: 7) {
+                if !player.position.isEmpty {
+                    Text(player.position)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(EditorialDesign.blue)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(EditorialDesign.paleBlue, in: Capsule())
+                }
+                if let subtitle = profileSubtitle(player, includesNumber: false) {
+                    Text(subtitle)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(EditorialDesign.navy.opacity(0.7))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                }
+            }
+        }
+    }
+
+    private enum MetricSummaryIcon {
+        case system(String)
+        case average
+    }
+
+    private func metricSummaryCard(titleKey: String, icon: MetricSummaryIcon, metrics: [(String, String)], headerMetrics: [(String, String)] = [], sectionID: String, rows: [StatRow]) -> some View {
         Button {
             withAnimation(.easeInOut(duration: 0.2)) {
                 if expandedStatSections.contains(sectionID) {
@@ -356,12 +399,27 @@ struct PlayerProfileView: View {
         } label: {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 8) {
-                    Image(systemName: icon)
-                        .foregroundStyle(EditorialDesign.blue)
+                    metricSummaryIcon(icon)
                     Text(LocalizedStringKey(titleKey))
                         .font(.headline.weight(.bold))
                         .foregroundStyle(EditorialDesign.navy)
+                        .lineLimit(1)
                     Spacer()
+                    if !headerMetrics.isEmpty {
+                        HStack(spacing: 8) {
+                            ForEach(Array(headerMetrics.enumerated()), id: \.offset) { _, metric in
+                                HStack(spacing: 2) {
+                                    Text("\(metric.0):")
+                                        .foregroundStyle(.secondary)
+                                    Text(metric.1)
+                                        .foregroundStyle(EditorialDesign.navy)
+                                }
+                                .font(.caption.monospacedDigit().weight(.semibold))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
+                            }
+                        }
+                    }
                     Image(systemName: expandedStatSections.contains(sectionID) ? "chevron.up" : "chevron.right")
                         .font(.caption.weight(.bold))
                         .foregroundStyle(.secondary)
@@ -406,11 +464,29 @@ struct PlayerProfileView: View {
     }
 
     @ViewBuilder
+    private func metricSummaryIcon(_ icon: MetricSummaryIcon) -> some View {
+        switch icon {
+        case .system(let name):
+            Image(systemName: name)
+                .foregroundStyle(EditorialDesign.blue)
+        case .average:
+            Text(LocalizedStringKey("label_average_short"))
+                .font(.system(size: 10, weight: .black, design: .rounded))
+                .foregroundStyle(EditorialDesign.blue)
+                .frame(width: 28, height: 20)
+                .background(EditorialDesign.paleBlue, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+        }
+    }
+
+    @ViewBuilder
     private func statRowsContent(_ rows: [StatRow]) -> some View {
         VStack(spacing: 8) {
             ForEach(rows) { row in
                 HStack(spacing: 8) {
-                    if let split = row.leftSplit {
+                    if row.leftSplit == nil, row.right == nil, row.rightSplit == nil {
+                        makeStatCard(row.left)
+                            .frame(maxWidth: .infinity)
+                    } else if let split = row.leftSplit {
                         HStack(spacing: 8) {
                             makeStatCard(row.left)
                             makeStatCard(split)
@@ -420,20 +496,22 @@ struct PlayerProfileView: View {
                         makeStatCard(row.left)
                             .frame(maxWidth: .infinity)
                     }
-                    if let split = row.rightSplit {
-                        HStack(spacing: 8) {
-                            makeStatCard(split)
-                            if let right = row.right {
-                                makeStatCard(right)
+                    if row.leftSplit != nil || row.right != nil || row.rightSplit != nil {
+                        if let split = row.rightSplit {
+                            HStack(spacing: 8) {
+                                makeStatCard(split)
+                                if let right = row.right {
+                                    makeStatCard(right)
+                                }
                             }
+                            .frame(maxWidth: .infinity)
+                        } else if let right = row.right {
+                            makeStatCard(right)
+                                .frame(maxWidth: .infinity)
+                        } else {
+                            Spacer()
+                                .frame(maxWidth: .infinity)
                         }
-                        .frame(maxWidth: .infinity)
-                    } else if let right = row.right {
-                        makeStatCard(right)
-                            .frame(maxWidth: .infinity)
-                    } else {
-                        Spacer()
-                            .frame(maxWidth: .infinity)
                     }
                 }
             }
@@ -452,6 +530,14 @@ struct PlayerProfileView: View {
         ]
     }
 
+    private var careerHeaderMetrics: [(String, String)] {
+        let plusMinus = totalPlusMinus > 0 ? "+\(totalPlusMinus)" : "\(totalPlusMinus)"
+        return [
+            (localized("stats_minutes"), GameView.durationFormatter(totalMinutes * 60)),
+            (localized("stats_plus_minus"), plusMinus)
+        ]
+    }
+
     private var averageMetricValues: [(String, String)] {
         let stats = totalStats
         let games = max(1, filteredGames.count)
@@ -465,70 +551,189 @@ struct PlayerProfileView: View {
         ]
     }
 
-    private var eloHistoryCard: some View {
-        Button {
-            showingELOHistory = true
-        } label: {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 8) {
-                    Image(systemName: "chart.xyaxis.line")
-                        .foregroundStyle(EditorialDesign.blue)
-                    Text(LocalizedStringKey("label_elo_history"))
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(EditorialDesign.navy)
-                    Spacer()
-                    Text(String(format: NSLocalizedString("elo_format", comment: "ELO value"), Int(playerELO)))
-                        .font(.subheadline.monospacedDigit().weight(.bold))
-                        .foregroundStyle(EditorialDesign.navy)
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.secondary)
-                }
+    private var averageHeaderMetrics: [(String, String)] {
+        let games = max(1, filteredGames.count)
+        let plusMinus = Double(totalPlusMinus) / Double(games)
+        let plusMinusText = plusMinus > 0 ? String(format: "+%.1f", plusMinus) : String(format: "%.1f", plusMinus)
+        return [
+            (localized("stats_minutes"), GameView.durationFormatter(totalMinutes / Double(games) * 60)),
+            (localized("stats_plus_minus"), plusMinusText)
+        ]
+    }
 
-                if eloHistory.count > 1 {
-                    eloSparkline
-                } else {
-                    Text(LocalizedStringKey("text_no_data"))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+    private var eloHistoryCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: "chart.xyaxis.line")
+                    .foregroundStyle(EditorialDesign.blue)
+                Text(LocalizedStringKey("label_player_performance_trend"))
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(EditorialDesign.navy)
+                Spacer()
             }
-            .padding(14)
-            .editorialCard(tint: EditorialDesign.card, radius: 18)
+
+            if performanceTrendHistory.count > 1 {
+                performanceTrendLegend
+                performanceTrendChart
+            } else {
+                Text(LocalizedStringKey("text_no_data"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
-        .buttonStyle(.plain)
+        .padding(14)
+        .editorialCard(tint: EditorialDesign.card, radius: 18)
         .padding(.horizontal)
         .contentShape(Rectangle())
     }
 
-    private var eloSparkline: some View {
-        GeometryReader { proxy in
-            let values = eloHistory.map(\.postELO)
-            let minValue = values.min() ?? 0
-            let maxValue = values.max() ?? 1
-            let span = max(maxValue - minValue, 1)
-            Path { path in
-                for (index, value) in values.enumerated() {
-                    let x = proxy.size.width * CGFloat(index) / CGFloat(max(values.count - 1, 1))
-                    let y = proxy.size.height - proxy.size.height * CGFloat((value - minValue) / span)
-                    if index == 0 {
-                        path.move(to: CGPoint(x: x, y: y))
-                    } else {
-                        path.addLine(to: CGPoint(x: x, y: y))
-                    }
-                }
-            }
-            .stroke(EditorialDesign.orange, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
-            .background {
-                LinearGradient(
-                    colors: [EditorialDesign.orange.opacity(0.16), .clear],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
+    private var performanceTrendLegend: some View {
+        let selectedPoint = selectedTrendIndex.flatMap { index in
+            performanceTrendHistory.indices.contains(index) ? performanceTrendHistory[index] : nil
+        }
+        return HStack(spacing: 6) {
+            trendLegendItem(
+                label: localized("label_elo"),
+                value: selectedPoint.map { formattedELO($0.elo) },
+                color: EditorialDesign.orange
+            )
+            trendLegendItem(
+                label: localized("stats_points_format_short"),
+                value: selectedPoint.map { formattedPoints($0.points) },
+                color: EditorialDesign.blue
+            )
+            trendLegendItem(
+                label: localized("label_field_goal_percentage"),
+                value: selectedPoint.map { formattedFieldGoalRate($0.fieldGoalRate) },
+                color: fieldGoalTrendColor
+            )
+        }
+    }
+
+    private func trendLegendItem(label: String, value: String?, color: Color) -> some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(color)
+                .frame(width: 6, height: 6)
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            if let value {
+                Text(value)
+                    .font(.caption2.monospacedDigit().weight(.bold))
+                    .foregroundStyle(EditorialDesign.navy)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.65)
             }
         }
-        .frame(height: 64)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var performanceTrendChart: some View {
+        GeometryReader { proxy in
+            let points = performanceTrendHistory
+            ZStack {
+                Path { path in
+                    for row in 1..<4 {
+                        let y = proxy.size.height * CGFloat(row) / 4
+                        path.move(to: CGPoint(x: 0, y: y))
+                        path.addLine(to: CGPoint(x: proxy.size.width, y: y))
+                    }
+                }
+                .stroke(EditorialDesign.divider.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [3, 4]))
+
+                trendPath(values: points.map(\.elo), size: proxy.size)
+                    .stroke(EditorialDesign.orange, style: trendLineStyle)
+                trendPath(values: points.map(\.points), size: proxy.size)
+                    .stroke(EditorialDesign.blue, style: trendLineStyle)
+                trendPath(values: points.map(\.fieldGoalRate), size: proxy.size)
+                    .stroke(fieldGoalTrendColor, style: trendLineStyle)
+
+                if let selectedTrendIndex, points.indices.contains(selectedTrendIndex) {
+                    let x = proxy.size.width * CGFloat(selectedTrendIndex) / CGFloat(max(points.count - 1, 1))
+                    Path { path in
+                        path.move(to: CGPoint(x: x, y: 0))
+                        path.addLine(to: CGPoint(x: x, y: proxy.size.height))
+                    }
+                    .stroke(EditorialDesign.navy.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
+
+                    Circle()
+                        .fill(EditorialDesign.orange)
+                        .overlay(Circle().stroke(.white, lineWidth: 2))
+                        .frame(width: 9, height: 9)
+                        .position(x: x, y: trendY(value: points[selectedTrendIndex].elo, values: points.map(\.elo), height: proxy.size.height))
+                    Circle()
+                        .fill(EditorialDesign.blue)
+                        .overlay(Circle().stroke(.white, lineWidth: 2))
+                        .frame(width: 9, height: 9)
+                        .position(x: x, y: trendY(value: points[selectedTrendIndex].points, values: points.map(\.points), height: proxy.size.height))
+                    Circle()
+                        .fill(fieldGoalTrendColor)
+                        .overlay(Circle().stroke(.white, lineWidth: 2))
+                        .frame(width: 9, height: 9)
+                        .position(x: x, y: trendY(value: points[selectedTrendIndex].fieldGoalRate, values: points.map(\.fieldGoalRate), height: proxy.size.height))
+                }
+            }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onEnded { value in
+                        guard points.count > 1 else { return }
+                        let ratio = min(max(value.location.x / proxy.size.width, 0), 1)
+                        selectedTrendIndex = min(max(Int((ratio * CGFloat(points.count - 1)).rounded()), 0), points.count - 1)
+                    }
+            )
+        }
+        .frame(height: 92)
         .padding(.horizontal, 4)
+    }
+
+    private var trendLineStyle: StrokeStyle {
+        StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round)
+    }
+
+    private var fieldGoalTrendColor: Color {
+        Color(red: 0.18, green: 0.62, blue: 0.34)
+    }
+
+    private func formattedELO(_ value: Double) -> String {
+        String(format: "%d", Int(value))
+    }
+
+    private func formattedPoints(_ value: Double) -> String {
+        String(format: "%.0f", value)
+    }
+
+    private func formattedFieldGoalRate(_ value: Double) -> String {
+        percent(value)
+    }
+
+    private func trendY(value: Double, values: [Double], height: CGFloat) -> CGFloat {
+        let minValue = values.min() ?? 0
+        let maxValue = values.max() ?? 1
+        let span = maxValue - minValue
+        let normalizedValue = span > 0 ? (value - minValue) / span : 0.5
+        return height - height * CGFloat(normalizedValue)
+    }
+
+    private func trendPath(values: [Double], size: CGSize) -> Path {
+        let minValue = values.min() ?? 0
+        let maxValue = values.max() ?? 1
+        let span = maxValue - minValue
+        return Path { path in
+            for (index, value) in values.enumerated() {
+                let x = size.width * CGFloat(index) / CGFloat(max(values.count - 1, 1))
+                let normalizedValue = span > 0 ? (value - minValue) / span : 0.5
+                let y = size.height - size.height * CGFloat(normalizedValue)
+                if index == 0 {
+                    path.move(to: CGPoint(x: x, y: y))
+                } else {
+                    path.addLine(to: CGPoint(x: x, y: y))
+                }
+            }
+        }
     }
 
     private func teamName(for game: SavedGame) -> String {
@@ -548,30 +753,32 @@ struct PlayerProfileView: View {
             (localized("stats_win_rate_short"), winRate)
         ]
 
-        return HStack(spacing: 7) {
+        return HStack(spacing: 0) {
             ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                HStack(spacing: 3) {
+                VStack(spacing: 3) {
+                    Text(item.1)
+                        .font(.subheadline.monospacedDigit().weight(.bold))
+                        .foregroundStyle(index == items.count - 1 ? EditorialDesign.orange : EditorialDesign.navy)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                     Text(item.0)
-                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                        .font(.caption2.weight(.semibold))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.65)
-                    Text(item.1)
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.65)
+                        .minimumScaleFactor(0.7)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity)
                 .overlay(alignment: .trailing) {
                     if index < items.count - 1 {
                         Rectangle()
                             .fill(.secondary.opacity(0.25))
-                            .frame(width: 1, height: 12)
+                            .frame(width: 1, height: 30)
                     }
                 }
             }
         }
-        .padding(.top, 1)
+        .padding(.vertical, 8)
+        .background(.white.opacity(0.5), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     var playerELO: Double {
@@ -580,6 +787,25 @@ struct PlayerProfileView: View {
 
     private var eloHistory: [ELOGameEntry] {
         ELOEngine.computeELOHistory(for: playerID, from: filteredGames)
+    }
+
+    private var performanceTrendHistory: [PerformanceTrendPoint] {
+        return eloHistory.map { entry in
+            let stats = entry.game.snapshot.statsByPlayerID[playerID, default: PlayerStats()]
+            return PerformanceTrendPoint(
+                id: entry.id,
+                elo: entry.postELO,
+                points: Double(stats.points),
+                fieldGoalRate: stats.fieldGoalRate
+            )
+        }
+    }
+
+    private struct PerformanceTrendPoint: Identifiable {
+        let id: UUID
+        let elo: Double
+        let points: Double
+        let fieldGoalRate: Double
     }
 
     struct StatCell: Identifiable {
@@ -687,17 +913,19 @@ struct PlayerProfileView: View {
     func buildAverageStatRows() -> [StatRow] { buildStatRows(style: .average) }
 
     private func buildClassicCareerStatRows() -> [StatRow] {
-        buildCareerStatRows().map { row in
-            guard row.id == "row1" else { return row }
-            return StatRow(id: row.id, left: row.left, leftSplit: row.leftSplit)
-        }
+        let rows = buildCareerStatRows()
+        guard rows.count == 4 else { return rows }
+        return [
+            rows[1],
+            StatRow(id: rows[2].id, left: rows[2].left),
+            rows[3]
+        ]
     }
 
     private func buildClassicAverageStatRows() -> [StatRow] {
-        buildAverageStatRows().map { row in
-            guard row.id == "row1" else { return row }
-            return StatRow(id: row.id, left: row.left, leftSplit: row.leftSplit)
-        }
+        let rows = buildAverageStatRows()
+        guard rows.count == 4 else { return rows }
+        return Array(rows.dropFirst())
     }
 
     private var eventSection: some View {
@@ -989,12 +1217,12 @@ struct PlayerProfileView: View {
         "\(Int((value * 100).rounded()))%"
     }
 
-    func profileSubtitle(_ player: Player) -> String {
+    func profileSubtitle(_ player: Player, includesNumber: Bool = true) -> String? {
         var parts: [String] = []
-        if !player.number.isEmpty { parts.append("No. \(player.number)") }
+        if includesNumber, !player.number.isEmpty { parts.append("No. \(player.number)") }
         if !player.height.isEmpty { parts.append(UnitSettings.displayHeight(player.height)) }
         if !player.weight.isEmpty { parts.append(UnitSettings.displayWeight(player.weight)) }
-        return parts.isEmpty ? localized("player_profile_missing_basic") : parts.joined(separator: " · ")
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
     private func containsPlayer(in game: SavedGame) -> Bool {

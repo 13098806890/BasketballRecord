@@ -204,7 +204,7 @@ struct SavedGameDetailView: View {
                 .foregroundStyle(EditorialDesign.navy)
                 .lineLimit(1)
             Text("\(score(for: teamID))")
-                .font(.system(size: 38, weight: .bold, design: .rounded).monospacedDigit())
+                .font(.system(size: 38, weight: .bold, design: .monospaced))
                 .foregroundStyle(EditorialDesign.navy)
         }
         .frame(maxWidth: .infinity)
@@ -445,10 +445,14 @@ struct SavedGameDetailView: View {
                     .frame(width: 30, alignment: .leading)
                 Text(LocalizedStringKey("section_players"))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                ForEach(["stats_points_format_short", "stats_rebound_short", "stats_assists_short", "stats_steals_short", "stats_blocks_short", "stats_turnovers_short"], id: \.self) { key in
+                Text(LocalizedStringKey("stats_minutes"))
+                    .frame(width: 50, alignment: .trailing)
+                ForEach(["stats_points_format_short", "stats_rebound_short", "stats_assists_short"], id: \.self) { key in
                     Text(LocalizedStringKey(key))
                         .frame(width: 34, alignment: .trailing)
                 }
+                Text(LocalizedStringKey("stats_plus_minus"))
+                    .frame(width: 34, alignment: .trailing)
             }
             .font(.caption2.weight(.semibold))
             .foregroundStyle(.secondary)
@@ -493,6 +497,7 @@ struct SavedGameDetailView: View {
     private func compactPlayerRow(playerID: UUID) -> some View {
         let stats = displayStatsByPlayerID[playerID, default: PlayerStats()]
         let number = store.player(for: playerID)?.number ?? ""
+        let playerName = game.playerNamesByID[playerID] ?? NSLocalizedString("unknown_player", comment: "Unknown player")
         return NavigationLink {
             if store.player(for: playerID) != nil {
                 PlayerProfileView(playerID: playerID, fixedGame: currentSavedGame, selectedGroupID: .constant(nil))
@@ -507,22 +512,21 @@ struct SavedGameDetailView: View {
                 HStack(spacing: 7) {
                     playerAvatar(for: playerID)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(game.playerNamesByID[playerID] ?? NSLocalizedString("unknown_player", comment: "Unknown player"))
-                            .font(.subheadline.weight(.semibold))
-                            .lineLimit(1)
-                        compactPlayerDetailText(playerID: playerID, stats: stats)
-                            .font(.caption2.monospacedDigit())
-                            .foregroundStyle(.secondary)
+                        Text(playerName)
+                            .font(isChinesePlayerName(playerName) ? .subheadline.weight(.semibold) : .caption.weight(.semibold))
                             .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                Text(compactPlayingTime(for: playerID))
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .frame(width: 50, alignment: .trailing)
                 compactStatValue(stats.points, isPrimary: true)
                 compactStatValue(stats.totalRebounds)
                 compactStatValue(stats.assists)
-                compactStatValue(stats.steals)
-                compactStatValue(stats.blocks)
-                compactStatValue(stats.turnovers)
+                compactPlusMinusValue(for: playerID)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
@@ -531,21 +535,34 @@ struct SavedGameDetailView: View {
         .buttonStyle(.plain)
     }
 
-    private func compactPlayerDetailText(playerID: UUID, stats: PlayerStats) -> Text {
-        let playingTime: String
+    private func compactPlayingTime(for playerID: UUID) -> String {
         if !selectedPeriods.isEmpty {
             let total = selectedPeriods.reduce(0) { sum, period in
                 sum + (cachedPlayingTimeByPeriod[period]?[playerID] ?? 0)
             }
-            playingTime = total > 0 ? GameView.durationFormatter(total) : "--:--"
-        } else {
-            playingTime = GameView.durationFormatter(currentSavedGame.snapshot.playingSecondsByPlayerID[playerID, default: 0])
+            return total > 0 ? GameView.durationFormatter(total) : "--:--"
         }
-        let pmPeriods = selectedPeriods.isEmpty ? Set(availablePeriodOptions) : selectedPeriods
-        let plusMinus = pmPeriods.reduce(0) { $0 + (periodAnalysis.plusMinusByPlayerID(for: $1)[playerID] ?? 0) }
-        let plusMinusText = plusMinus > 0 ? "+\(plusMinus)" : "\(plusMinus)"
-        return Text(String(format: NSLocalizedString("stats_line_format", comment: "Stats line"), playingTime, stats.made, stats.attempts, stats.allFreeThrowMade, stats.allFreeThrowAttempts, stats.totalRebounds, stats.assists, stats.fouls, stats.blocks, stats.steals, stats.turnovers))
-            + Text("  \(NSLocalizedString("stats_plus_minus", comment: "")) \(plusMinusText)  \(NSLocalizedString("stats_points_per_shot", comment: "")) \(String(format: "%.2f", stats.pointsPerShot))")
+        return GameView.durationFormatter(currentSavedGame.snapshot.playingSecondsByPlayerID[playerID, default: 0])
+    }
+
+    private func compactPlusMinusValue(for playerID: UUID) -> some View {
+        let periods = selectedPeriods.isEmpty ? Set(availablePeriodOptions) : selectedPeriods
+        let plusMinus = periods.reduce(0) { total, period in
+            total + (periodAnalysis.plusMinusByPlayerID(for: period)[playerID] ?? 0)
+        }
+        let text = plusMinus > 0 ? "+\(plusMinus)" : "\(plusMinus)"
+        return Text(text)
+            .font(.caption.monospacedDigit())
+            .foregroundStyle(.primary)
+            .frame(width: 34, alignment: .trailing)
+    }
+
+    private func isChinesePlayerName(_ name: String) -> Bool {
+        name.unicodeScalars.contains { scalar in
+            (0x3400...0x4DBF).contains(scalar.value) ||
+            (0x4E00...0x9FFF).contains(scalar.value) ||
+            (0xF900...0xFAFF).contains(scalar.value)
+        }
     }
 
     private func compactStatValue(_ value: Int, isPrimary: Bool = false) -> some View {

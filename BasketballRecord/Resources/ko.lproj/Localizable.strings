@@ -562,8 +562,9 @@
 "empty_no_player_data" = "선수 데이터가 없습니다.";
 "empty_no_game_history" = "경기 기록이 없습니다.";
 "career_tile_games" = "경기 수";
+"career_tile_record" = "전적";
 "career_tile_win_rate" = "Win %";
-"career_tile_net" = "Net";
+"career_tile_net" = "평균 득실차";
 "career_tile_avg_points" = "Avg Pts";
 "career_tile_avg_points_against" = "평균 실점";
 "career_tile_total_score" = "총 득점";
@@ -1028,6 +1029,10 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "elo_computation_title" = "ELO 계산 상세";
 "label_elo" = "ELO";
 "label_elo_history" = "ELO 기록";
+"label_player_performance_trend" = "추이";
+"label_average_points" = "평균 득점";
+"label_field_goal_percentage" = "FG%";
+"label_average_short" = "AVG";
 "elo_format" = "ELO %d";
 "elo_title_format" = "ELO – %@";
 "elo_tier_bronze" = "브론즈";

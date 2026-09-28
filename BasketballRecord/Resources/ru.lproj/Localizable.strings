@@ -716,8 +716,9 @@
 "empty_no_player_data" = "Нет данных об игроках";
 "empty_no_game_history" = "История игр пуста";
 "career_tile_games" = "Игры";
+"career_tile_record" = "Баланс";
 "career_tile_win_rate" = "Побед %";
-"career_tile_net" = "±";
+"career_tile_net" = "Ср. разница";
 "career_tile_avg_points" = "Очков в ср.";
 "career_tile_avg_points_against" = "Пропущено в ср.";
 "career_tile_total_score" = "Всего очков";
@@ -1009,6 +1010,10 @@
 "elo_computation_title" = "Расчёт ELO";
 "label_elo" = "ELO";
 "label_elo_history" = "История ELO";
+"label_player_performance_trend" = "Динамика";
+"label_average_points" = "Очки за игру";
+"label_field_goal_percentage" = "FG%";
+"label_average_short" = "AVG";
 "elo_format" = "ELO %d";
 "elo_title_format" = "ELO – %@";
 "elo_tier_bronze" = "Бронза";

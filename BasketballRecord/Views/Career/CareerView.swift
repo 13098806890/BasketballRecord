@@ -206,68 +206,60 @@ struct TeamCareerBoardView: View {
     }
 
     private func teamSummaryCard(_ summary: TeamCareerSummary) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                TeamBadgeView(teamID: summary.id, fallbackName: summary.teamName, size: 46)
+                VStack(alignment: .leading, spacing: 3) {
                     Text(summary.teamName)
                         .font(.title3.weight(.bold))
                         .foregroundStyle(EditorialDesign.navy)
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
-
-                    Text("\(summary.wins)-\(summary.losses)")
-                        .font(.system(size: 34, weight: .black, design: .rounded).monospacedDigit())
-                        .foregroundStyle(EditorialDesign.navy)
                 }
 
-                Spacer(minLength: 8)
+                Spacer(minLength: 4)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    teamHeaderMetric(
+                        title: NSLocalizedString("career_tile_games", comment: "Games"),
+                        value: "\(summary.games)"
+                    )
+                    teamHeaderMetric(
+                        title: NSLocalizedString("career_tile_record", comment: "Record"),
+                        value: "\(summary.wins)-\(summary.losses)"
+                    )
+                }
+                .frame(minWidth: 74, alignment: .leading)
 
                 ZStack {
                     Circle()
-                        .stroke(EditorialDesign.orange.opacity(0.24), lineWidth: 8)
+                        .stroke(EditorialDesign.orange.opacity(0.24), lineWidth: 7)
                     Circle()
                         .trim(from: 0, to: max(0.02, min(summary.winRate, 1)))
-                        .stroke(EditorialDesign.orange, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                        .stroke(EditorialDesign.orange, style: StrokeStyle(lineWidth: 7, lineCap: .round))
                         .rotationEffect(.degrees(-90))
                     VStack(spacing: 1) {
                         Text(summary.winRateText)
                             .font(.headline.monospacedDigit().weight(.bold))
                             .foregroundStyle(EditorialDesign.navy)
                         Text(LocalizedStringKey("career_tile_win_rate"))
-                            .font(.caption2.weight(.semibold))
+                            .font(.system(size: 8, weight: .semibold))
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                             .minimumScaleFactor(0.65)
                     }
                 }
-                .frame(width: 78, height: 78)
+                .frame(width: 64, height: 64)
             }
 
-            Rectangle()
-                .fill(EditorialDesign.orange.opacity(0.2))
-                .frame(height: 1)
-
-            VStack(spacing: 8) {
-                HStack(spacing: 8) {
-                    teamCard(title: LocalizedStringKey("career_tile_games"), value: "\(summary.games)")
-                    teamCard(title: LocalizedStringKey("career_tile_net"), value: summary.diffText)
-                    teamCard(title: LocalizedStringKey("career_tile_total_score"), value: "\(summary.pointsFor)-\(summary.pointsAgainst)")
-                }
-                HStack(spacing: 8) {
-                    teamCard(title: LocalizedStringKey("career_tile_avg_points"), value: summary.avgForText)
-                    teamCard(title: LocalizedStringKey("career_tile_avg_points_against"), value: summary.avgAgainstText)
-                    teamCard(title: LocalizedStringKey("career_tile_win_rate"), value: summary.winRateText)
-                }
-            }
+            teamOverviewRow([
+                (NSLocalizedString("career_tile_net", comment: "Average net"), summary.avgDiffText),
+                (NSLocalizedString("career_tile_avg_points", comment: "Average points"), summary.avgForText),
+                (NSLocalizedString("career_tile_avg_points_against", comment: "Average allowed"), summary.avgAgainstText)
+            ])
         }
-        .padding(16)
+        .padding(14)
         .background(EditorialDesign.card, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay(alignment: .leading) {
-            RoundedRectangle(cornerRadius: 2, style: .continuous)
-                .fill(EditorialDesign.orange)
-                .frame(width: 4, height: 64)
-                .padding(.leading, 1)
-        }
         .overlay {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .stroke(EditorialDesign.divider.opacity(0.5), lineWidth: 1)
@@ -275,30 +267,66 @@ struct TeamCareerBoardView: View {
         .shadow(color: EditorialDesign.navy.opacity(0.06), radius: 12, y: 6)
     }
 
+    private func teamHeaderMetric(title: String, value: String) -> some View {
+        HStack(spacing: 4) {
+            Text(title)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.subheadline.monospacedDigit().weight(.bold))
+                .foregroundStyle(EditorialDesign.navy)
+        }
+        .lineLimit(1)
+    }
+
+    private func teamOverviewRow(_ items: [(String, String)]) -> some View {
+        HStack(spacing: 7) {
+            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                HStack(spacing: 3) {
+                    Text(item.0)
+                        .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                    Text(item.1)
+                        .font(.system(size: 15, weight: .bold, design: .monospaced))
+                        .foregroundStyle(EditorialDesign.navy)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .overlay(alignment: .trailing) {
+                    if index < items.count - 1 {
+                        Rectangle()
+                            .fill(.secondary.opacity(0.25))
+                            .frame(width: 1, height: 12)
+                    }
+                }
+            }
+        }
+    }
+
     private func pixelTeamCard(_ summary: TeamCareerSummary) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
+            HStack(alignment: .center, spacing: 8) {
+                TeamBadgeView(teamID: summary.id, fallbackName: summary.teamName, size: 34, usesPixelSkin: true)
                 Text(summary.teamName)
                     .font(.system(size: 22, weight: .black, design: .monospaced))
                     .foregroundStyle(CareerPixelDesign.cyan)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
                 Spacer(minLength: 8)
-                Text("\(summary.wins)-\(summary.losses)")
-                    .font(.system(.headline, design: .monospaced).weight(.black))
-                    .foregroundStyle(CareerPixelDesign.ink)
             }
 
             VStack(spacing: 0) {
                 HStack(spacing: 0) {
                     pixelTeamMetric(title: LocalizedStringKey("career_tile_games"), value: "\(summary.games)", color: CareerPixelDesign.ink)
-                    pixelTeamMetric(title: LocalizedStringKey("career_tile_win_rate"), value: summary.winRateText, color: CareerPixelDesign.cyan)
-                    pixelTeamMetric(title: LocalizedStringKey("career_tile_net"), value: summary.diffText, color: CareerPixelDesign.lime)
+                    pixelTeamMetric(title: LocalizedStringKey("career_tile_record"), value: "\(summary.wins)-\(summary.losses)", color: CareerPixelDesign.ink)
+                    pixelTeamMetric(title: LocalizedStringKey("career_tile_net"), value: summary.avgDiffText, color: CareerPixelDesign.lime)
                 }
                 HStack(spacing: 0) {
                     pixelTeamMetric(title: LocalizedStringKey("career_tile_avg_points"), value: summary.avgForText, color: CareerPixelDesign.amber)
                     pixelTeamMetric(title: LocalizedStringKey("career_tile_avg_points_against"), value: summary.avgAgainstText, color: CareerPixelDesign.amber)
-                    pixelTeamMetric(title: LocalizedStringKey("career_tile_total_score"), value: "\(summary.pointsFor)-\(summary.pointsAgainst)", color: CareerPixelDesign.amber)
                 }
             }
             .background(CareerPixelDesign.panelStrong.opacity(0.62))
@@ -381,25 +409,6 @@ struct TeamCareerBoardView: View {
         }
     }
 
-
-    private func teamCard(title: LocalizedStringKey, value: String) -> some View {
-        VStack(spacing: 4) {
-            Text(title)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-            Text(value)
-                .font(.subheadline.monospacedDigit().weight(.semibold))
-                .foregroundStyle(.primary)
-                .minimumScaleFactor(0.6)
-        }
-        .frame(maxWidth: .infinity, minHeight: 52)
-        .padding(.horizontal, 4)
-        .padding(.vertical, 6)
-        .background(EditorialDesign.paleBlue, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(EditorialDesign.divider.opacity(0.35), lineWidth: 1))
-    }
 }
 
 struct PlayerCareerBoardView: View {
@@ -790,6 +799,12 @@ private struct TeamCareerSummary: Identifiable {
     var diffText: String {
         let diff = pointsFor - pointsAgainst
         return diff > 0 ? "+\(diff)" : "\(diff)"
+    }
+
+    var avgDiffText: String {
+        guard games > 0 else { return "0.0" }
+        let average = Double(pointsFor - pointsAgainst) / Double(games)
+        return average > 0 ? String(format: "+%.1f", average) : String(format: "%.1f", average)
     }
 
     var avgForText: String {
