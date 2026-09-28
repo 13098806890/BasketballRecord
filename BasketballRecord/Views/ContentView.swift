@@ -25,12 +25,9 @@ struct ContentView: View {
     @State private var suppressBusyAlertUntilIdle = false
     @State private var storeSyncBusyAlertText = ""
     @State private var selectedTab: Int = Self.initialTab
-    @AppStorage(AppSkin.storageKey) private var appSkinRaw = AppSkin.classic.rawValue
 #if DEBUG
     @State private var isShowingDebugDetail = false
 #endif
-
-    private var usesPixelSkin: Bool { AppSkin(rawValue: appSkinRaw) == .pixelEsports }
 
 #if DEBUG
     private enum DebugDetailDestination {
@@ -131,8 +128,7 @@ struct ContentView: View {
                 }
                 .tag(3)
         }
-        .modifier(PixelTabBarModifier(isEnabled: usesPixelSkin))
-        .modifier(EditorialTabBarModifier(isEnabled: !usesPixelSkin))
+        .modifier(EditorialTabBarModifier(isEnabled: true))
         .overlay(alignment: .top) {
             if let summary = globalStoreSyncSummary {
                 globalStoreSyncBanner(summary)

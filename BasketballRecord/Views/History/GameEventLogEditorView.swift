@@ -56,28 +56,7 @@ struct GameEventLogEditorView: View {
 
     // MARK: - Event Log Editing
     private var editEventListView: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text(LocalizedStringKey("label_edit_event_log"))
-                    .font(.headline)
-                Spacer()
-                Button(LocalizedStringKey("button_done")) {
-                    isEditing = false
-                }
-                Button {
-                    var entry = GameLogEntry(timestamp: Date(), message: "", eventCode: nil, playerID: nil)
-                    entry.period = lastExpandedPeriod
-                    entry.periodElapsedSeconds = TimeInterval(lastExpandedMinute * 60)
-                    editingSheetEntry = entry
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title2)
-                }
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 8)
-
-            List {
+        List {
                 let storeEditHistory = latestGame.snapshot.editHistory
                 let addedThenDeletedIDs = GameLogEditLogic.addedThenDeletedEventIDs(in: storeEditHistory)
                 let visibleLogs = filteredPeriodAwareLogs.filter { !addedThenDeletedIDs.contains($0.entry.id) }
@@ -89,18 +68,25 @@ struct GameEventLogEditorView: View {
                             if expandedPeriods.contains(period) { expandedPeriods.remove(period) }
                             else { expandedPeriods.insert(period); lastExpandedPeriod = period }
                         } label: {
-                            HStack {
+                            HStack(spacing: 10) {
+                                Image(systemName: "clock.fill")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(EditorialDesign.orange)
+                                    .frame(width: 24, height: 24)
+                                    .background(EditorialDesign.paleOrange, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
                                 Text(String(format: NSLocalizedString("data_range_period", comment: ""), period))
                                     .font(.headline)
-                                    .foregroundStyle(.primary)
+                                    .foregroundStyle(EditorialDesign.navy)
                                 Spacer()
                                 Image(systemName: expandedPeriods.contains(period) ? "chevron.down" : "chevron.right")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(EditorialDesign.blue)
                             }
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
+                        .listRowBackground(EditorialDesign.card)
+                        .listRowSeparator(.hidden)
 
                         if expandedPeriods.contains(period) {
                             let periodStart = periodStartTimestamps[period] ?? latestGame.snapshot.logs.first?.timestamp ?? Date()
@@ -115,19 +101,26 @@ struct GameEventLogEditorView: View {
                                     if isExpanded { expandedMinutes[period, default: []].remove(minute) }
                                     else { expandedMinutes[period, default: []].insert(minute); lastExpandedPeriod = period; lastExpandedMinute = minute }
                                 } label: {
-                                    HStack {
+                                    HStack(spacing: 10) {
+                                        Image(systemName: "timer")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundStyle(EditorialDesign.blue)
+                                            .frame(width: 24, height: 24)
+                                            .background(EditorialDesign.paleBlue, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
                                         Text("\(String(format: NSLocalizedString("data_range_period", comment: ""), period)) \(minute)\u{2019}")
                                             .font(.subheadline.weight(.medium))
-                                            .foregroundStyle(.secondary)
+                                            .foregroundStyle(EditorialDesign.navy.opacity(0.78))
                                         Spacer()
                                         Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
                                             .font(.caption)
-                                            .foregroundStyle(.tertiary)
+                                            .foregroundStyle(EditorialDesign.blue.opacity(0.8))
                                     }
                                     .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)
                                 .padding(.leading, 16)
+                                .listRowBackground(EditorialDesign.card)
+                                .listRowSeparator(.hidden)
 
                                 if isExpanded {
                                     ForEach(minuteGrouped[minute] ?? []) { log in
@@ -138,10 +131,17 @@ struct GameEventLogEditorView: View {
                         }
                     }
                 }
-            }
-            .listStyle(.insetGrouped)
         }
-        .background(Color(uiColor: .systemGroupedBackground))
+        .editorialListStyle()
+        .navigationTitle(LocalizedStringKey("label_edit_event_log"))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button(LocalizedStringKey("button_done")) {
+                    isEditing = false
+                }
+            }
+        }
         .sheet(item: $editingSheetEntry) { entry in
             let events = GameLogEditLogic.activeLogs(latestGame.snapshot.logs, history: latestGame.snapshot.editHistory)
             let gameStart = events.map(\.timestamp).min() ?? latestGame.savedAt
@@ -183,7 +183,10 @@ struct GameEventLogEditorView: View {
         let isNew = editHistory.contains(where: { $0.eventID == log.entry.id && $0.action == "add" })
         let isEdited = editHistory.contains(where: { $0.eventID == log.entry.id && $0.action == "modify" })
         let isDeleted = deletedEventIDs.contains(log.entry.id)
-        return HStack {
+        return HStack(spacing: 10) {
+            Circle()
+                .fill(isDeleted ? EditorialDesign.divider : isNew ? EditorialDesign.blue : isEdited ? EditorialDesign.orange : EditorialDesign.divider)
+                .frame(width: 7, height: 7)
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     if isNew {
@@ -204,7 +207,7 @@ struct GameEventLogEditorView: View {
                     Text(logLineText(for: log))
                         .font(.caption)
                         .lineLimit(2)
-                        .foregroundStyle(isDeleted ? .secondary : .primary)
+                        .foregroundStyle(isDeleted ? .secondary : EditorialDesign.navy)
                         .strikethrough(isDeleted)
                 }
                 HStack(spacing: 4) {
@@ -230,12 +233,15 @@ struct GameEventLogEditorView: View {
             Spacer()
         }
         .contentShape(Rectangle())
+        .padding(.vertical, 5)
+        .listRowBackground(EditorialDesign.card)
+        .listRowSeparator(.hidden)
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             if canEditAsStat && !isDeleted {
                 Button(NSLocalizedString("button_edit", comment: "")) {
                     editingSheetEntry = log.entry
                 }
-                .tint(.blue)
+                .tint(EditorialDesign.blue)
             }
             if !isProtected && !isDeleted {
                 Button(NSLocalizedString("label_delete", comment: "")) {

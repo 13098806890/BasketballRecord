@@ -10,23 +10,19 @@ struct PlayerGroupManagementView: View {
         NavigationStack {
             List {
                 if store.playerGroups.isEmpty {
-                    VStack(alignment: .center, spacing: 12) {
-                        Image(systemName: "person.3")
-                            .font(.system(size: 40))
-                            .foregroundColor(.gray)
-                        Text(NSLocalizedString("player_group_no_groups", comment: "No groups yet"))
-                            .foregroundColor(.gray)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 40)
-                    .listRowInsets(EdgeInsets())
+                    ContentUnavailableView(LocalizedStringKey("player_group_no_groups"), systemImage: "person.2.badge.plus")
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                 } else {
                     ForEach(store.playerGroups, id: \.id) { group in
                         NavigationLink {
                             PlayerGroupEditView(store: store, group: group)
                         } label: {
                             PlayerGroupRowView(group: group, playerCount: store.players.filter { $0.playerGroupIDs.contains(group.id) }.count)
+                                .contentShape(Rectangle())
                         }
+                        .listRowBackground(EditorialDesign.card)
+                        .listRowSeparator(.hidden)
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                             Button(role: .destructive) {
                                 groupToDelete = group
@@ -38,6 +34,7 @@ struct PlayerGroupManagementView: View {
                     }
                 }
             }
+            .editorialListStyle()
             .navigationTitle(NSLocalizedString("player_group_nav_title", comment: "Player Groups"))
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -76,21 +73,27 @@ struct PlayerGroupRowView: View {
     let playerCount: Int
 
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(group.name)
-                    .font(.headline)
-            }
-            Spacer()
-            HStack(spacing: 4) {
-                Image(systemName: "person.2")
-                    .font(.caption)
-                Text(String(format: NSLocalizedString("player_group_player_count", comment: "%d players"), playerCount))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
+        HStack(spacing: 12) {
+            Image(systemName: "person.2.fill")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(EditorialDesign.orange)
+                .frame(width: 34, height: 34)
+                .background(EditorialDesign.paleOrange, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+            Text(group.name)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(EditorialDesign.navy)
+
+            Spacer(minLength: 8)
+
+            Text(String(format: NSLocalizedString("player_group_player_count", comment: "%d players"), playerCount))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(EditorialDesign.blue)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 5)
+                .background(EditorialDesign.paleBlue, in: Capsule())
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 5)
     }
 }
 
@@ -108,39 +111,47 @@ struct PlayerGroupEditView: View {
     }
 
     var body: some View {
-        Form {
+        List {
             Section {
                 TextField(NSLocalizedString("player_group_name_placeholder", comment: "Group name"), text: $name)
             }
+            .listRowBackground(EditorialDesign.card)
 
             if group != nil {
                 Section(NSLocalizedString("player_group_section_players", comment: "Players")) {
                     if store.players.isEmpty {
                         Text(NSLocalizedString("player_group_no_players_available", comment: "No players available"))
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     } else {
                         ForEach(store.players) { player in
-                            HStack {
-                                PlayerAvatarView(player: player, size: 36)
-                                Text(player.name)
-                                Spacer()
-                                Image(systemName: selectedPlayerIDs.contains(player.id) ? "checkmark.circle.fill" : "circle")
-                                    .foregroundColor(selectedPlayerIDs.contains(player.id) ? .blue : .secondary)
-                            }
-                            .contentShape(Rectangle())
-                            .onTapGesture {
+                            Button {
                                 if selectedPlayerIDs.contains(player.id) {
                                     selectedPlayerIDs.remove(player.id)
                                 } else {
                                     selectedPlayerIDs.insert(player.id)
                                 }
+                            } label: {
+                                HStack(spacing: 12) {
+                                    PlayerAvatarView(player: player, size: 40)
+                                    Text(player.name)
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(EditorialDesign.navy)
+                                    Spacer(minLength: 8)
+                                    Image(systemName: selectedPlayerIDs.contains(player.id) ? "checkmark.circle.fill" : "circle")
+                                        .font(.title3)
+                                        .foregroundStyle(selectedPlayerIDs.contains(player.id) ? EditorialDesign.blue : EditorialDesign.divider)
+                                }
+                                .contentShape(Rectangle())
                             }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
+                .listRowBackground(EditorialDesign.card)
             }
         }
+        .editorialListStyle()
         .navigationTitle(group == nil ? NSLocalizedString("player_group_add_button", comment: "New Player Group") : NSLocalizedString("player_group_edit_button", comment: "Edit Player Group"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

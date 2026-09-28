@@ -74,6 +74,8 @@ struct GameView: View {
     @AppStorage("voice_show_success_animation") private var showVoiceSuccessAnimation = true
     @AppStorage("completed_games_count") private var completedGamesCount = 0
     @AppStorage("review_prompted_at_count") private var reviewPromptedAtCount = 0
+    @AppStorage("last_game_home_team_id") private var lastGameHomeTeamID = ""
+    @AppStorage("last_game_away_team_id") private var lastGameAwayTeamID = ""
 
     private let matchClockTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -141,8 +143,8 @@ struct GameView: View {
                 NewGameSetupView(
                     teams: store.teams,
                     playersForTeam: players(in:),
-                    initialHomeTeamID: gameVM.snapshot.homeTeamID,
-                    initialAwayTeamID: gameVM.snapshot.awayTeamID,
+                    initialHomeTeamID: defaultNewGameHomeTeamID,
+                    initialAwayTeamID: defaultNewGameAwayTeamID,
                     onStart: startNewGame(with:)
                 )
             }
@@ -1443,13 +1445,33 @@ struct GameView: View {
 
     private func ensureInitialSelection() {
         if gameVM.snapshot.homeTeamID == nil {
-            gameVM.snapshot.homeTeamID = store.teams.first?.id
+            gameVM.snapshot.homeTeamID = defaultNewGameHomeTeamID
         }
         if gameVM.snapshot.awayTeamID == nil {
-            gameVM.snapshot.awayTeamID = store.teams.dropFirst().first?.id ?? store.teams.first?.id
+            gameVM.snapshot.awayTeamID = defaultNewGameAwayTeamID
         }
         trimInvalidLineups()
         ensureSelectedPlayer()
+    }
+
+    private var defaultNewGameHomeTeamID: UUID? {
+        validTeamID(from: lastGameHomeTeamID) ?? gameVM.snapshot.homeTeamID ?? store.teams.first?.id
+    }
+
+    private var defaultNewGameAwayTeamID: UUID? {
+        let homeTeamID = defaultNewGameHomeTeamID
+        if let savedAwayTeamID = validTeamID(from: lastGameAwayTeamID), savedAwayTeamID != homeTeamID {
+            return savedAwayTeamID
+        }
+        if let snapshotAwayTeamID = gameVM.snapshot.awayTeamID, snapshotAwayTeamID != homeTeamID {
+            return snapshotAwayTeamID
+        }
+        return store.teams.first(where: { $0.id != homeTeamID })?.id
+    }
+
+    private func validTeamID(from value: String) -> UUID? {
+        guard let teamID = UUID(uuidString: value), store.teams.contains(where: { $0.id == teamID }) else { return nil }
+        return teamID
     }
 
     private func ensureDefaultLineups() {
@@ -2039,6 +2061,8 @@ struct GameView: View {
         gameVM.undoStack.removeAll()
         gameVM.redoStack.removeAll()
         currentGameRecordID = UUID()
+        lastGameHomeTeamID = config.homeTeamID.uuidString
+        lastGameAwayTeamID = config.awayTeamID.uuidString
         gameVM.snapshot = GameSnapshot(
             homeTeamID: config.homeTeamID,
             awayTeamID: config.awayTeamID,

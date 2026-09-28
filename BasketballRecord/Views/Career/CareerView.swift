@@ -23,10 +23,6 @@ struct CareerView: View {
     @State private var selectedPlayerGroupID: UUID?
     @State private var playerSortField: PlayerSortField = .avgPoints
     @State private var playerSortAscending = false
-    @AppStorage(AppSkin.storageKey) private var appSkinRaw = AppSkin.classic.rawValue
-
-    private var usesPixelSkin: Bool { AppSkin(rawValue: appSkinRaw) == .pixelEsports }
-
     private static var initialBoardKind: CareerBoardKind {
 #if DEBUG
         if let argumentIndex = ProcessInfo.processInfo.arguments.firstIndex(of: "-screenshotCareerBoard"),
@@ -41,10 +37,9 @@ struct CareerView: View {
     var body: some View {
         NavigationStack {
             careerRootContent
-            .navigationTitle(LocalizedStringKey("tab_career"))
-            .modifier(CareerNavigationBarSkin(isPixelSkin: usesPixelSkin))
+            .navigationTitle(boardKind == .history ? LocalizedStringKey("nav_game_history") : LocalizedStringKey("tab_career"))
             .toolbar {
-                if !usesPixelSkin, boardKind == .player {
+                if boardKind == .player {
                     ToolbarItem(placement: .topBarTrailing) {
                         BasketballExcelExportButton(
                             gamesForSelection: {
@@ -61,7 +56,7 @@ struct CareerView: View {
                         }
                     }
                 }
-                if !usesPixelSkin, boardKind != .history, store.isPro {
+                if boardKind != .history, store.isPro {
                     ToolbarItem(placement: .topBarTrailing) {
                         HStack(spacing: 8) {
                             PlayerGroupPicker(store: store, selectedGroupID: $selectedPlayerGroupID)
@@ -85,19 +80,8 @@ struct CareerView: View {
         }
     }
 
-    @ViewBuilder
     private var careerRootContent: some View {
-        if usesPixelSkin {
-            CareerPixelView(
-                boardKind: $boardKind,
-                selectedGroupID: $selectedGroupID,
-                selectedPlayerGroupID: $selectedPlayerGroupID,
-                playerSortField: $playerSortField,
-                playerSortAscending: $playerSortAscending
-            )
-        } else {
-            classicContent
-        }
+        classicContent
     }
 
     private var classicContent: some View {
@@ -113,7 +97,7 @@ struct CareerView: View {
             .padding(.top, 8)
 
             classicFilters
-            boardContent(usesPixelSkin: false)
+            boardContent
         }
         .background(EditorialBackground())
     }
@@ -153,18 +137,17 @@ struct CareerView: View {
     }
 
     @ViewBuilder
-    private func boardContent(usesPixelSkin: Bool) -> some View {
+    private var boardContent: some View {
         if boardKind == .history {
             HistoryView(embedInNavigation: false)
         } else if boardKind == .team {
-            TeamCareerBoardView(selectedGroupID: $selectedGroupID, usesPixelSkin: usesPixelSkin)
+            TeamCareerBoardView(selectedGroupID: $selectedGroupID)
         } else {
             PlayerCareerBoardView(
                 selectedGroupID: $selectedGroupID,
                 selectedPlayerGroupID: $selectedPlayerGroupID,
                 sortField: $playerSortField,
-                sortAscending: $playerSortAscending,
-                usesPixelSkin: usesPixelSkin
+                sortAscending: $playerSortAscending
             )
         }
     }
@@ -174,35 +157,23 @@ struct CareerView: View {
 struct TeamCareerBoardView: View {
     @EnvironmentObject private var store: AppStore
     @Binding var selectedGroupID: UUID?
-    var usesPixelSkin = false
 
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 10) {
                 if summaries.isEmpty {
-                    if usesPixelSkin {
-                        Text(LocalizedStringKey("empty_no_team_data"))
-                            .font(.system(.caption, design: .monospaced).weight(.black))
-                            .foregroundStyle(CareerPixelDesign.muted)
-                            .padding(.top, 80)
-                    } else {
-                        ContentUnavailableView(LocalizedStringKey("empty_no_team_data"), systemImage: "person.3.sequence")
-                            .padding(.top, 80)
-                    }
+                    ContentUnavailableView(LocalizedStringKey("empty_no_team_data"), systemImage: "person.3.sequence")
+                        .padding(.top, 80)
                 }
 
                 ForEach(summaries) { summary in
-                    if usesPixelSkin {
-                        pixelTeamCard(summary)
-                    } else {
-                        teamSummaryCard(summary)
-                    }
+                    teamSummaryCard(summary)
                 }
             }
-            .padding(.horizontal, usesPixelSkin ? 14 : 16)
+            .padding(.horizontal, 16)
             .padding(.bottom)
         }
-        .background(usesPixelSkin ? CareerPixelDesign.background : Color.clear)
+        .background(Color.clear)
     }
 
     private func teamSummaryCard(_ summary: TeamCareerSummary) -> some View {
@@ -306,59 +277,6 @@ struct TeamCareerBoardView: View {
         }
     }
 
-    private func pixelTeamCard(_ summary: TeamCareerSummary) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .center, spacing: 8) {
-                TeamBadgeView(teamID: summary.id, fallbackName: summary.teamName, size: 34, usesPixelSkin: true)
-                Text(summary.teamName)
-                    .font(.system(size: 22, weight: .black, design: .monospaced))
-                    .foregroundStyle(CareerPixelDesign.cyan)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
-                Spacer(minLength: 8)
-            }
-
-            VStack(spacing: 0) {
-                HStack(spacing: 0) {
-                    pixelTeamMetric(title: LocalizedStringKey("career_tile_games"), value: "\(summary.games)", color: CareerPixelDesign.ink)
-                    pixelTeamMetric(title: LocalizedStringKey("career_tile_record"), value: "\(summary.wins)-\(summary.losses)", color: CareerPixelDesign.ink)
-                    pixelTeamMetric(title: LocalizedStringKey("career_tile_net"), value: summary.avgDiffText, color: CareerPixelDesign.lime)
-                }
-                HStack(spacing: 0) {
-                    pixelTeamMetric(title: LocalizedStringKey("career_tile_avg_points"), value: summary.avgForText, color: CareerPixelDesign.amber)
-                    pixelTeamMetric(title: LocalizedStringKey("career_tile_avg_points_against"), value: summary.avgAgainstText, color: CareerPixelDesign.amber)
-                }
-            }
-            .background(CareerPixelDesign.panelStrong.opacity(0.62))
-            .overlay(CareerPixelPanelShape().stroke(CareerPixelDesign.line, lineWidth: 1))
-        }
-        .padding(12)
-        .background(CareerPixelPanelShape().fill(CareerPixelDesign.panel))
-        .overlay(CareerPixelPanelShape().stroke(CareerPixelDesign.line, lineWidth: 1))
-        .shadow(color: CareerPixelDesign.cyan.opacity(0.16), radius: 0, x: 3, y: 3)
-    }
-
-    private func pixelTeamMetric(title: LocalizedStringKey, value: String, color: Color) -> some View {
-        VStack(spacing: 4) {
-            Text(title)
-                .font(.system(size: 8, weight: .bold, design: .monospaced))
-                .foregroundStyle(CareerPixelDesign.muted)
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
-            Text(value)
-                .font(.system(size: 15, weight: .black, design: .monospaced))
-                .foregroundStyle(color)
-                .lineLimit(1)
-                .minimumScaleFactor(0.55)
-        }
-        .frame(maxWidth: .infinity, minHeight: 56)
-        .overlay(alignment: .trailing) {
-            Rectangle()
-                .fill(CareerPixelDesign.line)
-                .frame(width: 1, height: 42)
-        }
-    }
-
     private var summaries: [TeamCareerSummary] {
         store.teams.compactMap { team in
             var games = 0
@@ -417,17 +335,8 @@ struct PlayerCareerBoardView: View {
     @Binding var selectedPlayerGroupID: UUID?
     @Binding var sortField: PlayerSortField
     @Binding var sortAscending: Bool
-    var usesPixelSkin = false
 
     var body: some View {
-        if usesPixelSkin {
-            pixelBody
-        } else {
-            classicBody
-        }
-    }
-
-    private var classicBody: some View {
         ScrollView(showsIndicators: false) {
             LazyVStack(spacing: 12) {
                 sortRow
@@ -444,6 +353,11 @@ struct PlayerCareerBoardView: View {
                         playerSummaryCard(summary)
                     }
                     .buttonStyle(.plain)
+                    .simultaneousGesture(
+                        TapGesture().onEnded {
+                            PlayerProfileDebugLog.log("xdz career player cell received tap playerID=\(summary.id) name=\(summary.name)")
+                        }
+                    )
                 }
             }
             .padding(.horizontal, 16)
@@ -508,8 +422,8 @@ struct PlayerCareerBoardView: View {
             HStack(spacing: 0) {
                 playerMetric(title: localized("career_stat_games_played_short"), value: "\(summary.games)")
                 playerMetric(title: localized("stats_points_format_short"), value: summary.avgPointsText)
-                playerMetric(title: metricLabel(from: "stats_rebound_detail"), value: summary.avgReboundsText)
-                playerMetric(title: metricLabel(from: "stats_assist_steal_block"), value: summary.avgAssistsText)
+                playerMetric(title: metricLabel(from: "stats_rebound_detail_short"), value: summary.avgReboundsText)
+                playerMetric(title: metricLabel(from: "stats_assist_steal_block_short"), value: summary.avgAssistsText)
                 playerMetric(title: localized("stats_minutes"), value: summary.avgMinutesText)
             }
         }
@@ -539,113 +453,6 @@ struct PlayerCareerBoardView: View {
             .components(separatedBy: "/")
             .first?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? localized(key)
-    }
-
-    private var pixelBody: some View {
-        ScrollView(showsIndicators: false) {
-            LazyVStack(spacing: 8) {
-                pixelSortRow
-
-                if summaries.isEmpty {
-                    Text(LocalizedStringKey("empty_no_player_data"))
-                        .font(.system(.caption, design: .monospaced).weight(.black))
-                        .foregroundStyle(CareerPixelDesign.muted)
-                        .padding(.top, 70)
-                }
-
-            ForEach(summaries) { summary in
-                NavigationLink {
-                    PlayerProfileView(playerID: summary.id, selectedGroupID: $selectedGroupID)
-                } label: {
-                    pixelPlayerRow(summary)
-                    }
-                    .buttonStyle(CareerPixelButtonStyle(accent: CareerPixelDesign.cyan))
-                }
-            }
-            .padding(.horizontal, 14)
-            .padding(.bottom)
-        }
-        .background(CareerPixelDesign.background)
-    }
-
-    private var pixelSortRow: some View {
-        HStack(spacing: 8) {
-            Text(LocalizedStringKey("label_sort_by"))
-                .font(.system(size: 9, weight: .black, design: .monospaced))
-                .foregroundStyle(CareerPixelDesign.muted)
-            Spacer()
-            Menu {
-                ForEach(PlayerSortField.allCases, id: \.self) { field in
-                    Button {
-                        if sortField == field {
-                            sortAscending.toggle()
-                        } else {
-                            sortField = field
-                            sortAscending = false
-                        }
-                    } label: {
-                        HStack {
-                            Text(field.title)
-                            if sortField == field {
-                                Image(systemName: sortAscending ? "chevron.up" : "chevron.down")
-                            }
-                        }
-                    }
-                }
-            } label: {
-                HStack(spacing: 5) {
-                    Text(sortField.title)
-                        .font(.system(size: 9, weight: .black, design: .monospaced))
-                    Image(systemName: sortAscending ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 8, weight: .black))
-                }
-                .foregroundStyle(CareerPixelDesign.cyan)
-                .padding(.horizontal, 10)
-                .frame(minHeight: 28)
-                .background(CareerPixelPanelShape().fill(CareerPixelDesign.panel))
-                .overlay(CareerPixelPanelShape().stroke(CareerPixelDesign.line, lineWidth: 1))
-            }
-            .buttonStyle(CareerPixelButtonStyle(accent: CareerPixelDesign.cyan))
-        }
-        .padding(.vertical, 4)
-    }
-
-    private func pixelPlayerRow(_ summary: PlayerCareerSummary) -> some View {
-        HStack(spacing: 10) {
-            if let player = store.player(for: summary.id) {
-                PlayerAvatarView(player: player, size: 44, usesPixelSkin: true)
-            }
-
-            VStack(alignment: .leading, spacing: 5) {
-                HStack(spacing: 6) {
-                    Text(summary.name)
-                        .font(.system(.subheadline, design: .monospaced).weight(.black))
-                        .foregroundStyle(CareerPixelDesign.ink)
-                        .lineLimit(1)
-                    if let player = store.player(for: summary.id), !player.position.isEmpty {
-                        Text(player.position)
-                            .font(.system(size: 9, weight: .black, design: .monospaced))
-                            .foregroundStyle(CareerPixelDesign.amber)
-                    }
-                    Spacer(minLength: 4)
-                    Text(sortValueText(for: summary))
-                        .font(.system(.subheadline, design: .monospaced).weight(.black))
-                        .foregroundStyle(CareerPixelDesign.cyan)
-                }
-                Text(String(format: NSLocalizedString("career_summary_format", comment: "Career summary"), summary.games, summary.avgPointsText, summary.avgReboundsText, summary.avgAssistsText, summary.avgMinutesText))
-                    .font(.system(size: 9, weight: .bold, design: .monospaced))
-                    .foregroundStyle(CareerPixelDesign.muted)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.6)
-            }
-
-            Image(systemName: "chevron.right")
-                .font(.caption2.weight(.black))
-                .foregroundStyle(CareerPixelDesign.muted)
-        }
-        .padding(10)
-        .background(CareerPixelPanelShape().fill(CareerPixelDesign.panel))
-        .overlay(CareerPixelPanelShape().stroke(CareerPixelDesign.line, lineWidth: 1))
     }
 
     private func sortValueText(for summary: PlayerCareerSummary) -> String {

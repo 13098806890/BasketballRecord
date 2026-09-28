@@ -12,12 +12,16 @@ struct TeamEditorView: View {
     @State private var selectedPlayerGroupID: UUID?
     @State private var iconData: Data?
     @State private var selectedIcon: PhotosPickerItem?
+    @State private var selectedBuiltinIconID: Int?
+    @State private var isShowingDefaultIconPicker = false
 
     init(team: Team?) {
         self.team = team
         _name = State(initialValue: team?.name ?? "")
         _selectedPlayerIDs = State(initialValue: Set(team?.playerIDs ?? []))
-        _iconData = State(initialValue: team?.iconData)
+        let existingIconData = Dota1SkillIconCatalog.isLegacyIconData(team?.iconData) ? nil : team?.iconData
+        _iconData = State(initialValue: existingIconData)
+        _selectedBuiltinIconID = State(initialValue: DefaultTeamIconCatalog.matchingID(for: existingIconData))
     }
 
     private var filteredPlayers: [Player] {
@@ -35,7 +39,16 @@ struct TeamEditorView: View {
                 Section(LocalizedStringKey("label_team_icon")) {
                     HStack(spacing: 16) {
                         iconPreview
-                        PhotosPicker(selection: $selectedIcon, matching: .images) {
+                        Menu {
+                            PhotosPicker(selection: $selectedIcon, matching: .images) {
+                                Label(LocalizedStringKey("label_select_photo"), systemImage: "photo")
+                            }
+                            Button {
+                                isShowingDefaultIconPicker = true
+                            } label: {
+                                Label(LocalizedStringKey("label_select_default_team_icon"), systemImage: "basketball.fill")
+                            }
+                        } label: {
                             Label(LocalizedStringKey("label_select_team_icon"), systemImage: "photo.badge.plus")
                         }
                     }
@@ -90,7 +103,42 @@ struct TeamEditorView: View {
             .task(id: selectedIcon) {
                 guard let selectedIcon,
                       let data = try? await selectedIcon.loadTransferable(type: Data.self) else { return }
+                selectedBuiltinIconID = nil
                 iconData = compressedIconData(from: data)
+            }
+            .sheet(isPresented: $isShowingDefaultIconPicker) {
+                NavigationStack {
+                    ScrollView {
+                        defaultIconGrid
+                            .padding()
+                    }
+                    .navigationTitle(LocalizedStringKey("label_default_team_icons"))
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button(LocalizedStringKey("button_done")) {
+                                isShowingDefaultIconPicker = false
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var defaultIconGrid: some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 52), spacing: 12)], spacing: 12) {
+            ForEach(DefaultTeamIconCatalog.items) { item in
+                Button {
+                    selectedIcon = nil
+                    selectedBuiltinIconID = item.id
+                    iconData = DefaultTeamIconCatalog.data(for: item)
+                    isShowingDefaultIconPicker = false
+                } label: {
+                    builtinIconThumbnail(for: item)
+                }
+                .buttonStyle(.plain)
+                .contentShape(Rectangle())
+                .accessibilityLabel(LocalizedStringKey("label_default_team_icon"))
             }
         }
     }
@@ -102,17 +150,29 @@ struct TeamEditorView: View {
                     .resizable()
                     .scaledToFill()
             } else {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(.quaternary)
-                    Image(systemName: "shield.fill")
-                        .font(.title2)
-                        .foregroundStyle(.secondary)
-                }
+                TeamBadgeView(teamID: team?.id, fallbackName: name, size: 72)
             }
         }
         .frame(width: 72, height: 72)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private func builtinIconThumbnail(for item: DefaultTeamIconCatalog.Item) -> some View {
+        Group {
+            if let image = DefaultTeamIconCatalog.image(for: item) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                Color.clear
+            }
+        }
+        .frame(width: 52, height: 52)
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(selectedBuiltinIconID == item.id ? EditorialDesign.orange : .clear, lineWidth: 3)
+        }
     }
 
     private func toggle(_ id: UUID) {

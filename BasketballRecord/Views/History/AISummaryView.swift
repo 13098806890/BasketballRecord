@@ -456,7 +456,6 @@ struct AISummaryView: View {
                 // And-one detection
                 if code == "stat.bonusMade", let lastCode = lastScoringCode, let lastPid = lastScoringPID, lastPid == pid {
                     let basePoints = lastCode == "stat.threeMade" ? 3 : 2
-                    let totalPoints = basePoints + 1
                     let name = makeName(for: pid)
                     events.append((log.timestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_and_one", comment: ""), name, basePoints)))
                 }

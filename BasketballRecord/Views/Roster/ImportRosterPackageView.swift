@@ -199,8 +199,8 @@ struct ImportRosterPackageView: View {
                     Section(LocalizedStringKey("section_import_preview")) {
                         LabeledContent(localized("label_player"), value: playerPackage.player.name)
                         LabeledContent(localized("label_number"), value: playerPackage.player.number.isEmpty ? localized("text_not_set") : playerPackage.player.number)
-                        LabeledContent(localized("label_height"), value: playerPackage.player.height.isEmpty ? localized("text_not_set") : UnitSettings.displayHeight(playerPackage.player.height))
-                        LabeledContent(localized("label_weight"), value: playerPackage.player.weight.isEmpty ? localized("text_not_set") : UnitSettings.displayWeight(playerPackage.player.weight))
+                        LabeledContent(localized("label_height"), value: playerPackage.player.height.isEmpty ? localized("text_not_set") : UnitSettings.displayHeight(playerPackage.player.height, unit: playerPackage.player.heightUnit))
+                        LabeledContent(localized("label_weight"), value: playerPackage.player.weight.isEmpty ? localized("text_not_set") : UnitSettings.displayWeight(playerPackage.player.weight, unit: playerPackage.player.weightUnit))
                         Text(LocalizedStringKey("import_player_preview_hint"))
                             .font(.footnote)
                             .foregroundStyle(.secondary)

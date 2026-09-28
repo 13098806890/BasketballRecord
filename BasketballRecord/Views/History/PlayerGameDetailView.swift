@@ -149,11 +149,25 @@ struct PlayerGameDetailView: View {
     private func statLine(_ titleKey: String, _ value: String) -> some View {
         HStack {
             Text(LocalizedStringKey(titleKey))
+                .foregroundStyle(.secondary)
             Spacer()
             Text(value)
-                .font(.body.monospacedDigit())
-                .foregroundStyle(.secondary)
+                .font(.body.monospacedDigit().weight(.semibold))
+                .foregroundStyle(statValueColor(titleKey: titleKey, value: value))
         }
+    }
+
+    private func statValueColor(titleKey: String, value: String) -> Color {
+        guard titleKey == "stats_plus_minus" else {
+            return EditorialDesign.navy
+        }
+        if value.hasPrefix("+") {
+            return EditorialDesign.orange
+        }
+        if value.hasPrefix("-") {
+            return .secondary
+        }
+        return .secondary
     }
 
     private func percent(_ value: Double) -> String {

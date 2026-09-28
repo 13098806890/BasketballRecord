@@ -21,9 +21,6 @@ struct RosterView: View {
     @State private var rosterRecoveryMessage: String?
 #endif
 
-    @AppStorage(UnitSettings.heightUnitKey) private var heightRaw: String = ""
-    @AppStorage(UnitSettings.weightUnitKey) private var weightRaw: String = ""
-
     var body: some View {
         NavigationStack {
             ZStack {
@@ -84,68 +81,6 @@ struct RosterView: View {
                                         .onTapGesture { isShowingPurchase = true }
                                 }
                             }
-                        }
-
-                        settingsSectionHeader("settings_section_units")
-                        settingsCard {
-                            let heightBinding = Binding(
-                                get: { HeightUnit(rawValue: heightRaw) ?? UnitSettings.defaultHeightUnit },
-                                set: { heightRaw = $0.rawValue }
-                            )
-                            let weightBinding = Binding(
-                                get: { WeightUnit(rawValue: weightRaw) ?? UnitSettings.defaultWeightUnit },
-                                set: { weightRaw = $0.rawValue }
-                            )
-
-                            HStack(spacing: 12) {
-                                Image(systemName: "ruler")
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundStyle(EditorialDesign.navy)
-                                    .frame(width: 28, height: 28)
-
-                                Text(LocalizedStringKey("label_height"))
-                                    .font(.body.weight(.semibold))
-                                    .foregroundStyle(EditorialDesign.navy)
-
-                                Spacer()
-
-                                Picker("", selection: heightBinding) {
-                                    ForEach(HeightUnit.allCases, id: \.rawValue) { unit in
-                                        Text(unit.displayName).tag(unit)
-                                    }
-                                }
-                                .labelsHidden()
-                                .pickerStyle(.menu)
-                                .tint(EditorialDesign.blue)
-                            }
-                            .padding(.horizontal, 16)
-                            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-                            .contentShape(Rectangle())
-                            settingsDivider()
-                            HStack(spacing: 12) {
-                                Image(systemName: "dumbbell.fill")
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundStyle(EditorialDesign.navy)
-                                    .frame(width: 28, height: 28)
-
-                                Text(LocalizedStringKey("label_weight"))
-                                    .font(.body.weight(.semibold))
-                                    .foregroundStyle(EditorialDesign.navy)
-
-                                Spacer()
-
-                                Picker("", selection: weightBinding) {
-                                    ForEach(WeightUnit.allCases, id: \.rawValue) { unit in
-                                        Text(unit.displayName).tag(unit)
-                                    }
-                                }
-                                .labelsHidden()
-                                .pickerStyle(.menu)
-                                .tint(EditorialDesign.blue)
-                            }
-                            .padding(.horizontal, 16)
-                            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-                            .contentShape(Rectangle())
                         }
 
                         settingsSectionHeader("settings_section_data_management")
@@ -565,7 +500,7 @@ struct RosterActionIcon: View {
 func rosterPlayerSubtitle(_ player: Player) -> String {
     var parts: [String] = []
     if !player.number.isEmpty { parts.append("No. \(player.number)") }
-    if !player.height.isEmpty { parts.append(UnitSettings.displayHeight(player.height)) }
-    if !player.weight.isEmpty { parts.append(UnitSettings.displayWeight(player.weight)) }
+    if !player.height.isEmpty { parts.append(UnitSettings.displayHeight(player.height, unit: player.heightUnit)) }
+    if !player.weight.isEmpty { parts.append(UnitSettings.displayWeight(player.weight, unit: player.weightUnit)) }
     return parts.isEmpty ? NSLocalizedString("player_profile_missing_basic", comment: "Missing player basics") : parts.joined(separator: " · ")
 }
