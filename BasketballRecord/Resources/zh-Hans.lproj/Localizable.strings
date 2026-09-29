@@ -1183,7 +1183,7 @@
 "ai_prompt_metric_line_format" = "%@：%@（%@）";
 "ai_prompt_playing_time_format" = "出场时间最长：%@（%@）";
 "ai_prompt_playing_time_no_data" = "出场时间最长：暂无有效记录";
-"ai_prompt_players_and_more" = "%1$@ 等%2$ld人";
+"ai_prompt_players_and_more" = "%1$@ 等%4$ld人";
 "ai_prompt_no_participants" = "未找到可用于校验的出场球员统计。";
 "ai_prompt_no_scoring_record" = "无得分记录";
 "ai_prompt_metric_most_points" = "得分最高";
@@ -1326,3 +1326,18 @@
 "stats_fast_break_points_short" = "快攻得分";
 "stats_full_misc_short" = "篮板 / 助攻 / 犯规 / 盖帽 / 抢断 / 失误";
 "stats_advanced_short" = "高级";
+"game_event_status_new" = "新增";
+"game_event_status_edited" = "已编辑";
+"game_event_status_deleted" = "已删除";
+"voice_tutorial_event_flow" = "事件流程";
+"voice_tutorial_event_count_format" = "%d 个事件";
+"voice_log_pinyin_format" = "拼音：%@";
+"player_number_name_format" = "%1$@号 %2$@";
+"voice_tutorial_en_task1" = "约翰投进两分";
+"voice_tutorial_en_task2" = "7号两分未中";
+"voice_tutorial_en_task3" = "迈克罚球";
+"voice_tutorial_en_task4" = "史蒂夫篮板";
+"voice_tutorial_en_task5" = "用10号换下7号";
+"voice_tutorial_en_task6" = "戴夫犯规";
+"voice_tutorial_en_task7" = "主队7号三分";
+"voice_tutorial_en_task8" = "客队7号两分";
