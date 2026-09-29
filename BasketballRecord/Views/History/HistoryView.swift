@@ -47,7 +47,7 @@ private struct HistoryListModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .listStyle(.plain)
-            .listSectionSpacing(8)
+            .listSectionSpacing(0)
             .scrollContentBackground(.hidden)
             .background(EditorialBackground())
             .tint(EditorialDesign.blue)
@@ -101,8 +101,8 @@ struct HistoryView: View {
                                         ForEach(group.games) { game in
                                             HistoryGameLink(game: game, pendingSwipeDeleteGame: $pendingSwipeDeleteGame)
                                         }
+                                        historySectionBottomAnchor(group.id)
                                     }
-                                    historySectionBottomAnchor(group.id)
                                 } header: {
                                     HistorySectionHeader(
                                         title: group.title,
@@ -191,8 +191,8 @@ struct HistoryView: View {
                                     ForEach(group.games) { game in
                                         HistoryGameLink(game: game, pendingSwipeDeleteGame: $pendingSwipeDeleteGame)
                                     }
+                                    historySectionBottomAnchor(group.id)
                                 }
-                                historySectionBottomAnchor(group.id)
                             } header: {
                                 HistorySectionHeader(
                                     title: group.title,
