@@ -47,6 +47,7 @@ private struct HistoryListModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .listStyle(.plain)
+            .listSectionSpacing(8)
             .scrollContentBackground(.hidden)
             .background(EditorialBackground())
             .tint(EditorialDesign.blue)
