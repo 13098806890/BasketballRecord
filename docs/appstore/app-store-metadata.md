@@ -37,7 +37,7 @@
 主要功能：
 
 - **实时比赛记分与技术统计**：两分、三分、罚球、篮板、助攻、抢断、盖帽等完整数据记录；
-- **语音记分（Pro）**：按住麦克风说出指令即可记录，支持 9 种语言，自动处理同音字等 ASR 错误；
+- **语音记分（Pro）**：按住麦克风说出指令即可记录，支持 10 种语言，自动处理同音字等 ASR 错误；
 - **完整比赛流程管理**：开节、暂停、继续、换人、晚到球员加入、自动结束节次与结束比赛；
 - **球队与球员管理**：创建、编辑球队与球员，支持头像、号码、身高、体重等信息；
 - **生涯与赛季统计分析**：按比赛查看详情，按球员查看累计与场均数据；
@@ -63,7 +63,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
 ### 版本 1.21
 
-- **语音记分**：按住麦克风说出指令即可记录，支持 9 种语言
+- **语音记分**：按住麦克风说出指令即可记录，支持 10 种语言
 - **语音快捷指令**：自定义短语映射到常用动作
 - **智能语音匹配**：自动处理同音字、声调偏差等 ASR 错误
 - **换人语音操作**：两种语序均可识别
@@ -87,7 +87,7 @@ Basketball Journal is a basketball record app for training matches, pickup games
 Key Features:
 
 - **Real-time Scoring & Full Stats**: 2PT/3PT, free throws, rebounds, assists, steals, blocks, turnovers, fouls, and more;
-- **Voice Scoring (Pro)**: Hold the mic and speak commands — supports 9 languages with intelligent ASR error handling;
+- **Voice Scoring (Pro)**: Hold the mic and speak commands — supports 10 languages with intelligent ASR error handling;
 - **Complete Game Flow**: Period management, substitutions, late arrivals, auto-end period, pause/resume;
 - **Team & Player Management**: Avatars, jersey numbers, height, weight, and more;
 - **Career & Season Analysis**: Per-game details, per-player cumulative and average stats;
@@ -113,7 +113,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
 ### Version 1.21
 
-- **Voice Scoring**: Hold the mic and speak commands — supports 9 languages
+- **Voice Scoring**: Hold the mic and speak commands — supports 10 languages
 - **Voice Shortcuts**: Map custom phrases to frequent actions
 - **Smart ASR Matching**: Handles homophones, tone errors, and common misrecognitions
 - **Voice Substitution**: Supports both word orders for player substitutions
@@ -213,7 +213,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
 ### Version 1.21
 
-- **Sprachsteuerung**: Mikrofon gedrückt halten und Befehle sprechen — 9 Sprachen unterstützt
+- **Sprachsteuerung**: Mikrofon gedrückt halten und Befehle sprechen — 10 Sprachen unterstützt
 - **Sprachbefehle**: Eigene Phrasen für häufige Aktionen festlegen
 - **Intelligente ASR-Erkennung**: Verarbeitet Homophone und Aussprachefehler
 - **Auswechslung per Sprache**: Beide Wortstellungen erkennbar
@@ -263,7 +263,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
 ### Versión 1.21
 
-- **Anotación por Voz**: Mantén el micrófono y habla comandos — 9 idiomas
+- **Anotación por Voz**: Mantén el micrófono y habla comandos — 10 idiomas
 - **Accesos Directos de Voz**: Frases personalizadas para acciones frecuentes
 - **Coincidencia ASR Inteligente**: Maneja homófonos y errores de tono
 - **Sustitución por Voz**: Ambos órdenes de palabras reconocidos
@@ -313,7 +313,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
 ### Version 1.21
 
-- **Notation Vocale**: Maintenez le micro et parlez — 9 langues supportées
+- **Notation Vocale**: Maintenez le micro et parlez — 10 langues supportées
 - **Raccourcis Vocaux**: Phrases personnalisées pour actions fréquentes
 - **Reconnaissance ASR Intelligente**: Gère les homophones et erreurs de prononciation
 - **Remplacement Vocal**: Les deux ordres de mots reconnus
@@ -363,7 +363,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
 ### Versione 1.21
 
-- **Punteggio Vocale**: Tieni premuto il microfono e parla — 9 lingue supportate
+- **Punteggio Vocale**: Tieni premuto il microfono e parla — 10 lingue supportate
 - **Scorciatoie Vocali**: Frasi personalizzate per azioni frequenti
 - **Corrispondenza ASR Intelligente**: Gestisce omofoni ed errori di tono
 - **Sostituzione Vocale**: Entrambi gli ordini delle parole riconosciuti
@@ -413,7 +413,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
 ### バージョン 1.21
 
-- **音声記録**: マイクを押しながら話すだけで記録、9言語対応
+- **音声記録**: マイクを押しながら話すだけで記録、10言語対応
 - **音声ショートカット**: よく使う操作にフレーズを割り当て
 - **スマートASRマッチング**: 同音異義語や声調の誤りを自動処理
 - **音声交代**: 両方の語順を認識可能
@@ -463,7 +463,7 @@ https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html
 
 ### 버전 1.21
 
-- **음성 득점**: 마이크를 누르고 명령을 말하면 기록, 9개 언어 지원
+- **음성 득점**: 마이크를 누르고 명령을 말하면 기록, 10개 언어 지원
 - **음성 단축키**: 자주 쓰는 동작에 문구 매핑
 - **지능형 ASR 매칭**: 동음이의어 및 성조 오류 자동 처리
 - **음성 교체**: 두 가지 어순 모두 인식 가능

@@ -44,7 +44,7 @@
 "button_continue" = "Продолжить";
 "button_pause" = "Пауза";
 "button_substitute" = "Замена";
-"button_add_late_arrival" = "Добавить поздний выход";
+"button_add_late_arrival" = "Добавить игрока";
 "button_reset_game" = "Сбросить матч";
 "button_finish_game" = "Завершить матч";
 "button_undo" = "Отменить";
@@ -185,7 +185,7 @@
 "badge_bench" = "скамейка";
 "button_record" = "рекорд";
 "nav_substitution" = "Замена";
-"nav_late_arrival" = "Добавить на корте";
+"nav_late_arrival" = "Добавить на площадку";
 "picker_team" = "Команда";
 "section_on_court" = "На площадке";
 "section_substitute_out" = "Подчиниться";
@@ -411,7 +411,7 @@
 "import_team_preview_hint" = "UUID будет сохранен. Нет автоматического слияния для одноимённых записей.";
 "label_average_stats" = "Средние";
 "label_data_range" = "Диапазон данных";
-"label_full_game" = "Полная игра";
+"label_full_game" = "Вся игра";
 "label_height" = "высота";
 "label_number" = "число";
 "label_period_number_format" = "Период %d";

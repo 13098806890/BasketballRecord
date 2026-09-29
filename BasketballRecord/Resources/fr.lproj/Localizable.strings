@@ -138,7 +138,7 @@
 "button_continue" = "Continuer";
 "button_pause" = "Pause";
 "button_substitute" = "Remplacer";
-"button_add_late_arrival" = "Ajouter entrée tardive";
+"button_add_late_arrival" = "Ajouter un joueur";
 "button_reset_game" = "Réinitialiser le match";
 "button_finish_game" = "Terminer le match";
 "button_undo" = "Annuler";
@@ -185,7 +185,7 @@
 "badge_bench" = "Banc";
 "button_record" = "Enregistrement";
 "nav_substitution" = "Remplacement";
-"nav_late_arrival" = "Ajouter la cour";
+"nav_late_arrival" = "Ajouter sur le terrain";
 "picker_team" = "Équipe";
 "section_on_court" = "Sur le terrain";
 "section_substitute_out" = "Sous-sortie";

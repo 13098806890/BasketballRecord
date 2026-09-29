@@ -138,7 +138,7 @@
 "button_continue" = "Continua";
 "button_pause" = "Pausa";
 "button_substitute" = "Sostituisci";
-"button_add_late_arrival" = "Aggiungi entrata tardiva";
+"button_add_late_arrival" = "Aggiungi giocatore";
 "button_reset_game" = "Reimposta partita";
 "button_finish_game" = "Termina partita";
 "button_undo" = "Annulla";
@@ -185,7 +185,7 @@
 "badge_bench" = "Panchina";
 "button_record" = "Registrazione";
 "nav_substitution" = "Sostituzione";
-"nav_late_arrival" = "Aggiungi On-Court";
+"nav_late_arrival" = "Aggiungi in campo";
 "picker_team" = "Squadra";
 "section_on_court" = "In campo";
 "section_substitute_out" = "Sub Out";

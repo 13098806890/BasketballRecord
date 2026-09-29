@@ -43,6 +43,7 @@ platform :ios do
       force: true,
       skip_binary_upload: true,
       skip_screenshots: options.fetch(:skip_screenshots, false),
+      overwrite_screenshots: options.fetch(:overwrite_screenshots, false),
       skip_app_version_update: false,
       app_version: version,
       submit_for_review: false,

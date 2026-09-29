@@ -185,7 +185,7 @@
 "badge_bench" = "벤치";
 "button_record" = "기록";
 "nav_substitution" = "교체";
-"nav_late_arrival" = "On-Court에 추가하기";
+"nav_late_arrival" = "코트에 추가";
 "picker_team" = "팀";
 "section_on_court" = "코트 위 선수";
 "section_substitute_out" = "아웃";
