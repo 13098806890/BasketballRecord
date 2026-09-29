@@ -16,3 +16,6 @@ __pycache__/
 
 # iOS agent workflow intermediate artifacts
 Artifacts/AgentWorkflow/
+
+# Fastlane screenshot staging helpers
+fastlane/screenshots/*/*.png
