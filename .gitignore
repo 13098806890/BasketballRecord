@@ -13,3 +13,6 @@ fastlane/report.xml
 __pycache__/
 *.pyc
 .design/
+
+# iOS agent workflow intermediate artifacts
+Artifacts/AgentWorkflow/
