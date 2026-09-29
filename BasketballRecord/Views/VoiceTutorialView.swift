@@ -162,25 +162,27 @@ struct VoiceTutorialView: View {
                 HStack(spacing: 4) {
                     Text(teamName)
                         .font(.caption.weight(.semibold))
+                        .fixedSize(horizontal: false, vertical: true)
                     Text(side == .home ? LocalizedStringKey("team_home_default") : LocalizedStringKey("team_away_default"))
                         .font(.system(size: 8, weight: .medium))
                         .foregroundStyle(.tertiary)
                 }
-                .lineLimit(1)
+                .lineLimit(2)
             }
-            .fixedSize(horizontal: true, vertical: false)
+            .frame(minWidth: 76, maxWidth: 120, alignment: .leading)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: players.count >= 5 ? 0 : 6) {
-                    ForEach(players) { player in
+                    ForEach(players, id: \.id) { player in
                         VStack(spacing: 3) {
                             PlayerAvatarView(player: player, size: 42)
-                            Text(player.number.isEmpty ? player.name : "No\(player.number) \(player.name)")
+                            Text(player.number.isEmpty ? player.name : String(format: NSLocalizedString("player_number_name_format", comment: "Player number and name"), player.number, player.name))
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(.primary)
-                                .lineLimit(1)
-                                .minimumScaleFactor(7.0 / 12.0)
-                                .frame(width: 64)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .frame(width: 64, alignment: .top)
+                                .frame(minHeight: 28, alignment: .top)
                         }
                         .opacity(0.85)
                     }
@@ -189,7 +191,7 @@ struct VoiceTutorialView: View {
                 .padding(.trailing, 8)
             }
         }
-        .frame(height: 78)
+        .frame(minHeight: 78)
         .padding(.horizontal, 12)
         .background(GamePalette.surface, in: RoundedRectangle(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(.white.opacity(0.85), lineWidth: 1))
@@ -251,10 +253,10 @@ struct VoiceTutorialView: View {
     private var eventFlowView: some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack {
-                Text("Event Flow")
+                Text(LocalizedStringKey("voice_tutorial_event_flow"))
                     .font(.caption.weight(.semibold))
                 Spacer()
-                Text("\(tutorialLog.count) event(s)")
+                Text(String(format: NSLocalizedString("voice_tutorial_event_count_format", comment: "Event count"), tutorialLog.count))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }

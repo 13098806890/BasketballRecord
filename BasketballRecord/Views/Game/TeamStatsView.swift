@@ -22,8 +22,8 @@ struct TeamStatsDisclosureView: View {
                 HStack(spacing: 0) {
                     Text(homeName)
                         .font(.caption.weight(.semibold))
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.75)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .lineLimit(3)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .layoutPriority(1)
                     HStack(spacing: 4) {
@@ -34,7 +34,7 @@ struct TeamStatsDisclosureView: View {
                                 .font(.system(size: 8))
                                 .foregroundStyle(.secondary)
                         }
-                        Text("vs")
+                        Text(LocalizedStringKey("text_vs"))
                             .font(.caption2.weight(.semibold))
                             .foregroundStyle(.secondary)
                         VStack(alignment: .center, spacing: 0) {
@@ -49,8 +49,8 @@ struct TeamStatsDisclosureView: View {
                     .padding(.horizontal, 8)
                     Text(awayName)
                         .font(.caption.weight(.semibold))
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.75)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .lineLimit(3)
                         .multilineTextAlignment(.trailing)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                         .layoutPriority(1)
