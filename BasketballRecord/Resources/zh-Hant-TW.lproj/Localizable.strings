@@ -217,6 +217,7 @@
 "action_defensive_rebound" = "後場板";
 "action_offensive_defensive_rebound" = "前場板 / 後場板";
 "action_foul" = "犯規";
+"label_foul_compact_fallback" = "Foul";
 "action_steal" = "搶斷";
 "action_block" = "封蓋";
 "action_turnover" = "失誤";

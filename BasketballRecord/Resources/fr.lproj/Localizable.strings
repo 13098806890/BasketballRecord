@@ -125,6 +125,7 @@
 "action_defensive_rebound" = "Rebond Défensif";
 "action_offensive_defensive_rebound" = "Rebond Offensif / Défensif";
 "action_foul" = "Faute";
+"label_foul_compact_fallback" = "Foul";
 "action_steal" = "Interception";
 "action_block" = "Contre";
 "action_turnover" = "Perte";

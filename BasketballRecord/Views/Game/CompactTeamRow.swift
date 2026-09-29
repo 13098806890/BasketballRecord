@@ -15,6 +15,7 @@ struct CompactTeamRow: View {
     var teamStatsMode: Bool = false
 
     @Environment(\.verticalSizeClass) private var verticalSizeClass
+    @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
 
     private var usesRoomyLayout: Bool {
         verticalSizeClass != .compact && UIScreen.main.bounds.height >= 780
@@ -22,6 +23,16 @@ struct CompactTeamRow: View {
 
     private var scoreHeaderVerticalPadding: CGFloat {
         usesRoomyLayout ? 10 : 7
+    }
+
+    private var scoreHeaderHeight: CGFloat {
+        usesRoomyLayout ? 72 : 62
+    }
+
+    private var scoreWidth: CGFloat {
+        let digitCount = max(String(abs(score)).count, 2)
+        let digitWidth = usesRoomyLayout ? 21 : 18
+        return CGFloat(digitCount * digitWidth) + (usesRoomyLayout ? 5 : 4)
     }
 
     private var avatarSize: CGFloat {
@@ -46,6 +57,10 @@ struct CompactTeamRow: View {
 
     private var playerGridItemSpacing: CGFloat {
         usesRoomyLayout ? 8 : 6
+    }
+
+    private var teamRowBottomPadding: CGFloat {
+        playerRows.count > 1 ? (usesRoomyLayout ? 4 : 3) : (usesRoomyLayout ? 10 : 7)
     }
 
     private var playerRows: [[Player]] {
@@ -87,10 +102,10 @@ struct CompactTeamRow: View {
             }
         }
         .padding(.horizontal, 10)
-        .padding(.vertical, usesRoomyLayout ? 10 : 7)
-        .background(GamePalette.surface, in: RoundedRectangle(cornerRadius: 12))
+        .padding(.top, usesRoomyLayout ? 10 : 7)
+        .padding(.bottom, teamRowBottomPadding)
+        .background(Color.clear, in: RoundedRectangle(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(.white.opacity(0.85), lineWidth: 1))
-        .padding(.horizontal)
     }
 
     private var playerGrid: some View {
@@ -118,12 +133,13 @@ struct CompactTeamRow: View {
     }
 
     private var scoreHeader: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             VStack(alignment: .leading, spacing: 1) {
                 Text(team?.name ?? side.displayName)
                     .font(.system(size: usesRoomyLayout ? 16 : 14, weight: .bold))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.45)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
+                    .multilineTextAlignment(.leading)
                 Text(side == .home ? LocalizedStringKey("team_home_default") : LocalizedStringKey("team_away_default"))
                     .font(.system(size: usesRoomyLayout ? 11 : 10, weight: .medium))
                     .opacity(0.78)
@@ -135,24 +151,27 @@ struct CompactTeamRow: View {
                 .font(.system(size: usesRoomyLayout ? 34 : 30, weight: .bold, design: .monospaced))
                 .lineLimit(1)
                 .minimumScaleFactor(0.55)
-                .frame(minWidth: usesRoomyLayout ? 52 : 44, alignment: .trailing)
+                .frame(width: scoreWidth, height: usesRoomyLayout ? 42 : 36, alignment: .trailing)
                 .layoutPriority(1)
-                .scaleEffect(isScorePulsing ? 1.08 : 1)
-                .animation(.spring(response: 0.2, dampingFraction: 0.72), value: isScorePulsing)
+                .contentTransition(.numericText(countsDown: false))
+                .scaleEffect(isScorePulsing && !accessibilityReduceMotion ? 1.08 : 1)
+                .animation(accessibilityReduceMotion ? nil : .timingCurve(0.23, 1, 0.32, 1, duration: 0.2), value: score)
+                .animation(accessibilityReduceMotion ? nil : .spring(response: 0.2, dampingFraction: 0.72), value: isScorePulsing)
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(foulLabel)
                     .font(.system(size: usesRoomyLayout ? 10 : 9, weight: .medium))
-                    .lineLimit(2)
+                    .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 Text("\(fouls)")
                     .font(.system(size: usesRoomyLayout ? 15 : 13, weight: .bold).monospacedDigit())
             }
-            .frame(width: usesRoomyLayout ? 46 : 40, alignment: .leading)
+            .fixedSize(horizontal: true, vertical: false)
         }
         .foregroundStyle(.white)
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 8)
         .padding(.vertical, scoreHeaderVerticalPadding)
+        .frame(height: scoreHeaderHeight)
         .background(scoreboardColor, in: RoundedRectangle(cornerRadius: 10))
     }
 
@@ -174,7 +193,7 @@ struct CompactTeamRow: View {
             .font(.caption.weight(.semibold))
             .frame(maxWidth: .infinity, minHeight: 30)
             .padding(.horizontal, 10)
-            .background(GamePalette.surface, in: RoundedRectangle(cornerRadius: 8))
+            .background(Color.clear, in: RoundedRectangle(cornerRadius: 8))
         }
         .buttonStyle(.plain)
         .foregroundStyle(GamePalette.text)

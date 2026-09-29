@@ -125,6 +125,7 @@
 "action_defensive_rebound" = "수비 리바운드";
 "action_offensive_defensive_rebound" = "공격 / 수비 리바운드";
 "action_foul" = "파울";
+"label_foul_compact_fallback" = "Foul";
 "action_steal" = "스틸";
 "action_block" = "블락";
 "action_turnover" = "턴오버";

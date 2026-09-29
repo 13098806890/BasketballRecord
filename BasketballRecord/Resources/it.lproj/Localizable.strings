@@ -125,6 +125,7 @@
 "action_defensive_rebound" = "Rimbalzo Difensivo";
 "action_offensive_defensive_rebound" = "Rimbalzo Offensivo / Difensivo";
 "action_foul" = "Fallo";
+"label_foul_compact_fallback" = "Foul";
 "action_steal" = "Rubata";
 "action_block" = "Stoppata";
 "action_turnover" = "Persa";

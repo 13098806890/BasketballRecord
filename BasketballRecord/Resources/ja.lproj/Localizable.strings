@@ -135,6 +135,7 @@
 "action_defensive_rebound" = "ディフェンスリバウンド";
 "action_offensive_defensive_rebound" = "オフェンス / ディフェンスリバウンド";
 "action_foul" = "ファウル";
+"label_foul_compact_fallback" = "Foul";
 "action_steal" = "スティール";
 "action_block" = "ブロック";
 "action_turnover" = "ターンオーバー";

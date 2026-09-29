@@ -125,6 +125,7 @@
 "action_defensive_rebound" = "Defensiv Rebound";
 "action_offensive_defensive_rebound" = "Offensiv / Defensiv Rebound";
 "action_foul" = "Foul";
+"label_foul_compact_fallback" = "Foul";
 "action_steal" = "Steal";
 "action_block" = "Block";
 "action_turnover" = "Ballverlust";
