@@ -138,7 +138,7 @@
 "button_continue" = "Fortsetzen";
 "button_pause" = "Pause";
 "button_substitute" = "Auswechseln";
-"button_add_late_arrival" = "Spätere Teilnahme hinzufügen";
+"button_add_late_arrival" = "Später einwechseln";
 "button_reset_game" = "Spiel zurücksetzen";
 "button_finish_game" = "Spiel beenden";
 "button_undo" = "Rückgängig";
@@ -186,8 +186,9 @@
 "badge_bench" = "Bank";
 "button_record" = "Aufzeichnen";
 "nav_substitution" = "Auswechslung";
-"nav_late_arrival" = "Späteren Einsatz hinzufügen";
-"picker_team" = "Team";
+"nav_late_arrival" = "Später einwechseln";
+"picker_team" = "Mannschaft";
+"section_on_court" = "Auf dem Feld";
 "section_substitute_out" = "Auswechslung raus";
 "section_substitute_in" = "Auswechslung rein";
 "text_no_on_court_players" = "Keine Spieler auf dem Feld";
