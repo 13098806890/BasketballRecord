@@ -224,6 +224,7 @@
 "action_defensive_rebound" = "后场板";
 "action_offensive_defensive_rebound" = "前场板 / 后场板";
 "action_foul" = "犯规";
+"label_foul_compact_fallback" = "Foul";
 "action_steal" = "抢断";
 "action_block" = "封盖";
 "action_turnover" = "失误";

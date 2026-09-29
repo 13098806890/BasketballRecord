@@ -31,6 +31,7 @@
 "action_defensive_rebound" = "Подбор в защите";
 "action_offensive_defensive_rebound" = "Подбор в нападении / защите";
 "action_foul" = "Фол";
+"label_foul_compact_fallback" = "Foul";
 "action_steal" = "Перехват";
 "action_block" = "Блок";
 "action_turnover" = "Потеря";

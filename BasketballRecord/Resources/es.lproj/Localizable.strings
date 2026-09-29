@@ -125,6 +125,7 @@
 "action_defensive_rebound" = "Rebote Defensivo";
 "action_offensive_defensive_rebound" = "Rebote Ofensivo / Defensivo";
 "action_foul" = "Falta";
+"label_foul_compact_fallback" = "Foul";
 "action_steal" = "Robo";
 "action_block" = "Tapón";
 "action_turnover" = "Pérdida";
