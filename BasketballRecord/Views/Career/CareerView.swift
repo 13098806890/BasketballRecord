@@ -353,11 +353,6 @@ struct PlayerCareerBoardView: View {
                         playerSummaryCard(summary)
                     }
                     .buttonStyle(.plain)
-                    .simultaneousGesture(
-                        TapGesture().onEnded {
-                            PlayerProfileDebugLog.log("xdz career player cell received tap playerID=\(summary.id) name=\(summary.name)")
-                        }
-                    )
                 }
             }
             .padding(.horizontal, 16)

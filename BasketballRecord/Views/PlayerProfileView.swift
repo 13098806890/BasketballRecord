@@ -10,7 +10,6 @@ enum PlayerProfileDebugLog {
 }
 
 private enum PlayerProfileScrollAnchor {
-    static let coordinateSpace = "player-profile-scroll"
     static let gameHistoryHeader = "player-profile-game-history-header"
     static let gameHistoryBottom = "player-profile-game-history-bottom"
 
@@ -30,15 +29,12 @@ struct PlayerProfileView: View {
     var playerID: UUID
     var fixedGame: SavedGame? = nil
     @Binding var selectedGroupID: UUID?
-    @State var selectedGameIDs: Set<UUID> = []
-    @State private var hasInitializedGameSelection = false
     @State private var selectedPeriod: Int? = nil
     @State private var fixedGameAnalysis = SavedGamePeriodAnalysis()
     @State private var showingELOHistory = false
     @State private var isGameHistoryExpanded = true
     @State var expandedStatSections: Set<String> = ["game", "career", "average"]
     @State private var selectedTrendIndex: Int?
-    @State private var chooseGamesCellFrame = CGRect.zero
 
     var player: Player? { store.player(for: playerID) }
     var body: some View {
@@ -63,14 +59,12 @@ struct PlayerProfileView: View {
         }
         .onAppear {
             PlayerProfileDebugLog.log("xdz PlayerProfileView appeared playerID=\(playerID) fixedGame=\(fixedGame?.id.uuidString ?? "nil") games=\(allPlayerGames.count)")
-            syncSelectedGamesIfNeeded()
             rebuildFixedGameAnalysisIfNeeded()
         }
         .onDisappear {
             PlayerProfileDebugLog.log("xdz PlayerProfileView disappeared playerID=\(playerID) fixedGame=\(fixedGame?.id.uuidString ?? "nil")")
         }
         .onChange(of: store.savedGames) { _, _ in
-            syncSelectedGamesIfNeeded()
             rebuildFixedGameAnalysisIfNeeded()
         }
     }
@@ -81,13 +75,6 @@ struct PlayerProfileView: View {
             ScrollView {
                 standardProfileContent(scrollProxy: proxy)
             }
-            .coordinateSpace(name: PlayerProfileScrollAnchor.coordinateSpace)
-            .simultaneousGesture(
-                SpatialTapGesture(coordinateSpace: .named(PlayerProfileScrollAnchor.coordinateSpace)).onEnded { value in
-                    let isInsideChooseGamesCell = chooseGamesCellFrame.contains(value.location)
-                    PlayerProfileDebugLog.log("xdz PlayerProfileView received tap playerID=\(playerID) x=\(Int(value.location.x)) y=\(Int(value.location.y)) insideChooseCell=\(isInsideChooseGamesCell) cellX=\(Int(chooseGamesCellFrame.minX)) cellY=\(Int(chooseGamesCellFrame.minY)) cellWidth=\(Int(chooseGamesCellFrame.width)) cellHeight=\(Int(chooseGamesCellFrame.height))")
-                }
-            )
         }
     }
 
@@ -126,67 +113,6 @@ struct PlayerProfileView: View {
                 .foregroundStyle(EditorialDesign.navy)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
-
-            NavigationLink {
-                PlayerGameSelectionView(games: allPlayerGames, selectedIDs: $selectedGameIDs)
-                    .environmentObject(store)
-                    .onAppear {
-                        PlayerProfileDebugLog.log("xdz choose games destination appeared playerID=\(playerID) games=\(allPlayerGames.count) selected=\(selectedGameIDs.count)")
-                    }
-            } label: {
-                HStack(spacing: 10) {
-                    Image(systemName: "calendar")
-                        .foregroundStyle(EditorialDesign.blue)
-                    Text(LocalizedStringKey("button_choose_games"))
-                        .font(.subheadline.weight(.semibold))
-                        .simultaneousGesture(
-                            TapGesture().onEnded {
-                                PlayerProfileDebugLog.log("xdz choose games title received tap playerID=\(playerID)")
-                            }
-                        )
-                    Spacer()
-                    Text(selectionSummaryText)
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                        .simultaneousGesture(
-                            TapGesture().onEnded {
-                                PlayerProfileDebugLog.log("xdz choose games summary received tap playerID=\(playerID)")
-                            }
-                        )
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.secondary)
-                        .simultaneousGesture(
-                            TapGesture().onEnded {
-                                PlayerProfileDebugLog.log("xdz choose games chevron received tap playerID=\(playerID)")
-                            }
-                        )
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(14)
-                .editorialCard(tint: EditorialDesign.card, radius: 16)
-                .contentShape(Rectangle())
-                .simultaneousGesture(
-                    TapGesture().onEnded {
-                        PlayerProfileDebugLog.log("xdz choose games label received tap playerID=\(playerID)")
-                    }
-                )
-                .onGeometryChange(for: CGRect.self) { proxy in
-                    proxy.frame(in: .named(PlayerProfileScrollAnchor.coordinateSpace))
-                } action: { frame in
-                    chooseGamesCellFrame = frame
-                    PlayerProfileDebugLog.log("xdz choose games cell frame changed playerID=\(playerID) x=\(Int(frame.minX)) y=\(Int(frame.minY)) width=\(Int(frame.width)) height=\(Int(frame.height))")
-                }
-            }
-            .buttonStyle(.plain)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal)
-            .contentShape(Rectangle())
-            .simultaneousGesture(
-                TapGesture().onEnded {
-                    PlayerProfileDebugLog.log("xdz choose games NavigationLink received tap playerID=\(playerID) games=\(allPlayerGames.count) selected=\(selectedGameIDs.count)")
-                }
-            )
 
             header
 
@@ -1228,19 +1154,13 @@ struct PlayerProfileView: View {
         return games
     }
 
-    var selectionSummaryText: String {
-        "\(selectedGameIDs.count)/\(allPlayerGames.count)"
-    }
-
     var filteredGames: [SavedGame] {
         if let fixedGame {
             let participates = containsPlayer(in: fixedGame)
             return participates ? [fixedGame] : []
         }
 
-        return allPlayerGames.filter { game in
-            selectedGameIDs.contains(game.id)
-        }
+        return allPlayerGames
     }
 
     var isFixedPeriodMode: Bool {
@@ -1462,19 +1382,6 @@ struct PlayerProfileView: View {
 
     private func containsPlayer(in game: SavedGame) -> Bool {
         game.didParticipate(playerID)
-    }
-
-    private func syncSelectedGamesIfNeeded() {
-        guard fixedGame == nil else { return }
-        let availableIDs = Set(allPlayerGames.map(\.id))
-
-        if !hasInitializedGameSelection {
-            selectedGameIDs = availableIDs
-            hasInitializedGameSelection = true
-            return
-        }
-
-        selectedGameIDs = selectedGameIDs.intersection(availableIDs)
     }
 
     private func rebuildFixedGameAnalysisIfNeeded() {
