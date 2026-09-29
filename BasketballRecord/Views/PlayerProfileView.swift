@@ -312,7 +312,8 @@ struct PlayerProfileView: View {
                     Text(LocalizedStringKey(titleKey))
                         .font(.headline.weight(.bold))
                         .foregroundStyle(EditorialDesign.navy)
-                        .lineLimit(1)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                     Spacer()
                     if !headerMetrics.isEmpty {
                         HStack(spacing: 8) {
@@ -643,7 +644,8 @@ struct PlayerProfileView: View {
                     Text(opponentName)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(EditorialDesign.navy)
-                        .lineLimit(1)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                     Text(resultText)
                         .font(.caption2.weight(.bold))
                         .foregroundStyle(resultColor)
@@ -686,7 +688,8 @@ struct PlayerProfileView: View {
             Text(label)
                 .font(.caption2.weight(.medium))
                 .foregroundStyle(.secondary)
-                .lineLimit(1)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
             Text(value)
                 .font(.caption.monospacedDigit().weight(.semibold))
                 .foregroundStyle(valueColor)
@@ -1120,11 +1123,12 @@ struct PlayerProfileView: View {
                             if isNew && isDeleted { }
                             else {
                                 HStack(spacing: 6) {
-                                    if isNew && !isDeleted { Text("NEW").font(.caption2.weight(.bold)).foregroundStyle(.green) }
-                                    if isEdited { Text("EDITED").font(.caption2.weight(.bold)).foregroundStyle(.orange) }
-                                    if isDeleted { Text("DELETED").font(.caption2.weight(.bold)).foregroundStyle(.red) }
+                                    if isNew && !isDeleted { Text(LocalizedStringKey("game_event_status_new")).font(.caption2.weight(.bold)).foregroundStyle(.green) }
+                                    if isEdited { Text(LocalizedStringKey("game_event_status_edited")).font(.caption2.weight(.bold)).foregroundStyle(.orange) }
+                                    if isDeleted { Text(LocalizedStringKey("game_event_status_deleted")).font(.caption2.weight(.bold)).foregroundStyle(.red) }
                                     Text(GameLogFormatter.lineText(for: log, originalPeriodCount: fixedGame?.snapshot.originalPeriodCount ?? 4))
                                         .font(.caption.monospacedDigit())
+                                        .fixedSize(horizontal: false, vertical: true)
                                         .foregroundStyle(isDeleted ? Color.secondary : (GameLogFormatter.isScoring(log) ? Color.blue : Color.primary))
                                         .strikethrough(isDeleted)
                                         .frame(maxWidth: .infinity, alignment: .leading)

@@ -184,8 +184,9 @@ struct TeamCareerBoardView: View {
                     Text(summary.teamName)
                         .font(.title3.weight(.bold))
                         .foregroundStyle(EditorialDesign.navy)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .layoutPriority(1)
                 }
 
                 Spacer(minLength: 4)

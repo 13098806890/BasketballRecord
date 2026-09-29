@@ -204,7 +204,8 @@ struct SavedGameDetailView: View {
             Text(teamName)
                 .font(.subheadline.weight(.bold))
                 .foregroundStyle(EditorialDesign.navy)
-                .lineLimit(1)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
             Text("\(score(for: teamID))")
                 .font(.system(size: 38, weight: .bold, design: .monospaced))
                 .foregroundStyle(EditorialDesign.navy)
@@ -329,7 +330,7 @@ struct SavedGameDetailView: View {
                     Text(LocalizedStringKey("text_ai_will_generate"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer()
                 Image(systemName: "chevron.right")

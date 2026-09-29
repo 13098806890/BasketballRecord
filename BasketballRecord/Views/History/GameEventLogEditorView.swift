@@ -190,23 +190,23 @@ struct GameEventLogEditorView: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     if isNew {
-                        Text("NEW")
+                        Text(LocalizedStringKey("game_event_status_new"))
                             .font(.caption2.weight(.bold))
                             .foregroundStyle(.green)
                     }
                     if isEdited {
-                        Text("EDITED")
+                        Text(LocalizedStringKey("game_event_status_edited"))
                             .font(.caption2.weight(.bold))
                             .foregroundStyle(.orange)
                     }
                     if isDeleted {
-                        Text("DELETED")
+                        Text(LocalizedStringKey("game_event_status_deleted"))
                             .font(.caption2.weight(.bold))
                             .foregroundStyle(.red)
                     }
                     Text(logLineText(for: log))
                         .font(.caption)
-                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                         .foregroundStyle(isDeleted ? .secondary : EditorialDesign.navy)
                         .strikethrough(isDeleted)
                 }
