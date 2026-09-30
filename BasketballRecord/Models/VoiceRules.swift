@@ -206,18 +206,34 @@ struct VoiceRules: Sendable {
     /// Detect the best rule set for the current app language.
     static func forCurrentAppLanguage() -> VoiceRules {
         let preferredLang = Bundle.main.preferredLocalizations.first ?? "zh-Hans"
-        switch preferredLang {
-        case "en": return .english
-        case "ja": return .japanese
-        case "ko": return .korean
-        case "de": return .german
-        case "es": return .spanish
-        case "fr": return .french
-        case "it": return .italian
-        case "ru": return .russian
-        case "zh-Hant-TW", "zh-Hant-HK": return .traditionalChinese
+        return forLocale(Locale(identifier: preferredLang))
+    }
+
+    static func forLocale(_ locale: Locale) -> VoiceRules {
+        let identifier = locale.identifier
+        switch identifier {
+        case let id where id.hasPrefix("en"): return .english
+        case let id where id.hasPrefix("ja"): return .japanese
+        case let id where id.hasPrefix("ko"): return .korean
+        case let id where id.hasPrefix("de"): return .german
+        case let id where id.hasPrefix("es"): return .spanish
+        case let id where id.hasPrefix("fr"): return .french
+        case let id where id.hasPrefix("it"): return .italian
+        case let id where id.hasPrefix("ru"): return .russian
+        case let id where id.hasPrefix("zh-Hant"): return .traditionalChinese
         default: return .chinese
         }
+    }
+
+    func contextualStrings(playerNames: [String]) -> [String] {
+        var values = playerNames
+        values.append(contentsOf: shotKeywords.map(\.keyword))
+        values.append(contentsOf: madeStates)
+        values.append(contentsOf: missedStates)
+        values.append(contentsOf: statEvents.map(\.keyword))
+        values.append(contentsOf: substitutionKeywords)
+        values.append(contentsOf: commandEvents.map(\.keyword))
+        return Array(Set(values.filter { !$0.isEmpty })).sorted()
     }
 
     /// All supported rule sets for testing.

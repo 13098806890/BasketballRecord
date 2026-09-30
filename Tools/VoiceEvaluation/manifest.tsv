@@ -1,0 +1,351 @@
+case_id	locale	category	variant	voice	localized_text	zh_translation	expected_event	expected_player	player_gender	name_script	expected_related_player	wav_file
+zh-Hans-two-made	zh-Hans	shot	canonical	Tingting	张三 两分 命中	张三 2分命中	stat.twoMade	张三	male	native		zh-Hans-two-made.wav
+zh-Hans-two-missed	zh-Hans	shot	canonical	Tingting	李四 两分 没中	李四 2分不中	stat.twoMissed	李四	male	native		zh-Hans-two-missed.wav
+zh-Hans-three-made	zh-Hans	shot	canonical	Tingting	王五 三分 命中	王五 3分命中	stat.threeMade	王五	male	native		zh-Hans-three-made.wav
+zh-Hans-three-missed	zh-Hans	shot	canonical	Tingting	赵丽 三分 没中	赵丽 3分不中	stat.threeMissed	赵丽	female	native		zh-Hans-three-missed.wav
+zh-Hans-bonus-made	zh-Hans	shot	canonical	Tingting	刘芳 加罚 命中	刘芳 加罚命中	stat.bonusMade	刘芳	female	native		zh-Hans-bonus-made.wav
+zh-Hans-bonus-missed	zh-Hans	shot	canonical	Tingting	陈杰 加罚 没中	陈杰 加罚不中	stat.bonusMissed	陈杰	male	native		zh-Hans-bonus-missed.wav
+zh-Hans-free-throw-made	zh-Hans	shot	canonical	Tingting	Emma 罚球 命中	Emma 罚球命中	stat.freeThrowMade	Emma	female	latin		zh-Hans-free-throw-made.wav
+zh-Hans-free-throw-missed	zh-Hans	shot	canonical	Tingting	Michael 罚球 没中	Michael 罚球不中	stat.freeThrowMissed	Michael	male	latin		zh-Hans-free-throw-missed.wav
+zh-Hans-layup-made	zh-Hans	shot	canonical	Tingting	Alice 上篮 命中	Alice 上篮命中	stat.layupMade	Alice	female	latin		zh-Hans-layup-made.wav
+zh-Hans-layup-missed	zh-Hans	shot	canonical	Tingting	John 上篮 没中	John 上篮不中	stat.layupMissed	John	male	latin		zh-Hans-layup-missed.wav
+zh-Hans-mid-range-made	zh-Hans	shot	canonical	Tingting	王Emma 中投 命中	王Emma 中投命中	stat.midRangeMade	王Emma	female	mixed		zh-Hans-mid-range-made.wav
+zh-Hans-mid-range-missed	zh-Hans	shot	canonical	Tingting	David 中投 没中	David 中投不中	stat.midRangeMissed	David	male	latin		zh-Hans-mid-range-missed.wav
+zh-Hans-paint-made	zh-Hans	shot	canonical	Tingting	张三 篮下 命中	张三 篮下命中	stat.paintMade	张三	male	native		zh-Hans-paint-made.wav
+zh-Hans-paint-missed	zh-Hans	shot	canonical	Tingting	李四 篮下 没中	李四 篮下不中	stat.paintMissed	李四	male	native		zh-Hans-paint-missed.wav
+zh-Hans-putback-made	zh-Hans	shot	canonical	Tingting	王五 补篮 命中	王五 补篮命中	stat.putbackMade	王五	male	native		zh-Hans-putback-made.wav
+zh-Hans-putback-missed	zh-Hans	shot	canonical	Tingting	赵丽 补篮 没中	赵丽 补篮不中	stat.putbackMissed	赵丽	female	native		zh-Hans-putback-missed.wav
+zh-Hans-dunk-made	zh-Hans	shot	canonical	Tingting	刘芳 扣篮 命中	刘芳 扣篮命中	stat.dunkMade	刘芳	female	native		zh-Hans-dunk-made.wav
+zh-Hans-dunk-missed	zh-Hans	shot	canonical	Tingting	陈杰 扣篮 没中	陈杰 扣篮不中	stat.dunkMissed	陈杰	male	native		zh-Hans-dunk-missed.wav
+zh-Hans-foul	zh-Hans	stat	canonical	Tingting	Emma 犯规	Emma 犯规	stat.foul	Emma	female	latin		zh-Hans-foul.wav
+zh-Hans-rebound	zh-Hans	stat	canonical	Tingting	Michael 篮板	Michael 篮板	stat.rebound	Michael	male	latin		zh-Hans-rebound.wav
+zh-Hans-offensive-rebound	zh-Hans	stat	canonical	Tingting	Alice 前场篮板	Alice 前场篮板	stat.offensiveRebound	Alice	female	latin		zh-Hans-offensive-rebound.wav
+zh-Hans-defensive-rebound	zh-Hans	stat	canonical	Tingting	John 后场篮板	John 后场篮板	stat.defensiveRebound	John	male	latin		zh-Hans-defensive-rebound.wav
+zh-Hans-assist	zh-Hans	stat	canonical	Tingting	王Emma 助攻	王Emma 助攻	stat.assist	王Emma	female	mixed		zh-Hans-assist.wav
+zh-Hans-block	zh-Hans	stat	canonical	Tingting	David 盖帽	David 盖帽	stat.block	David	male	latin		zh-Hans-block.wav
+zh-Hans-steal	zh-Hans	stat	canonical	Tingting	张三 抢断	张三 抢断	stat.steal	张三	male	native		zh-Hans-steal.wav
+zh-Hans-turnover	zh-Hans	stat	canonical	Tingting	李四 失误	李四 失误	stat.turnover	李四	male	native		zh-Hans-turnover.wav
+zh-Hans-assist-two	zh-Hans	composite	canonical	Tingting	王五 助攻 赵丽 两分	王五 助攻 赵丽 两分	stat.assistTwoMade	王五	male	native	赵丽	zh-Hans-assist-two.wav
+zh-Hans-assist-three	zh-Hans	composite	canonical	Tingting	刘芳 助攻 陈杰 三分	刘芳 助攻 陈杰 三分	stat.assistThreeMade	刘芳	female	native	陈杰	zh-Hans-assist-three.wav
+zh-Hans-steal-turnover	zh-Hans	composite	canonical	Tingting	Emma 抢断 Michael	Emma 抢断 Michael 并造成失误	stat.stealTurnover	Emma	female	latin	Michael	zh-Hans-steal-turnover.wav
+zh-Hans-start	zh-Hans	command	canonical	Tingting	开始	开始比赛	event.period					zh-Hans-start.wav
+zh-Hans-pause	zh-Hans	command	canonical	Tingting	暂停	暂停比赛	event.pause					zh-Hans-pause.wav
+zh-Hans-game-end	zh-Hans	command	canonical	Tingting	结束	结束比赛	event.game_end					zh-Hans-game-end.wav
+zh-Hans-undo	zh-Hans	command	canonical	Tingting	撤销	撤销上一条	event.undo					zh-Hans-undo.wav
+zh-Hans-redo	zh-Hans	command	canonical	Tingting	重做	重做上一条	event.redo					zh-Hans-redo.wav
+zh-Hans-substitution	zh-Hans	substitution	canonical	Tingting	张三 换人 李四	张三换下，李四上场	event.substitution	张三	male	native	李四	zh-Hans-substitution.wav
+zh-Hant-TW-two-made	zh-Hant-TW	shot	canonical	Meijia	張三 兩分 命中	張三 2分命中	stat.twoMade	張三	male	native		zh-Hant-TW-two-made.wav
+zh-Hant-TW-two-missed	zh-Hant-TW	shot	canonical	Meijia	李四 兩分 沒中	李四 2分不中	stat.twoMissed	李四	male	native		zh-Hant-TW-two-missed.wav
+zh-Hant-TW-three-made	zh-Hant-TW	shot	canonical	Meijia	王五 三分 命中	王五 3分命中	stat.threeMade	王五	male	native		zh-Hant-TW-three-made.wav
+zh-Hant-TW-three-missed	zh-Hant-TW	shot	canonical	Meijia	趙麗 三分 沒中	趙麗 3分不中	stat.threeMissed	趙麗	female	native		zh-Hant-TW-three-missed.wav
+zh-Hant-TW-bonus-made	zh-Hant-TW	shot	canonical	Meijia	劉芳 加罰 命中	劉芳 加罰命中	stat.bonusMade	劉芳	female	native		zh-Hant-TW-bonus-made.wav
+zh-Hant-TW-bonus-missed	zh-Hant-TW	shot	canonical	Meijia	陳杰 加罰 沒中	陳杰 加罰不中	stat.bonusMissed	陳杰	male	native		zh-Hant-TW-bonus-missed.wav
+zh-Hant-TW-free-throw-made	zh-Hant-TW	shot	canonical	Meijia	Emma 罰球 命中	Emma 罰球命中	stat.freeThrowMade	Emma	female	latin		zh-Hant-TW-free-throw-made.wav
+zh-Hant-TW-free-throw-missed	zh-Hant-TW	shot	canonical	Meijia	Michael 罰球 沒中	Michael 罰球不中	stat.freeThrowMissed	Michael	male	latin		zh-Hant-TW-free-throw-missed.wav
+zh-Hant-TW-layup-made	zh-Hant-TW	shot	canonical	Meijia	Alice 上籃 命中	Alice 上籃命中	stat.layupMade	Alice	female	latin		zh-Hant-TW-layup-made.wav
+zh-Hant-TW-layup-missed	zh-Hant-TW	shot	canonical	Meijia	John 上籃 沒中	John 上籃不中	stat.layupMissed	John	male	latin		zh-Hant-TW-layup-missed.wav
+zh-Hant-TW-mid-range-made	zh-Hant-TW	shot	canonical	Meijia	王Emma 中投 命中	王Emma 中投命中	stat.midRangeMade	王Emma	female	mixed		zh-Hant-TW-mid-range-made.wav
+zh-Hant-TW-mid-range-missed	zh-Hant-TW	shot	canonical	Meijia	David 中投 沒中	David 中投不中	stat.midRangeMissed	David	male	latin		zh-Hant-TW-mid-range-missed.wav
+zh-Hant-TW-paint-made	zh-Hant-TW	shot	canonical	Meijia	張三 籃下 命中	張三 籃下命中	stat.paintMade	張三	male	native		zh-Hant-TW-paint-made.wav
+zh-Hant-TW-paint-missed	zh-Hant-TW	shot	canonical	Meijia	李四 籃下 沒中	李四 籃下不中	stat.paintMissed	李四	male	native		zh-Hant-TW-paint-missed.wav
+zh-Hant-TW-putback-made	zh-Hant-TW	shot	canonical	Meijia	王五 補籃 命中	王五 補籃命中	stat.putbackMade	王五	male	native		zh-Hant-TW-putback-made.wav
+zh-Hant-TW-putback-missed	zh-Hant-TW	shot	canonical	Meijia	趙麗 補籃 沒中	趙麗 補籃不中	stat.putbackMissed	趙麗	female	native		zh-Hant-TW-putback-missed.wav
+zh-Hant-TW-dunk-made	zh-Hant-TW	shot	canonical	Meijia	劉芳 扣籃 命中	劉芳 扣籃命中	stat.dunkMade	劉芳	female	native		zh-Hant-TW-dunk-made.wav
+zh-Hant-TW-dunk-missed	zh-Hant-TW	shot	canonical	Meijia	陳杰 扣籃 沒中	陳杰 扣籃不中	stat.dunkMissed	陳杰	male	native		zh-Hant-TW-dunk-missed.wav
+zh-Hant-TW-foul	zh-Hant-TW	stat	canonical	Meijia	Emma 犯規	Emma 犯規	stat.foul	Emma	female	latin		zh-Hant-TW-foul.wav
+zh-Hant-TW-rebound	zh-Hant-TW	stat	canonical	Meijia	Michael 籃板	Michael 籃板	stat.rebound	Michael	male	latin		zh-Hant-TW-rebound.wav
+zh-Hant-TW-offensive-rebound	zh-Hant-TW	stat	canonical	Meijia	Alice 前場籃板	Alice 前場籃板	stat.offensiveRebound	Alice	female	latin		zh-Hant-TW-offensive-rebound.wav
+zh-Hant-TW-defensive-rebound	zh-Hant-TW	stat	canonical	Meijia	John 後場籃板	John 後場籃板	stat.defensiveRebound	John	male	latin		zh-Hant-TW-defensive-rebound.wav
+zh-Hant-TW-assist	zh-Hant-TW	stat	canonical	Meijia	王Emma 助攻	王Emma 助攻	stat.assist	王Emma	female	mixed		zh-Hant-TW-assist.wav
+zh-Hant-TW-block	zh-Hant-TW	stat	canonical	Meijia	David 蓋帽	David 蓋帽	stat.block	David	male	latin		zh-Hant-TW-block.wav
+zh-Hant-TW-steal	zh-Hant-TW	stat	canonical	Meijia	張三 抄截	張三 抄截	stat.steal	張三	male	native		zh-Hant-TW-steal.wav
+zh-Hant-TW-turnover	zh-Hant-TW	stat	canonical	Meijia	李四 失誤	李四 失誤	stat.turnover	李四	male	native		zh-Hant-TW-turnover.wav
+zh-Hant-TW-assist-two	zh-Hant-TW	composite	canonical	Meijia	王五 助攻 趙麗 兩分	王五 助攻 趙麗 兩分	stat.assistTwoMade	王五	male	native	趙麗	zh-Hant-TW-assist-two.wav
+zh-Hant-TW-assist-three	zh-Hant-TW	composite	canonical	Meijia	劉芳 助攻 陳杰 三分	劉芳 助攻 陳杰 三分	stat.assistThreeMade	劉芳	female	native	陳杰	zh-Hant-TW-assist-three.wav
+zh-Hant-TW-steal-turnover	zh-Hant-TW	composite	canonical	Meijia	Emma 抄截 Michael	Emma 抄截 Michael 並造成失誤	stat.stealTurnover	Emma	female	latin	Michael	zh-Hant-TW-steal-turnover.wav
+zh-Hant-TW-start	zh-Hant-TW	command	canonical	Meijia	開始	開始比賽	event.period					zh-Hant-TW-start.wav
+zh-Hant-TW-pause	zh-Hant-TW	command	canonical	Meijia	暫停	暫停比賽	event.pause					zh-Hant-TW-pause.wav
+zh-Hant-TW-game-end	zh-Hant-TW	command	canonical	Meijia	結束	結束比賽	event.game_end					zh-Hant-TW-game-end.wav
+zh-Hant-TW-undo	zh-Hant-TW	command	canonical	Meijia	撤銷	撤銷上一條	event.undo					zh-Hant-TW-undo.wav
+zh-Hant-TW-redo	zh-Hant-TW	command	canonical	Meijia	重做	重做上一條	event.redo					zh-Hant-TW-redo.wav
+zh-Hant-TW-substitution	zh-Hant-TW	substitution	canonical	Meijia	張三 換人 李四	張三換下，李四上場	event.substitution	張三	male	native	李四	zh-Hant-TW-substitution.wav
+en-two-made	en	shot	canonical	Eddy (English (US))	James Carter got two	James Carter 两分命中	stat.twoMade	James Carter	male	native		en-two-made.wav
+en-two-missed	en	shot	canonical	Eddy (English (US))	Emily Stone missed two	Emily Stone 两分不中	stat.twoMissed	Emily Stone	male	native		en-two-missed.wav
+en-three-made	en	shot	canonical	Eddy (English (US))	Michael Brown got three	Michael Brown 三分命中	stat.threeMade	Michael Brown	male	native		en-three-made.wav
+en-three-missed	en	shot	canonical	Eddy (English (US))	Olivia Davis missed three	Olivia Davis 三分不中	stat.threeMissed	Olivia Davis	female	native		en-three-missed.wav
+en-bonus-made	en	shot	canonical	Eddy (English (US))	Liam Wilson got and one	Liam Wilson 加罚命中	stat.bonusMade	Liam Wilson	female	native		en-bonus-made.wav
+en-bonus-missed	en	shot	canonical	Eddy (English (US))	Sophia Taylor missed and one	Sophia Taylor 加罚不中	stat.bonusMissed	Sophia Taylor	male	native		en-bonus-missed.wav
+en-free-throw-made	en	shot	canonical	Eddy (English (US))	Noah Anderson got free throw	Noah Anderson 罚球命中	stat.freeThrowMade	Noah Anderson	female	latin		en-free-throw-made.wav
+en-free-throw-missed	en	shot	canonical	Eddy (English (US))	Ava Martin missed free throw	Ava Martin 罚球不中	stat.freeThrowMissed	Ava Martin	male	latin		en-free-throw-missed.wav
+en-layup-made	en	shot	canonical	Eddy (English (US))	Zhang San got layup	Zhang San 上篮命中	stat.layupMade	Zhang San	female	latin		en-layup-made.wav
+en-layup-missed	en	shot	canonical	Eddy (English (US))	李四 missed layup	李四 上篮不中	stat.layupMissed	李四	male	latin		en-layup-missed.wav
+en-mid-range-made	en	shot	canonical	Eddy (English (US))	Emma王 got mid range	Emma王 中投命中	stat.midRangeMade	Emma王	female	mixed		en-mid-range-made.wav
+en-mid-range-missed	en	shot	canonical	Eddy (English (US))	Juan Garcia missed mid range	Juan Garcia 中投不中	stat.midRangeMissed	Juan Garcia	male	latin		en-mid-range-missed.wav
+en-paint-made	en	shot	canonical	Eddy (English (US))	James Carter got paint	James Carter 篮下命中	stat.paintMade	James Carter	male	native		en-paint-made.wav
+en-paint-missed	en	shot	canonical	Eddy (English (US))	Emily Stone missed paint	Emily Stone 篮下不中	stat.paintMissed	Emily Stone	male	native		en-paint-missed.wav
+en-putback-made	en	shot	canonical	Eddy (English (US))	Michael Brown got putback	Michael Brown 补篮命中	stat.putbackMade	Michael Brown	male	native		en-putback-made.wav
+en-putback-missed	en	shot	canonical	Eddy (English (US))	Olivia Davis missed putback	Olivia Davis 补篮不中	stat.putbackMissed	Olivia Davis	female	native		en-putback-missed.wav
+en-dunk-made	en	shot	canonical	Eddy (English (US))	Liam Wilson got dunk	Liam Wilson 扣篮命中	stat.dunkMade	Liam Wilson	female	native		en-dunk-made.wav
+en-dunk-missed	en	shot	canonical	Eddy (English (US))	Sophia Taylor missed dunk	Sophia Taylor 扣篮不中	stat.dunkMissed	Sophia Taylor	male	native		en-dunk-missed.wav
+en-foul	en	stat	canonical	Eddy (English (US))	Noah Anderson foul	Noah Anderson 犯规	stat.foul	Noah Anderson	female	latin		en-foul.wav
+en-rebound	en	stat	canonical	Eddy (English (US))	Ava Martin rebound	Ava Martin 篮板	stat.rebound	Ava Martin	male	latin		en-rebound.wav
+en-offensive-rebound	en	stat	canonical	Eddy (English (US))	Zhang San offensive rebound	Zhang San 前场篮板	stat.offensiveRebound	Zhang San	female	latin		en-offensive-rebound.wav
+en-defensive-rebound	en	stat	canonical	Eddy (English (US))	李四 defensive rebound	李四 后场篮板	stat.defensiveRebound	李四	male	latin		en-defensive-rebound.wav
+en-assist	en	stat	canonical	Eddy (English (US))	Emma王 assist	Emma王 助攻	stat.assist	Emma王	female	mixed		en-assist.wav
+en-block	en	stat	canonical	Eddy (English (US))	Juan Garcia block	Juan Garcia 盖帽	stat.block	Juan Garcia	male	latin		en-block.wav
+en-steal	en	stat	canonical	Eddy (English (US))	James Carter steal	James Carter 抢断	stat.steal	James Carter	male	native		en-steal.wav
+en-turnover	en	stat	canonical	Eddy (English (US))	Emily Stone turnover	Emily Stone 失误	stat.turnover	Emily Stone	male	native		en-turnover.wav
+en-assist-two	en	composite	canonical	Eddy (English (US))	Michael Brown assist Olivia Davis two	Michael Brown 助攻 Olivia Davis 两分	stat.assistTwoMade	Michael Brown	male	native	Olivia Davis	en-assist-two.wav
+en-assist-three	en	composite	canonical	Eddy (English (US))	Liam Wilson assist Sophia Taylor three	Liam Wilson 助攻 Sophia Taylor 三分	stat.assistThreeMade	Liam Wilson	female	native	Sophia Taylor	en-assist-three.wav
+en-steal-turnover	en	composite	canonical	Eddy (English (US))	Noah Anderson steal Ava Martin	Noah Anderson 抢断 Ava Martin 并造成失误	stat.stealTurnover	Noah Anderson	female	latin	Ava Martin	en-steal-turnover.wav
+en-start	en	command	canonical	Eddy (English (US))	start	开始比赛	event.period					en-start.wav
+en-pause	en	command	canonical	Eddy (English (US))	timeout	暂停比赛	event.pause					en-pause.wav
+en-game-end	en	command	canonical	Eddy (English (US))	game over	结束比赛	event.game_end					en-game-end.wav
+en-undo	en	command	canonical	Eddy (English (US))	undo	撤销上一条	event.undo					en-undo.wav
+en-redo	en	command	canonical	Eddy (English (US))	redo	重做上一条	event.redo					en-redo.wav
+en-substitution	en	substitution	canonical	Eddy (English (US))	James Carter substitution Emily Stone	James Carter 换下，Emily Stone 上场	event.substitution	James Carter	male	native	Emily Stone	en-substitution.wav
+ja-two-made	ja	shot	canonical	Eddy (Japanese (Japan))	山田太郎 ツー 成功	山田太郎 2分命中	stat.twoMade	山田太郎	male	native		ja-two-made.wav
+ja-two-missed	ja	shot	canonical	Eddy (Japanese (Japan))	佐藤健 ツー 外した	佐藤健 2分不中	stat.twoMissed	佐藤健	male	native		ja-two-missed.wav
+ja-three-made	ja	shot	canonical	Eddy (Japanese (Japan))	鈴木翔 スリー 成功	鈴木翔 3分命中	stat.threeMade	鈴木翔	male	native		ja-three-made.wav
+ja-three-missed	ja	shot	canonical	Eddy (Japanese (Japan))	田中美咲 スリー 外した	田中美咲 3分不中	stat.threeMissed	田中美咲	female	native		ja-three-missed.wav
+ja-bonus-made	ja	shot	canonical	Eddy (Japanese (Japan))	高橋愛 ボーナス 成功	高橋愛 加罚命中	stat.bonusMade	高橋愛	female	native		ja-bonus-made.wav
+ja-bonus-missed	ja	shot	canonical	Eddy (Japanese (Japan))	伊藤葵 ボーナス 外した	伊藤葵 加罚不中	stat.bonusMissed	伊藤葵	male	native		ja-bonus-missed.wav
+ja-free-throw-made	ja	shot	canonical	Eddy (Japanese (Japan))	Emma フリースロー 成功	Emma 罚球命中	stat.freeThrowMade	Emma	female	latin		ja-free-throw-made.wav
+ja-free-throw-missed	ja	shot	canonical	Eddy (Japanese (Japan))	Michael フリースロー 外した	Michael 罚球不中	stat.freeThrowMissed	Michael	male	latin		ja-free-throw-missed.wav
+ja-layup-made	ja	shot	canonical	Eddy (Japanese (Japan))	Alice レイアップ 成功	Alice 上篮命中	stat.layupMade	Alice	female	latin		ja-layup-made.wav
+ja-layup-missed	ja	shot	canonical	Eddy (Japanese (Japan))	John レイアップ 外した	John 上篮不中	stat.layupMissed	John	male	latin		ja-layup-missed.wav
+ja-mid-range-made	ja	shot	canonical	Eddy (Japanese (Japan))	山田Emma ミドル 成功	山田Emma 中投命中	stat.midRangeMade	山田Emma	female	mixed		ja-mid-range-made.wav
+ja-mid-range-missed	ja	shot	canonical	Eddy (Japanese (Japan))	David ミドル 外した	David 中投不中	stat.midRangeMissed	David	male	latin		ja-mid-range-missed.wav
+ja-paint-made	ja	shot	canonical	Eddy (Japanese (Japan))	山田太郎 ペイント 成功	山田太郎 篮下命中	stat.paintMade	山田太郎	male	native		ja-paint-made.wav
+ja-paint-missed	ja	shot	canonical	Eddy (Japanese (Japan))	佐藤健 ペイント 外した	佐藤健 篮下不中	stat.paintMissed	佐藤健	male	native		ja-paint-missed.wav
+ja-putback-made	ja	shot	canonical	Eddy (Japanese (Japan))	鈴木翔 パットバック 成功	鈴木翔 补篮命中	stat.putbackMade	鈴木翔	male	native		ja-putback-made.wav
+ja-putback-missed	ja	shot	canonical	Eddy (Japanese (Japan))	田中美咲 パットバック 外した	田中美咲 补篮不中	stat.putbackMissed	田中美咲	female	native		ja-putback-missed.wav
+ja-dunk-made	ja	shot	canonical	Eddy (Japanese (Japan))	高橋愛 ダンク 成功	高橋愛 扣篮命中	stat.dunkMade	高橋愛	female	native		ja-dunk-made.wav
+ja-dunk-missed	ja	shot	canonical	Eddy (Japanese (Japan))	伊藤葵 ダンク 外した	伊藤葵 扣篮不中	stat.dunkMissed	伊藤葵	male	native		ja-dunk-missed.wav
+ja-foul	ja	stat	canonical	Eddy (Japanese (Japan))	Emma ファウル	Emma 犯规	stat.foul	Emma	female	latin		ja-foul.wav
+ja-rebound	ja	stat	canonical	Eddy (Japanese (Japan))	Michael リバウンド	Michael 篮板	stat.rebound	Michael	male	latin		ja-rebound.wav
+ja-offensive-rebound	ja	stat	canonical	Eddy (Japanese (Japan))	Alice オフェンスリバウンド	Alice 前场篮板	stat.offensiveRebound	Alice	female	latin		ja-offensive-rebound.wav
+ja-defensive-rebound	ja	stat	canonical	Eddy (Japanese (Japan))	John ディフェンスリバウンド	John 后场篮板	stat.defensiveRebound	John	male	latin		ja-defensive-rebound.wav
+ja-assist	ja	stat	canonical	Eddy (Japanese (Japan))	山田Emma アシスト	山田Emma 助攻	stat.assist	山田Emma	female	mixed		ja-assist.wav
+ja-block	ja	stat	canonical	Eddy (Japanese (Japan))	David ブロック	David 盖帽	stat.block	David	male	latin		ja-block.wav
+ja-steal	ja	stat	canonical	Eddy (Japanese (Japan))	山田太郎 スティール	山田太郎 抢断	stat.steal	山田太郎	male	native		ja-steal.wav
+ja-turnover	ja	stat	canonical	Eddy (Japanese (Japan))	佐藤健 ターンオーバー	佐藤健 失误	stat.turnover	佐藤健	male	native		ja-turnover.wav
+ja-assist-two	ja	composite	canonical	Eddy (Japanese (Japan))	鈴木翔 アシスト 田中美咲 ツー	鈴木翔 助攻 田中美咲 两分	stat.assistTwoMade	鈴木翔	male	native	田中美咲	ja-assist-two.wav
+ja-assist-three	ja	composite	canonical	Eddy (Japanese (Japan))	高橋愛 アシスト 伊藤葵 スリー	高橋愛 助攻 伊藤葵 三分	stat.assistThreeMade	高橋愛	female	native	伊藤葵	ja-assist-three.wav
+ja-steal-turnover	ja	composite	canonical	Eddy (Japanese (Japan))	Emma スティール Michael	Emma 抢断 Michael 并造成失误	stat.stealTurnover	Emma	female	latin	Michael	ja-steal-turnover.wav
+ja-start	ja	command	canonical	Eddy (Japanese (Japan))	開始	开始比赛	event.period					ja-start.wav
+ja-pause	ja	command	canonical	Eddy (Japanese (Japan))	タイムアウト	暂停比赛	event.pause					ja-pause.wav
+ja-game-end	ja	command	canonical	Eddy (Japanese (Japan))	試合終了	结束比赛	event.game_end					ja-game-end.wav
+ja-undo	ja	command	canonical	Eddy (Japanese (Japan))	元に戻す	撤销上一条	event.undo					ja-undo.wav
+ja-redo	ja	command	canonical	Eddy (Japanese (Japan))	やり直す	重做上一条	event.redo					ja-redo.wav
+ja-substitution	ja	substitution	canonical	Eddy (Japanese (Japan))	山田太郎 交代 佐藤健	山田太郎换下，佐藤健上场	event.substitution	山田太郎	male	native	佐藤健	ja-substitution.wav
+ko-two-made	ko	shot	canonical	Eddy (Korean (South Korea))	김민수 투 성공	김민수 2分命中	stat.twoMade	김민수	male	native		ko-two-made.wav
+ko-two-missed	ko	shot	canonical	Eddy (Korean (South Korea))	이준호 투 실패	이준호 2分不中	stat.twoMissed	이준호	male	native		ko-two-missed.wav
+ko-three-made	ko	shot	canonical	Eddy (Korean (South Korea))	박지훈 쓰리 성공	박지훈 3分命中	stat.threeMade	박지훈	male	native		ko-three-made.wav
+ko-three-missed	ko	shot	canonical	Eddy (Korean (South Korea))	최서연 쓰리 실패	최서연 3分不中	stat.threeMissed	최서연	female	native		ko-three-missed.wav
+ko-bonus-made	ko	shot	canonical	Eddy (Korean (South Korea))	김하늘 보너스 성공	김하늘 加罚命中	stat.bonusMade	김하늘	female	native		ko-bonus-made.wav
+ko-bonus-missed	ko	shot	canonical	Eddy (Korean (South Korea))	정수빈 보너스 실패	정수빈 加罚不中	stat.bonusMissed	정수빈	male	native		ko-bonus-missed.wav
+ko-free-throw-made	ko	shot	canonical	Eddy (Korean (South Korea))	Emma 자유투 성공	Emma 罚球命中	stat.freeThrowMade	Emma	female	latin		ko-free-throw-made.wav
+ko-free-throw-missed	ko	shot	canonical	Eddy (Korean (South Korea))	Michael 자유투 실패	Michael 罚球不中	stat.freeThrowMissed	Michael	male	latin		ko-free-throw-missed.wav
+ko-layup-made	ko	shot	canonical	Eddy (Korean (South Korea))	Alice 레이업 성공	Alice 上篮命中	stat.layupMade	Alice	female	latin		ko-layup-made.wav
+ko-layup-missed	ko	shot	canonical	Eddy (Korean (South Korea))	John 레이업 실패	John 上篮不中	stat.layupMissed	John	male	latin		ko-layup-missed.wav
+ko-mid-range-made	ko	shot	canonical	Eddy (Korean (South Korea))	김Emma 미드 성공	김Emma 中投命中	stat.midRangeMade	김Emma	female	mixed		ko-mid-range-made.wav
+ko-mid-range-missed	ko	shot	canonical	Eddy (Korean (South Korea))	David 미드 실패	David 中投不中	stat.midRangeMissed	David	male	latin		ko-mid-range-missed.wav
+ko-paint-made	ko	shot	canonical	Eddy (Korean (South Korea))	김민수 페인트 성공	김민수 篮下命中	stat.paintMade	김민수	male	native		ko-paint-made.wav
+ko-paint-missed	ko	shot	canonical	Eddy (Korean (South Korea))	이준호 페인트 실패	이준호 篮下不中	stat.paintMissed	이준호	male	native		ko-paint-missed.wav
+ko-putback-made	ko	shot	canonical	Eddy (Korean (South Korea))	박지훈 팟백 성공	박지훈 补篮命中	stat.putbackMade	박지훈	male	native		ko-putback-made.wav
+ko-putback-missed	ko	shot	canonical	Eddy (Korean (South Korea))	최서연 팟백 실패	최서연 补篮不中	stat.putbackMissed	최서연	female	native		ko-putback-missed.wav
+ko-dunk-made	ko	shot	canonical	Eddy (Korean (South Korea))	김하늘 덩크 성공	김하늘 扣篮命中	stat.dunkMade	김하늘	female	native		ko-dunk-made.wav
+ko-dunk-missed	ko	shot	canonical	Eddy (Korean (South Korea))	정수빈 덩크 실패	정수빈 扣篮不中	stat.dunkMissed	정수빈	male	native		ko-dunk-missed.wav
+ko-foul	ko	stat	canonical	Eddy (Korean (South Korea))	Emma 파울	Emma 犯规	stat.foul	Emma	female	latin		ko-foul.wav
+ko-rebound	ko	stat	canonical	Eddy (Korean (South Korea))	Michael 리바운드	Michael 篮板	stat.rebound	Michael	male	latin		ko-rebound.wav
+ko-offensive-rebound	ko	stat	canonical	Eddy (Korean (South Korea))	Alice 공격 리바운드	Alice 前场篮板	stat.offensiveRebound	Alice	female	latin		ko-offensive-rebound.wav
+ko-defensive-rebound	ko	stat	canonical	Eddy (Korean (South Korea))	John 수비 리바운드	John 后场篮板	stat.defensiveRebound	John	male	latin		ko-defensive-rebound.wav
+ko-assist	ko	stat	canonical	Eddy (Korean (South Korea))	김Emma 어시스트	김Emma 助攻	stat.assist	김Emma	female	mixed		ko-assist.wav
+ko-block	ko	stat	canonical	Eddy (Korean (South Korea))	David 블록	David 盖帽	stat.block	David	male	latin		ko-block.wav
+ko-steal	ko	stat	canonical	Eddy (Korean (South Korea))	김민수 스틸	김민수 抢断	stat.steal	김민수	male	native		ko-steal.wav
+ko-turnover	ko	stat	canonical	Eddy (Korean (South Korea))	이준호 턴오버	이준호 失误	stat.turnover	이준호	male	native		ko-turnover.wav
+ko-assist-two	ko	composite	canonical	Eddy (Korean (South Korea))	박지훈 어시스트 최서연 투	박지훈 助攻 최서연 两分	stat.assistTwoMade	박지훈	male	native	최서연	ko-assist-two.wav
+ko-assist-three	ko	composite	canonical	Eddy (Korean (South Korea))	김하늘 어시스트 정수빈 쓰리	김하늘 助攻 정수빈 三分	stat.assistThreeMade	김하늘	female	native	정수빈	ko-assist-three.wav
+ko-steal-turnover	ko	composite	canonical	Eddy (Korean (South Korea))	Emma 스틸 Michael	Emma 抢断 Michael 并造成失误	stat.stealTurnover	Emma	female	latin	Michael	ko-steal-turnover.wav
+ko-start	ko	command	canonical	Eddy (Korean (South Korea))	시작	开始比赛	event.period					ko-start.wav
+ko-pause	ko	command	canonical	Eddy (Korean (South Korea))	타임아웃	暂停比赛	event.pause					ko-pause.wav
+ko-game-end	ko	command	canonical	Eddy (Korean (South Korea))	경기종료	结束比赛	event.game_end					ko-game-end.wav
+ko-undo	ko	command	canonical	Eddy (Korean (South Korea))	실행 취소	撤销上一条	event.undo					ko-undo.wav
+ko-redo	ko	command	canonical	Eddy (Korean (South Korea))	재실행	重做上一条	event.redo					ko-redo.wav
+ko-substitution	ko	substitution	canonical	Eddy (Korean (South Korea))	김민수 교체 이준호	김민수换下，李俊浩上场	event.substitution	김민수	male	native	이준호	ko-substitution.wav
+de-two-made	de	shot	canonical	Eddy (German (Germany))	Lukas Weber zwei getroffen	Lukas Weber 两分命中	stat.twoMade	Lukas Weber	male	native		de-two-made.wav
+de-two-missed	de	shot	canonical	Eddy (German (Germany))	Anna Fischer zwei verfehlt	Anna Fischer 两分不中	stat.twoMissed	Anna Fischer	male	native		de-two-missed.wav
+de-three-made	de	shot	canonical	Eddy (German (Germany))	Michael Müller drei getroffen	Michael Müller 三分命中	stat.threeMade	Michael Müller	male	native		de-three-made.wav
+de-three-missed	de	shot	canonical	Eddy (German (Germany))	Sophie Schmidt drei verfehlt	Sophie Schmidt 三分不中	stat.threeMissed	Sophie Schmidt	female	native		de-three-missed.wav
+de-bonus-made	de	shot	canonical	Eddy (German (Germany))	Thomas Wagner bonus getroffen	Thomas Wagner 加罚命中	stat.bonusMade	Thomas Wagner	female	native		de-bonus-made.wav
+de-bonus-missed	de	shot	canonical	Eddy (German (Germany))	Emma Keller bonus verfehlt	Emma Keller 加罚不中	stat.bonusMissed	Emma Keller	male	native		de-bonus-missed.wav
+de-free-throw-made	de	shot	canonical	Eddy (German (Germany))	David freiwurf getroffen	David 罚球命中	stat.freeThrowMade	David	female	latin		de-free-throw-made.wav
+de-free-throw-missed	de	shot	canonical	Eddy (German (Germany))	Alice freiwurf verfehlt	Alice 罚球不中	stat.freeThrowMissed	Alice	male	latin		de-free-throw-missed.wav
+de-layup-made	de	shot	canonical	Eddy (German (Germany))	James layup getroffen	James 上篮命中	stat.layupMade	James	female	latin		de-layup-made.wav
+de-layup-missed	de	shot	canonical	Eddy (German (Germany))	Olivia layup verfehlt	Olivia 上篮不中	stat.layupMissed	Olivia	male	latin		de-layup-missed.wav
+de-mid-range-made	de	shot	canonical	Eddy (German (Germany))	Zhang王 mitteldistanz getroffen	Zhang王 中投命中	stat.midRangeMade	Zhang王	female	mixed		de-mid-range-made.wav
+de-mid-range-missed	de	shot	canonical	Eddy (German (Germany))	李四 mitteldistanz verfehlt	李四 中投不中	stat.midRangeMissed	李四	male	latin		de-mid-range-missed.wav
+de-paint-made	de	shot	canonical	Eddy (German (Germany))	Lukas Weber korbnähe getroffen	Lukas Weber 篮下命中	stat.paintMade	Lukas Weber	male	native		de-paint-made.wav
+de-paint-missed	de	shot	canonical	Eddy (German (Germany))	Anna Fischer korbnähe verfehlt	Anna Fischer 篮下不中	stat.paintMissed	Anna Fischer	male	native		de-paint-missed.wav
+de-putback-made	de	shot	canonical	Eddy (German (Germany))	Michael Müller putback getroffen	Michael Müller 补篮命中	stat.putbackMade	Michael Müller	male	native		de-putback-made.wav
+de-putback-missed	de	shot	canonical	Eddy (German (Germany))	Sophie Schmidt putback verfehlt	Sophie Schmidt 补篮不中	stat.putbackMissed	Sophie Schmidt	female	native		de-putback-missed.wav
+de-dunk-made	de	shot	canonical	Eddy (German (Germany))	Thomas Wagner dunk getroffen	Thomas Wagner 扣篮命中	stat.dunkMade	Thomas Wagner	female	native		de-dunk-made.wav
+de-dunk-missed	de	shot	canonical	Eddy (German (Germany))	Emma Keller dunk verfehlt	Emma Keller 扣篮不中	stat.dunkMissed	Emma Keller	male	native		de-dunk-missed.wav
+de-foul	de	stat	canonical	Eddy (German (Germany))	David foul	David 犯规	stat.foul	David	female	latin		de-foul.wav
+de-rebound	de	stat	canonical	Eddy (German (Germany))	Alice rebound	Alice 篮板	stat.rebound	Alice	male	latin		de-rebound.wav
+de-offensive-rebound	de	stat	canonical	Eddy (German (Germany))	James offensiv rebound	James 前场篮板	stat.offensiveRebound	James	female	latin		de-offensive-rebound.wav
+de-defensive-rebound	de	stat	canonical	Eddy (German (Germany))	Olivia defensiv rebound	Olivia 后场篮板	stat.defensiveRebound	Olivia	male	latin		de-defensive-rebound.wav
+de-assist	de	stat	canonical	Eddy (German (Germany))	Zhang王 assist	Zhang王 助攻	stat.assist	Zhang王	female	mixed		de-assist.wav
+de-block	de	stat	canonical	Eddy (German (Germany))	李四 block	李四 盖帽	stat.block	李四	male	latin		de-block.wav
+de-steal	de	stat	canonical	Eddy (German (Germany))	Lukas Weber steal	Lukas Weber 抢断	stat.steal	Lukas Weber	male	native		de-steal.wav
+de-turnover	de	stat	canonical	Eddy (German (Germany))	Anna Fischer turnover	Anna Fischer 失误	stat.turnover	Anna Fischer	male	native		de-turnover.wav
+de-assist-two	de	composite	canonical	Eddy (German (Germany))	Michael Müller assist Sophie Schmidt zwei	Michael Müller 助攻 Sophie Schmidt 两分	stat.assistTwoMade	Michael Müller	male	native	Sophie Schmidt	de-assist-two.wav
+de-assist-three	de	composite	canonical	Eddy (German (Germany))	Thomas Wagner assist Emma Keller drei	Thomas Wagner 助攻 Emma Keller 三分	stat.assistThreeMade	Thomas Wagner	female	native	Emma Keller	de-assist-three.wav
+de-steal-turnover	de	composite	canonical	Eddy (German (Germany))	David steal Alice	David 抢断 Alice 并造成失误	stat.stealTurnover	David	female	latin	Alice	de-steal-turnover.wav
+de-start	de	command	canonical	Eddy (German (Germany))	start	开始比赛	event.period					de-start.wav
+de-pause	de	command	canonical	Eddy (German (Germany))	auszeit	暂停比赛	event.pause					de-pause.wav
+de-game-end	de	command	canonical	Eddy (German (Germany))	spielende	结束比赛	event.game_end					de-game-end.wav
+de-undo	de	command	canonical	Eddy (German (Germany))	rückgängig	撤销上一条	event.undo					de-undo.wav
+de-redo	de	command	canonical	Eddy (German (Germany))	wiederholen	重做上一条	event.redo					de-redo.wav
+de-substitution	de	substitution	canonical	Eddy (German (Germany))	Lukas Weber wechsel Anna Fischer	Lukas Weber换下，Anna Fischer上场	event.substitution	Lukas Weber	male	native	Anna Fischer	de-substitution.wav
+es-two-made	es	shot	canonical	Eddy (Spanish (Spain))	Carlos García dos anotó	Carlos García 两分命中	stat.twoMade	Carlos García	male	native		es-two-made.wav
+es-two-missed	es	shot	canonical	Eddy (Spanish (Spain))	María López dos fallado	María López 两分不中	stat.twoMissed	María López	male	native		es-two-missed.wav
+es-three-made	es	shot	canonical	Eddy (Spanish (Spain))	Juan Pérez tres anotó	Juan Pérez 三分命中	stat.threeMade	Juan Pérez	male	native		es-three-made.wav
+es-three-missed	es	shot	canonical	Eddy (Spanish (Spain))	Ana Torres tres fallado	Ana Torres 三分不中	stat.threeMissed	Ana Torres	female	native		es-three-missed.wav
+es-bonus-made	es	shot	canonical	Eddy (Spanish (Spain))	Diego Ruiz y uno anotó	Diego Ruiz 加罚命中	stat.bonusMade	Diego Ruiz	female	native		es-bonus-made.wav
+es-bonus-missed	es	shot	canonical	Eddy (Spanish (Spain))	Laura Martín y uno fallado	Laura Martín 加罚不中	stat.bonusMissed	Laura Martín	male	native		es-bonus-missed.wav
+es-free-throw-made	es	shot	canonical	Eddy (Spanish (Spain))	Emma tiro libre anotó	Emma 罚球命中	stat.freeThrowMade	Emma	female	latin		es-free-throw-made.wav
+es-free-throw-missed	es	shot	canonical	Eddy (Spanish (Spain))	Michael tiro libre fallado	Michael 罚球不中	stat.freeThrowMissed	Michael	male	latin		es-free-throw-missed.wav
+es-layup-made	es	shot	canonical	Eddy (Spanish (Spain))	Alice bandeja anotó	Alice 上篮命中	stat.layupMade	Alice	female	latin		es-layup-made.wav
+es-layup-missed	es	shot	canonical	Eddy (Spanish (Spain))	John bandeja fallado	John 上篮不中	stat.layupMissed	John	male	latin		es-layup-missed.wav
+es-mid-range-made	es	shot	canonical	Eddy (Spanish (Spain))	GarcíaEmma media distancia anotó	GarcíaEmma 中投命中	stat.midRangeMade	GarcíaEmma	female	mixed		es-mid-range-made.wav
+es-mid-range-missed	es	shot	canonical	Eddy (Spanish (Spain))	David media distancia fallado	David 中投不中	stat.midRangeMissed	David	male	latin		es-mid-range-missed.wav
+es-paint-made	es	shot	canonical	Eddy (Spanish (Spain))	Carlos García pintura anotó	Carlos García 篮下命中	stat.paintMade	Carlos García	male	native		es-paint-made.wav
+es-paint-missed	es	shot	canonical	Eddy (Spanish (Spain))	María López pintura fallado	María López 篮下不中	stat.paintMissed	María López	male	native		es-paint-missed.wav
+es-putback-made	es	shot	canonical	Eddy (Spanish (Spain))	Juan Pérez putback anotó	Juan Pérez 补篮命中	stat.putbackMade	Juan Pérez	male	native		es-putback-made.wav
+es-putback-missed	es	shot	canonical	Eddy (Spanish (Spain))	Ana Torres putback fallado	Ana Torres 补篮不中	stat.putbackMissed	Ana Torres	female	native		es-putback-missed.wav
+es-dunk-made	es	shot	canonical	Eddy (Spanish (Spain))	Diego Ruiz mate anotó	Diego Ruiz 扣篮命中	stat.dunkMade	Diego Ruiz	female	native		es-dunk-made.wav
+es-dunk-missed	es	shot	canonical	Eddy (Spanish (Spain))	Laura Martín mate fallado	Laura Martín 扣篮不中	stat.dunkMissed	Laura Martín	male	native		es-dunk-missed.wav
+es-foul	es	stat	canonical	Eddy (Spanish (Spain))	Emma falta	Emma 犯规	stat.foul	Emma	female	latin		es-foul.wav
+es-rebound	es	stat	canonical	Eddy (Spanish (Spain))	Michael rebote	Michael 篮板	stat.rebound	Michael	male	latin		es-rebound.wav
+es-offensive-rebound	es	stat	canonical	Eddy (Spanish (Spain))	Alice rebote ofensivo	Alice 前场篮板	stat.offensiveRebound	Alice	female	latin		es-offensive-rebound.wav
+es-defensive-rebound	es	stat	canonical	Eddy (Spanish (Spain))	John rebote defensivo	John 后场篮板	stat.defensiveRebound	John	male	latin		es-defensive-rebound.wav
+es-assist	es	stat	canonical	Eddy (Spanish (Spain))	GarcíaEmma asistencia	GarcíaEmma 助攻	stat.assist	GarcíaEmma	female	mixed		es-assist.wav
+es-block	es	stat	canonical	Eddy (Spanish (Spain))	David bloqueo	David 盖帽	stat.block	David	male	latin		es-block.wav
+es-steal	es	stat	canonical	Eddy (Spanish (Spain))	Carlos García robo	Carlos García 抢断	stat.steal	Carlos García	male	native		es-steal.wav
+es-turnover	es	stat	canonical	Eddy (Spanish (Spain))	María López perdida	María López 失误	stat.turnover	María López	male	native		es-turnover.wav
+es-assist-two	es	composite	canonical	Eddy (Spanish (Spain))	Juan Pérez asistencia Ana Torres dos	Juan Pérez 助攻 Ana Torres 两分	stat.assistTwoMade	Juan Pérez	male	native	Ana Torres	es-assist-two.wav
+es-assist-three	es	composite	canonical	Eddy (Spanish (Spain))	Diego Ruiz asistencia Laura Martín tres	Diego Ruiz 助攻 Laura Martín 三分	stat.assistThreeMade	Diego Ruiz	female	native	Laura Martín	es-assist-three.wav
+es-steal-turnover	es	composite	canonical	Eddy (Spanish (Spain))	Emma robo Michael	Emma 抢断 Michael 并造成失误	stat.stealTurnover	Emma	female	latin	Michael	es-steal-turnover.wav
+es-start	es	command	canonical	Eddy (Spanish (Spain))	inicio	开始比赛	event.period					es-start.wav
+es-pause	es	command	canonical	Eddy (Spanish (Spain))	tiempo muerto	暂停比赛	event.pause					es-pause.wav
+es-game-end	es	command	canonical	Eddy (Spanish (Spain))	fin del partido	结束比赛	event.game_end					es-game-end.wav
+es-undo	es	command	canonical	Eddy (Spanish (Spain))	deshacer	撤销上一条	event.undo					es-undo.wav
+es-redo	es	command	canonical	Eddy (Spanish (Spain))	rehacer	重做上一条	event.redo					es-redo.wav
+es-substitution	es	substitution	canonical	Eddy (Spanish (Spain))	Carlos García cambio María López	Carlos García换下，María López上场	event.substitution	Carlos García	male	native	María López	es-substitution.wav
+fr-two-made	fr	shot	canonical	Eddy (French (France))	Jean Martin deux réussi	Jean Martin 两分命中	stat.twoMade	Jean Martin	male	native		fr-two-made.wav
+fr-two-missed	fr	shot	canonical	Eddy (French (France))	Claire Dubois deux raté	Claire Dubois 两分不中	stat.twoMissed	Claire Dubois	male	native		fr-two-missed.wav
+fr-three-made	fr	shot	canonical	Eddy (French (France))	Lucas Bernard trois réussi	Lucas Bernard 三分命中	stat.threeMade	Lucas Bernard	male	native		fr-three-made.wav
+fr-three-missed	fr	shot	canonical	Eddy (French (France))	Sophie Laurent trois raté	Sophie Laurent 三分不中	stat.threeMissed	Sophie Laurent	female	native		fr-three-missed.wav
+fr-bonus-made	fr	shot	canonical	Eddy (French (France))	Thomas Petit et un réussi	Thomas Petit 加罚命中	stat.bonusMade	Thomas Petit	female	native		fr-bonus-made.wav
+fr-bonus-missed	fr	shot	canonical	Eddy (French (France))	Léa Moreau et un raté	Léa Moreau 加罚不中	stat.bonusMissed	Léa Moreau	male	native		fr-bonus-missed.wav
+fr-free-throw-made	fr	shot	canonical	Eddy (French (France))	Emma lancer franc réussi	Emma 罚球命中	stat.freeThrowMade	Emma	female	latin		fr-free-throw-made.wav
+fr-free-throw-missed	fr	shot	canonical	Eddy (French (France))	Michael lancer franc raté	Michael 罚球不中	stat.freeThrowMissed	Michael	male	latin		fr-free-throw-missed.wav
+fr-layup-made	fr	shot	canonical	Eddy (French (France))	Alice lay-up réussi	Alice 上篮命中	stat.layupMade	Alice	female	latin		fr-layup-made.wav
+fr-layup-missed	fr	shot	canonical	Eddy (French (France))	John lay-up raté	John 上篮不中	stat.layupMissed	John	male	latin		fr-layup-missed.wav
+fr-mid-range-made	fr	shot	canonical	Eddy (French (France))	Martin王 mi-distance réussi	Martin王 中投命中	stat.midRangeMade	Martin王	female	mixed		fr-mid-range-made.wav
+fr-mid-range-missed	fr	shot	canonical	Eddy (French (France))	David mi-distance raté	David 中投不中	stat.midRangeMissed	David	male	latin		fr-mid-range-missed.wav
+fr-paint-made	fr	shot	canonical	Eddy (French (France))	Jean Martin intérieur réussi	Jean Martin 篮下命中	stat.paintMade	Jean Martin	male	native		fr-paint-made.wav
+fr-paint-missed	fr	shot	canonical	Eddy (French (France))	Claire Dubois intérieur raté	Claire Dubois 篮下不中	stat.paintMissed	Claire Dubois	male	native		fr-paint-missed.wav
+fr-putback-made	fr	shot	canonical	Eddy (French (France))	Lucas Bernard putback réussi	Lucas Bernard 补篮命中	stat.putbackMade	Lucas Bernard	male	native		fr-putback-made.wav
+fr-putback-missed	fr	shot	canonical	Eddy (French (France))	Sophie Laurent putback raté	Sophie Laurent 补篮不中	stat.putbackMissed	Sophie Laurent	female	native		fr-putback-missed.wav
+fr-dunk-made	fr	shot	canonical	Eddy (French (France))	Thomas Petit dunk réussi	Thomas Petit 扣篮命中	stat.dunkMade	Thomas Petit	female	native		fr-dunk-made.wav
+fr-dunk-missed	fr	shot	canonical	Eddy (French (France))	Léa Moreau dunk raté	Léa Moreau 扣篮不中	stat.dunkMissed	Léa Moreau	male	native		fr-dunk-missed.wav
+fr-foul	fr	stat	canonical	Eddy (French (France))	Emma faute	Emma 犯规	stat.foul	Emma	female	latin		fr-foul.wav
+fr-rebound	fr	stat	canonical	Eddy (French (France))	Michael rebond	Michael 篮板	stat.rebound	Michael	male	latin		fr-rebound.wav
+fr-offensive-rebound	fr	stat	canonical	Eddy (French (France))	Alice rebond offensif	Alice 前场篮板	stat.offensiveRebound	Alice	female	latin		fr-offensive-rebound.wav
+fr-defensive-rebound	fr	stat	canonical	Eddy (French (France))	John rebond défensif	John 后场篮板	stat.defensiveRebound	John	male	latin		fr-defensive-rebound.wav
+fr-assist	fr	stat	canonical	Eddy (French (France))	Martin王 passe	Martin王 助攻	stat.assist	Martin王	female	mixed		fr-assist.wav
+fr-block	fr	stat	canonical	Eddy (French (France))	David contre	David 盖帽	stat.block	David	male	latin		fr-block.wav
+fr-steal	fr	stat	canonical	Eddy (French (France))	Jean Martin interception	Jean Martin 抢断	stat.steal	Jean Martin	male	native		fr-steal.wav
+fr-turnover	fr	stat	canonical	Eddy (French (France))	Claire Dubois perte de balle	Claire Dubois 失误	stat.turnover	Claire Dubois	male	native		fr-turnover.wav
+fr-assist-two	fr	composite	canonical	Eddy (French (France))	Lucas Bernard passe Sophie Laurent deux	Lucas Bernard 助攻 Sophie Laurent 两分	stat.assistTwoMade	Lucas Bernard	male	native	Sophie Laurent	fr-assist-two.wav
+fr-assist-three	fr	composite	canonical	Eddy (French (France))	Thomas Petit passe Léa Moreau trois	Thomas Petit 助攻 Léa Moreau 三分	stat.assistThreeMade	Thomas Petit	female	native	Léa Moreau	fr-assist-three.wav
+fr-steal-turnover	fr	composite	canonical	Eddy (French (France))	Emma interception Michael	Emma 抢断 Michael 并造成失误	stat.stealTurnover	Emma	female	latin	Michael	fr-steal-turnover.wav
+fr-start	fr	command	canonical	Eddy (French (France))	début	开始比赛	event.period					fr-start.wav
+fr-pause	fr	command	canonical	Eddy (French (France))	temps mort	暂停比赛	event.pause					fr-pause.wav
+fr-game-end	fr	command	canonical	Eddy (French (France))	fin du match	结束比赛	event.game_end					fr-game-end.wav
+fr-undo	fr	command	canonical	Eddy (French (France))	annuler	撤销上一条	event.undo					fr-undo.wav
+fr-redo	fr	command	canonical	Eddy (French (France))	refaire	重做上一条	event.redo					fr-redo.wav
+fr-substitution	fr	substitution	canonical	Eddy (French (France))	Jean Martin remplacement Claire Dubois	Jean Martin换下，Claire Dubois上场	event.substitution	Jean Martin	male	native	Claire Dubois	fr-substitution.wav
+it-two-made	it	shot	canonical	Eddy (Italian (Italy))	Marco Rossi due segnato	Marco Rossi 两分命中	stat.twoMade	Marco Rossi	male	native		it-two-made.wav
+it-two-missed	it	shot	canonical	Eddy (Italian (Italy))	Giulia Bianchi due sbagliato	Giulia Bianchi 两分不中	stat.twoMissed	Giulia Bianchi	male	native		it-two-missed.wav
+it-three-made	it	shot	canonical	Eddy (Italian (Italy))	Luca Romano tre segnato	Luca Romano 三分命中	stat.threeMade	Luca Romano	male	native		it-three-made.wav
+it-three-missed	it	shot	canonical	Eddy (Italian (Italy))	Sofia Conti tre sbagliato	Sofia Conti 三分不中	stat.threeMissed	Sofia Conti	female	native		it-three-missed.wav
+it-bonus-made	it	shot	canonical	Eddy (Italian (Italy))	Matteo Gallo bonus segnato	Matteo Gallo 加罚命中	stat.bonusMade	Matteo Gallo	female	native		it-bonus-made.wav
+it-bonus-missed	it	shot	canonical	Eddy (Italian (Italy))	Chiara Esposito bonus sbagliato	Chiara Esposito 加罚不中	stat.bonusMissed	Chiara Esposito	male	native		it-bonus-missed.wav
+it-free-throw-made	it	shot	canonical	Eddy (Italian (Italy))	Emma tiro libero segnato	Emma 罚球命中	stat.freeThrowMade	Emma	female	latin		it-free-throw-made.wav
+it-free-throw-missed	it	shot	canonical	Eddy (Italian (Italy))	Michael tiro libero sbagliato	Michael 罚球不中	stat.freeThrowMissed	Michael	male	latin		it-free-throw-missed.wav
+it-layup-made	it	shot	canonical	Eddy (Italian (Italy))	Alice layup segnato	Alice 上篮命中	stat.layupMade	Alice	female	latin		it-layup-made.wav
+it-layup-missed	it	shot	canonical	Eddy (Italian (Italy))	John layup sbagliato	John 上篮不中	stat.layupMissed	John	male	latin		it-layup-missed.wav
+it-mid-range-made	it	shot	canonical	Eddy (Italian (Italy))	Rossi王 media distanza segnato	Rossi王 中投命中	stat.midRangeMade	Rossi王	female	mixed		it-mid-range-made.wav
+it-mid-range-missed	it	shot	canonical	Eddy (Italian (Italy))	David media distanza sbagliato	David 中投不中	stat.midRangeMissed	David	male	latin		it-mid-range-missed.wav
+it-paint-made	it	shot	canonical	Eddy (Italian (Italy))	Marco Rossi dentro segnato	Marco Rossi 篮下命中	stat.paintMade	Marco Rossi	male	native		it-paint-made.wav
+it-paint-missed	it	shot	canonical	Eddy (Italian (Italy))	Giulia Bianchi dentro sbagliato	Giulia Bianchi 篮下不中	stat.paintMissed	Giulia Bianchi	male	native		it-paint-missed.wav
+it-putback-made	it	shot	canonical	Eddy (Italian (Italy))	Luca Romano putback segnato	Luca Romano 补篮命中	stat.putbackMade	Luca Romano	male	native		it-putback-made.wav
+it-putback-missed	it	shot	canonical	Eddy (Italian (Italy))	Sofia Conti putback sbagliato	Sofia Conti 补篮不中	stat.putbackMissed	Sofia Conti	female	native		it-putback-missed.wav
+it-dunk-made	it	shot	canonical	Eddy (Italian (Italy))	Matteo Gallo schiacciata segnata	Matteo Gallo 扣篮命中	stat.dunkMade	Matteo Gallo	female	native		it-dunk-made.wav
+it-dunk-missed	it	shot	canonical	Eddy (Italian (Italy))	Chiara Esposito schiacciata sbagliata	Chiara Esposito 扣篮不中	stat.dunkMissed	Chiara Esposito	male	native		it-dunk-missed.wav
+it-foul	it	stat	canonical	Eddy (Italian (Italy))	Emma fallo	Emma 犯规	stat.foul	Emma	female	latin		it-foul.wav
+it-rebound	it	stat	canonical	Eddy (Italian (Italy))	Michael rimbalzo	Michael 篮板	stat.rebound	Michael	male	latin		it-rebound.wav
+it-offensive-rebound	it	stat	canonical	Eddy (Italian (Italy))	Alice rimbalzo offensivo	Alice 前场篮板	stat.offensiveRebound	Alice	female	latin		it-offensive-rebound.wav
+it-defensive-rebound	it	stat	canonical	Eddy (Italian (Italy))	John rimbalzo difensivo	John 后场篮板	stat.defensiveRebound	John	male	latin		it-defensive-rebound.wav
+it-assist	it	stat	canonical	Eddy (Italian (Italy))	Rossi王 assist	Rossi王 助攻	stat.assist	Rossi王	female	mixed		it-assist.wav
+it-block	it	stat	canonical	Eddy (Italian (Italy))	David stoppata	David 盖帽	stat.block	David	male	latin		it-block.wav
+it-steal	it	stat	canonical	Eddy (Italian (Italy))	Marco Rossi palla rubata	Marco Rossi 抢断	stat.steal	Marco Rossi	male	native		it-steal.wav
+it-turnover	it	stat	canonical	Eddy (Italian (Italy))	Giulia Bianchi perse	Giulia Bianchi 失误	stat.turnover	Giulia Bianchi	male	native		it-turnover.wav
+it-assist-two	it	composite	canonical	Eddy (Italian (Italy))	Luca Romano assist Sofia Conti due	Luca Romano 助攻 Sofia Conti 两分	stat.assistTwoMade	Luca Romano	male	native	Sofia Conti	it-assist-two.wav
+it-assist-three	it	composite	canonical	Eddy (Italian (Italy))	Matteo Gallo assist Chiara Esposito tre	Matteo Gallo 助攻 Chiara Esposito 三分	stat.assistThreeMade	Matteo Gallo	female	native	Chiara Esposito	it-assist-three.wav
+it-steal-turnover	it	composite	canonical	Eddy (Italian (Italy))	Emma palla rubata Michael	Emma 抢断 Michael 并造成失误	stat.stealTurnover	Emma	female	latin	Michael	it-steal-turnover.wav
+it-start	it	command	canonical	Eddy (Italian (Italy))	inizio	开始比赛	event.period					it-start.wav
+it-pause	it	command	canonical	Eddy (Italian (Italy))	timeout	暂停比赛	event.pause					it-pause.wav
+it-game-end	it	command	canonical	Eddy (Italian (Italy))	fine partita	结束比赛	event.game_end					it-game-end.wav
+it-undo	it	command	canonical	Eddy (Italian (Italy))	annulla	撤销上一条	event.undo					it-undo.wav
+it-redo	it	command	canonical	Eddy (Italian (Italy))	ripeti	重做上一条	event.redo					it-redo.wav
+it-substitution	it	substitution	canonical	Eddy (Italian (Italy))	Marco Rossi cambio Giulia Bianchi	Marco Rossi换下，Giulia Bianchi上场	event.substitution	Marco Rossi	male	native	Giulia Bianchi	it-substitution.wav
+ru-two-made	ru	shot	canonical	Milena	Иванов два попал	Иванов 两分命中	stat.twoMade	Иванов	male	native		ru-two-made.wav
+ru-two-missed	ru	shot	canonical	Milena	Петров два промах	Петров 两分不中	stat.twoMissed	Петров	male	native		ru-two-missed.wav
+ru-three-made	ru	shot	canonical	Milena	Алексей Смирнов три попал	Алексей Смирнов 三分命中	stat.threeMade	Алексей Смирнов	male	native		ru-three-made.wav
+ru-three-missed	ru	shot	canonical	Milena	Мария Иванова три промах	Мария Иванова 三分不中	stat.threeMissed	Мария Иванова	female	native		ru-three-missed.wav
+ru-bonus-made	ru	shot	canonical	Milena	Анна Петрова бонус попал	Анна Петрова 加罚命中	stat.bonusMade	Анна Петрова	female	native		ru-bonus-made.wav
+ru-bonus-missed	ru	shot	canonical	Milena	Сергей Кузнецов бонус промах	Сергей Кузнецов 加罚不中	stat.bonusMissed	Сергей Кузнецов	male	native		ru-bonus-missed.wav
+ru-free-throw-made	ru	shot	canonical	Milena	Emma штрафной попал	Emma 罚球命中	stat.freeThrowMade	Emma	female	latin		ru-free-throw-made.wav
+ru-free-throw-missed	ru	shot	canonical	Milena	Michael штрафной промах	Michael 罚球不中	stat.freeThrowMissed	Michael	male	latin		ru-free-throw-missed.wav
+ru-layup-made	ru	shot	canonical	Milena	Alice лей-ап попал	Alice 上篮命中	stat.layupMade	Alice	female	latin		ru-layup-made.wav
+ru-layup-missed	ru	shot	canonical	Milena	John лей-ап промах	John 上篮不中	stat.layupMissed	John	male	latin		ru-layup-missed.wav
+ru-mid-range-made	ru	shot	canonical	Milena	ИванEmma средний попал	ИванEmma 中投命中	stat.midRangeMade	ИванEmma	female	mixed		ru-mid-range-made.wav
+ru-mid-range-missed	ru	shot	canonical	Milena	David средний промах	David 中投不中	stat.midRangeMissed	David	male	latin		ru-mid-range-missed.wav
+ru-paint-made	ru	shot	canonical	Milena	Иванов краска попал	Иванов 篮下命中	stat.paintMade	Иванов	male	native		ru-paint-made.wav
+ru-paint-missed	ru	shot	canonical	Milena	Петров краска промах	Петров 篮下不中	stat.paintMissed	Петров	male	native		ru-paint-missed.wav
+ru-putback-made	ru	shot	canonical	Milena	Алексей Смирнов putback попал	Алексей Смирнов 补篮命中	stat.putbackMade	Алексей Смирнов	male	native		ru-putback-made.wav
+ru-putback-missed	ru	shot	canonical	Milena	Мария Иванова putback промах	Мария Иванова 补篮不中	stat.putbackMissed	Мария Иванова	female	native		ru-putback-missed.wav
+ru-dunk-made	ru	shot	canonical	Milena	Анна Петрова данк попал	Анна Петрова 扣篮命中	stat.dunkMade	Анна Петрова	female	native		ru-dunk-made.wav
+ru-dunk-missed	ru	shot	canonical	Milena	Сергей Кузнецов данк промах	Сергей Кузнецов 扣篮不中	stat.dunkMissed	Сергей Кузнецов	male	native		ru-dunk-missed.wav
+ru-foul	ru	stat	canonical	Milena	Emma фол	Emma 犯规	stat.foul	Emma	female	latin		ru-foul.wav
+ru-rebound	ru	stat	canonical	Milena	Michael подбор	Michael 篮板	stat.rebound	Michael	male	latin		ru-rebound.wav
+ru-offensive-rebound	ru	stat	canonical	Milena	Alice подбор в нападении	Alice 前场篮板	stat.offensiveRebound	Alice	female	latin		ru-offensive-rebound.wav
+ru-defensive-rebound	ru	stat	canonical	Milena	John подбор в защите	John 后场篮板	stat.defensiveRebound	John	male	latin		ru-defensive-rebound.wav
+ru-assist	ru	stat	canonical	Milena	ИванEmma передача	ИванEmma 助攻	stat.assist	ИванEmma	female	mixed		ru-assist.wav
+ru-block	ru	stat	canonical	Milena	David блок	David 盖帽	stat.block	David	male	latin		ru-block.wav
+ru-steal	ru	stat	canonical	Milena	Иванов перехват	Иванов 抢断	stat.steal	Иванов	male	native		ru-steal.wav
+ru-turnover	ru	stat	canonical	Milena	Петров потеря	Петров 失误	stat.turnover	Петров	male	native		ru-turnover.wav
+ru-assist-two	ru	composite	canonical	Milena	Алексей Смирнов передача Мария Иванова два	Алексей Смирнов 助攻 Мария Иванова 两分	stat.assistTwoMade	Алексей Смирнов	male	native	Мария Иванова	ru-assist-two.wav
+ru-assist-three	ru	composite	canonical	Milena	Анна Петрова передача Сергей Кузнецов три	Анна Петрова 助攻 Сергей Кузнецов 三分	stat.assistThreeMade	Анна Петрова	female	native	Сергей Кузнецов	ru-assist-three.wav
+ru-steal-turnover	ru	composite	canonical	Milena	Emma перехват Michael	Emma 抢断 Michael 并造成失误	stat.stealTurnover	Emma	female	latin	Michael	ru-steal-turnover.wav
+ru-start	ru	command	canonical	Milena	начало	开始比赛	event.period					ru-start.wav
+ru-pause	ru	command	canonical	Milena	тайм-аут	暂停比赛	event.pause					ru-pause.wav
+ru-game-end	ru	command	canonical	Milena	конец игры	结束比赛	event.game_end					ru-game-end.wav
+ru-undo	ru	command	canonical	Milena	отменить	撤销上一条	event.undo					ru-undo.wav
+ru-redo	ru	command	canonical	Milena	повторить	重做上一条	event.redo					ru-redo.wav
+ru-substitution	ru	substitution	canonical	Milena	Иванов замена Петров	Иванов换下，彼得罗夫上场	event.substitution	Иванов	male	native	Петров	ru-substitution.wav

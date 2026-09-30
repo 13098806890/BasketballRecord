@@ -18,11 +18,24 @@ private let voiceLanguages: [(id: String, name: String)] = [
 struct VoiceSettingsView: View {
     @ObservedObject var store: AppStore
     @AppStorage(kVoiceLocaleKey) private var voiceLocale: String = ""
+    @AppStorage(kVoiceASREngineKey) private var voiceASREngineRawValue: String = VoiceASREngine.legacySpeech.rawValue
     @AppStorage("voice_matching_threshold") private var voiceMatchingThreshold: Double = 0.6
     @AppStorage("voice_show_success_animation") private var showVoiceSuccessAnimation = true
 
     private var effectiveLocale: String {
         voiceLocale.isEmpty ? (Bundle.main.preferredLocalizations.first ?? "en") : voiceLocale
+    }
+
+    private var selectedASREngine: Binding<VoiceASREngine> {
+        Binding(
+            get: {
+                guard let engine = VoiceASREngine(rawValue: voiceASREngineRawValue), engine.isAvailableOnCurrentOS else {
+                    return .legacySpeech
+                }
+                return engine
+            },
+            set: { voiceASREngineRawValue = $0.rawValue }
+        )
     }
 
     var body: some View {
@@ -40,6 +53,21 @@ struct VoiceSettingsView: View {
                 }
             } footer: {
                 Text(LocalizedStringKey("settings_voice_locale_footer"))
+            }
+
+            Section {
+                Picker(selection: selectedASREngine) {
+                    ForEach(VoiceASREngine.allCases) { engine in
+                        if engine == .legacySpeech || engine.isAvailableOnCurrentOS {
+                            Text(engine.titleKey).tag(engine)
+                        }
+                    }
+                } label: {
+                    Label(LocalizedStringKey("settings_voice_asr_engine"), systemImage: "waveform.badge.mic")
+                        .foregroundStyle(.primary)
+                }
+            } footer: {
+                Text(LocalizedStringKey("settings_voice_asr_engine_footer"))
             }
 
             Section {

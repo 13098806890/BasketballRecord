@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "test_cases": [
+    {
+      "id": "voice-asr-legacy-regression",
+      "name": "旧版语音方案回归",
+      "tier": "critical-smoke",
+      "source": "BasketballRecordTests/VoiceASRTests.swift"
+    },
+    {
+      "id": "voice-asr-engine-preference",
+      "name": "识别引擎偏好与旧值回退",
+      "tier": "dependency",
+      "source": "BasketballRecordTests/VoiceASREngineTests.swift"
+    },
+    {
+      "id": "voice-asr-multilingual-evaluation",
+      "name": "十种语言识别评测",
+      "tier": "direct",
+      "source": "Tools/VoiceEvaluation/manifest.tsv"
+    }
+  ]
+}

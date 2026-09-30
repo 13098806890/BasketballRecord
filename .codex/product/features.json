@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "features": [
+    {
+      "id": "voice-asr-engine-selection",
+      "name": "语音识别引擎选择",
+      "status": "in-progress",
+      "source": "BasketballRecord/Views/VoiceSettingsView.swift"
+    },
+    {
+      "id": "voice-asr-multilingual-recognition",
+      "name": "多语言实时语音识别",
+      "status": "in-progress",
+      "source": "BasketballRecord/Models/VoiceRecognizer.swift"
+    }
+  ]
+}

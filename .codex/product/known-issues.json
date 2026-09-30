@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "issues": [
+    {
+      "id": "speech-transcriber-device-validation-pending",
+      "severity": "medium",
+      "status": "open",
+      "summary": "SpeechTranscriber 的真实麦克风、语言资源下载和端到端延迟尚未在真实设备验证",
+      "source": "Artifacts/AgentWorkflow/20260924-180159-task/02-developer.html"
+    }
+  ]
+}

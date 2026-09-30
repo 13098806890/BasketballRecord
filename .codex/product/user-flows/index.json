@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "flows": [
+    {
+      "id": "voice-settings-engine-selection",
+      "name": "设置中选择语音识别方案",
+      "entry": "VoiceSettingsView",
+      "source": "BasketballRecord/Views/VoiceSettingsView.swift"
+    },
+    {
+      "id": "game-voice-recording",
+      "name": "比赛中使用语音记录事件",
+      "entry": "GameView",
+      "source": "BasketballRecord/Views/Game/GameView.swift"
+    }
+  ]
+}

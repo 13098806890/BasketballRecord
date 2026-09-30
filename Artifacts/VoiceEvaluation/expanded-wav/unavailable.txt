@@ -1,0 +1,1 @@
+VOICE_ASR_UNAVAILABLE,speechTranscriber,当前设备或语音语言不支持 SpeechTranscriber。

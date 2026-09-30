@@ -1,0 +1,361 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test-without-building -xctestrun /tmp/basketballrecord-voice-derived.RWk8UB/Build/Products/BasketballRecord_voice_evaluation.xctestrun -destination id=00008110-001414EC1122401E "-only-testing:BasketballRecordTests/VoiceASRFileTranscriptionTests/testConfiguredWAVCorpusIsReadable" "-only-testing:BasketballRecordTests/VoiceASRFileTranscriptionTests/testConfiguredFileCorpus"
+
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:iOS, arch:arm64e, id:00008110-001414EC1122401E, name:bobo'iPhone (7) }
+{ platform:iOS, arch:arm64, id:00008110-001414EC1122401E, name:bobo'iPhone (7) }
+[LoadCheck] CoreData → players=12 teams=2 gameGroups=5 playerGroups=1 savedGames=12
+2026-09-30 00:44:46.265534+0800 BasketballRecord[18742:3163986] [AVAudioSession Hang Risk]     AVAudioSession_iOS.mm:978   This method can lead to UI unresponsiveness if called on the main thread. Consider using the asynchronous activate/deactivate API instead for calls from the main thread.
+[CloudKit] Container: iCloud.com.xiedongze.BasketballRecord
+[CloudKit] DB: privateCloudDatabase
+[CloudKit] sync called with 9 enabled IDs, 12 local games
+[CloudKit] Uploading local game 5C976DA6-24DB-4236-872D-8BA0557DD463
+[CloudKit] uploadGame called for game 5C976DA6-24DB-4236-872D-8BA0557DD463
+[CloudKit] checkAvailability called
+2026-09-30 00:44:46.547981+0800 BasketballRecord[18742:3163986] [XPCErrors] non-launching port is incompatible with service identifier "com.apple.PointerUI.pointeruid.default-service"
+2026-09-30 00:44:46.550080+0800 BasketballRecord[18742:3163986] [API] cannot add handler to 0 from 0 - dropping
+2026-09-30 00:44:46.551039+0800 BasketballRecord[18742:3163986] [API] cannot add handler to 0 from 0 - dropping
+2026-09-30 00:44:46.552131+0800 BasketballRecord[18742:3163986] [API] cannot add handler to 0 from 0 - dropping
+2026-09-30 00:44:46.552141+0800 BasketballRecord[18742:3163986] [API] cannot add handler to 0 from 0 - dropping
+[CloudKit] accountStatus: 1
+[CloudKit] iCloud account available
+[CloudKit] Encoded game: 116230 bytes
+[CloudKit] Checking for existing record: 5C976DA6-24DB-4236-872D-8BA0557DD463
+2026-09-30 00:44:46.599427+0800 BasketballRecord[18742:3163986] [Purchase] Pro status: 0
+2026-09-30 00:44:46.599504+0800 BasketballRecord[18742:3163986] [Purchase] Loading products
+2026-09-30 00:44:46.632515+0800 BasketballRecord[18742:3163986] [Purchase] Products: monthly=✅, yearly=✅
+Test Suite 'Selected tests' started at 2026-09-30 00:44:46.954.
+Test Suite 'BasketballRecordTests.xctest' started at 2026-09-30 00:44:46.954.
+Test Suite 'VoiceASRFileTranscriptionTests' started at 2026-09-30 00:44:46.955.
+Test Case '-[BasketballRecordTests.VoiceASRFileTranscriptionTests testConfiguredFileCorpus]' started.
+VOICE_ASR_UNAVAILABLE,speechTranscriber,当前设备或语音语言不支持 SpeechTranscriber。
+/Users/xiedongze/.codex/worktrees/voice-asr-evaluation/BasketballRecord/BasketballRecordTests/VoiceASRFileTranscriptionTests.swift:100: -[BasketballRecordTests.VoiceASRFileTranscriptionTests testConfiguredFileCorpus] : Test skipped - No ASR evaluation rows were produced
+Test Case '-[BasketballRecordTests.VoiceASRFileTranscriptionTests testConfiguredFileCorpus]' skipped (0.114 seconds).
+Test Case '-[BasketballRecordTests.VoiceASRFileTranscriptionTests testConfiguredWAVCorpusIsReadable]' started.
+2026-09-30 00:44:47.089520+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.089793+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.090060+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.090305+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.090549+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.090785+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.091023+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.091277+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.091524+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.091766+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.092004+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.092220+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.092464+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.092705+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.092954+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.093199+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.093432+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.093664+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.093906+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.094142+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.094389+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.094605+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.094830+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.095048+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.095271+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.095514+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.095815+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.096045+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.096257+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.096497+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.096705+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.096926+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.097136+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.097350+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.097585+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.097797+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.098010+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.098218+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.098427+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.098663+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.098866+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.099083+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.099290+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.099507+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.099715+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.099928+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.100143+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.100421+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.100650+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.100879+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.101104+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.101330+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.101541+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.101770+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.101994+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.102231+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.102457+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.102682+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.102906+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.103132+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.103353+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.103566+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.103789+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.104012+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.104235+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.104461+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.104682+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.104906+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.105136+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.105359+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.105581+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.105799+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.106035+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.106260+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.106482+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.106714+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.106963+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.107207+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.107435+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.107673+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.107903+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.108151+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.108391+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.108625+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.108856+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.109082+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.109323+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.109549+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.109785+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.110017+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.110250+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.110482+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.110715+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.110986+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.111210+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.112107+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.112998+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.113367+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.115064+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.115656+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.115980+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.116465+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.116969+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.117305+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.117643+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.117965+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.118294+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.118801+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.119311+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.119640+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.119897+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.120142+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.120485+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.120912+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.121246+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.121617+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.121953+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.122192+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.122422+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.122654+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.122879+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.123581+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.123827+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.124052+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.124419+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.124647+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.124864+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.125115+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.125356+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.125610+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.125865+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.126104+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.126334+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.126565+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.126792+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.127028+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.127268+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.127500+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.127730+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.127960+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.128192+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.128439+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.128674+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.128914+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.129145+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.129568+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.129921+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.130276+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.130625+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.130971+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.131313+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.131621+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.131860+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.132122+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.132396+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.132621+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.132872+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.133247+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.133572+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.133804+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.134104+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.134334+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.134569+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.134805+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.135041+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.135262+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.135485+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.135713+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.135933+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.136159+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.136385+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.136618+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.136848+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.137079+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.137303+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.137514+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.137745+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.137979+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.138211+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.138451+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.138695+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.138918+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.139144+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.139377+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.139620+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.139850+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.140069+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.140291+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.140517+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.140719+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.140960+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.141189+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.141413+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.141957+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.142305+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.142543+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.142766+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.142988+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.143221+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.143449+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.143686+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.143913+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.144141+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.144370+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.144593+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.144820+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.145053+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.145279+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.145502+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.145728+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.145959+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.146194+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.146434+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.146667+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.146879+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.147093+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.147328+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.147556+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.147783+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.148657+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.148907+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.149129+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.149357+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.149581+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.149810+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.150048+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.150276+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.150510+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.150741+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.150972+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.151200+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.151432+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.151653+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.151878+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.152099+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.152332+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.152540+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.152769+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.152993+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.153218+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.153446+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.153670+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.153892+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.154122+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.154346+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.154568+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.154798+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.155023+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.155257+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.155493+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.156246+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.156493+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.156722+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.156952+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.157176+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.157397+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.157623+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.157845+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.158061+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.158284+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.158507+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.158715+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.158937+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.159162+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.159375+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.159585+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.159803+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.160022+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.160241+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.160462+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.160682+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.160902+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.161729+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.161969+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.162200+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.162418+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.162634+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.162858+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.163086+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.163311+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.163541+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.163764+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.163992+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.164226+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.164453+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.164678+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.164906+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.165127+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.165353+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.165571+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.165796+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.166020+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.166247+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.167037+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.167282+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+2026-09-30 00:44:47.167515+0800 BasketballRecord[18742:3163986] [carc] Message send exceeds rate-limit threshold and will be dropped. { reporterID=0, rateLimit=32hz }
+Test Case '-[BasketballRecordTests.VoiceASRFileTranscriptionTests testConfiguredWAVCorpusIsReadable]' passed (0.099 seconds).
+Test Suite 'VoiceASRFileTranscriptionTests' passed at 2026-09-30 00:44:47.168.
+	 Executed 2 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.213 (0.214) seconds
+Test Suite 'BasketballRecordTests.xctest' passed at 2026-09-30 00:44:47.168.
+	 Executed 2 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.213 (0.214) seconds
+Test Suite 'Selected tests' passed at 2026-09-30 00:44:47.168.
+	 Executed 2 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.213 (0.215) seconds
+[CloudKit] Skipping upload - cloud current or newer (cloud=2026-09-28 06:11:25 +0000, local=2026-09-28 06:11:25 +0000)
+[CloudKit] Uploading local game 34618CEC-3BB9-4A1D-8075-2D8CDDDF0EC8
+[CloudKit] uploadGame called for game 34618CEC-3BB9-4A1D-8075-2D8CDDDF0EC8
+[CloudKit] checkAvailability called
+[CloudKit] accountStatus: 1
+[CloudKit] iCloud account available
+[CloudKit] Encoded game: 117077 bytes
+[CloudKit] Checking for existing record: 34618CEC-3BB9-4A1D-8075-2D8CDDDF0EC8
+2026-09-30 00:44:47.176704+0800 BasketballRecord[18742:3163986] [Purchase] Pro status: 0
+2026-09-30 00:44:47.666 xcodebuild[39966:299940] [MT] IDETestOperationsObserverDebug: 13.487 elapsed -- Testing started completed.
+2026-09-30 00:44:47.666 xcodebuild[39966:299940] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-09-30 00:44:47.666 xcodebuild[39966:299940] [MT] IDETestOperationsObserverDebug: 13.487 sec, +13.487 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-bfvsbbfbdjpxnlewakmqeyvnqeag/Logs/Test/Test-BasketballRecord-2026.09.30_00-44-34-+0800.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started
+Test suite 'Selected tests' started on 'bobo'iPhone (7) - BasketballRecord (18742)'
+Test suite 'BasketballRecordTests.xctest' started on 'bobo'iPhone (7) - BasketballRecord (18742)'
+Test suite 'VoiceASRFileTranscriptionTests' started on 'bobo'iPhone (7) - BasketballRecord (18742)'
+Test case 'VoiceASRFileTranscriptionTests.testConfiguredFileCorpus()' skipped on 'bobo'iPhone (7) - BasketballRecord (18742)' (0.114 seconds)
+Test case 'VoiceASRFileTranscriptionTests.testConfiguredWAVCorpusIsReadable()' passed on 'bobo'iPhone (7) - BasketballRecord (18742)' (0.099 seconds)

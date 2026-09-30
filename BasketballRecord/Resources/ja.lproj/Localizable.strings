@@ -906,6 +906,10 @@
 "settings_voice_locale" = "音声言語";
 "settings_voice_locale_follow_app" = "アプリ言語に従う";
 "settings_voice_locale_footer" = "音声認識に使用する言語を選択します。スコアリングページとチュートリアルの両方に影響します。";
+"settings_voice_asr_engine" = "認識エンジン";
+"settings_voice_asr_legacy" = "Apple Speech（従来版）";
+"settings_voice_asr_speech_transcriber" = "Apple SpeechTranscriber";
+"settings_voice_asr_engine_footer" = "音声認識エンジンを選択します。SpeechTranscriber には iOS 26 以降が必要です。従来版では現在の認識動作を維持します。";
 "settings_voice_matching_threshold" = "マッチング感度";
 "settings_voice_matching_threshold_footer" = "値が低いほど緩やかな一致を許容（推奨 0.6）";
 
@@ -921,6 +925,8 @@
 "settings_voice_log_enable_footer" = "音声認識の詳細なマッチング過程を記録し、デバッグや確認に役立てます。";
 "settings_voice_show_success_animation" = "成功アニメーションを表示";
 "settings_voice_show_success_animation_footer" = "音声入力が認識されたときに、選手のアバターとアクション名を表示するアニメーションを表示します。";
+"voice_speech_transcriber_unavailable" = "このデバイスまたは音声言語では SpeechTranscriber を利用できません。";
+"voice_speech_transcriber_setup_failed" = "SpeechTranscriber を起動できませんでした。Apple Speech（従来版）を試すか、デバイスの音声リソースを確認してください。";
 "voice_shortcuts_empty" = "音声ショートカットがありません";
 "voice_shortcuts_empty_desc" = "カスタムフレーズを作成してアクションをトリガーします。";
 "voice_shortcuts_custom" = "カスタム";

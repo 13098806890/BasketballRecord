@@ -54,6 +54,27 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
     private var enginePrepared = false
+    private var asrEngine = VoiceASREngine.effectiveStored
+    private var speechTranscriberStartTask: Task<Void, Never>?
+    private var speechTranscriberStopRequested = false
+    private var speechTranscriberEngineStorage: AnyObject?
+
+    @available(iOS 26.0, *)
+    private var speechTranscriberEngine: SpeechTranscriberEngine {
+        if let engine = speechTranscriberEngineStorage as? SpeechTranscriberEngine {
+            return engine
+        }
+        let engine = SpeechTranscriberEngine()
+        engine.onResult = { [weak self] text, alternatives, isFinal in
+            guard let self, isFinal else { return }
+            self.processSpeechTranscriberCandidates(primary: text, alternatives: alternatives)
+        }
+        engine.onError = { [weak self] error in
+            self?.handleSpeechTranscriberError(error)
+        }
+        speechTranscriberEngineStorage = engine
+        return engine
+    }
 
     override init() {
         let rules = VoiceRules.forCurrentAppLanguage()
@@ -63,19 +84,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     func updateRules(for locale: Locale) {
-        let rules: VoiceRules
-        switch locale.identifier {
-        case let id where id.hasPrefix("en"): rules = .english
-        case let id where id.hasPrefix("ja"): rules = .japanese
-        case let id where id.hasPrefix("ko"): rules = .korean
-        case let id where id.hasPrefix("de"): rules = .german
-        case let id where id.hasPrefix("es"): rules = .spanish
-        case let id where id.hasPrefix("fr"): rules = .french
-        case let id where id.hasPrefix("it"): rules = .italian
-        case let id where id.hasPrefix("ru"): rules = .russian
-        case let id where id.hasPrefix("zh-Hant"): rules = .traditionalChinese
-        default: rules = .chinese
-        }
+        let rules = VoiceRules.forLocale(locale)
         applyRules(rules)
         speechRecognizer = SFSpeechRecognizer(locale: rules.speechRecognizerLocale)
     }
@@ -171,7 +180,22 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     func configure(store: AppStore) {
         self.store = store
-        prepareEngine()
+        asrEngine = VoiceASREngine.effectiveStored
+        if asrEngine == .legacySpeech {
+            prepareEngine()
+        }
+    }
+
+    func configureForFileEvaluation(store: AppStore) {
+        self.store = store
+        asrEngine = .speechTranscriber
+    }
+
+    func updateASREngine(_ engine: VoiceASREngine) {
+        asrEngine = engine.isAvailableOnCurrentOS ? engine : .legacySpeech
+        if asrEngine == .legacySpeech {
+            prepareEngine()
+        }
     }
 
     private func prepareEngine() {
@@ -211,6 +235,11 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             showError(NSLocalizedString("voice_auth_microphone", comment: ""))
             return
         }
+        if asrEngine == .speechTranscriber {
+            startSpeechTranscriberRecording()
+            return
+        }
+
         guard let recognizer = speechRecognizer, recognizer.isAvailable else {
             showError(NSLocalizedString("voice_unavailable", comment: ""))
             return
@@ -236,11 +265,91 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     func stopRecording() {
         guard isRecording else { return }
+
+        if asrEngine == .speechTranscriber {
+            isRecording = false
+            speechTranscriberStopRequested = true
+            if #available(iOS 26.0, *) {
+                speechTranscriberEngine.requestStop()
+            }
+            return
+        }
+
         isRecording = false
         recognitionRequest?.endAudio()
         recognitionTask?.finish()
         recognitionTask = nil
         recognitionRequest = nil
+    }
+
+    private func startSpeechTranscriberRecording() {
+        guard #available(iOS 26.0, *) else {
+            showError(NSLocalizedString("voice_speech_transcriber_unavailable", comment: ""))
+            return
+        }
+
+        isRecording = true
+        speechTranscriberStopRequested = false
+        speechTranscriberStartTask?.cancel()
+        let locale = currentRules.speechRecognizerLocale
+        let contextualStrings = speechTranscriberContextualStrings()
+        speechTranscriberStartTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await speechTranscriberEngine.start(locale: locale, contextualStrings: contextualStrings)
+                if speechTranscriberStopRequested {
+                    speechTranscriberEngine.requestStop()
+                }
+            } catch is CancellationError {
+            } catch {
+                isRecording = false
+                showError(error.localizedDescription)
+            }
+        }
+    }
+
+    private func speechTranscriberContextualStrings() -> [String] {
+        let playerNames = store?.players.map(\.name) ?? []
+        return currentRules.contextualStrings(playerNames: playerNames)
+    }
+
+    private func processSpeechTranscriberCandidates(primary: String, alternatives: [String]) {
+        var candidates = [primary]
+        for alternative in alternatives where !alternative.isEmpty && !candidates.contains(alternative) {
+            candidates.append(alternative)
+        }
+        let selected = candidates.max { left, right in
+            speechTranscriberCandidateScore(left) < speechTranscriberCandidateScore(right)
+        } ?? primary
+        processText(selected)
+    }
+
+    private func speechTranscriberCandidateScore(_ text: String) -> Int {
+        let normalized = normalizeSpeechTranscriberText(text).lowercased()
+        guard !normalized.isEmpty else { return 0 }
+        var score = 0
+        for keyword in currentRules.shotKeywords.map(\.keyword) where normalized.contains(keyword.lowercased()) {
+            score += 3
+        }
+        for keyword in currentRules.statEvents.map(\.keyword) where normalized.contains(keyword.lowercased()) {
+            score += 3
+        }
+        for keyword in currentRules.commandEvents.map(\.keyword) where normalized.contains(keyword.lowercased()) {
+            score += 3
+        }
+        for keyword in currentRules.madeStates + currentRules.missedStates where normalized.contains(keyword.lowercased()) {
+            score += 1
+        }
+        for player in store?.players ?? [] where normalized.contains(player.name.lowercased()) {
+            score += 4
+        }
+        return score
+    }
+
+    private func handleSpeechTranscriberError(_ error: Error) {
+        guard isRecording else { return }
+        isRecording = false
+        showError(error.localizedDescription)
     }
 
     /// Start buffering log details for a new recognition session.
@@ -403,11 +512,21 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
 
                 // Priority 1.5: Levenshtein distance for Latin-script names
-                if currentRules.useLevenshteinMatching {
+                if currentRules.useLevenshteinMatching || asrEngine == .speechTranscriber {
                     let dist = Self.levenshteinDistance(text, player.name)
-                    let threshold = player.name.count < 4
+                    let baseThreshold = player.name.count < 4
                         ? currentRules.levenshteinThreshold.short
                         : currentRules.levenshteinThreshold.long
+                    let hasLatin = player.name.contains { $0.isASCII && $0.isLetter }
+                    let hasNonLatin = player.name.contains { !$0.isASCII }
+                    let threshold: Int
+                    if asrEngine == .speechTranscriber && hasLatin && hasNonLatin {
+                        threshold = max(baseThreshold, 4)
+                    } else if asrEngine == .speechTranscriber && player.name.count >= 4 {
+                        threshold = max(baseThreshold, 3)
+                    } else {
+                        threshold = baseThreshold
+                    }
                     if dist > 0 && dist <= threshold {
                         let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
                         let score = max(0.65, 0.85 - Double(dist) * 0.05)
@@ -473,11 +592,14 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
 
                 // Priority 1.5: Levenshtein distance for team names
-                if currentRules.useLevenshteinMatching {
+                if currentRules.useLevenshteinMatching || asrEngine == .speechTranscriber {
                     let dist = Self.levenshteinDistance(text, team.name)
-                    let threshold = team.name.count < 4
+                    let baseThreshold = team.name.count < 4
                         ? currentRules.levenshteinThreshold.short
                         : currentRules.levenshteinThreshold.long
+                    let threshold = asrEngine == .speechTranscriber && team.name.count >= 4
+                        ? max(baseThreshold, 3)
+                        : baseThreshold
                     if dist > 0 && dist <= threshold {
                         let side: TeamSide = isHome ? .home : .away
                         let score = max(0.65, 0.85 - Double(dist) * 0.05)
@@ -711,20 +833,23 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     private func processText(_ text: String) {
+        let normalizedText = asrEngine == .speechTranscriber
+            ? normalizeSpeechTranscriberText(text)
+            : text
         preferredPlayerNumber = nil
-        logStart(text)
-        let textPinyin = currentRules.toPinyin(text)
-        logStep("原文: \(text) | 拼音: \(textPinyin)")
+        logStart(normalizedText)
+        let textPinyin = currentRules.toPinyin(normalizedText)
+        logStep("原文: \(normalizedText) | 拼音: \(textPinyin)")
 
         if let mappings = store?.customVoiceMappings {
             for (phrase, eventCode) in mappings {
-                guard let range = text.range(of: phrase, options: [.caseInsensitive]) else { continue }
+                guard let range = normalizedText.range(of: phrase, options: [.caseInsensitive]) else { continue }
                 let action = StatAction.allCases.first(where: { $0.eventCode == eventCode })
                 guard let store, let snapshot = currentSnapshot, let act = action else {
-                    addLog(text: text, isSuccess: false, action: eventCode, matchDetail: "自定义映射无对应动作: \(phrase)")
+                    addLog(text: normalizedText, isSuccess: false, action: eventCode, matchDetail: "自定义映射无对应动作: \(phrase)")
                     return
                 }
-                let leftText = String(text[text.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
+                let leftText = String(normalizedText[normalizedText.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
                 let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
                 var pid: UUID?; var sd: TeamSide?
                 if let res = resolvePlayerNumber(from: leftText, allIDs: allIDs) { pid = res.playerID; sd = res.side }
@@ -734,23 +859,25 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     if let m = matches.first { pid = m.0; sd = m.1 }
                 }
                 guard let playerID = pid, let side = sd else {
-                    addLog(text: text, isSuccess: false, action: eventCode, matchDetail: "自定义映射无球员匹配: \(phrase)")
+                    addLog(text: normalizedText, isSuccess: false, action: eventCode, matchDetail: "自定义映射无球员匹配: \(phrase)")
                     return
                 }
                 let pn = store.player(for: playerID)?.name ?? "?"
-                addLog(text: text, isSuccess: true, action: act.message, playerName: pn, matchedPattern: eventCode, matchDetail: "自定义映射: \(phrase)")
-                showSuccessFeedback(text: text, action: act, playerID: playerID, side: side)
+                addLog(text: normalizedText, isSuccess: true, action: act.message, playerName: pn, matchedPattern: eventCode, matchDetail: "自定义映射: \(phrase)")
+                showSuccessFeedback(text: normalizedText, action: act, playerID: playerID, side: side)
                 return
             }
         }
 
-        if currentRules.substitutionKeywords.contains(where: { text.range(of: $0, options: [.caseInsensitive]) != nil }) {
-            handleSubstitution(text: text, textPinyin: textPinyin)
+        if asrEngine == .speechTranscriber, processSpeechTranscriberCommand(normalizedText) { return }
+
+        if currentRules.substitutionKeywords.contains(where: { normalizedText.range(of: $0, options: [.caseInsensitive]) != nil }) {
+            handleSubstitution(text: normalizedText, textPinyin: textPinyin)
             return
         }
 
         // Only preprocess English text for English locale
-        let processedText = currentRules.locale.identifier.hasPrefix("en") ? preprocessEnglishText(text) : text
+        let processedText = currentRules.locale.identifier.hasPrefix("en") ? preprocessEnglishText(normalizedText) : normalizedText
 
         if processAnchorMatch(processedText) { return }
         if processByDirectTextMatching(text: processedText, textPinyin: textPinyin) { return }
@@ -759,6 +886,60 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         addLog(text: processedText, isSuccess: false, matchDetail: "❌ 全文无匹配: \(processedText) | 拼音: \(textPinyin)")
         showError(String(format: NSLocalizedString("voice_unrecognized_format", comment: ""), processedText))
         onFlash?(.red)
+    }
+
+    private func normalizeSpeechTranscriberText(_ text: String) -> String {
+        var normalized = text.precomposedStringWithCanonicalMapping
+        for punctuation in ["，", "。", "！", "？", "、", ",", ".", "!", "?", ";", "：", ":"] {
+            normalized = normalized.replacingOccurrences(of: punctuation, with: " ")
+        }
+        let aliases: [(String, String)] = [
+            ("兰下", "篮下"),
+            ("拦下", "篮下"),
+            ("攔下", "籃下"),
+            ("上蓝", "上篮"),
+            ("上兰", "上篮"),
+            ("上藍", "上籃"),
+            ("将罚", "加罚"),
+            ("家罚", "加罚"),
+            ("將罰", "加罰"),
+            ("伐墨", "没中"),
+            ("伐默", "没中"),
+            ("为中", "没中"),
+            ("味中", "命中"),
+            ("米钟", "命中"),
+            ("秒钟", "命中"),
+            ("助公", "助攻"),
+            ("祖公", "助攻"),
+            ("想乱", "抢断"),
+            ("相乱", "抢断"),
+            ("罰錢", "罰球"),
+            ("闆", "板")
+        ]
+        for (source, replacement) in aliases {
+            normalized = normalized.replacingOccurrences(of: source, with: replacement)
+        }
+        return normalized
+            .split(whereSeparator: { $0.isWhitespace })
+            .joined(separator: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func processSpeechTranscriberCommand(_ text: String) -> Bool {
+        let command: VoiceCommand?
+        switch text {
+        case "结束", "結束", "结束比赛", "結束比賽": command = .finishGame
+        default: command = nil
+        }
+        guard let command else { return false }
+        logStep("SpeechTranscriber命令别名")
+        logFlush(isSuccess: true, action: "比赛结束")
+        onFlash?(.green)
+        DispatchQueue.main.async { [weak self] in
+            self?.onCommand?(command)
+            self?.onFlash?(.green)
+        }
+        return true
     }
 
     private func detectTeamPrefix(_ text: String) -> TeamSide? {

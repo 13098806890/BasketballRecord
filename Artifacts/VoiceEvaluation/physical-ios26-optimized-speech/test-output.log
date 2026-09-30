@@ -1,0 +1,49 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test-without-building -xctestrun /tmp/basketballrecord-voice-derived.lQWWOl/Build/Products/BasketballRecord_voice_evaluation.xctestrun -destination id=00008030-000458161E83802E "-only-testing:BasketballRecordTests/VoiceASRFileTranscriptionTests/testConfiguredWAVCorpusIsReadable" "-only-testing:BasketballRecordTests/VoiceASRFileTranscriptionTests/testConfiguredFileCorpus"
+
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:iOS, arch:arm64e, id:00008030-000458161E83802E, name:测试iPhone }
+{ platform:iOS, arch:arm64, id:00008030-000458161E83802E, name:测试iPhone }
+[LoadCheck] CoreData → players=42 teams=10 gameGroups=0 playerGroups=0 savedGames=10
+[CloudKit] Container: iCloud.com.xiedongze.BasketballRecord
+[CloudKit] DB: privateCloudDatabase
+[CloudKit] sync called with 10 enabled IDs, 10 local games
+[CloudKit] Uploading local game 5C976DA6-24DB-4236-872D-8BA0557DD463
+[CloudKit] uploadGame called for game 5C976DA6-24DB-4236-872D-8BA0557DD463
+[CloudKit] checkAvailability called
+[CloudKit] accountStatus: 1
+[CloudKit] iCloud account available
+[CloudKit] Encoded game: 116230 bytes
+[CloudKit] Checking for existing record: 5C976DA6-24DB-4236-872D-8BA0557DD463
+2026-09-30 07:52:54.256134+0800 BasketballRecord[3764:1713406] [Purchase] Pro status: 0
+2026-09-30 07:52:54.256239+0800 BasketballRecord[3764:1713406] [Purchase] Loading products
+Test Suite 'Selected tests' started at 2026-09-30 07:52:54.405.
+Test Suite 'BasketballRecordTests.xctest' started at 2026-09-30 07:52:54.407.
+Test Suite 'VoiceASRFileTranscriptionTests' started at 2026-09-30 07:52:54.407.
+Test Case '-[BasketballRecordTests.VoiceASRFileTranscriptionTests testConfiguredFileCorpus]' started.
+VOICE_ASR_UNAVAILABLE,speechTranscriber,当前设备或语音语言不支持 SpeechTranscriber。
+/Users/xiedongze/.codex/worktrees/voice-asr-evaluation/BasketballRecord/BasketballRecordTests/VoiceASRFileTranscriptionTests.swift:102: -[BasketballRecordTests.VoiceASRFileTranscriptionTests testConfiguredFileCorpus] : Test skipped - No ASR evaluation rows were produced
+Test Case '-[BasketballRecordTests.VoiceASRFileTranscriptionTests testConfiguredFileCorpus]' skipped (0.026 seconds).
+Test Case '-[BasketballRecordTests.VoiceASRFileTranscriptionTests testConfiguredWAVCorpusIsReadable]' started.
+Test Case '-[BasketballRecordTests.VoiceASRFileTranscriptionTests testConfiguredWAVCorpusIsReadable]' passed (0.153 seconds).
+Test Suite 'VoiceASRFileTranscriptionTests' passed at 2026-09-30 07:52:54.587.
+	 Executed 2 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.179 (0.180) seconds
+Test Suite 'BasketballRecordTests.xctest' passed at 2026-09-30 07:52:54.587.
+	 Executed 2 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.179 (0.181) seconds
+Test Suite 'Selected tests' passed at 2026-09-30 07:52:54.588.
+	 Executed 2 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.179 (0.182) seconds
+2026-09-30 07:52:54.928 xcodebuild[88716:818714] [MT] IDETestOperationsObserverDebug: 12.969 elapsed -- Testing started completed.
+2026-09-30 07:52:54.928 xcodebuild[88716:818714] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-09-30 07:52:54.928 xcodebuild[88716:818714] [MT] IDETestOperationsObserverDebug: 12.969 sec, +12.969 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-hcdzgwnemgtmroahvhhvmpjmsifk/Logs/Test/Test-BasketballRecord-2026.09.30_07-52-41-+0800.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started
+Test suite 'Selected tests' started on '测试iPhone - BasketballRecord (3764)'
+Test suite 'BasketballRecordTests.xctest' started on '测试iPhone - BasketballRecord (3764)'
+Test suite 'VoiceASRFileTranscriptionTests' started on '测试iPhone - BasketballRecord (3764)'
+Test case 'VoiceASRFileTranscriptionTests.testConfiguredFileCorpus()' skipped on '测试iPhone - BasketballRecord (3764)' (0.026 seconds)
+Test case 'VoiceASRFileTranscriptionTests.testConfiguredWAVCorpusIsReadable()' passed on '测试iPhone - BasketballRecord (3764)' (0.153 seconds)

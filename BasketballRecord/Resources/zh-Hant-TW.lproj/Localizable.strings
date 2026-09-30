@@ -905,6 +905,10 @@
 "settings_voice_locale" = "語音語言";
 "settings_voice_locale_follow_app" = "跟隨 App 語言";
 "settings_voice_locale_footer" = "選擇語音辨識使用的語言。同時影響計分頁面和教學。";
+"settings_voice_asr_engine" = "辨識方案";
+"settings_voice_asr_legacy" = "Apple Speech（舊版）";
+"settings_voice_asr_speech_transcriber" = "Apple SpeechTranscriber";
+"settings_voice_asr_engine_footer" = "選擇語音辨識方案。SpeechTranscriber 需要 iOS 26 或以上版本；舊版方案會維持現有辨識行為。";
 "settings_voice_matching_threshold" = "匹配靈敏度";
 "settings_voice_matching_threshold_footer" = "數值越低匹配越寬鬆（建議 0.6）";
 
@@ -920,6 +924,8 @@
 "settings_voice_log_enable_footer" = "記錄語音識別的詳細匹配過程，便於除錯和回顧。";
 "settings_voice_show_success_animation" = "顯示成功動畫";
 "settings_voice_show_success_animation_footer" = "語音輸入成功時顯示球員頭像和動作名稱動畫。";
+"voice_speech_transcriber_unavailable" = "目前裝置或語音語言不支援 SpeechTranscriber。";
+"voice_speech_transcriber_setup_failed" = "SpeechTranscriber 啟動失敗。請嘗試 Apple Speech（舊版），或檢查裝置的語音資源。";
 "voice_shortcuts_empty" = "沒有語音快捷指令";
 "voice_shortcuts_empty_desc" = "建立自訂短語來觸發動作。";
 "voice_shortcuts_custom" = "自訂";

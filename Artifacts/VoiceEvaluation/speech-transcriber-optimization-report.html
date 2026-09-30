@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SpeechTranscriber 优化分析</title>
+<style>
+body{font:16px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;max-width:1000px;margin:36px auto;padding:0 24px;color:#172033;background:#f7f8fa}
+main{background:#fff;padding:32px;border-radius:16px;box-shadow:0 6px 24px #17203312}
+h1,h2{line-height:1.3}table{border-collapse:collapse;width:100%;margin:12px 0 24px}th,td{border:1px solid #dfe3ea;padding:8px;text-align:left;vertical-align:top}th{background:#f0f3f7}.ok{color:#087443}.warn{color:#9a5b00}.bad{color:#b42318}.note{padding:12px 16px;background:#fff7e6;border-left:4px solid #f0a202;border-radius:8px}code{background:#eef1f5;padding:.1em .3em;border-radius:4px}a{color:#165dce}
+</style>
+</head>
+<body><main>
+<h1>SpeechTranscriber 优化分析</h1>
+<p><strong>状态：</strong><span class="warn">代码优化已完成，iOS 27 优化后识别率待重新连接设备验证</span></p>
+<p>本页解释之前多语言识别率低的原因，并记录已实施的优化、真实设备证据和仍然存在的设备限制。</p>
+
+<h2>结论</h2>
+<ol>
+<li><strong>模型不可用与识别失败是两类问题。</strong>旧结果中德语、西班牙语、法语、意大利语的大量记录是 locale 资源超过设备上限，并非模型识别错误；俄语是 locale/model unavailable。</li>
+<li><strong>合成语音放大了姓名问题。</strong>英文、日文、韩文的系统 TTS 会把本地姓名或英文混合姓名读成近似音，例如英文姓名被拆成音节；这会同时影响 ASR transcript 和后续球员匹配。</li>
+<li><strong>识别文本到规则解析之间还有损失。</strong>旧实现主要依赖精确关键词，无法充分利用标点、空格变化、音译和候选文本。</li>
+<li><strong>之前的配置偏向实时速度。</strong>代码同时启用了 <code>fastResults</code> 和 <code>volatileResults</code>；Apple 文档明确说明 <code>fastResults</code> 会偏向更快但更不准确的结果。</li>
+</ol>
+
+<h2>已实施的优化</h2>
+<table><thead><tr><th>层次</th><th>改动</th><th>作用</th></tr></thead><tbody>
+<tr><td>SpeechTranscriber 配置</td><td>移除 <code>fastResults</code>；文件评测使用准确优先 profile，实时模式保留 volatile 结果并启用 alternative transcriptions。</td><td>减少速度偏置，保留实时反馈，并给解析层更多候选。</td></tr>
+<tr><td>语言上下文</td><td>按当前 locale 把投篮词、统计词、比赛命令、换人词和当前球员姓名写入 <code>AnalysisContext.contextualStrings[.general]</code>。</td><td>让模型知道本场比赛真正可能出现的词，尤其改善姓名和篮球术语。</td></tr>
+<tr><td>候选结果</td><td>实时模式收集 alternative transcriptions，按照当前语言关键词、状态词和球员名命中数量选择候选，再进入原有解析器。</td><td>避免只使用一个错误候选导致整条指令失败。</td></tr>
+<tr><td>资源生命周期</td><td>记录并释放 <code>AssetInventory</code> locale reservation；覆盖下载失败、停止、取消和正常结束。</td><td>避免连续测试或多语言切换后卡在“最多 5 个语言资源”。</td></tr>
+<tr><td>可观测性</td><td>增加统一日志和文件评测诊断：请求 locale、支持 locale、profile、asset 状态、已占用 locale、结果数、alternative 数、转写字符数和错误。</td><td>把模型不可用、资源限制、无结果、识别错误和规则解析失败分开。</td></tr>
+</tbody></table>
+
+<h2>按语言的策略</h2>
+<table><thead><tr><th>语言</th><th>profile</th><th>重点</th></tr></thead><tbody>
+<tr><td>中文简体 / 繁体</td><td>cjk-accurate</td><td>上下文词表、标点归一化、中文 ASR 常见同音误写归一化；中文 legacySpeech 路径不变。</td></tr>
+<tr><td>日语</td><td>japanese-accurate</td><td>上下文词表和 alternative transcriptions，重点覆盖片假名篮球术语及英文姓名音译。</td></tr>
+<tr><td>韩语</td><td>korean-accurate</td><td>上下文词表和姓名候选，重点覆盖英文姓名被拆成韩文音节的情况。</td></tr>
+<tr><td>英语</td><td>english-accurate</td><td>上下文词表、候选选择、原有 anchor matching 和英文数字预处理。</td></tr>
+<tr><td>德/西/法/意/俄</td><td>latin-accurate</td><td>上下文词表、alternative transcriptions、拉丁姓名编辑距离；先确保 locale/model 可用，再评价 parser。</td></tr>
+</tbody></table>
+
+<h2>真实设备证据</h2>
+<table><thead><tr><th>设备</th><th>结果</th><th>解释</th></tr></thead><tbody>
+<tr><td>iOS 27 bobo'iPhone（此前在线）</td><td>旧优化前 SpeechTranscriber 已采集多语言结果</td><td>中文简体旧结果整体 80.0%；其他语言低分和资源限制已记录在原始报告。当前设备已 offline，无法采集本轮优化后的 A/B 结果。</td></tr>
+<tr><td>iOS 26.6.2 测试iPhone（当前在线）</td><td>WAV 可读性通过；SpeechTranscriber unavailable</td><td>该设备的 SpeechTranscriber 模型不可用，因此没有把这次运行计入识别率。</td></tr>
+</tbody></table>
+
+<h2>证据文件</h2>
+<ul>
+<li><a href="multilingual-report.html">上一轮多语言识别结果</a></li>
+<li><a href="physical-ios26-optimized-speech/test-output.log">iOS 26 真机测试日志</a></li>
+<li><a href="physical-ios26-optimized-speech/unavailable.txt">iOS 26 模型不可用记录</a></li>
+<li><a href="../AgentWorkflow/20260929-232634-task/test-design.md">测试用例设计</a></li>
+</ul>
+
+<h2>下一步</h2>
+<ol>
+<li>重新连接 iOS 27 真机，按语言分批运行优化后的 350 条语料，确认 reservation release 是否消除了五语言上限。</li>
+<li>将系统合成语音结果和真人录音结果分开计分；非中文语言不能只用当前 Mac TTS 作为发布门槛。</li>
+<li>如果上下文和 alternative 仍不足，再加入每种语言的 ASR transcript 纠错词典；词典只作用于 SpeechTranscriber，不进入中文 legacySpeech 路径。</li>
+</ol>
+</main></body></html>

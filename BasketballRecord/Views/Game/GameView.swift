@@ -69,6 +69,7 @@ struct GameView: View {
 
     @StateObject private var voiceRecognizer = VoiceRecognizer()
     @AppStorage("voice_locale") private var voiceLocale: String = ""
+    @AppStorage(kVoiceASREngineKey) private var voiceASREngineRawValue: String = VoiceASREngine.legacySpeech.rawValue
     @AppStorage("voice_matching_threshold") private var voiceMatchingThreshold: Double = 0.6
     @AppStorage("voice_show_success_animation") private var showVoiceSuccessAnimation = true
     @AppStorage("completed_games_count") private var completedGamesCount = 0
@@ -408,6 +409,9 @@ struct GameView: View {
                     collaborationAlertMessage = message
                 }
                 voiceRecognizer.configure(store: store)
+                if let engine = VoiceASREngine(rawValue: voiceASREngineRawValue) {
+                    voiceRecognizer.updateASREngine(engine)
+                }
                 voiceRecognizer.matchingThreshold = voiceMatchingThreshold
                 if !voiceLocale.isEmpty {
                     voiceRecognizer.updateRules(for: Locale(identifier: voiceLocale))
@@ -554,6 +558,11 @@ struct GameView: View {
             }
             .onChange(of: voiceMatchingThreshold) { _, newValue in
                 voiceRecognizer.matchingThreshold = newValue
+            }
+            .onChange(of: voiceASREngineRawValue) { _, newValue in
+                if let engine = VoiceASREngine(rawValue: newValue) {
+                    voiceRecognizer.updateASREngine(engine)
+                }
             }
             .onChange(of: bluetooth.latestInviteResponse?.id) { _, _ in
                 guard let response = bluetooth.latestInviteResponse else { return }
