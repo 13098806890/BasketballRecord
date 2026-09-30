@@ -225,7 +225,7 @@ struct VoiceRules: Sendable {
         }
     }
 
-    func contextualStrings(playerNames: [String]) -> [String] {
+    func contextualStrings(playerNames: [String], playerNumbers: [String] = []) -> [String] {
         var values = playerNames
         values.append(contentsOf: shotKeywords.map(\.keyword))
         values.append(contentsOf: madeStates)
@@ -233,7 +233,24 @@ struct VoiceRules: Sendable {
         values.append(contentsOf: statEvents.map(\.keyword))
         values.append(contentsOf: substitutionKeywords)
         values.append(contentsOf: commandEvents.map(\.keyword))
+        values.append(contentsOf: playerNumberContextualStrings(numbers: playerNumbers))
         return Array(Set(values.filter { !$0.isEmpty })).sorted()
+    }
+
+    private func playerNumberContextualStrings(numbers: [String]) -> [String] {
+        let values = numbers.filter { Int($0) != nil }.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        guard !values.isEmpty else { return [] }
+        let uniqueNumbers = Array(Set(values)).sorted { (Int($0) ?? 0) < (Int($1) ?? 0) }
+        if locale.identifier.hasPrefix("zh-Hant") { return uniqueNumbers.map { "\($0)號" } }
+        if locale.identifier.hasPrefix("zh") { return uniqueNumbers.map { "\($0)号" } }
+        if locale.identifier.hasPrefix("ja") { return uniqueNumbers.map { "\($0)番" } }
+        if locale.identifier.hasPrefix("ko") { return uniqueNumbers.map { "\($0)번" } }
+        if locale.identifier.hasPrefix("de") { return uniqueNumbers.map { "Nummer \($0)" } }
+        if locale.identifier.hasPrefix("es") { return uniqueNumbers.map { "número \($0)" } }
+        if locale.identifier.hasPrefix("fr") { return uniqueNumbers.map { "numéro \($0)" } }
+        if locale.identifier.hasPrefix("it") { return uniqueNumbers.map { "numero \($0)" } }
+        if locale.identifier.hasPrefix("ru") { return uniqueNumbers.map { "номер \($0)" } }
+        return uniqueNumbers.map { "number \($0)" }
     }
 
     /// All supported rule sets for testing.

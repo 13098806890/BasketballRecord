@@ -1,6 +1,6 @@
 # Voice evaluation kit
 
-这套评测资产用于比较 `legacySpeech` 和 `speechTranscriber` 两种引擎在篮球口令上的表现。它将识别准确率和产品事件解析准确率分开记录，避免“文字看起来相近但没有记成正确事件”的情况被忽略。
+这套评测资产用于评估 `speechTranscriber` 在篮球口令上的表现。它将识别准确率和产品事件解析准确率分开记录，避免“文字看起来相近但没有记成正确事件”的情况被忽略。
 
 ## 生成录音
 
@@ -50,12 +50,14 @@ python3 Tools/VoiceEvaluation/score_results.py \
 Tools/VoiceEvaluation/run_file_evaluation.sh
 ```
 
-默认只运行 `speechTranscriber`。比较两种方案时：
+默认只运行 `speechTranscriber`。本轮优化只跑方案二，不会启动 `legacySpeech` 测试：
 
 ```sh
-VOICE_ASR_EVAL_ENGINES=legacySpeech,speechTranscriber \
+VOICE_ASR_EVAL_INCLUDE_LEGACY_BASELINE=1 \
 Tools/VoiceEvaluation/run_file_evaluation.sh
 ```
+
+每种语言的评测矩阵包含 70 条不同用例：35 条使用球员姓名的标准口令，35 条使用球衣号码的替代口令。替代用例会在支持的语言中使用不同系统语音生成，不再通过慢速变体复制样本。报告只汇总 `speechTranscriber`。
 
 也可以指定真人录音目录、目标 Simulator 和输出文件：
 
@@ -65,6 +67,8 @@ VOICE_ASR_EVAL_DESTINATION='platform=iOS Simulator,name=iPhone 18 Pro Max' \
 VOICE_ASR_EVAL_OUTPUT=/tmp/voice-results.csv \
 Tools/VoiceEvaluation/run_file_evaluation.sh
 ```
+
+在真实 iOS 设备上连续评测多个 SpeechTranscriber locale 时，如果设备已有语言资源 reservation，可以增加 `VOICE_ASR_EVAL_RELEASE_ALL_LOCALES=1`。该开关只注入测试 target，用于开始每次文件评测前释放旧 reservation，不影响 App 正常运行。
 
 没有系统语音模型、语言资源或旧版 Speech 授权时，测试会标记为环境跳过，不会伪造识别结果。SpeechTranscriber 的文件测试应优先在真实 iOS 26 设备上运行；Simulator 只能验证 WAV 读取、适配器和规则解析链路。
 

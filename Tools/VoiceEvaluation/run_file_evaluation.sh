@@ -6,10 +6,14 @@ project_dir="${script_dir:h:h}"
 manifest_path="${VOICE_ASR_EVAL_MANIFEST:-$script_dir/manifest.tsv}"
 audio_dir="${VOICE_ASR_EVAL_AUDIO_DIR:-${TMPDIR:-/tmp}/basketballrecord-voice-evaluation}"
 engine_names="${VOICE_ASR_EVAL_ENGINES:-speechTranscriber}"
+if [[ "${VOICE_ASR_EVAL_INCLUDE_LEGACY_BASELINE:-0}" == "1" && "$engine_names" != *"legacySpeech"* ]]; then
+    engine_names="legacySpeech,$engine_names"
+fi
 locale_names="${VOICE_ASR_EVAL_LOCALES:-}"
 destination="${VOICE_ASR_EVAL_DESTINATION:-platform=iOS Simulator,name=iPhone 18 Pro Max}"
 derived_data_path="$(mktemp -d /tmp/basketballrecord-voice-derived.XXXXXX)"
 output_path="${VOICE_ASR_EVAL_OUTPUT:-$audio_dir/results.csv}"
+release_all_locales="${VOICE_ASR_EVAL_RELEASE_ALL_LOCALES:-0}"
 test_log_path="$audio_dir/test-output.log"
 development_team="${VOICE_ASR_EVAL_DEVELOPMENT_TEAM:-}"
 build_settings=()
@@ -40,6 +44,9 @@ plutil -insert 'TestConfigurations.0.TestTargets.0.EnvironmentVariables.VOICE_AS
 plutil -insert 'TestConfigurations.0.TestTargets.0.EnvironmentVariables.VOICE_ASR_EVAL_MANIFEST' -string "$manifest_path" "$xctestrun_path"
 plutil -insert 'TestConfigurations.0.TestTargets.0.EnvironmentVariables.VOICE_ASR_EVAL_ENGINES' -string "$engine_names" "$xctestrun_path"
 plutil -insert 'TestConfigurations.0.TestTargets.0.EnvironmentVariables.VOICE_ASR_EVAL_OUTPUT' -string "$output_path" "$xctestrun_path"
+if [[ "$release_all_locales" == "1" ]]; then
+    plutil -insert 'TestConfigurations.0.TestTargets.0.EnvironmentVariables.VOICE_ASR_EVAL_RELEASE_ALL_LOCALES' -string "1" "$xctestrun_path"
+fi
 if [[ -n "$locale_names" ]]; then
     plutil -insert 'TestConfigurations.0.TestTargets.0.EnvironmentVariables.VOICE_ASR_EVAL_LOCALES' -string "$locale_names" "$xctestrun_path"
 fi

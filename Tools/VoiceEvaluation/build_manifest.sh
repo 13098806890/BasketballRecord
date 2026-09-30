@@ -7,12 +7,159 @@ manifest_path="${1:-$script_dir/manifest.tsv}"
 mkdir -p "${manifest_path:h}"
 printf '%s\n' 'case_id	locale	category	variant	voice	localized_text	zh_translation	expected_event	expected_player	player_gender	name_script	expected_related_player	wav_file' > "$manifest_path"
 
+number_phrase() {
+    local locale="$1"
+    local number="$2"
+    case "$locale" in
+        zh-Hans) print -r -- "${number}号" ;;
+        zh-Hant-TW) print -r -- "${number}號" ;;
+        ja) print -r -- "背番号${number}番の選手" ;;
+        ko) print -r -- "등번호 ${number}번 선수" ;;
+        en) print -r -- "number ${number}" ;;
+        de) print -r -- "Nummer ${number}" ;;
+        es) print -r -- "número ${number}" ;;
+        fr) print -r -- "numéro ${number}" ;;
+        it) print -r -- "numero ${number}" ;;
+        ru) print -r -- "номер ${number}" ;;
+        *) print -r -- "number ${number}" ;;
+    esac
+}
+
+alternate_command_text() {
+    local locale="$1"
+    local suffix="$2"
+    case "${locale}:${suffix}" in
+        zh-Hans:start) print -r -- '开始比赛' ;;
+        zh-Hans:pause) print -r -- '暂停一下' ;;
+        zh-Hans:game-end) print -r -- '比赛结束' ;;
+        zh-Hans:undo) print -r -- '撤销上一条' ;;
+        zh-Hans:redo) print -r -- '重做上一条' ;;
+        zh-Hant-TW:start) print -r -- '開始比賽' ;;
+        zh-Hant-TW:pause) print -r -- '暫停一下' ;;
+        zh-Hant-TW:game-end) print -r -- '比賽結束' ;;
+        zh-Hant-TW:undo) print -r -- '撤銷上一條' ;;
+        zh-Hant-TW:redo) print -r -- '重做上一條' ;;
+        en:start) print -r -- 'start the game' ;;
+        en:pause) print -r -- 'timeout now' ;;
+        en:game-end) print -r -- 'game over now' ;;
+        en:undo) print -r -- 'undo last action' ;;
+        en:redo) print -r -- 'redo last action' ;;
+        de:start) print -r -- 'start das Spiel' ;;
+        de:pause) print -r -- 'auszeit bitte' ;;
+        de:game-end) print -r -- 'spielende jetzt' ;;
+        de:undo) print -r -- 'rückgängig letzte Aktion' ;;
+        de:redo) print -r -- 'wiederholen letzte Aktion' ;;
+        es:start) print -r -- 'inicio del partido' ;;
+        es:pause) print -r -- 'tiempo muerto ahora' ;;
+        es:game-end) print -r -- 'fin del partido' ;;
+        es:undo) print -r -- 'deshacer última acción' ;;
+        es:redo) print -r -- 'rehacer última acción' ;;
+        fr:start) print -r -- 'début du match' ;;
+        fr:pause) print -r -- 'temps mort maintenant' ;;
+        fr:game-end) print -r -- 'fin du match' ;;
+        fr:undo) print -r -- 'annuler dernière action' ;;
+        fr:redo) print -r -- 'refaire dernière action' ;;
+        it:start) print -r -- 'inizio della partita' ;;
+        it:pause) print -r -- 'timeout adesso' ;;
+        it:game-end) print -r -- 'fine partita' ;;
+        it:undo) print -r -- 'annulla ultima azione' ;;
+        it:redo) print -r -- 'ripeti ultima azione' ;;
+        ja:start) print -r -- '試合開始' ;;
+        ja:pause) print -r -- 'タイムアウトお願いします' ;;
+        ja:game-end) print -r -- '試合終了' ;;
+        ja:undo) print -r -- '最後の操作を元に戻す' ;;
+        ja:redo) print -r -- '最後の操作をやり直す' ;;
+        ko:start) print -r -- '경기 시작' ;;
+        ko:pause) print -r -- '타임아웃 요청' ;;
+        ko:game-end) print -r -- '경기종료' ;;
+        ko:undo) print -r -- '마지막 실행 취소' ;;
+        ko:redo) print -r -- '마지막 재실행' ;;
+        ru:start) print -r -- 'начало игры' ;;
+        ru:pause) print -r -- 'тайм-аут сейчас' ;;
+        ru:game-end) print -r -- 'конец игры' ;;
+        ru:undo) print -r -- 'отменить последнее' ;;
+        ru:redo) print -r -- 'повторить последнее' ;;
+        *) print -r -- '' ;;
+    esac
+}
+
+alternate_player_text() {
+    local locale="$1"
+    local suffix="$2"
+    local player="$3"
+    local related="$4"
+    case "${locale}:${suffix}" in
+        ja:two-made) print -r -- "${player}のツーが成功" ;;
+        ja:two-missed) print -r -- "${player}のツーは外れ" ;;
+        ja:three-made) print -r -- "${player}のスリーが成功" ;;
+        ja:three-missed) print -r -- "${player}のスリーは外れ" ;;
+        ja:bonus-made) print -r -- "${player}のアンドワンが成功" ;;
+        ja:bonus-missed) print -r -- "${player}のアンドワンは外れ" ;;
+        ja:free-throw-made) print -r -- "${player}がフリースローを決めた" ;;
+        ja:free-throw-missed) print -r -- "${player}のフリースローは外れ" ;;
+        ja:layup-made) print -r -- "${player}がレイアップを決めた" ;;
+        ja:layup-missed) print -r -- "${player}のレイアップは外れ" ;;
+        ja:mid-range-made) print -r -- "${player}のミドルシュートが成功" ;;
+        ja:mid-range-missed) print -r -- "${player}のミドルシュートは外れ" ;;
+        ja:paint-made) print -r -- "${player}がインサイドで成功" ;;
+        ja:paint-missed) print -r -- "${player}のインサイドは外れ" ;;
+        ja:putback-made) print -r -- "${player}のプットバックが成功" ;;
+        ja:putback-missed) print -r -- "${player}のプットバックは外れ" ;;
+        ja:dunk-made) print -r -- "${player}のダンクシュートが成功" ;;
+        ja:dunk-missed) print -r -- "${player}のダンクシュートは外れ" ;;
+        ja:foul) print -r -- "${player}のファウル" ;;
+        ja:rebound) print -r -- "${player}がリバウンド" ;;
+        ja:offensive-rebound) print -r -- "${player}がオフェンスリバウンド" ;;
+        ja:defensive-rebound) print -r -- "${player}がディフェンスリバウンド" ;;
+        ja:assist) print -r -- "${player}がアシスト" ;;
+        ja:block) print -r -- "${player}がブロック" ;;
+        ja:steal) print -r -- "${player}がスティール" ;;
+        ja:turnover) print -r -- "${player}のターンオーバー" ;;
+        ja:assist-two) print -r -- "${player}のアシストで${related}がツーを成功" ;;
+        ja:assist-three) print -r -- "${player}のアシストで${related}がスリーを成功" ;;
+        ja:steal-turnover) print -r -- "${player}がスティールして${related}がターンオーバー" ;;
+        ja:substitution) print -r -- "${player}を交代して${related}を出場" ;;
+        ko:two-made) print -r -- "${player} 2점 성공" ;;
+        ko:two-missed) print -r -- "${player} 2점 실패" ;;
+        ko:three-made) print -r -- "${player} 3점 성공" ;;
+        ko:three-missed) print -r -- "${player} 3점 실패" ;;
+        ko:bonus-made) print -r -- "${player} 앤드원 성공" ;;
+        ko:bonus-missed) print -r -- "${player} 앤드원 실패" ;;
+        ko:free-throw-made) print -r -- "${player} 자유투 성공" ;;
+        ko:free-throw-missed) print -r -- "${player} 자유투 실패" ;;
+        ko:layup-made) print -r -- "${player} 레이업슛 성공" ;;
+        ko:layup-missed) print -r -- "${player} 레이업슛 실패" ;;
+        ko:mid-range-made) print -r -- "${player} 미드레인지 성공" ;;
+        ko:mid-range-missed) print -r -- "${player} 미드레인지 실패" ;;
+        ko:paint-made) print -r -- "${player} 페인트존 성공" ;;
+        ko:paint-missed) print -r -- "${player} 페인트존 실패" ;;
+        ko:putback-made) print -r -- "${player} 풋백 성공" ;;
+        ko:putback-missed) print -r -- "${player} 풋백 실패" ;;
+        ko:dunk-made) print -r -- "${player} 덩크슛 성공" ;;
+        ko:dunk-missed) print -r -- "${player} 덩크슛 실패" ;;
+        ko:foul) print -r -- "${player} 파울" ;;
+        ko:rebound) print -r -- "${player} 리바운드" ;;
+        ko:offensive-rebound) print -r -- "${player} 공격 리바운드" ;;
+        ko:defensive-rebound) print -r -- "${player} 수비 리바운드" ;;
+        ko:assist) print -r -- "${player} 어시스트" ;;
+        ko:block) print -r -- "${player} 블락" ;;
+        ko:steal) print -r -- "${player} 스틸" ;;
+        ko:turnover) print -r -- "${player} 턴오버" ;;
+        ko:assist-two) print -r -- "${player} 어시스트 ${related} 투 성공" ;;
+        ko:assist-three) print -r -- "${player} 어시스트 ${related} 쓰리 성공" ;;
+        ko:steal-turnover) print -r -- "${player} 스틸 ${related} 턴오버" ;;
+        ko:substitution) print -r -- "${player} 교체 ${related} 투입" ;;
+        *) print -r -- '' ;;
+    esac
+}
+
 emit_locale() {
     local locale="$1"
     local voice="$2"
     shift 2
     local -a names=("$@")
-    local suffix text zh event category player_index related_index player gender script related
+    local suffix text zh event category player_index related_index player gender script related case_id
+    local alt_text player_number related_number alt_voice
 
     while IFS='|' read -r suffix text zh event category player_index gender script related_index; do
         [[ -n "$suffix" ]] || continue
@@ -27,10 +174,10 @@ emit_locale() {
             else
                 gender="female"
             fi
-            if (( player_index <= 6 )); then
-                script="native"
-            elif (( player_index == 11 )); then
+            if [[ "$player" == *[[:ascii:]]* ]] && [[ "$player" == *[![:ascii:]]* ]]; then
                 script="mixed"
+            elif [[ "$player" == *[![:ascii:]]* ]]; then
+                script="native"
             else
                 script="latin"
             fi
@@ -43,9 +190,40 @@ emit_locale() {
             text="${text//__R__/$related}"
             zh="${zh//__R__/$related}"
         fi
-        local case_id="${locale}-${suffix}"
+        case_id="${locale}-${suffix}"
         printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
             "$case_id" "$locale" "$category" "canonical" "$voice" "$text" "$zh" "$event" "$player" "$gender" "$script" "$related" "$case_id.wav" >> "$manifest_path"
+        alt_text="$text"
+        if [[ "$player_index" != "-" ]]; then
+            if [[ "$locale" == "ja" || "$locale" == "ko" ]]; then
+                alt_text="$(alternate_player_text "$locale" "$suffix" "$player" "$related")"
+                if [[ "$locale" == "ja" ]]; then
+                    alt_text="${text} お願いします"
+                else
+                    alt_text="${text} 해 주세요"
+                fi
+            else
+                player_number="$(number_phrase "$locale" "$player_index")"
+                alt_text="${alt_text//$player/$player_number}"
+                if [[ "$related_index" != "-" ]]; then
+                    related_number="$(number_phrase "$locale" "$related_index")"
+                    alt_text="${alt_text//$related/$related_number}"
+                fi
+            fi
+        else
+            alt_text="$(alternate_command_text "$locale" "$suffix")"
+        fi
+        alt_voice="$voice"
+        case "$locale" in
+            en) alt_voice='Eddy (English (US))' ;;
+            de) alt_voice='Eddy (German (Germany))' ;;
+            es) alt_voice='Eddy (Spanish (Spain))' ;;
+            fr) alt_voice='Eddy (French (France))' ;;
+            it) alt_voice='Eddy (Italian (Italy))' ;;
+        esac
+        case_id="${locale}-${suffix}-number"
+        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+            "$case_id" "$locale" "$category" "number-variant" "$alt_voice" "$alt_text" "$zh" "$event" "$player" "$gender" "$script" "$related" "$case_id.wav" >> "$manifest_path"
     done
 }
 
@@ -127,8 +305,8 @@ redo|重做|重做上一條|event.redo|command|-|-|-|-
 substitution|張三 換人 李四|張三換下，李四上場|event.substitution|substitution|1|-|-|2
 ROWS
 
-emit_locale 'en' 'Eddy (English (US))' \
-    'James Carter' 'Emily Stone' 'Michael Brown' 'Olivia Davis' 'Liam Wilson' 'Sophia Taylor' 'Noah Anderson' 'Ava Martin' 'Zhang San' '李四' 'Emma王' 'Juan Garcia' <<'ROWS'
+emit_locale 'en' 'Samantha' \
+    'James Carter' 'Emily Stone' 'Michael Brown' 'Olivia Davis' 'Liam Wilson' 'Sophia Taylor' 'Noah Anderson' 'Ava Martin' 'Zhang San' 'Ethan Lee' 'Grace Wang' 'Juan Garcia' <<'ROWS'
 two-made|__P__ got two|__P__ 两分命中|stat.twoMade|shot|1|-|-|-
 two-missed|__P__ missed two|__P__ 两分不中|stat.twoMissed|shot|2|-|-|-
 three-made|__P__ got three|__P__ 三分命中|stat.threeMade|shot|3|-|-|-
@@ -166,8 +344,8 @@ redo|redo|重做上一条|event.redo|command|-|-|-|-
 substitution|James Carter substitution Emily Stone|James Carter 换下，Emily Stone 上场|event.substitution|substitution|1|-|-|2
 ROWS
 
-emit_locale 'ja' 'Eddy (Japanese (Japan))' \
-    '山田太郎' '佐藤健' '鈴木翔' '田中美咲' '高橋愛' '伊藤葵' 'Emma' 'Michael' 'Alice' 'John' '山田Emma' 'David' <<'ROWS'
+emit_locale 'ja' 'Kyoko' \
+    '山田太郎' '佐藤健' '鈴木翔' '田中美咲' '高橋愛' '伊藤葵' '小林拓真' '中村蓮' '渡辺結衣' '加藤直樹' '山田花子' '吉田陽子' <<'ROWS'
 two-made|__P__ ツー 成功|__P__ 2分命中|stat.twoMade|shot|1|-|-|-
 two-missed|__P__ ツー 外した|__P__ 2分不中|stat.twoMissed|shot|2|-|-|-
 three-made|__P__ スリー 成功|__P__ 3分命中|stat.threeMade|shot|3|-|-|-
@@ -205,8 +383,8 @@ redo|やり直す|重做上一条|event.redo|command|-|-|-|-
 substitution|山田太郎 交代 佐藤健|山田太郎换下，佐藤健上场|event.substitution|substitution|1|-|-|2
 ROWS
 
-emit_locale 'ko' 'Eddy (Korean (South Korea))' \
-    '김민수' '이준호' '박지훈' '최서연' '김하늘' '정수빈' 'Emma' 'Michael' 'Alice' 'John' '김Emma' 'David' <<'ROWS'
+emit_locale 'ko' 'Yuna' \
+    '김민수' '이준호' '박지훈' '최서연' '김하늘' '정수빈' '강민재' '윤서준' '한지우' '송예린' '김수아' '오지훈' <<'ROWS'
 two-made|__P__ 투 성공|__P__ 2分命中|stat.twoMade|shot|1|-|-|-
 two-missed|__P__ 투 실패|__P__ 2分不中|stat.twoMissed|shot|2|-|-|-
 three-made|__P__ 쓰리 성공|__P__ 3分命中|stat.threeMade|shot|3|-|-|-
@@ -244,7 +422,7 @@ redo|재실행|重做上一条|event.redo|command|-|-|-|-
 substitution|김민수 교체 이준호|김민수换下，李俊浩上场|event.substitution|substitution|1|-|-|2
 ROWS
 
-emit_locale 'de' 'Eddy (German (Germany))' \
+emit_locale 'de' 'Anna' \
     'Lukas Weber' 'Anna Fischer' 'Michael Müller' 'Sophie Schmidt' 'Thomas Wagner' 'Emma Keller' 'David' 'Alice' 'James' 'Olivia' 'Zhang王' '李四' <<'ROWS'
 two-made|__P__ zwei getroffen|__P__ 两分命中|stat.twoMade|shot|1|-|-|-
 two-missed|__P__ zwei verfehlt|__P__ 两分不中|stat.twoMissed|shot|2|-|-|-
@@ -283,7 +461,7 @@ redo|wiederholen|重做上一条|event.redo|command|-|-|-|-
 substitution|Lukas Weber wechsel Anna Fischer|Lukas Weber换下，Anna Fischer上场|event.substitution|substitution|1|-|-|2
 ROWS
 
-emit_locale 'es' 'Eddy (Spanish (Spain))' \
+emit_locale 'es' 'Mónica' \
     'Carlos García' 'María López' 'Juan Pérez' 'Ana Torres' 'Diego Ruiz' 'Laura Martín' 'Emma' 'Michael' 'Alice' 'John' 'GarcíaEmma' 'David' <<'ROWS'
 two-made|__P__ dos anotó|__P__ 两分命中|stat.twoMade|shot|1|-|-|-
 two-missed|__P__ dos fallado|__P__ 两分不中|stat.twoMissed|shot|2|-|-|-
@@ -322,7 +500,7 @@ redo|rehacer|重做上一条|event.redo|command|-|-|-|-
 substitution|Carlos García cambio María López|Carlos García换下，María López上场|event.substitution|substitution|1|-|-|2
 ROWS
 
-emit_locale 'fr' 'Eddy (French (France))' \
+emit_locale 'fr' 'Thomas' \
     'Jean Martin' 'Claire Dubois' 'Lucas Bernard' 'Sophie Laurent' 'Thomas Petit' 'Léa Moreau' 'Emma' 'Michael' 'Alice' 'John' 'Martin王' 'David' <<'ROWS'
 two-made|__P__ deux réussi|__P__ 两分命中|stat.twoMade|shot|1|-|-|-
 two-missed|__P__ deux raté|__P__ 两分不中|stat.twoMissed|shot|2|-|-|-
@@ -361,7 +539,7 @@ redo|refaire|重做上一条|event.redo|command|-|-|-|-
 substitution|Jean Martin remplacement Claire Dubois|Jean Martin换下，Claire Dubois上场|event.substitution|substitution|1|-|-|2
 ROWS
 
-emit_locale 'it' 'Eddy (Italian (Italy))' \
+emit_locale 'it' 'Alice' \
     'Marco Rossi' 'Giulia Bianchi' 'Luca Romano' 'Sofia Conti' 'Matteo Gallo' 'Chiara Esposito' 'Emma' 'Michael' 'Alice' 'John' 'Rossi王' 'David' <<'ROWS'
 two-made|__P__ due segnato|__P__ 两分命中|stat.twoMade|shot|1|-|-|-
 two-missed|__P__ due sbagliato|__P__ 两分不中|stat.twoMissed|shot|2|-|-|-

@@ -1,0 +1,727 @@
+{
+  "source": "results.csv",
+  "categories": {
+    "zh-Hans": {
+      "success": 60,
+      "parser_no_action": 6,
+      "player_not_matched": 3,
+      "parser_wrong_event": 1
+    },
+    "zh-Hant-TW": {
+      "success": 59,
+      "player_not_matched": 3,
+      "parser_no_action": 6,
+      "asr_no_result": 1,
+      "parser_wrong_event": 1
+    },
+    "en": {
+      "success": 60,
+      "parser_wrong_event": 6,
+      "parser_no_action": 3,
+      "asr_no_result": 1
+    },
+    "ja": {
+      "success": 56,
+      "parser_no_action": 12,
+      "related_player_not_matched": 1,
+      "parser_wrong_event": 1
+    },
+    "ko": {
+      "success": 42,
+      "parser_no_action": 24,
+      "parser_wrong_event": 4
+    },
+    "de": {
+      "success": 38,
+      "player_not_matched": 1,
+      "parser_wrong_event": 9,
+      "asr_no_result": 5,
+      "parser_no_action": 17
+    },
+    "es": {
+      "success": 28,
+      "parser_wrong_event": 20,
+      "parser_no_action": 18,
+      "asr_no_result": 3,
+      "player_not_matched": 1
+    },
+    "fr": {
+      "success": 30,
+      "parser_no_action": 29,
+      "parser_wrong_event": 7,
+      "player_not_matched": 2,
+      "asr_no_result": 2
+    },
+    "it": {
+      "success": 56,
+      "parser_no_action": 10,
+      "player_not_matched": 2,
+      "parser_wrong_event": 2
+    },
+    "ru": {
+      "unavailable": 70
+    }
+  },
+  "examples": {
+    "zh-Hans": {
+      "parser_no_action": [
+        {
+          "case_id": "zh-Hans-free-throw-made",
+          "transcript": "罚 球命中",
+          "event_code": "",
+          "voice_log": "failure | 罚球命中 | action=stat.freeThrowMade | 原文: 罚球命中 | 拼音: fa qiu ming zhong | 🔍 拼音回退: 关键词pinyin=fa qiu | 左侧拼音: 空 | 右侧拼音: ming zhong | ❌ 拼音回退: 未匹配到球员 | 左侧拼音: 空"
+        },
+        {
+          "case_id": "zh-Hans-dunk-made",
+          "transcript": "刘 芳 寇 难 命中",
+          "event_code": "",
+          "voice_log": "failure | 刘芳寇难命中 | 原文: 刘芳寇难命中 | 拼音: liu fang kou nan ming zhong | ❌ 全文无匹配: 刘芳寇难命中 | 拼音: liu fang kou nan ming zhong"
+        },
+        {
+          "case_id": "zh-Hans-offensive-rebound",
+          "transcript": "前 场篮板",
+          "event_code": "",
+          "voice_log": "failure | 前场篮板 | action=stat.offensiveRebound | 原文: 前场篮板 | 拼音: qian chang lan ban | 🔍 统计拼音回退: 关键词pinyin=qian chang lan ban | 左侧拼音: 空 | 右侧拼音: 空 | ❌ 统计拼音回退: 未匹配到球员 | 左侧拼音: 空"
+        },
+        {
+          "case_id": "zh-Hans-turnover",
+          "transcript": "李 四 5",
+          "event_code": "",
+          "voice_log": "failure | 李四 5 | 原文: 李四 5 | 拼音: li si 5 | ❌ 全文无匹配: 李四 5 | 拼音: li si 5"
+        },
+        {
+          "case_id": "zh-Hans-steal-turnover",
+          "transcript": "枪断 Michael",
+          "event_code": "",
+          "voice_log": "failure | 枪断 Michael | action=stat.steal | 原文: 枪断 Michael | 拼音: qiang duan michael | 🔍 统计拼音回退: 关键词pinyin=qiang duan | 左侧拼音: 空 | 右侧拼音: michael | ❌ 统计拼音回退: 未匹配到球员 | 左侧拼音: 空"
+        }
+      ],
+      "player_not_matched": [
+        {
+          "case_id": "zh-Hans-mid-range-made",
+          "transcript": "Ama中 投命中",
+          "event_code": "stat.midRangeMade",
+          "voice_log": "success | Ama中投命中 | action=中投命中 | player=Emma | 原文: Ama中投命中 | 拼音: ama zhong tou ming zhong | 🔍 拼音回退: 关键词pinyin=zhong tou | 左侧拼音: ama | 右侧拼音: ming zhong | 拼音回退球员: 拼音回退球员[张三(拼音=zhang san vs ama=0.12), 李四(拼音=li si vs ama=0.00), 王五(拼音=wang wu vs ama=0.00), 赵丽(拼音=zhao li vs ama=0.17), 刘芳(拼音=liu fang vs ama=0.03), 陈杰(拼音=chen jie vs ama=0.06), Emma(编辑距离2=0.75), Michael(拼音=michael vs ama=0.00), Alice(拼音=alice vs ama=0.26), John(拼音=john vs ama=0.00), 王Emma(编辑距离3=0.70), David(拼音=david vs ama=0.00)]"
+        },
+        {
+          "case_id": "zh-Hans-mid-range-missed",
+          "transcript": "Neven 中 投 没中",
+          "event_code": "stat.midRangeMissed",
+          "voice_log": "success | Neven 中投没中 | action=中投未中 | player=王Emma | 原文: Neven 中投没中 | 拼音: neven zhong tou mei zhong | 🔍 拼音回退: 关键词pinyin=zhong tou | 左侧拼音: neven | 右侧拼音: mei zhong | 拼音回退球员: 拼音回退球员[张三(拼音=zhang san vs neven=0.00), 李四(拼音=li si vs neven=0.32), 王五(拼音=wang wu vs neven=0.07), 赵丽(拼音=zhao li vs neven=0.20), 刘芳(拼音=liu fang vs neven=0.16), 陈杰(拼音=chen jie vs neven=0.00), Emma(拼音=emma vs neven=0.20), Michael(拼音=michael vs neven=0.11), Alice(拼音=alice vs neven=0.00), John(拼音=john vs neven=0.20), 王Emma(编辑距离4=0.65), David(拼音=david vs neven=0.58)]"
+        },
+        {
+          "case_id": "zh-Hans-assist",
+          "transcript": "Ama助 攻",
+          "event_code": "stat.assist",
+          "voice_log": "success | Ama助攻 | action=助攻 | player=Emma | 原文: Ama助攻 | 拼音: ama zhu gong | 🔍 统计拼音回退: 关键词pinyin=zhu gong | 左侧拼音: ama | 右侧拼音: 空 | 统计拼音回退球员: 统计拼音回退球员[张三(拼音=zhang san vs ama=0.12), 李四(拼音=li si vs ama=0.00), 王五(拼音=wang wu vs ama=0.00), 赵丽(拼音=zhao li vs ama=0.17), 刘芳(拼音=liu fang vs ama=0.03), 陈杰(拼音=chen jie vs ama=0.06), Emma(编辑距离2=0.75), Michael(拼音=michael vs ama=0.00), Alice(拼音=alice vs ama=0.26), John(拼音=john vs ama=0.00), 王Emma(编辑距离3=0.70), David(拼音=david vs ama=0.00)]"
+        }
+      ],
+      "parser_wrong_event": [
+        {
+          "case_id": "zh-Hans-assist-two-number",
+          "transcript": "3号助 攻 4 号 2 分",
+          "event_code": "stat.assist",
+          "voice_log": "success | 3号助攻 4 号 2 分 | action=助攻 | player=王五 | 原文: 3号助攻 4 号 2 分 | 拼音: 3hao zhu gong 4 hao 2 fen | 🔍 统计拼音回退: 关键词pinyin=zhu gong | 左侧拼音: 3hao | 右侧拼音: 4 hao 2 fen | 统计拼音回退球员: 号码3直配"
+        }
+      ]
+    },
+    "zh-Hant-TW": {
+      "player_not_matched": [
+        {
+          "case_id": "zh-Hant-TW-free-throw-made",
+          "transcript": "罰球命中",
+          "event_code": "stat.freeThrowMade",
+          "voice_log": "success | ma罰球命中 | action=罚篮命中 | player=王Emma | 原文: ma罰球命中 | 拼音: ma fa qiu ming zhong | 🔍 拼音回退: 关键词pinyin=fa qiu | 左侧拼音: ma | 右侧拼音: ming zhong | 拼音回退球员: 拼音回退球员[張三(拼音=zhang san vs ma=0.00), 李四(拼音=li si vs ma=0.07), 王五(拼音=wang wu vs ma=0.17), 趙麗(拼音=zhao li vs ma=0.00), 劉芳(拼音=liu fang vs ma=0.04), 陳杰(拼音=chen jie vs ma=0.00), Emma(直配1.0), Michael(拼音=michael vs ma=0.19), Alice(拼音=alice vs ma=0.00), John(拼音=john vs ma=0.12), 王Emma(直配1.0), David(拼音=david vs ma=0.20)]"
+        },
+        {
+          "case_id": "zh-Hant-TW-mid-range-made",
+          "transcript": "王中 投命中",
+          "event_code": "stat.midRangeMade",
+          "voice_log": "success | 王中投命中 | action=中投命中 | player=王五 | 原文: 王中投命中 | 拼音: wang zhong tou ming zhong | 🔍 拼音回退: 关键词pinyin=zhong tou | 左侧拼音: wang | 右侧拼音: ming zhong | 拼音回退球员: 拼音回退球员[張三(拼音=zhang san vs wang=0.00), 李四(拼音=li si vs wang=0.07), 王五(拼音相似0.67), 趙麗(拼音=zhao li vs wang=0.00), 劉芳(拼音=liu fang vs wang=0.04), 陳杰(拼音=chen jie vs wang=0.00), Emma(拼音=emma vs wang=0.07), Michael(拼音=michael vs wang=0.04), Alice(拼音=alice vs wang=0.00), John(拼音=john vs wang=0.12), 王Emma(拼音=wangemma vs wang=0.50), David(拼音=david vs wang=0.20)]"
+        },
+        {
+          "case_id": "zh-Hant-TW-foul",
+          "transcript": "犯規",
+          "event_code": "stat.foul",
+          "voice_log": "success | M犯規 | action=犯规 | player=Michael | 原文: M犯規 | 拼音: m fan gui | 🔍 统计拼音回退: 关键词pinyin=fan gui | 左侧拼音: m | 右侧拼音: 空 | 统计拼音回退球员: 统计拼音回退球员[張三(拼音=zhang san vs m=0.00), 李四(拼音=li si vs m=0.00), 王五(拼音=wang wu vs m=0.00), 趙麗(拼音=zhao li vs m=0.00), 劉芳(拼音=liu fang vs m=0.00), 陳杰(拼音=chen jie vs m=0.00), Emma(直配1.0), Michael(直配1.0), Alice(拼音=alice vs m=0.00), John(拼音=john vs m=0.00), 王Emma(直配1.0), David(拼音=david vs m=0.00)]"
+        }
+      ],
+      "parser_no_action": [
+        {
+          "case_id": "zh-Hant-TW-paint-missed-number",
+          "transcript": "2號 來下 沒 中",
+          "event_code": "",
+          "voice_log": "failure | 2號來下沒中 | 原文: 2號來下沒中 | 拼音: 2hao lai xia mei zhong | ❌ 全文无匹配: 2號來下沒中 | 拼音: 2hao lai xia mei zhong"
+        },
+        {
+          "case_id": "zh-Hant-TW-offensive-rebound",
+          "transcript": "前場 籃 闆",
+          "event_code": "",
+          "voice_log": "failure | 前場板 | action=stat.offensiveRebound | 原文: 前場板 | 拼音: qian chang ban | 🔍 统计拼音回退: 关键词pinyin=qian chang ban | 左侧拼音: 空 | 右侧拼音: 空 | ❌ 统计拼音回退: 未匹配到球员 | 左侧拼音: 空"
+        },
+        {
+          "case_id": "zh-Hant-TW-assist",
+          "transcript": "助 攻",
+          "event_code": "",
+          "voice_log": "failure | 助攻 | action=stat.assist | 原文: 助攻 | 拼音: zhu gong | 🔍 统计拼音回退: 关键词pinyin=zhu gong | 左侧拼音: 空 | 右侧拼音: 空 | ❌ 统计拼音回退: 未匹配到球员 | 左侧拼音: 空"
+        },
+        {
+          "case_id": "zh-Hant-TW-turnover",
+          "transcript": "歷 45",
+          "event_code": "",
+          "voice_log": "failure | 歷 45 | 原文: 歷 45 | 拼音: li 45 | ❌ 全文无匹配: 歷 45 | 拼音: li 45"
+        },
+        {
+          "case_id": "zh-Hant-TW-steal-turnover",
+          "transcript": "超級 Michael",
+          "event_code": "",
+          "voice_log": "failure | 抄截 Michael | action=stat.steal | 原文: 抄截 Michael | 拼音: chao jie michael | 🔍 统计拼音回退: 关键词pinyin=chao jie | 左侧拼音: 空 | 右侧拼音: michael | ❌ 统计拼音回退: 未匹配到球员 | 左侧拼音: 空"
+        }
+      ],
+      "asr_no_result": [
+        {
+          "case_id": "zh-Hant-TW-block",
+          "transcript": "",
+          "event_code": "",
+          "voice_log": ""
+        }
+      ],
+      "parser_wrong_event": [
+        {
+          "case_id": "zh-Hant-TW-assist-two-number",
+          "transcript": "3號助 攻 4 號 2 分",
+          "event_code": "stat.assist",
+          "voice_log": "success | 3號助攻 4 號 2 分 | action=助攻 | player=王五 | 原文: 3號助攻 4 號 2 分 | 拼音: 3hao zhu gong 4 hao 2 fen | 🔍 统计拼音回退: 关键词pinyin=zhu gong | 左侧拼音: 3hao | 右侧拼音: 4 hao 2 fen | 统计拼音回退球员: 号码3直配"
+        }
+      ]
+    },
+    "en": {
+      "parser_wrong_event": [
+        {
+          "case_id": "en-three-missed-number",
+          "transcript": "Number 4 is three.",
+          "event_code": "stat.threeMade",
+          "voice_log": "success | Number 4 is three | action=3分命中 | player=Olivia Davis | 原文: Number 4 is three | 拼音: number 4 is three | 提取号码前缀: 4 | 剩余文本: is three | 🔍 找到关键词「three」 | 左侧原文: is | 右侧原文: 空 | 🔍 关键词: stat.three | 右侧状态=空 → 默认命中(得分=0.00) | 球员匹配: 号码4直配"
+        },
+        {
+          "case_id": "en-mid-range-made",
+          "transcript": "Grace won Godmid Range.",
+          "event_code": "stat.midRangeMissed",
+          "voice_log": "success | Grace won Godmid Range | action=中投未中 | player=Grace Wang | 原文: Grace won Godmid Range | 拼音: grace won godmid range | 🔍 找到关键词「mid」 | 左侧原文: Grace won God | 右侧原文: Range | 🔍 关键词: stat.midRange | 右侧状态=Range → 未中(得分=0.20) | 球员匹配: 左侧球员[James Carter(拼音=james carter vs grace won god=0.10), Emily Stone(拼音=emily stone vs grace won god=0.08), Michael Brown(拼音=michael brown vs grace won god=0.12), Olivia Davis(拼音=olivia davis vs grace won god=0.07), Liam Wilson(拼音=liam wilson vs grace won god=0.31), Sophia Taylor(拼音=sophia taylor vs grace won god=0.04), Noah Anderson(拼音=noah anderson vs grace won god=0.12), Ava Martin(拼音=ava martin vs grace won god=0.22), Zhang San(拼音=zhang san vs grace won god=0.23), Ethan Lee(拼音=ethan lee vs grace won god=0.19), Grace Wang(唯一姓名词匹配0.92), Juan Garcia(拼音=juan garcia vs grace won god=0.14)]"
+        },
+        {
+          "case_id": "en-putback-missed-number",
+          "transcript": "Number 4 Ms. Pushback.",
+          "event_code": "stat.putbackMade",
+          "voice_log": "success | Number 4 Ms putback | action=补篮命中 | player=Olivia Davis | 原文: Number 4 Ms putback | 拼音: number 4 ms putback | 提取号码前缀: 4 | 剩余文本: Ms putback | 🔍 找到关键词「putback」 | 左侧原文: Ms | 右侧原文: 空 | 🔍 关键词: stat.putback | 右侧状态=空 → 默认命中(得分=0.00) | 球员匹配: 号码4直配"
+        },
+        {
+          "case_id": "en-assist-two-number",
+          "transcript": "Number 3 assist number 42.",
+          "event_code": "stat.assist",
+          "voice_log": "success | Number 3 assist number 42 | action=助攻 | player=Michael Brown | 原文: Number 3 assist number 42 | 拼音: number 3 assist number 42 | 提取号码前缀: 3 | 剩余文本: assist number 42 | 🔍 找到关键词「assist」 | 左侧原文: 空 | 右侧原文: number 42 | 球员匹配: 号码3直配"
+        },
+        {
+          "case_id": "en-assist-three-number",
+          "transcript": "Number 5 assist number 63.",
+          "event_code": "stat.assist",
+          "voice_log": "success | Number 5 assist number 63 | action=助攻 | player=Liam Wilson | 原文: Number 5 assist number 63 | 拼音: number 5 assist number 63 | 提取号码前缀: 5 | 剩余文本: assist number 63 | 🔍 找到关键词「assist」 | 左侧原文: 空 | 右侧原文: number 63 | 球员匹配: 号码5直配"
+        }
+      ],
+      "parser_no_action": [
+        {
+          "case_id": "en-bonus-missed-number",
+          "transcript": "Number 6, Mr. One.",
+          "event_code": "",
+          "voice_log": "failure | Number 6 Mr One | 原文: Number 6 Mr One | 拼音: number 6 mr one | 提取号码前缀: 6 | 剩余文本: Mr One | ❌ 全文无匹配: miss One | 拼音: number 6 mr one"
+        },
+        {
+          "case_id": "en-layup-made",
+          "transcript": "Jongzan god layup.",
+          "event_code": "",
+          "voice_log": "failure | Jongzan god layup | action=stat.layupMade | 原文: Jongzan god layup | 拼音: jongzan god layup | 🔍 找到关键词「layup」 | 左侧原文: Jongzan god | 右侧原文: 空 | 🔍 关键词: stat.layup | 右侧状态=空 → 默认命中(得分=0.00) | ❌ 未匹配到球员 | 左侧文本: Jongzan god | 拼音: jongzan god layup || failure | Jongzan god layup | action=stat.layup | 🔍 找到关键词「lay up」 | 左侧原文: Jongzan god | 右侧原文: 空 || failure | Jongzan god layup | action=stat.layupMade | 🔍 关键词: stat.layup | 右侧状态=空 → 默认命中(得分=0.00) || failure | Jongzan god layup | action=stat.layupMade | ❌ 未匹配到球员 | 左侧文本: Jongzan god | 拼音: jongzan god layup || failure | Jongzan god layup | action=stat.layup | 🔍 拼音回退: 关键词pinyin=layup | 左侧拼音: jongzan god | 右侧拼音: 空 || failure | Jongzan god layup | action=stat.layupMade | ❌ 拼音回退: 未匹配到球员 | 左侧拼音: jongzan god"
+        },
+        {
+          "case_id": "en-dunk-made-number",
+          "transcript": "Number 5 got done.",
+          "event_code": "",
+          "voice_log": "failure | Number 5 got done | 原文: Number 5 got done | 拼音: number 5 got done | 提取号码前缀: 5 | 剩余文本: got done | ❌ 全文无匹配: got done | 拼音: number 5 got done"
+        }
+      ],
+      "asr_no_result": [
+        {
+          "case_id": "en-undo",
+          "transcript": "",
+          "event_code": "",
+          "voice_log": ""
+        }
+      ]
+    },
+    "ja": {
+      "parser_no_action": [
+        {
+          "case_id": "ja-two-missed-number",
+          "transcript": "ネバ ーズ外 した",
+          "event_code": "",
+          "voice_log": "failure | 2番外した | locale=ja-JP | engine=speechTranscriber | stage=parser | reason=no_parser_match | 原文: 2番外した | 拼音: 2fan waishita | ❌ 全文无匹配: 2番外した | 拼音: 2fan waishita"
+        },
+        {
+          "case_id": "ja-bonus-made-number",
+          "transcript": "ロマンボ ーナス成 功。",
+          "event_code": "",
+          "voice_log": "failure | 5番ーナス成功 | locale=ja-JP | engine=speechTranscriber | stage=parser | reason=no_parser_match | 原文: 5番ーナス成功 | 拼音: 5fan nasu cheng gong | ❌ 全文无匹配: 5番ーナス成功 | 拼音: 5fan nasu cheng gong"
+        },
+        {
+          "case_id": "ja-paint-made-number",
+          "transcript": "1000円 おし こ",
+          "event_code": "",
+          "voice_log": "failure | 1番おしこ | locale=ja-JP | engine=speechTranscriber | stage=parser | reason=no_parser_match | 原文: 1番おしこ | 拼音: 1fanoshiko | ❌ 全文无匹配: 1番おしこ | 拼音: 1fanoshiko"
+        },
+        {
+          "case_id": "ja-paint-missed-number",
+          "transcript": "今 向 け と外 した",
+          "event_code": "",
+          "voice_log": "failure | 今向けと外した | locale=ja-JP | engine=speechTranscriber | stage=parser | reason=no_parser_match | 原文: 今向けと外した | 拼音: jin xiangketo waishita | ❌ 全文无匹配: 今向けと外した | 拼音: jin xiangketo waishita"
+        },
+        {
+          "case_id": "ja-dunk-made-number",
+          "transcript": "ロマン南 成功。",
+          "event_code": "",
+          "voice_log": "failure | 5番南成功 | locale=ja-JP | engine=speechTranscriber | stage=parser | reason=no_parser_match | 原文: 5番南成功 | 拼音: 5fan nan cheng gong | ❌ 全文无匹配: 5番南成功 | 拼音: 5fan nan cheng gong"
+        }
+      ],
+      "related_player_not_matched": [
+        {
+          "case_id": "ja-assist-three-number",
+          "transcript": "ロマ ンア シスト クマ釣 り",
+          "event_code": "stat.assistThreeMade",
+          "voice_log": "success | 5番アシストクマスリー | locale=ja-JP | engine=speechTranscriber | stage=parser | action=助攻 + 3分命中 | player=高橋愛 → エマ | 原文: 5番アシストクマスリー | 拼音: 5fanashisutokumasuri | 🔍 找到关键词「アシスト」 | 左侧原文: 5番 | 右侧原文: クマスリー | 双事件: 高橋愛助攻エマ3分命中"
+        }
+      ],
+      "parser_wrong_event": [
+        {
+          "case_id": "ja-steal-turnover-number",
+          "transcript": "7番スティール 。",
+          "event_code": "stat.steal",
+          "voice_log": "success | 7番スティール | locale=ja-JP | engine=speechTranscriber | stage=parser | action=抢断 | player=エマ | 原文: 7番スティール | 拼音: 7fansutiru | 🔍 找到关键词「スティール」 | 左侧原文: 7番 | 右侧原文: 空 | 球员匹配: 号码7直配"
+        }
+      ]
+    },
+    "ko": {
+      "parser_no_action": [
+        {
+          "case_id": "ko-two-made-number",
+          "transcript": "일본 수선",
+          "event_code": "",
+          "voice_log": "failure | 일본투 성공 | locale=ko-KR | engine=speechTranscriber | stage=parser | reason=player_not_matched | action=stat.twoMade | 原文: 일본투 성공 | 拼音: ilbontu seong-gong | 🔍 找到关键词「투」 | 左侧原文: 일본 | 右侧原文: 성공 | 🔍 关键词: stat.two | 右侧状态=성공 → 命中(得分=1.00) | ❌ 未匹配到球员 | 左侧文本: 일본 | 拼音: ilbontu seong-gong || failure | 일본투 성공 | locale=ko-KR | engine=speechTranscriber | stage=parser | reason=parser_failure | action=stat.two | 🔍 拼音回退: 关键词pinyin=tu | 左侧拼音: ilbon | 右侧拼音: seong-gong || failure | 일본투 성공 | locale=ko-KR | engine=speechTranscriber | stage=parser | reason=player_not_matched | action=stat.twoMade | ❌ 拼音回退: 未匹配到球员 | 左侧拼音: ilbon"
+        },
+        {
+          "case_id": "ko-bonus-made-number",
+          "transcript": "어떤 습니까?",
+          "event_code": "",
+          "voice_log": "failure | 어떤습니까 | locale=ko-KR | engine=speechTranscriber | stage=parser | reason=no_parser_match | 原文: 어떤습니까 | 拼音: eotteonseubnikka | ❌ 全文无匹配: 어떤습니까 | 拼音: eotteonseubnikka"
+        },
+        {
+          "case_id": "ko-bonus-missed-number",
+          "transcript": "오 너 심해.",
+          "event_code": "",
+          "voice_log": "failure | 오너심해 | locale=ko-KR | engine=speechTranscriber | stage=parser | reason=no_parser_match | 原文: 오너심해 | 拼音: oneosimhae | ❌ 全文无匹配: 오너심해 | 拼音: oneosimhae"
+        },
+        {
+          "case_id": "ko-free-throw-made-number",
+          "transcript": "실은 아유 수선공.",
+          "event_code": "",
+          "voice_log": "failure | 실은아유투 성공공 | locale=ko-KR | engine=speechTranscriber | stage=parser | reason=player_not_matched | action=stat.twoMade | 原文: 실은아유투 성공공 | 拼音: sil-eun-ayutu seong-gong-gong | 🔍 找到关键词「투」 | 左侧原文: 실은아유 | 右侧原文: 성공공 | 🔍 关键词: stat.two | 右侧状态=성공공 → 命中(得分=0.67) | ❌ 未匹配到球员 | 左侧文本: 실은아유 | 拼音: sil-eun-ayutu seong-gong-gong || failure | 실은아유투 성공공 | locale=ko-KR | engine=speechTranscriber | stage=parser | reason=parser_failure | action=stat.two | 🔍 拼音回退: 关键词pinyin=tu | 左侧拼音: sil-eun-ayu | 右侧拼音: seong-gong-gong || failure | 실은아유투 성공공 | locale=ko-KR | engine=speechTranscriber | stage=parser | reason=player_not_matched | action=stat.twoMade | ❌ 拼音回退: 未匹配到球员 | 左侧拼音: sil-eun-ayu"
+        },
+        {
+          "case_id": "ko-free-throw-missed-number",
+          "transcript": "할머니 아유 조심해.",
+          "event_code": "",
+          "voice_log": "failure | 할머니아유조심해 | locale=ko-KR | engine=speechTranscriber | stage=parser | reason=no_parser_match | 原文: 할머니아유조심해 | 拼音: halmeoniayujosimhae | ❌ 全文无匹配: 할머니아유조심해 | 拼音: halmeoniayujosimhae"
+        }
+      ],
+      "parser_wrong_event": [
+        {
+          "case_id": "ko-two-missed-number",
+          "transcript": "이번 수시회.",
+          "event_code": "stat.bonusMissed",
+          "voice_log": "success | 2보너스시회 | locale=ko-KR | engine=speechTranscriber | stage=parser | action=加罚不中 | player=이준호 | 原文: 2보너스시회 | 拼音: 2boneoseusihoe | 🔍 找到关键词「보너스」 | 左侧原文: 2 | 右侧原文: 시회 | 🔍 关键词: stat.bonus | 右侧状态=시회 → 未中(得分=0.33) | 球员匹配: 号码2直配"
+        },
+        {
+          "case_id": "ko-three-made-number",
+          "transcript": "3번 수리 30.",
+          "event_code": "stat.bonusMissed",
+          "voice_log": "failure | 3보너스리 30 | locale=ko-KR | engine=speechTranscriber | stage=parser | reason=player_not_matched | action=stat.threeMade | 原文: 3보너스리 30 | 拼音: 3boneoseuli 30 | 🔍 找到关键词「스리」 | 左侧原文: 3보너 | 右侧原文: 30 | 🔍 关键词: stat.three | 右侧状态=30 → 默认命中(得分=0.00) | ❌ 未匹配到球员 | 左侧文本: 3보너 | 拼音: 3boneoseuli 30 || failure | 3보너스리 30 | locale=ko-KR | engine=speechTranscriber | stage=parser | reason=parser_failure | action=stat.bonus | 🔍 找到关键词「보너스」 | 左侧原文: 3 | 右侧原文: 리 30 || failure | 3보너스리 30 | locale=ko-KR | engine=speechTranscriber | stage=parser | reason=parser_failure | action=stat.bonusMissed | 🔍 关键词: stat.bonus | 右侧状态=리 30 → 未中(得分=0.17) || success | 3보너스리 30 | locale=ko-KR | engine=speechTranscriber | stage=parser | action=加罚不中 | player=박지훈 | 球员匹配: 号码3直配"
+        },
+        {
+          "case_id": "ko-offensive-rebound-number",
+          "transcript": "고 리마운드.",
+          "event_code": "stat.defensiveRebound",
+          "voice_log": "success | 고리바운드 | locale=ko-KR | engine=speechTranscriber | stage=parser | action=后场板 | player=존 | 原文: 고리바운드 | 拼音: golibaundeu | 🔍 找到关键词「리바운드」 | 左侧原文: 고 | 右侧原文: 空 | 球员匹配: 左侧球员[김민수(拼音=gimminsu vs go=0.12), 이준호(拼音=ijunho vs go=0.00), 박지훈(拼音=bagjihun vs go=0.06), 최서연(拼音=choeseoyeon vs go=0.00), 김하늘(拼音=gimhaneul vs go=0.11), 정수빈(拼音=jeongsubin vs go=0.06), 엠마(拼音=emma vs go=0.00), 마이클(拼音=maikeul vs go=0.07), 앨리스(拼音=aelliseu vs go=0.07), 존(编辑距离1=0.80), 김엠마(拼音=gim-emma vs go=0.12), 데이비드(拼音=deibideu vs go=0.07)]"
+        },
+        {
+          "case_id": "ko-assist-two-number",
+          "transcript": "삼 노시스 투 사 투.",
+          "event_code": "stat.assist",
+          "voice_log": "success | 삼어시스트투사투 | locale=ko-KR | engine=speechTranscriber | stage=parser | action=助攻 | player=존 | 原文: 삼어시스트투사투 | 拼音: sam-eosiseuteutusatu | 🔍 找到关键词「어시스트」 | 左侧原文: 삼 | 右侧原文: 투사투 | 球员匹配: 左侧球员[김민수(拼音=gimminsu vs sam=0.16), 이준호(拼音=ijunho vs sam=0.00), 박지훈(拼音=bagjihun vs sam=0.12), 최서연(拼音=choeseoyeon vs sam=0.05), 김하늘(拼音=gimhaneul vs sam=0.14), 정수빈(拼音=jeongsubin vs sam=0.04), 엠마(拼音=emma vs sam=0.25), 마이클(拼音=maikeul vs sam=0.14), 앨리스(拼音=aelliseu vs sam=0.05), 존(编辑距离1=0.80), 김엠마(拼音=gim-emma vs sam=0.16), 데이비드(拼音=deibideu vs sam=0.05)]"
+        }
+      ]
+    },
+    "de": {
+      "player_not_matched": [
+        {
+          "case_id": "de-two-made-number",
+          "transcript": "Nummer zwei getroffen.",
+          "event_code": "stat.twoMade",
+          "voice_log": ""
+        }
+      ],
+      "parser_wrong_event": [
+        {
+          "case_id": "de-two-missed-number",
+          "transcript": "Nummer zwei.",
+          "event_code": "stat.twoMade",
+          "voice_log": ""
+        },
+        {
+          "case_id": "de-mid-range-missed-number",
+          "transcript": "Nummer 12 mit der Distanzählt.",
+          "event_code": "stat.twoMissed",
+          "voice_log": ""
+        },
+        {
+          "case_id": "de-putback-made-number",
+          "transcript": "Nummer drei gut bleibt getroffen.",
+          "event_code": "stat.layupMade",
+          "voice_log": ""
+        },
+        {
+          "case_id": "de-defensive-rebound-number",
+          "transcript": "Nun mal sehen defensiv den Bund",
+          "event_code": "event.game_end",
+          "voice_log": ""
+        },
+        {
+          "case_id": "de-block-number",
+          "transcript": "Nummer 12",
+          "event_code": "stat.twoMade",
+          "voice_log": ""
+        }
+      ],
+      "asr_no_result": [
+        {
+          "case_id": "de-three-missed-number",
+          "transcript": "",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "de-free-throw-missed-number",
+          "transcript": "",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "de-layup-missed-number",
+          "transcript": "",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "de-paint-missed-number",
+          "transcript": "",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "de-undo",
+          "transcript": "",
+          "event_code": "",
+          "voice_log": ""
+        }
+      ],
+      "parser_no_action": [
+        {
+          "case_id": "de-bonus-missed-number",
+          "transcript": "Nummer sechs, Nummer mehr fehlt.",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "de-mid-range-made-number",
+          "transcript": "Nummer elf mit Distanz getroffen.",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "de-mid-range-missed",
+          "transcript": "Mitteldistanz verfehlt",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "de-paint-made-number",
+          "transcript": "Nummer eins Kolail getroffen.",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "de-paint-missed",
+          "transcript": "Anna Fischer verfehlt",
+          "event_code": "",
+          "voice_log": ""
+        }
+      ]
+    },
+    "es": {
+      "parser_wrong_event": [
+        {
+          "case_id": "es-two-missed-number",
+          "transcript": "Número dos fallado.",
+          "event_code": "stat.twoMade",
+          "voice_log": ""
+        },
+        {
+          "case_id": "es-three-made",
+          "transcript": "Fue en Pérez tres ano",
+          "event_code": "stat.threeMissed",
+          "voice_log": ""
+        },
+        {
+          "case_id": "es-three-missed",
+          "transcript": "Ana Torres que ha fallado",
+          "event_code": "stat.twoMade",
+          "voice_log": ""
+        },
+        {
+          "case_id": "es-bonus-missed",
+          "transcript": "Laura Martini uno ha fallado",
+          "event_code": "stat.twoMade",
+          "voice_log": ""
+        },
+        {
+          "case_id": "es-free-throw-made",
+          "transcript": "a tiro libre ano",
+          "event_code": "stat.freeThrowMissed",
+          "voice_log": ""
+        }
+      ],
+      "parser_no_action": [
+        {
+          "case_id": "es-three-made-number",
+          "transcript": "Mi número 33 anotó",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "es-bonus-made",
+          "transcript": "Diego Ruiz y una",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "es-bonus-made-number",
+          "transcript": "Número 5 y",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "es-bonus-missed-number",
+          "transcript": "Número 61 fallado",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "es-free-throw-made-number",
+          "transcript": "número siete libro del libro de anotó.",
+          "event_code": "",
+          "voice_log": ""
+        }
+      ],
+      "asr_no_result": [
+        {
+          "case_id": "es-dunk-missed-number",
+          "transcript": "",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "es-foul-number",
+          "transcript": "",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "es-redo",
+          "transcript": "",
+          "event_code": "",
+          "voice_log": ""
+        }
+      ],
+      "player_not_matched": [
+        {
+          "case_id": "es-block-number",
+          "transcript": "Número dos del bloqueo",
+          "event_code": "stat.block",
+          "voice_log": ""
+        }
+      ]
+    },
+    "fr": {
+      "parser_no_action": [
+        {
+          "case_id": "fr-two-missed-number",
+          "transcript": "Numéro de",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "fr-three-missed",
+          "transcript": "Sophie Laurent II ratée",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "fr-bonus-made",
+          "transcript": "Thomas Petit est réussi",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "fr-bonus-made-number",
+          "transcript": "Numéro cinq réussi",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "fr-bonus-missed",
+          "transcript": "Léa Moreau est un raté",
+          "event_code": "",
+          "voice_log": ""
+        }
+      ],
+      "parser_wrong_event": [
+        {
+          "case_id": "fr-three-missed-number",
+          "transcript": "Numéro 43",
+          "event_code": "stat.threeMade",
+          "voice_log": ""
+        },
+        {
+          "case_id": "fr-free-throw-missed-number",
+          "transcript": "Numéro huit lancer",
+          "event_code": "stat.freeThrowMade",
+          "voice_log": ""
+        },
+        {
+          "case_id": "fr-mid-range-missed-number",
+          "transcript": "Numéro 12 12",
+          "event_code": "stat.twoMade",
+          "voice_log": ""
+        },
+        {
+          "case_id": "fr-putback-made-number",
+          "transcript": "Numéro 3",
+          "event_code": "stat.threeMade",
+          "voice_log": ""
+        },
+        {
+          "case_id": "fr-turnover",
+          "transcript": "Claire Dubois perd de balle",
+          "event_code": "stat.twoMade",
+          "voice_log": ""
+        }
+      ],
+      "player_not_matched": [
+        {
+          "case_id": "fr-mid-range-made",
+          "transcript": "Martin Mance réussie",
+          "event_code": "stat.midRangeMade",
+          "voice_log": ""
+        },
+        {
+          "case_id": "fr-assist",
+          "transcript": "Martin passe",
+          "event_code": "stat.assist",
+          "voice_log": ""
+        }
+      ],
+      "asr_no_result": [
+        {
+          "case_id": "fr-foul",
+          "transcript": "",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "fr-pause-number",
+          "transcript": "",
+          "event_code": "",
+          "voice_log": ""
+        }
+      ]
+    },
+    "it": {
+      "parser_no_action": [
+        {
+          "case_id": "it-bonus-missed-number",
+          "transcript": "numero se è il bonus sbagliato",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "it-free-throw-made",
+          "transcript": "tiro libero segnato",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "it-layup-made",
+          "transcript": "Alice l'hai segnato",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "it-layup-made-number",
+          "transcript": "Numero nove l'hai segnato",
+          "event_code": "",
+          "voice_log": ""
+        },
+        {
+          "case_id": "it-layup-missed",
+          "transcript": "John Lype sbagliato",
+          "event_code": "",
+          "voice_log": ""
+        }
+      ],
+      "player_not_matched": [
+        {
+          "case_id": "it-mid-range-made",
+          "transcript": "Rossi media distanza segnato",
+          "event_code": "stat.midRangeMade",
+          "voice_log": ""
+        },
+        {
+          "case_id": "it-assist",
+          "transcript": "assist",
+          "event_code": "stat.assist",
+          "voice_log": ""
+        }
+      ],
+      "parser_wrong_event": [
+        {
+          "case_id": "it-mid-range-missed-number",
+          "transcript": "numero 12 in media a distanza sbagliato",
+          "event_code": "stat.twoMissed",
+          "voice_log": ""
+        },
+        {
+          "case_id": "it-turnover-number",
+          "transcript": "Numero due per sé",
+          "event_code": "stat.twoMissed",
+          "voice_log": ""
+        }
+      ]
+    }
+  }
+}

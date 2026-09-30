@@ -1,5 +1,6 @@
 import AVFoundation
 import Foundation
+import Speech
 import XCTest
 @testable import BasketballRecord
 
@@ -27,6 +28,13 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
             .split(separator: ",")
             .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
+        if #available(iOS 26.0, *),
+           engineNames.contains(VoiceASREngine.speechTranscriber.rawValue),
+           ProcessInfo.processInfo.environment["VOICE_ASR_EVAL_RELEASE_ALL_LOCALES"] == "1" {
+            for locale in await AssetInventory.reservedLocales {
+                _ = await AssetInventory.release(reservedLocale: locale)
+            }
+        }
         var resultRows: [String] = []
 
         engineLoop: for engineName in engineNames {
@@ -47,7 +55,8 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
                             throw XCTSkip("SpeechTranscriber requires iOS 26 or later")
                         }
                         let rules = VoiceRules.forLocale(Locale(identifier: row.locale))
-                        let context = rules.contextualStrings(playerNames: orderedNames(for: row, in: allRows))
+                        let names = orderedNames(for: row, in: allRows)
+                        let context = rules.contextualStrings(playerNames: names, playerNumbers: names.indices.map { String($0 + 1) })
                         result = try await VoiceASRFileTranscriber.transcribeSpeechTranscriber(url: audioURL, locale: Locale(identifier: row.locale), contextualStrings: context)
                     }
                 } catch let error as VoiceASRFileTranscriberError {
@@ -65,7 +74,8 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
                             eventCode: "",
                             playerMatch: false,
                             relatedPlayerMatch: false,
-                            error: error.localizedDescription
+                            error: error.localizedDescription,
+                            recognitionStatus: "asr_no_result"
                         ))
                         continue
                     }
@@ -79,12 +89,13 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
                         eventCode: "",
                         playerMatch: false,
                         relatedPlayerMatch: false,
-                        error: error.localizedDescription
+                        error: error.localizedDescription,
+                        recognitionStatus: "asr_error"
                     ))
                     continue
                 }
 
-                let parsed = await parsedResult(for: row, in: rows, transcript: result.transcript)
+                let parsed = await parsedResult(for: row, in: rows, engine: engine, transcript: result.transcript, alternatives: result.alternatives)
                 resultRows.append(csvRow(
                     engine: engine.rawValue,
                     row: row,
@@ -93,7 +104,10 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
                     finalResultMilliseconds: result.finalResultMilliseconds,
                     eventCode: parsed.eventCode,
                     playerMatch: parsed.playerMatch,
-                    relatedPlayerMatch: parsed.relatedPlayerMatch
+                    relatedPlayerMatch: parsed.relatedPlayerMatch,
+                    recognitionStatus: parsed.eventCode.isEmpty ? "parser_no_action" : "parser_action",
+                    candidates: [result.transcript] + result.alternatives,
+                    voiceLogTrace: parsed.voiceLogTrace
                 ))
             }
         }
@@ -102,7 +116,7 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
             throw XCTSkip("No ASR evaluation rows were produced")
         }
 
-        print("VOICE_ASR_HEADER,engine,case_id,transcript,first_result_ms,final_result_ms,event_code,player_match,related_player_match,error")
+        print("VOICE_ASR_HEADER,engine,case_id,transcript,first_result_ms,final_result_ms,event_code,player_match,related_player_match,error,recognition_status,candidates,voice_log")
         for row in resultRows {
             print("VOICE_ASR_RESULT,\(row)")
         }
@@ -127,6 +141,7 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
         let eventCode: String
         let playerMatch: Bool
         let relatedPlayerMatch: Bool
+        let voiceLogTrace: String
     }
 
     private func evaluationCorpus() throws -> EvaluationCorpus {
@@ -175,8 +190,10 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
         }
     }
 
-    private func parsedResult(for row: ManifestRow, in rows: [ManifestRow], transcript: String) async -> ParsedResult {
+    private func parsedResult(for row: ManifestRow, in rows: [ManifestRow], engine: VoiceASREngine, transcript: String, alternatives: [String]) async -> ParsedResult {
         let store = AppStore()
+        store.voiceLogEnabled = true
+        store.voiceLog = []
         let names = orderedNames(for: row, in: rows)
         let ids = names.enumerated().map { index, name in
             (name, UUID(), "\(index + 1)")
@@ -213,7 +230,7 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
         }
 
         let recognizer = VoiceRecognizer()
-        recognizer.configureForFileEvaluation(store: store)
+        recognizer.configureForFileEvaluation(store: store, engine: engine)
         recognizer.currentSnapshot = snapshot
         recognizer.updateRules(for: Locale(identifier: row.locale))
         if row.expectedEvent == "stat.offensiveRebound" || row.expectedEvent == "stat.defensiveRebound" {
@@ -255,11 +272,48 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
             case .substitution: code = "event.substitution"
             }
         }
-        recognizer.simulateText(transcript)
-        for _ in 0..<8 {
-            await Task.yield()
+        var bestResult = ParsedResult(eventCode: "", playerMatch: row.expectedPlayer.isEmpty, relatedPlayerMatch: row.expectedRelatedPlayer.isEmpty, voiceLogTrace: "")
+        var bestScore = -1
+        var candidates = [transcript]
+        candidates.append(contentsOf: alternatives.filter { !$0.isEmpty && !candidates.contains($0) })
+        for candidate in candidates {
+            code = ""
+            playerMatch = row.expectedPlayer.isEmpty
+            relatedPlayerMatch = row.expectedRelatedPlayer.isEmpty
+            let logCountBeforeCandidate = store.voiceLog.count
+            recognizer.simulateText(candidate)
+            for _ in 0..<8 {
+                await Task.yield()
+            }
+            let newLogEntries = Array(store.voiceLog.prefix(max(0, store.voiceLog.count - logCountBeforeCandidate)))
+            let candidateResult = ParsedResult(
+                eventCode: code,
+                playerMatch: playerMatch,
+                relatedPlayerMatch: relatedPlayerMatch,
+                voiceLogTrace: newLogEntries.reversed().map(voiceLogLine).joined(separator: " || ")
+            )
+            let score = (candidateResult.eventCode == row.expectedEvent ? 4 : 0)
+                + (candidateResult.playerMatch ? 2 : 0)
+                + (candidateResult.relatedPlayerMatch ? 2 : 0)
+            if score > bestScore {
+                bestScore = score
+                bestResult = candidateResult
+            }
+            if score == 8 { break }
         }
-        return ParsedResult(eventCode: code, playerMatch: playerMatch, relatedPlayerMatch: relatedPlayerMatch)
+        return bestResult
+    }
+
+    private func voiceLogLine(_ entry: VoiceLogEntry) -> String {
+        var values = [entry.isSuccess ? "success" : "failure", entry.text]
+        if let locale = entry.locale { values.append("locale=\(locale)") }
+        if let engine = entry.engine { values.append("engine=\(engine)") }
+        if let stage = entry.stage { values.append("stage=\(stage)") }
+        if let failureReason = entry.failureReason { values.append("reason=\(failureReason)") }
+        if let action = entry.action { values.append("action=\(action)") }
+        if let playerName = entry.playerName { values.append("player=\(playerName)") }
+        if let detail = entry.matchDetail { values.append(detail) }
+        return values.joined(separator: " | ")
     }
 
     private func orderedNames(for row: ManifestRow, in rows: [ManifestRow]) -> [String] {
@@ -281,7 +335,10 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
         eventCode: String,
         playerMatch: Bool,
         relatedPlayerMatch: Bool,
-        error: String = ""
+        error: String = "",
+        recognitionStatus: String = "parser_failure",
+        candidates: [String] = [],
+        voiceLogTrace: String = ""
     ) -> String {
         [
             engine,
@@ -292,7 +349,10 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
             eventCode,
             playerMatch ? "true" : "false",
             relatedPlayerMatch ? "true" : "false",
-            error
+            error,
+            recognitionStatus,
+            candidates.joined(separator: " || "),
+            voiceLogTrace
         ].map(csvField).joined(separator: ",")
     }
 

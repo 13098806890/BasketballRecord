@@ -4,6 +4,7 @@ import Speech
 
 struct VoiceASRFileTranscriptionResult: Sendable {
     let transcript: String
+    let alternatives: [String]
     let firstResultMilliseconds: Int?
     let finalResultMilliseconds: Int?
 }
@@ -72,6 +73,7 @@ enum VoiceASRFileTranscriber {
                 }
                 continuation.resume(returning: VoiceASRFileTranscriptionResult(
                     transcript: transcript,
+                    alternatives: [],
                     firstResultMilliseconds: firstResultMilliseconds,
                     finalResultMilliseconds: elapsedMilliseconds
                 ))
@@ -139,6 +141,7 @@ enum VoiceASRFileTranscriber {
         let startedAt = Date()
         let resultTask = Task { () throws -> VoiceASRFileTranscriptionResult in
             var finalTranscript = ""
+            var finalAlternatives: [String] = []
             var volatileTranscript = ""
             var firstResultMilliseconds: Int?
             var finalResultMilliseconds: Int?
@@ -156,6 +159,7 @@ enum VoiceASRFileTranscriber {
                 }
                 if result.isFinal {
                     finalTranscript = Self.appendTranscriptFragment(finalTranscript, text)
+                    finalAlternatives = result.alternatives.map { String($0.characters) }
                     finalResultMilliseconds = elapsedMilliseconds
                     volatileTranscript = ""
                 } else {
@@ -171,6 +175,7 @@ enum VoiceASRFileTranscriber {
             print("VOICE_ASR_DIAGNOSTIC,locale=\(supportedLocale.identifier),results=\(resultCount),alternatives=\(alternativeCount),transcriptChars=\(transcript.count)")
             return VoiceASRFileTranscriptionResult(
                 transcript: transcript,
+                alternatives: finalAlternatives.filter { !$0.isEmpty && $0 != transcript },
                 firstResultMilliseconds: firstResultMilliseconds,
                 finalResultMilliseconds: finalResultMilliseconds ?? firstResultMilliseconds
             )

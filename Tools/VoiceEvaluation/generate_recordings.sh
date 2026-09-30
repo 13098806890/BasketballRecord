@@ -11,6 +11,7 @@ tail -n +2 "$manifest_path" | while IFS=$'\t' read -r case_id locale category va
     aiff_path="$output_dir/$case_id.aiff"
     wav_path="$output_dir/$case_id.wav"
     spoken_text="$localized_text"
+    speech_rate=175
     case "$locale" in
         zh-Hans|zh-Hant-TW)
             if [[ "$spoken_text" == *[A-Za-z]* ]]; then
@@ -29,20 +30,24 @@ tail -n +2 "$manifest_path" | while IFS=$'\t' read -r case_id locale category va
                     else
                         segment_voice="$voice"
                     fi
-                    say -v "$segment_voice" -r 165 -o "$segment_aiff" "$segment"
+                    segment_rate="$speech_rate"
+                    if [[ "$segment_voice" == "Samantha" && "$variant" == "canonical" ]]; then
+                        segment_rate=165
+                    fi
+                    say -v "$segment_voice" -r "$segment_rate" -o "$segment_aiff" "$segment"
                     printf "file '%s'\n" "${segment_aiff:A}" >> "$concat_list"
                 done
                 ffmpeg -nostdin -loglevel error -y -f concat -safe 0 -i "$concat_list" -ac 1 -ar 16000 -c:a pcm_s16le "$wav_path"
             else
-                say -v "$voice" -r 165 -o "$aiff_path" "$spoken_text"
+                say -v "$voice" -r "$speech_rate" -o "$aiff_path" "$spoken_text"
             fi
             ;;
         ja|ko)
             spoken_text="${spoken_text// /}"
-            say -v "$voice" -r 175 -o "$aiff_path" "$spoken_text"
+            say -v "$voice" -r "$speech_rate" -o "$aiff_path" "$spoken_text"
             ;;
         *)
-            say -v "$voice" -r 175 -o "$aiff_path" "$spoken_text"
+            say -v "$voice" -r "$speech_rate" -o "$aiff_path" "$spoken_text"
             ;;
     esac
     if [[ -f "$wav_path" ]]; then
