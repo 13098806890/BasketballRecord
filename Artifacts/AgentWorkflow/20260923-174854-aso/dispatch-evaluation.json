@@ -1,0 +1,17 @@
+{
+  "action": "dispatch",
+  "exchange_id": "exchange-0002",
+  "to_stage": "agent-evaluation",
+  "task_scope": "由 Orchestrator 手动完成最终质量评估，检查 ASO 审核是否符合用户范围、证据是否充分、是否误把代理数据当官方排名，以及是否遵守不上传边界。",
+  "task_prompt": "检查 13-aso-operations.html、快照、可视化和当前 workflow state；给出六维评分、缺口和最终建议。手动模式下不派发其他 Agent，不修改产品文件。",
+  "acceptance_criteria": ["记录六维评分", "记录缺口与建议", "给出最终完成 disposition"],
+  "coverage_ids": [],
+  "required_outputs": ["06-agent-evaluation.html"],
+  "input_files": ["13-aso-operations.html", "workflow-state.json", "aso/cn-zh-Hans.json"],
+  "changed_files": [],
+  "verification": ["报告状态为已完成带缺口", "无外部副作用"],
+  "unresolved_issues": ["ASC 当前字段和真实截图未验证"],
+  "prohibited_actions": ["不得上传、提交、发布或修改产品代码"],
+  "next_checks": ["为 pending stages 记录 skip 决策", "运行 validate_run.py"],
+  "knowledge_context": {"mode": "manual", "owner": "orchestrator"}
+}

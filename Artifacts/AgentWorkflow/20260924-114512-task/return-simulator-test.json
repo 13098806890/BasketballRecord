@@ -1,0 +1,63 @@
+{
+  "action": "return",
+  "from_stage": "simulator-test",
+  "exchange_id": "exchange-0004",
+  "summary": "探索式模拟器测试部分阻塞：iPhone 17e 上应用进程和 key window 日志存在，但 simctl screenshot 连续返回纯黑画面，仓库无 ui-audit 配置/UI Test target，无法取得 AX tree 或安全选择下一步动作；四个受影响 surface 均标为 blocked。",
+  "result_status": "blocked",
+  "output_files": [
+    {
+      "path": "04-simulator-test.html",
+      "kind": "html",
+      "label": "模拟器测试报告"
+    },
+    {
+      "path": "simulator-launch.log",
+      "kind": "log",
+      "label": "模拟器启动日志"
+    },
+    {
+      "path": "simulator-exploration-home.png",
+      "kind": "image",
+      "label": "首轮模拟器截图"
+    },
+    {
+      "path": "simulator-exploration-after-launch.png",
+      "kind": "image",
+      "label": "再次启动模拟器截图"
+    }
+  ],
+  "changed_files": [],
+  "verification": [
+    "设备 iPhone 17e / 1DFF6F6E-8438-4D6D-873B-1B86368728BA / iOS 27.0 已启动",
+    "Debug build 已安装并通过 simctl launch 返回进程 PID",
+    "日志显示 UIWindowScene/key window 创建，无 crash 记录",
+    "两次 screenshot 均为 1170 × 2532 纯黑 PNG",
+    "探索停止原因和固定测试计划已写入 04-simulator-test.html"
+  ],
+  "unresolved_issues": [
+    "simctl screenshot 无法显示应用窗口",
+    "没有 .codex/ui-audit.json 和 UI Test target",
+    "没有可用 accessibility tree，无法安全进行下一步 tap/swipe",
+    "管理、历史、职业成长、球员资料四个 surface 均缺运行时视觉证据"
+  ],
+  "coverage_dispositions": [
+    {
+      "coverage_id": "criterion-03",
+      "status": "blocked",
+      "evidence": [
+        "04-simulator-test.html",
+        "simulator-launch.log",
+        "simulator-exploration-after-launch.png"
+      ]
+    },
+    {
+      "coverage_id": "criterion-05",
+      "status": "blocked",
+      "evidence": [
+        "04-simulator-test.html",
+        "simulator-exploration-home.png",
+        "simulator-exploration-after-launch.png"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "generated_at": "2026-09-24T09:47:41.872606+00:00",
+  "source": "codex-local-thread-catalog",
+  "tasks": [
+    {
+      "id": "01a0cea7-48fc-7be3-9d8c-9eccd126844d",
+      "title": "生成中文风格截图样例",
+      "status": "synced",
+      "cwd": "/Users/xiedongze/Desktop/Github/BasketballRecord",
+      "branch": "main",
+      "updated_at": "2026-09-24T09:46:52+00:00",
+      "summary": ""
+    },
+    {
+      "id": "01a0d25a-e69d-7402-bf46-232a8bb420ea",
+      "title": "调研多语言实时语音识别方案",
+      "status": "synced",
+      "cwd": "/Users/xiedongze/Desktop/Github/BasketballRecord",
+      "branch": "main",
+      "updated_at": "2026-09-24T09:46:52+00:00",
+      "summary": ""
+    },
+    {
+      "id": "01a0d2b1-8188-7510-bfdb-e34679166f01",
+      "title": "恢复比赛记录 iCloud 按钮",
+      "status": "synced",
+      "cwd": "/Users/xiedongze/Desktop/Github/BasketballRecord",
+      "branch": "main",
+      "updated_at": "2026-09-24T09:32:31+00:00",
+      "summary": ""
+    },
+    {
+      "id": "01a0cd9e-4a5b-7312-80d9-1661d1082a1e",
+      "title": "优化 ASO 方案",
+      "status": "synced",
+      "cwd": "/Users/xiedongze/Desktop/Github/BasketballRecord",
+      "branch": "main",
+      "updated_at": "2026-09-24T06:44:09+00:00",
+      "summary": ""
+    },
+    {
+      "id": "01a0cec3-130b-7d13-883b-06356c0c804a",
+      "title": "制定 X App 宣传方案",
+      "status": "synced",
+      "cwd": "/Users/xiedongze/Desktop/Github/BasketballRecord",
+      "branch": "main",
+      "updated_at": "2026-09-24T01:01:30+00:00",
+      "summary": ""
+    }
+  ]
+}

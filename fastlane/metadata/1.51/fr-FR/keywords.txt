@@ -1,1 +1,1 @@
-marqueur,statistiques,basketball,marquage,points,équipe,entraîneur,match,enregistrement,tournoi
+basket,score en direct,statistiques,marqueur,joueurs,feuille de match,coach,équipe,tournoi

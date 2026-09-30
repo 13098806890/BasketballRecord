@@ -24,12 +24,85 @@ struct ContentView: View {
     @State private var isShowingStoreSyncBusyAlert = false
     @State private var suppressBusyAlertUntilIdle = false
     @State private var storeSyncBusyAlertText = ""
-    @State private var selectedTab: Int = 1
-    @AppStorage(AppSkin.storageKey) private var appSkinRaw = AppSkin.classic.rawValue
+    @State private var selectedTab: Int = Self.initialTab
+#if DEBUG
+    @State private var isShowingDebugDetail = false
+#endif
 
-    private var usesPixelSkin: Bool { AppSkin(rawValue: appSkinRaw) == .pixelEsports }
+#if DEBUG
+    private enum DebugDetailDestination {
+        case game
+        case player
+        case careerPlayer
+    }
+
+    private var debugDetailDestination: DebugDetailDestination? {
+        guard let argumentIndex = ProcessInfo.processInfo.arguments.firstIndex(of: "-screenshotDetail"),
+              argumentIndex + 1 < ProcessInfo.processInfo.arguments.count else { return nil }
+        switch ProcessInfo.processInfo.arguments[argumentIndex + 1] {
+        case "game": return .game
+        case "player": return .player
+        case "careerPlayer": return .careerPlayer
+        default: return nil
+        }
+    }
+#endif
+
+    private static var initialTab: Int {
+#if DEBUG
+        if let argumentIndex = ProcessInfo.processInfo.arguments.firstIndex(of: "-screenshotTab"),
+           argumentIndex + 1 < ProcessInfo.processInfo.arguments.count,
+           let tab = Int(ProcessInfo.processInfo.arguments[argumentIndex + 1]),
+           (0...3).contains(tab) {
+            return tab
+        }
+#endif
+        return 1
+    }
 
     var body: some View {
+        rootContent
+    }
+
+    @ViewBuilder
+    private var rootContent: some View {
+#if DEBUG
+        if let destination = debugDetailDestination, let game = store.savedGames.first {
+            NavigationStack {
+                Color.clear
+                    .navigationDestination(isPresented: $isShowingDebugDetail) {
+                        switch destination {
+                        case .game:
+                            SavedGameDetailView(game: game)
+                        case .player:
+                            if let playerID = game.homePlayerIDs.first ?? game.awayPlayerIDs.first {
+                                PlayerProfileView(playerID: playerID, fixedGame: game, selectedGroupID: .constant(nil))
+                            } else {
+                                mainTabs
+                            }
+                        case .careerPlayer:
+                            if let playerID = game.homePlayerIDs.first ?? game.awayPlayerIDs.first {
+                                PlayerProfileView(playerID: playerID, selectedGroupID: .constant(nil))
+                            } else {
+                                mainTabs
+                            }
+                        }
+                    }
+                    .onAppear {
+                        DispatchQueue.main.async {
+                            isShowingDebugDetail = true
+                        }
+                    }
+            }
+        } else {
+            mainTabs
+        }
+#else
+        mainTabs
+#endif
+    }
+
+    private var mainTabs: some View {
         TabView(selection: $selectedTab) {
             TeamManagementHomeView()
                 .tabItem {
@@ -55,7 +128,7 @@ struct ContentView: View {
                 }
                 .tag(3)
         }
-        .modifier(PixelTabBarModifier(isEnabled: usesPixelSkin))
+        .modifier(EditorialTabBarModifier(isEnabled: true))
         .overlay(alignment: .top) {
             if let summary = globalStoreSyncSummary {
                 globalStoreSyncBanner(summary)

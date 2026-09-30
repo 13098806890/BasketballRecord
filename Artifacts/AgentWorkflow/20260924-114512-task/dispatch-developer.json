@@ -1,0 +1,71 @@
+{
+  "action": "dispatch",
+  "to_stage": "developer",
+  "task_scope": "核验并完成视觉设计契约在非记分页面的实现，复查共享修饰器、现有调用方、构建和本地化；只在发现与验收项直接相关的有界问题时修改产品代码。",
+  "task_prompt": "你是本 run 的 Developer。请读取 workflow-state.json 与 10-visual-design.html，独立检查当前 diff 和相关调用方。确认 EditorialDesign.swift 在非 pixel skin 的 ContentView、管理、历史、职业成长、球员资料页面生效；确认 Views/Game 未改动，既有导航、数据读写和点击区域保持不变，没有新增用户可见字符串。运行 git diff --check 和 Debug iOS Simulator xcodebuild。若发现明显格式/实现问题，可以用最小范围修改产品代码并重新 build；不得修改 Views/Game、Fastlane 截图/metadata、或执行上传。报告必须列出实际修改文件、构建命令和结果、每个 coverage_id 的 disposition，明确哪些内容只能等 simulator-test 验证。",
+  "acceptance_criteria": [
+    "criterion-01",
+    "criterion-02",
+    "criterion-03",
+    "criterion-04"
+  ],
+  "coverage_ids": [
+    "criterion-01",
+    "criterion-02",
+    "criterion-03",
+    "criterion-04"
+  ],
+  "required_outputs": [
+    "02-developer.html",
+    "Debug iOS Simulator build result",
+    "受影响文件与保护范围核对"
+  ],
+  "input_files": [
+    "workflow-state.json",
+    "10-visual-design.html",
+    "BasketballRecord/Views/Skin/EditorialDesign.swift",
+    "BasketballRecord/Views/ContentView.swift",
+    "BasketballRecord/Views/RosterView.swift",
+    "BasketballRecord/Views/TeamManagementHomeView.swift",
+    "BasketballRecord/Views/History/HistoryView.swift",
+    "BasketballRecord/Views/Career/CareerView.swift",
+    "BasketballRecord/Views/PlayerProfileView.swift",
+    "BasketballRecord/Services/CloudKitManager.swift"
+  ],
+  "changed_files": [
+    "BasketballRecord/Views/Skin/EditorialDesign.swift",
+    "BasketballRecord/Views/ContentView.swift",
+    "BasketballRecord/Views/RosterView.swift",
+    "BasketballRecord/Views/TeamManagementHomeView.swift",
+    "BasketballRecord/Views/History/HistoryView.swift",
+    "BasketballRecord/Views/Career/CareerView.swift",
+    "BasketballRecord/Views/PlayerProfileView.swift",
+    "BasketballRecord/Services/CloudKitManager.swift"
+  ],
+  "verification": [
+    "此前 Debug iOS Simulator build 已返回 BUILD SUCCEEDED",
+    "git diff --check 已通过",
+    "git diff --name-only -- BasketballRecord/Views/Game/ 为空"
+  ],
+  "unresolved_issues": [
+    "运行时 simctl screenshot 此前只捕获模拟器桌面或黑屏",
+    "深色模式、动态字体和 VoiceOver 尚未专项实测"
+  ],
+  "prohibited_actions": [
+    "不得修改 BasketballRecord/Views/Game/ 下任何产品代码",
+    "不得修改 fastlane/screenshots 或 fastlane/metadata",
+    "不得上传或提交 App Store Connect",
+    "不得自行 commit"
+  ],
+  "next_checks": [
+    "审查所有使用 EditorialDesign 的调用方是否只影响非记分页面",
+    "检查格式、构建、Localization key 和点击区域",
+    "将运行时验证缺口完整交给 simulator-test"
+  ],
+  "knowledge_context": {
+    "feature_ids": ["ui-editorial-theme"],
+    "flow_ids": ["management", "history", "career", "player-profile"],
+    "test_case_ids": ["build-debug-simulator", "protected-game-ui-diff"],
+    "known_issue_ids": ["simulator-window-capture"]
+  }
+}

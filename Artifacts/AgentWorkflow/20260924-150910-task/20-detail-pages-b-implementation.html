@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>比赛详情与球员详情 · B 方案实施报告</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;background:#f8f6ed;color:#081b2f;max-width:1000px;margin:0 auto;padding:32px;line-height:1.6}
+h1{font-size:32px;margin-bottom:8px}h2{margin-top:32px;color:#e33f18}.status{display:inline-block;background:#176b3a;color:#fff;border-radius:999px;padding:4px 12px;font-weight:700}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.card{background:#fff;border:1px solid #d8dde2;border-radius:18px;padding:18px;box-shadow:0 8px 24px #081b2f12}img{width:100%;border-radius:14px;border:1px solid #d8dde2}.small{color:#647080;font-size:14px}code{background:#ece9df;padding:2px 5px;border-radius:4px}@media(max-width:700px){body{padding:18px}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>比赛详情与球员详情 UI 实施报告</h1>
+<p><span class="status">B 方案已实施并完成真实模拟器截图</span></p>
+<p>本轮严格按 B 方案的页面顺序、卡片层级、圆角、颜色、统计排布和导航结构重组视觉层，并叠加当前项目的全局篮球背景；保留原有数据、导航和按钮功能，没有修改记分操作页面。</p>
+
+<h2>保留的内容与功能</h2>
+<div class="card">
+<ul>
+<li>比赛详情：比赛名称编辑、比分、比赛时长、数据范围、球队统计、双方球员统计、球员详情导航、事件日志编辑、云端开关、比赛分组、Excel 导出、分享/导出和 AI 总结。</li>
+<li>球员详情：球员头像与基础信息、比赛角色、数据范围、当前比赛统计、事件列表、选择比赛、分组筛选、职业统计、平均统计和 ELO 入口。</li>
+<li>统计数据仍来自原有 <code>SavedGame</code>、<code>PlayerStats</code> 和分析结果，没有新增存储字段。</li>
+<li>没有修改 <code>BasketballRecord/Views/Game/</code> 下的记分操作界面。</li>
+</ul>
+</div>
+
+<h2>iPhone 17 模拟器证据</h2>
+<div class="grid">
+<div class="card"><h3>比赛详情</h3><img src="screenshots/detail-pages-b/game-detail-b-final.png" alt="比赛详情 B 方案截图"></div>
+<div class="card"><h3>球员详情</h3><img src="screenshots/detail-pages-b/player-detail-b-final.png" alt="球员详情 B 方案截图"></div>
+</div>
+
+<h2>验证结果</h2>
+<div class="card">
+<ul>
+<li><code>xcodebuild ... Debug build</code>：成功；Release 模拟器编译也成功。</li>
+<li><code>git diff --check</code>：通过。</li>
+<li>月份 <code>2026-9</code> 展开后确认存在真实比赛记录 <code>Shohoku vs Ryonan</code>，截图使用该记录，不是静态 mock 图。</li>
+<li>详情页周期切换统一使用已有 <code>label_full_game</code> 本地化 key，避免 iPhone 17 上周期文案被裁切。</li>
+<li>新增的 <code>-screenshotDetail game|player</code> 仅在 DEBUG 构建生效，用于 UI 截图验收，不进入 Release。</li>
+<li>未执行 commit。</li>
+</ul>
+</div>
+</body>
+</html>

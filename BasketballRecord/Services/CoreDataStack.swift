@@ -12,9 +12,13 @@ struct CoreDataStack {
             description.shouldMigrateStoreAutomatically = true
             description.shouldInferMappingModelAutomatically = true
         }
-        container.loadPersistentStores { _, error in
+        container.loadPersistentStores { store, error in
             if let error {
                 print("[CoreData] Load error: \(error)")
+                print("[RecoveryCheck] core-data-load success=false error=\(error)")
+            } else {
+                let storeURL = store.url?.path ?? "nil"
+                print("[RecoveryCheck] core-data-load success=true type=\(store.type) url=\(storeURL)")
             }
         }
         container.viewContext.automaticallyMergesChangesFromParent = true
@@ -87,6 +91,16 @@ struct CoreDataStack {
         playerWeight.attributeType = .stringAttributeType
         playerWeight.isOptional = true
 
+        let playerHeightUnit = NSAttributeDescription()
+        playerHeightUnit.name = "heightUnit"
+        playerHeightUnit.attributeType = .stringAttributeType
+        playerHeightUnit.isOptional = true
+
+        let playerWeightUnit = NSAttributeDescription()
+        playerWeightUnit.name = "weightUnit"
+        playerWeightUnit.attributeType = .stringAttributeType
+        playerWeightUnit.isOptional = true
+
         let playerNumber = NSAttributeDescription()
         playerNumber.name = "number"
         playerNumber.attributeType = .stringAttributeType
@@ -112,7 +126,7 @@ struct CoreDataStack {
         playerNicknamesData.attributeType = .binaryDataAttributeType
         playerNicknamesData.isOptional = true
 
-        player.properties = [playerID, playerName, playerHeight, playerWeight, playerNumber, playerPosition, playerPhotoPath, playerGroupIDsData, playerNicknamesData]
+        player.properties = [playerID, playerName, playerHeight, playerWeight, playerHeightUnit, playerWeightUnit, playerNumber, playerPosition, playerPhotoPath, playerGroupIDsData, playerNicknamesData]
 
         // Team attributes
         let teamID = NSAttributeDescription()

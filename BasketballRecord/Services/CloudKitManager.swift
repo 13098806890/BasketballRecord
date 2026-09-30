@@ -8,22 +8,30 @@ final class CloudKitManager: ObservableObject {
     @Published private(set) var isSyncing = false
     @Published private(set) var lastSyncError: String?
 
-    private let container: CKContainer
-    private let database: CKDatabase
+    private let container: CKContainer?
+    private let database: CKDatabase?
     private let recordType = "GameRecord"
 
     private var isAvailable: Bool = true
 
     private init() {
+#if targetEnvironment(simulator)
+        container = nil
+        database = nil
+#else
         container = CKContainer.default()
-        database = container.privateCloudDatabase
-        print("[CloudKit] Container: \(container.containerIdentifier ?? "nil")")
+        database = container?.privateCloudDatabase
+#endif
+        print("[CloudKit] Container: \(container?.containerIdentifier ?? "nil")")
         print("[CloudKit] DB: privateCloudDatabase")
     }
 
     /// Check if iCloud + CloudKit are available. Returns nil on success, or an error string.
     func checkAvailability() async -> String? {
         print("[CloudKit] checkAvailability called")
+        guard let container else {
+            return NSLocalizedString("icloud_error_could_not_determine", comment: "Could not determine")
+        }
         do {
             let status = try await container.accountStatus()
             print("[CloudKit] accountStatus: \(status.rawValue)")
@@ -66,6 +74,7 @@ final class CloudKitManager: ObservableObject {
             lastSyncError = error
             return
         }
+        guard let database else { return }
 
         do {
             let data = try JSONEncoder().encode(game)
@@ -114,6 +123,7 @@ final class CloudKitManager: ObservableObject {
             lastSyncError = error
             return
         }
+        guard let database else { return }
         do {
             let recordID = CKRecord.ID(recordName: gameID.uuidString)
             try await database.deleteRecord(withID: recordID)
@@ -135,6 +145,7 @@ final class CloudKitManager: ObservableObject {
             lastSyncError = error
             return []
         }
+        guard let database else { return [] }
 
         guard !ids.isEmpty else {
             print("[CloudKit] No IDs to fetch")

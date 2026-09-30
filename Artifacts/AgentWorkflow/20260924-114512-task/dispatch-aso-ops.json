@@ -1,0 +1,56 @@
+{
+  "action": "dispatch",
+  "to_stage": "aso-ops",
+  "task_scope": "只读审计版本 1.51 的 Fastlane listing、截图序列和本地关键词机会，为本次视觉改造记录商店资产现状；不执行 App Store Connect 登录、上传或修改。",
+  "task_prompt": "你是 ASO 关键词研究与商店优化 Agent。请读取 workflow-state.json、ios-app-store-assets skill、aso-research.md、fastlane/metadata/1.51 和 fastlane/screenshots。选择并明确工作模式；当前只有本地 version 1.51 资料，没有可验证 App ID/ready-for-sale 证据，因此不得声称自身排名，优先使用本地 listing 审核 + prelaunch public-Apple snapshot。用固定、脱敏关键词集合分别记录 zh-Hans/cn 与 en-US/us 的 provider、时间、locale、rank_status、rank_semantics 和限制，生成 keyword snapshot 和 standalone aso-keyword-visualization.html。报告要审计 name/subtitle/keywords 字符预算、截图序列/卖点顺序、版本号不出现在截图的事实（仅以文件可见证据为准），并列出可测试假设。只写运行目录报告/快照/可视化，不改 Fastlane 文件、不登录、不上传、不管理评论。",
+  "acceptance_criteria": [],
+  "coverage_ids": [],
+  "required_outputs": [
+    "13-aso-operations.html",
+    "脱敏 keyword snapshot",
+    "aso-keyword-visualization.html"
+  ],
+  "input_files": [
+    "workflow-state.json",
+    "fastlane/metadata/1.51/zh-Hans/name.txt",
+    "fastlane/metadata/1.51/zh-Hans/subtitle.txt",
+    "fastlane/metadata/1.51/zh-Hans/keywords.txt",
+    "fastlane/metadata/1.51/en-US/name.txt",
+    "fastlane/metadata/1.51/en-US/subtitle.txt",
+    "fastlane/metadata/1.51/en-US/keywords.txt",
+    "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/01-score.png",
+    "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/02-stats.png",
+    "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/03-review.png",
+    "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/04-team.png",
+    "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/05-growth.png"
+  ],
+  "changed_files": [],
+  "verification": [
+    "本地 Fastlane version 1.51 metadata 可读取",
+    "中文和英文 5 张截图均可读取",
+    "不使用 ASC credentials 或 external mutations"
+  ],
+  "unresolved_issues": [
+    "没有可验证 App ID、ready-for-sale 状态或 App Store Connect API snapshot",
+    "公开 Apple autocomplete 可能限流/返回空结果",
+    "关键词热度/排名不能被解释为官方搜索量/官方自然排名"
+  ],
+  "prohibited_actions": [
+    "不得修改 Fastlane metadata 或 screenshots",
+    "不得登录、上传或修改 App Store Connect",
+    "不得读取或记录 credentials/API keys",
+    "不得声称 app ranking、下载增长或审核通过",
+    "不得自行 commit"
+  ],
+  "next_checks": [
+    "统计 version 1.51 主要 locale 字符长度",
+    "记录截图尺寸、序列和可见卖点",
+    "生成快照、可视化和本地 ASO 报告"
+  ],
+  "knowledge_context": {
+    "feature_ids": ["ui-editorial-theme", "app-store-screenshot-style"],
+    "flow_ids": ["store-listing-review"],
+    "test_case_ids": ["aso-local-audit"],
+    "known_issue_ids": ["missing-app-id-evidence"]
+  }
+}

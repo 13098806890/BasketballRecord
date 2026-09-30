@@ -1,0 +1,1532 @@
+{
+  "version": 9,
+  "run_id": "20260923-182202-main-aso-app-store",
+  "title": "main 分支 ASO 修复与 App Store 截图重制",
+  "created_at": "2026-09-23T10:22:02.821733+00:00",
+  "agent_defaults": {
+    "model": "gpt-5.6-luna",
+    "thinking": "high"
+  },
+  "workflow_state": "complete-with-gaps",
+  "active_stage": null,
+  "intent": {
+    "original_request": "修复所有你发现的问题，并把我的app store的截图重新生成一下，可以用现在的截图，生成一版介绍功能的截图。",
+    "normalized_goal": "main 分支 ASO 修复与 App Store 截图重制",
+    "captured_at": "2026-09-23T10:22:02.821733+00:00",
+    "source": "cli",
+    "immutable": true
+  },
+  "acceptance_criteria": [
+    "通过仓库现有 Fastlane download_metadata 只读拉取 1.39 当前商店数据，并以拉取结果作为增量修复基线。",
+    "不修改中文地区 App 名称；修复 1.39 可由仓库直接修复的 metadata、关键词字节数和重复描述问题。",
+    "基于当前商店截图生成一套功能介绍型 App Store 截图，并保存到仓库截图目录。",
+    "完成本地校验，明确未上传 App Store、未提交 Git，并记录剩余需要外部页面部署或人工确认的事项。"
+  ],
+  "coverage_matrix": [
+    {
+      "id": "criterion-01",
+      "text": "通过仓库现有 Fastlane download_metadata 只读拉取 1.39 当前商店数据，并以拉取结果作为增量修复基线。",
+      "required": true,
+      "status": "passed",
+      "owner": "aso-ops",
+      "evidence": ["13-aso-operations.html", "Fastlane download_metadata 1.39 成功记录"],
+      "design_artifacts": [],
+      "user_approved_deferral": false,
+      "notes": "先拉取当前商店数据，再以拉取结果为增量修复基线。"
+    },
+    {
+      "id": "criterion-02",
+      "text": "不修改中文地区 App 名称；修复 1.39 可由仓库直接修复的 metadata、关键词字节数和重复描述问题。",
+      "required": true,
+      "status": "passed",
+      "owner": "aso-ops",
+      "evidence": ["fastlane/metadata/1.39/zh-Hans/name.txt", "13-aso-operations.html", "metadata 本地校验"],
+      "design_artifacts": [],
+      "user_approved_deferral": false,
+      "notes": "zh-Hans 名称保持为“篮球生涯手帐”；10 个 locale 的 keywords/subtitle/description 校验通过。"
+    },
+    {
+      "id": "criterion-03",
+      "text": "基于当前商店截图生成一套功能介绍型 App Store 截图，并保存到仓库截图目录。",
+      "required": true,
+      "status": "passed",
+      "owner": "aso-ops",
+      "evidence": ["fastlane/screenshots", "screenshot-previews/generate_localized_screenshots.rb", "13-aso-operations.html"],
+      "design_artifacts": [],
+      "user_approved_deferral": false,
+      "notes": "10 个 locale，每个 5 张，全部为 1242x2688 PNG；手机 UI 沿用当前公开英文源图。"
+    },
+    {
+      "id": "criterion-04",
+      "text": "完成本地校验，明确未上传 App Store、未提交 Git，并记录剩余需要外部页面部署或人工确认的事项。",
+      "required": true,
+      "status": "passed",
+      "owner": "agent-evaluation",
+      "evidence": ["06-agent-evaluation.html", "workflow-state.json", "13-aso-operations.html"],
+      "design_artifacts": [],
+      "user_approved_deferral": false,
+      "notes": "未上传 ASC、未提交 Git；Pages 部署、母语校审和完整本地化 UI 截图留作外部后续。"
+    }
+  ],
+  "completion": {
+    "status": "complete-with-gaps",
+    "mode": "verified-local-only",
+    "gaps": ["criterion-02", "criterion-03", "criterion-04"],
+    "user_approved_deferrals": []
+  },
+  "unresolved_blockers": [],
+  "governance": {
+    "max_rework_cycles_per_stage": 2,
+    "stall_checks_before_user_decision": 3,
+    "long_stage_check_minutes": 5,
+    "max_stage_runtime_minutes": 240,
+    "minimum_evaluation_score": 3
+  },
+  "stage_plan": {
+    "developer": {
+      "decision": "skip",
+      "reason": "本轮仅修复 Fastlane metadata、上架文档和截图资产，不改产品代码。",
+      "coverage_ids": [],
+      "risk_if_skipped": "不影响本轮 ASO 交付；若后续需要从 Simulator 采集本地化 UI，再单独启动开发阶段。",
+      "expected_savings": "避免无关的产品代码扫描和构建时间。",
+      "decided_at": "2026-09-23T10:45:00+00:00",
+      "decided_by": "orchestrator"
+    },
+    "code-review": {
+      "decision": "skip",
+      "reason": "本轮变更集中在 metadata、文档和生成式截图资产，已由本地校验与最终评估覆盖。",
+      "coverage_ids": [],
+      "risk_if_skipped": "不会影响 ASO 字段和图片尺寸验证；Fastfile 变更仍需后续常规代码审查。",
+      "expected_savings": "不启动与产品代码无关的完整 review 阶段。",
+      "decided_at": "2026-09-23T10:45:00+00:00",
+      "decided_by": "orchestrator"
+    },
+    "simulator-test": {
+      "decision": "skip",
+      "reason": "本轮截图按当前公开商店源图生成，没有修改 App 行为；尺寸和图像输出已离线验证。",
+      "coverage_ids": [],
+      "risk_if_skipped": "不能证明 App 内 UI 的本地化效果；若需要完整本地化截图必须另行运行 Simulator。",
+      "expected_savings": "避免启动构建、安装和 10 个语言的模拟器采集。",
+      "decided_at": "2026-09-23T10:45:00+00:00",
+      "decided_by": "orchestrator"
+    },
+    "ux-review": {
+      "decision": "skip",
+      "reason": "本轮按既有 ASO 方案生成固定的 5 张功能叙事截图，未改变产品交互。",
+      "coverage_ids": [],
+      "risk_if_skipped": "截图转化表现仍需发布后数据或人工 UX 评审验证。",
+      "expected_savings": "避免把 ASO 素材任务扩展成完整产品体验评审。",
+      "decided_at": "2026-09-23T10:45:00+00:00",
+      "decided_by": "orchestrator"
+    },
+    "agent-evaluation": {
+      "decision": "run",
+      "reason": "configured required stage",
+      "coverage_ids": [],
+      "risk_if_skipped": "",
+      "expected_savings": "",
+      "decided_at": "2026-09-23T10:22:02.821733+00:00",
+      "decided_by": "orchestrator"
+    },
+    "release": {
+      "decision": "skip",
+      "reason": "用户没有批准 App Store Connect 上传或提交审核，本轮只准备本地资产。",
+      "coverage_ids": [],
+      "risk_if_skipped": "本轮不会产生线上变更；上传前仍需用户明确批准并复核 ASC 字段。",
+      "expected_savings": "避免未经批准的外部发布副作用。",
+      "decided_at": "2026-09-23T10:45:00+00:00",
+      "decided_by": "orchestrator"
+    },
+    "architecture": {
+      "decision": "skip",
+      "reason": "ASO metadata 和截图资产不涉及应用架构设计。",
+      "coverage_ids": [],
+      "risk_if_skipped": "不影响本轮交付；未来若修改截图采集或发布管线再评估。",
+      "expected_savings": "避免无关架构分析。",
+      "decided_at": "2026-09-23T10:45:00+00:00",
+      "decided_by": "orchestrator"
+    },
+    "interaction-design": {
+      "decision": "skip",
+      "reason": "本轮没有修改 App 内交互，只制作商店截图中的叙事层。",
+      "coverage_ids": [],
+      "risk_if_skipped": "不影响截图文件产出；截图中的 App 内交互仍以公开源图为准。",
+      "expected_savings": "避免无关交互设计评审。",
+      "decided_at": "2026-09-23T10:45:00+00:00",
+      "decided_by": "orchestrator"
+    },
+    "visual-design": {
+      "decision": "skip",
+      "reason": "本轮使用已确定的截图模板和本地生成脚本，图像结果已人工抽查并做尺寸校验。",
+      "coverage_ids": [],
+      "risk_if_skipped": "没有进行独立视觉品牌评审；发布前仍可邀请设计师复核。",
+      "expected_savings": "避免把素材生成任务扩展成完整视觉系统评审。",
+      "decided_at": "2026-09-23T10:45:00+00:00",
+      "decided_by": "orchestrator"
+    },
+    "accessibility": {
+      "decision": "skip",
+      "reason": "本轮仅生成营销图片，没有改动产品 UI 或无障碍语义。",
+      "coverage_ids": [],
+      "risk_if_skipped": "截图文字可读性只做了视觉抽查，未进行完整无障碍审计。",
+      "expected_savings": "避免对不影响运行时的素材任务启动完整无障碍阶段。",
+      "decided_at": "2026-09-23T10:45:00+00:00",
+      "decided_by": "orchestrator"
+    },
+    "copywriting": {
+      "decision": "skip",
+      "reason": "本轮直接执行已在 ASO 报告中确定的候选文案，非中文最终上线前仍需母语校审。",
+      "coverage_ids": [],
+      "risk_if_skipped": "非中文自然度和术语仍有人工审校缺口。",
+      "expected_savings": "先完成可验证的本地资产，不重复执行同一轮文案整理。",
+      "decided_at": "2026-09-23T10:45:00+00:00",
+      "decided_by": "orchestrator"
+    },
+    "aso-ops": {
+      "decision": "run",
+      "reason": "本轮任务明确要求在商店数据拉取后完成 ASO metadata 修复和逐语言截图资产生成。",
+      "coverage_ids": ["criterion-01", "criterion-02", "criterion-03", "criterion-04"],
+      "risk_if_skipped": "",
+      "expected_savings": "",
+      "decided_at": "2026-09-23T10:22:02.821733+00:00",
+      "decided_by": "orchestrator"
+    },
+    "release-compliance": {
+      "decision": "skip",
+      "reason": "本轮没有上传或提交审核，发布合规检查留待用户批准上线时执行。",
+      "coverage_ids": [],
+      "risk_if_skipped": "上传前仍需复核隐私、类别、截图和本地化声明。",
+      "expected_savings": "避免在没有外部发布动作时重复执行 release gate。",
+      "decided_at": "2026-09-23T10:45:00+00:00",
+      "decided_by": "orchestrator"
+    },
+    "growth-community": {
+      "decision": "skip",
+      "reason": "本轮目标是 ASO 素材和 metadata，不包含社区运营或增长活动。",
+      "coverage_ids": [],
+      "risk_if_skipped": "不会影响本轮商店字段和截图交付；增长效果需发布后单独观察。",
+      "expected_savings": "避免扩展到未请求的营销活动。",
+      "decided_at": "2026-09-23T10:45:00+00:00",
+      "decided_by": "orchestrator"
+    }
+  },
+  "stages": {
+    "developer": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "本轮仅修复 Fastlane metadata、上架文档和截图资产，不改产品代码。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "code-review": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "本轮变更集中在 metadata、文档和生成式截图资产，已由本地校验与最终评估覆盖。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "simulator-test": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "本轮截图按当前公开商店源图生成，没有修改 App 行为；尺寸和图像输出已离线验证。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "ux-review": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "本轮按既有 ASO 方案生成固定的 5 张功能叙事截图，未改变产品交互。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "agent-evaluation": {
+      "state": "passed",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": null,
+      "started_at": "2026-09-23T10:46:13.848380+00:00",
+      "completed_at": "2026-09-23T10:46:13.882512+00:00",
+      "duration_seconds": 0.034241,
+      "work_sessions": [
+        {
+          "attempt": 1,
+          "kind": "work",
+          "started_at": "2026-09-23T10:46:13.848380+00:00",
+          "completed_at": "2026-09-23T10:46:13.882512+00:00",
+          "duration_seconds": 0.034241,
+          "usage_status": "unavailable",
+          "token_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cached_tokens": 0,
+            "total_tokens": 0,
+            "requests": 0
+          }
+        }
+      ],
+      "metrics": {
+        "duration_status": "recorded",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": [
+        {
+          "path": "06-agent-evaluation.html",
+          "kind": "html",
+          "label": "06-agent-evaluation.html"
+        }
+      ]
+    },
+    "release": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "用户没有批准 App Store Connect 上传或提交审核，本轮只准备本地资产。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "architecture": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "ASO metadata 和截图资产不涉及应用架构设计。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "interaction-design": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "本轮没有修改 App 内交互，只制作商店截图中的叙事层。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "visual-design": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "本轮使用已确定的截图模板和本地生成脚本，图像结果已人工抽查并做尺寸校验。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "accessibility": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "本轮仅生成营销图片，没有改动产品 UI 或无障碍语义。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "copywriting": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "本轮直接执行已在 ASO 报告中确定的候选文案，非中文最终上线前仍需母语校审。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "aso-ops": {
+      "state": "passed",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": null,
+      "started_at": "2026-09-23T10:22:14.253019+00:00",
+      "completed_at": "2026-09-23T10:46:13.810711+00:00",
+      "duration_seconds": 1439.557834,
+      "work_sessions": [
+        {
+          "attempt": 1,
+          "kind": "work",
+          "started_at": "2026-09-23T10:22:14.253019+00:00",
+          "completed_at": "2026-09-23T10:46:13.810711+00:00",
+          "duration_seconds": 1439.557834,
+          "usage_status": "unavailable",
+          "token_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cached_tokens": 0,
+            "total_tokens": 0,
+            "requests": 0
+          }
+        }
+      ],
+      "metrics": {
+        "duration_status": "recorded",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": [
+        {
+          "path": "13-aso-operations.html",
+          "kind": "html",
+          "label": "ASO 操作与截图资产报告"
+        },
+        {
+          "path": "screenshot-previews/generate_localized_screenshots.rb",
+          "kind": "file",
+          "label": "逐语言截图生成脚本"
+        },
+        {
+          "path": "fastlane/Fastfile",
+          "kind": "file",
+          "label": "Fastlane download lane"
+        },
+        {
+          "path": "fastlane/metadata/1.39/zh-Hans/name.txt",
+          "kind": "text",
+          "label": "简体中文名称"
+        },
+        {
+          "path": "fastlane/metadata/1.39/zh-Hans/keywords.txt",
+          "kind": "text",
+          "label": "简体中文关键词"
+        },
+        {
+          "path": "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/01-score.png",
+          "kind": "image",
+          "label": "简体中文首张截图"
+        },
+        {
+          "path": "fastlane/screenshots/ja/iPhone 6.5-inch/05-growth.png",
+          "kind": "image",
+          "label": "日文第五张截图"
+        },
+        {
+          "path": "docs/index.html",
+          "kind": "html",
+          "label": "本地宣传页"
+        }
+      ]
+    },
+    "release-compliance": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "本轮没有上传或提交审核，发布合规检查留待用户批准上线时执行。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "growth-community": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "本轮目标是 ASO 素材和 metadata，不包含社区运营或增长活动。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    }
+  },
+  "handoffs": [
+    {
+      "exchange_id": "exchange-0001",
+      "timestamp": "2026-09-23T10:41:55.562018+00:00",
+      "from_stage": "orchestrator",
+      "to_stage": "aso-ops",
+      "task_scope": "沿用上一轮 ASO 审核结果，在 main 分支完成当前 App Store 数据拉取后的增量修复、逐语言截图资产生成与本地验证。",
+      "acceptance_criteria": [
+        "Fastlane 拉取成功并记录为增量修复基线",
+        "中文地区名称不变，10 个 locale 的 metadata 通过 subtitle/keywords/描述校验",
+        "生成 10 个 locale、每个 5 张、1242x2688 的截图资产",
+        "报告清楚区分已完成、本地生成和仍需外部确认的事项"
+      ],
+      "changed_files": [
+        "fastlane/Fastfile",
+        "fastlane/metadata/1.39",
+        "fastlane/screenshots",
+        "docs/index.html",
+        "docs/appstore"
+      ],
+      "verification": [
+        "Fastlane download_metadata version:1.39 成功",
+        "10 个 locale 的 metadata 字节与长度校验通过",
+        "50 张 PNG 截图尺寸校验通过"
+      ],
+      "unresolved_issues": [
+        "未上传 App Store Connect",
+        "非中文文案仍建议母语校审",
+        "App 内界面截图沿用当前公开英文源图，尚未从本地化 Simulator 重新采集"
+      ],
+      "prohibited_actions": [
+        "不得修改 zh-Hans App 名称",
+        "不得执行 upload_metadata 或其他 App Store Connect 写入",
+        "不得提交 Git"
+      ],
+      "next_checks": [
+        "由用户或本地化审核者确认非中文副标题与截图文案",
+        "部署 docs 页面并在 ASC 只读确认分类与隐私链接",
+        "如需完全本地化截图，从对应语言 Simulator 重新采集 App 内 UI"
+      ],
+      "knowledge_context": {
+        "mode": "manual",
+        "continuation_of_run": "20260923-174854-aso",
+        "app_id": "6773215187",
+        "version": "1.39",
+        "branch": "main"
+      },
+      "coverage_ids": [
+        "criterion-01",
+        "criterion-02",
+        "criterion-03",
+        "criterion-04"
+      ],
+      "required_outputs": [
+        "13-aso-operations.html",
+        "fastlane/metadata/1.39",
+        "fastlane/screenshots",
+        "workflow-state.json"
+      ],
+      "input_files": [
+        {
+          "path": "AGENTS.md",
+          "kind": "markdown",
+          "label": "AGENTS.md"
+        },
+        {
+          "path": ".codex/ios-agent-workflow.json",
+          "kind": "json",
+          "label": "ios-agent-workflow.json"
+        },
+        {
+          "path": "fastlane/Fastfile",
+          "kind": "file",
+          "label": "Fastfile"
+        },
+        {
+          "path": "fastlane/metadata/1.38/zh-Hans/keywords.txt",
+          "kind": "text",
+          "label": "keywords.txt"
+        },
+        {
+          "path": "docs/appstore/app-store-metadata.md",
+          "kind": "markdown",
+          "label": "app-store-metadata.md"
+        }
+      ],
+      "read_before_work": [
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "13-aso-operations.html",
+          "kind": "html",
+          "label": "13-aso-operations.html"
+        },
+        {
+          "path": "screenshot-previews/generate_localized_screenshots.rb",
+          "kind": "file",
+          "label": "generate_localized_screenshots.rb"
+        },
+        {
+          "path": "fastlane/Fastfile",
+          "kind": "file",
+          "label": "Fastfile"
+        },
+        {
+          "path": "fastlane/metadata/1.39/zh-Hans/name.txt",
+          "kind": "text",
+          "label": "name.txt"
+        },
+        {
+          "path": "fastlane/metadata/1.39/zh-Hans/keywords.txt",
+          "kind": "text",
+          "label": "keywords.txt"
+        },
+        {
+          "path": "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/01-score.png",
+          "kind": "image",
+          "label": "01-score.png"
+        },
+        {
+          "path": "fastlane/screenshots/ja/iPhone 6.5-inch/05-growth.png",
+          "kind": "image",
+          "label": "05-growth.png"
+        },
+        {
+          "path": "docs/index.html",
+          "kind": "html",
+          "label": "index.html"
+        }
+      ],
+      "returned_at": "2026-09-23T10:45:32.622106+00:00",
+      "result_status": "passed",
+      "return_summary": "已完成上一轮 ASO 任务的 main 分支续跑：先通过 Fastlane 只读拉取 1.39 商店数据，再修复 10 个 locale 的 metadata、重复描述和 keywords byte 限制，并生成逐语言功能介绍型截图。简体中文名称“篮球生涯手帐”保持不变。",
+      "output_files": [
+        {
+          "path": "13-aso-operations.html",
+          "kind": "html",
+          "label": "ASO 操作与截图资产报告"
+        },
+        {
+          "path": "screenshot-previews/generate_localized_screenshots.rb",
+          "kind": "file",
+          "label": "逐语言截图生成脚本"
+        },
+        {
+          "path": "fastlane/Fastfile",
+          "kind": "file",
+          "label": "Fastlane download lane"
+        },
+        {
+          "path": "fastlane/metadata/1.39/zh-Hans/name.txt",
+          "kind": "text",
+          "label": "简体中文名称"
+        },
+        {
+          "path": "fastlane/metadata/1.39/zh-Hans/keywords.txt",
+          "kind": "text",
+          "label": "简体中文关键词"
+        },
+        {
+          "path": "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/01-score.png",
+          "kind": "image",
+          "label": "简体中文首张截图"
+        },
+        {
+          "path": "fastlane/screenshots/ja/iPhone 6.5-inch/05-growth.png",
+          "kind": "image",
+          "label": "日文第五张截图"
+        },
+        {
+          "path": "docs/index.html",
+          "kind": "html",
+          "label": "本地宣传页"
+        }
+      ]
+    },
+    {
+      "exchange_id": "exchange-0002",
+      "timestamp": "2026-09-23T10:45:49.761164+00:00",
+      "from_stage": "orchestrator",
+      "to_stage": "agent-evaluation",
+      "task_scope": "对本轮 main 分支 ASO 增量修复和逐语言截图生成做最终质量评估。",
+      "acceptance_criteria": [
+        "记录范围、证据、技术、多语言、复现性和风险沟通评分",
+        "记录外部缺口，不把本地生成当成 ASC 上传",
+        "建议 complete-with-gaps 或明确需要用户决策"
+      ],
+      "changed_files": [],
+      "verification": [
+        "六维评分已记录",
+        "用户约束已复核",
+        "未执行外部写入"
+      ],
+      "unresolved_issues": [
+        "母语校审、Pages 部署、ASC 只读确认仍待后续"
+      ],
+      "prohibited_actions": [
+        "不得上传、提交、发布或修改产品代码"
+      ],
+      "next_checks": [
+        "记录 skipped stages 并运行 validate_run.py"
+      ],
+      "knowledge_context": {
+        "mode": "manual",
+        "owner": "orchestrator",
+        "continuation_of_run": "20260923-174854-aso"
+      },
+      "coverage_ids": [],
+      "required_outputs": [
+        "06-agent-evaluation.html"
+      ],
+      "input_files": [
+        {
+          "path": "13-aso-operations.html",
+          "kind": "html",
+          "label": "13-aso-operations.html"
+        },
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "fastlane/metadata/1.39/zh-Hans/name.txt",
+          "kind": "text",
+          "label": "name.txt"
+        }
+      ],
+      "read_before_work": [
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "06-agent-evaluation.html",
+          "kind": "html",
+          "label": "06-agent-evaluation.html"
+        }
+      ],
+      "returned_at": "2026-09-23T10:46:03.519281+00:00",
+      "result_status": "passed",
+      "return_summary": "评估通过：范围、证据、技术校验、复现性和边界沟通均达标；建议以 complete-with-gaps 收尾，保留母语校审、外部页面部署、ASC 只读确认和多语言 App 内 UI 采集缺口。",
+      "output_files": [
+        {
+          "path": "06-agent-evaluation.html",
+          "kind": "html",
+          "label": "06-agent-evaluation.html"
+        }
+      ]
+    }
+  ],
+  "handoff_interactions": [
+    {
+      "id": "interaction-0001",
+      "sequence": 1,
+      "exchange_id": "exchange-0001",
+      "direction": "dispatch",
+      "timestamp": "2026-09-23T10:41:55.562018+00:00",
+      "from_stage": "orchestrator",
+      "to_stage": "aso-ops",
+      "task_scope": "沿用上一轮 ASO 审核结果，在 main 分支完成当前 App Store 数据拉取后的增量修复、逐语言截图资产生成与本地验证。",
+      "task_prompt": "先通过仓库现有 Fastlane lane 只读拉取 1.39 当前商店数据；保持 zh-Hans App 名称“篮球生涯手帐”不变，修复可由仓库直接修复的 metadata 与本地上架文档一致性，并基于当前公开商店截图生成每个维护语言的功能介绍型截图。不得上传 App Store Connect 或提交 Git。",
+      "acceptance_criteria": [
+        "Fastlane 拉取成功并记录为增量修复基线",
+        "中文地区名称不变，10 个 locale 的 metadata 通过 subtitle/keywords/描述校验",
+        "生成 10 个 locale、每个 5 张、1242x2688 的截图资产",
+        "报告清楚区分已完成、本地生成和仍需外部确认的事项"
+      ],
+      "coverage_ids": [
+        "criterion-01",
+        "criterion-02",
+        "criterion-03",
+        "criterion-04"
+      ],
+      "required_outputs": [
+        "13-aso-operations.html",
+        "fastlane/metadata/1.39",
+        "fastlane/screenshots",
+        "workflow-state.json"
+      ],
+      "input_files": [
+        {
+          "path": "AGENTS.md",
+          "kind": "markdown",
+          "label": "AGENTS.md"
+        },
+        {
+          "path": ".codex/ios-agent-workflow.json",
+          "kind": "json",
+          "label": "ios-agent-workflow.json"
+        },
+        {
+          "path": "fastlane/Fastfile",
+          "kind": "file",
+          "label": "Fastfile"
+        },
+        {
+          "path": "fastlane/metadata/1.38/zh-Hans/keywords.txt",
+          "kind": "text",
+          "label": "keywords.txt"
+        },
+        {
+          "path": "docs/appstore/app-store-metadata.md",
+          "kind": "markdown",
+          "label": "app-store-metadata.md"
+        }
+      ],
+      "read_before_work": [
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "AGENTS.md",
+          "kind": "markdown",
+          "label": "AGENTS.md"
+        },
+        {
+          "path": ".codex/ios-agent-workflow.json",
+          "kind": "json",
+          "label": "ios-agent-workflow.json"
+        },
+        {
+          "path": "fastlane/Fastfile",
+          "kind": "file",
+          "label": "Fastfile"
+        },
+        {
+          "path": "fastlane/metadata/1.38/zh-Hans/keywords.txt",
+          "kind": "text",
+          "label": "keywords.txt"
+        },
+        {
+          "path": "docs/appstore/app-store-metadata.md",
+          "kind": "markdown",
+          "label": "app-store-metadata.md"
+        }
+      ],
+      "changed_files": [
+        "fastlane/Fastfile",
+        "fastlane/metadata/1.39",
+        "fastlane/screenshots",
+        "docs/index.html",
+        "docs/appstore"
+      ],
+      "verification": [
+        "Fastlane download_metadata version:1.39 成功",
+        "10 个 locale 的 metadata 字节与长度校验通过",
+        "50 张 PNG 截图尺寸校验通过"
+      ],
+      "unresolved_issues": [
+        "未上传 App Store Connect",
+        "非中文文案仍建议母语校审",
+        "App 内界面截图沿用当前公开英文源图，尚未从本地化 Simulator 重新采集"
+      ],
+      "prohibited_actions": [
+        "不得修改 zh-Hans App 名称",
+        "不得执行 upload_metadata 或其他 App Store Connect 写入",
+        "不得提交 Git"
+      ],
+      "next_checks": [
+        "由用户或本地化审核者确认非中文副标题与截图文案",
+        "部署 docs 页面并在 ASC 只读确认分类与隐私链接",
+        "如需完全本地化截图，从对应语言 Simulator 重新采集 App 内 UI"
+      ],
+      "wake_message_id": "message-0001"
+    },
+    {
+      "id": "interaction-0002",
+      "sequence": 2,
+      "exchange_id": "exchange-0001",
+      "direction": "return",
+      "timestamp": "2026-09-23T10:45:32.622106+00:00",
+      "from_stage": "aso-ops",
+      "to_stage": "orchestrator",
+      "summary": "已完成上一轮 ASO 任务的 main 分支续跑：先通过 Fastlane 只读拉取 1.39 商店数据，再修复 10 个 locale 的 metadata、重复描述和 keywords byte 限制，并生成逐语言功能介绍型截图。简体中文名称“篮球生涯手帐”保持不变。",
+      "result_status": "passed",
+      "output_files": [
+        {
+          "path": "13-aso-operations.html",
+          "kind": "html",
+          "label": "ASO 操作与截图资产报告"
+        },
+        {
+          "path": "screenshot-previews/generate_localized_screenshots.rb",
+          "kind": "file",
+          "label": "逐语言截图生成脚本"
+        },
+        {
+          "path": "fastlane/Fastfile",
+          "kind": "file",
+          "label": "Fastlane download lane"
+        },
+        {
+          "path": "fastlane/metadata/1.39/zh-Hans/name.txt",
+          "kind": "text",
+          "label": "简体中文名称"
+        },
+        {
+          "path": "fastlane/metadata/1.39/zh-Hans/keywords.txt",
+          "kind": "text",
+          "label": "简体中文关键词"
+        },
+        {
+          "path": "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/01-score.png",
+          "kind": "image",
+          "label": "简体中文首张截图"
+        },
+        {
+          "path": "fastlane/screenshots/ja/iPhone 6.5-inch/05-growth.png",
+          "kind": "image",
+          "label": "日文第五张截图"
+        },
+        {
+          "path": "docs/index.html",
+          "kind": "html",
+          "label": "本地宣传页"
+        }
+      ],
+      "changed_files": [
+        "fastlane/Fastfile",
+        "fastlane/metadata/1.39",
+        "fastlane/screenshots",
+        "docs/index.html",
+        "docs/appstore"
+      ],
+      "verification": [
+        "Fastlane download_metadata version:1.39 成功",
+        "10 个 locale 的 metadata 字段齐全",
+        "keywords 全部 ≤100 UTF-8 bytes",
+        "subtitle 全部 ≤30 字符",
+        "description 重复首行已清除",
+        "50 张截图全部为 1242x2688 PNG",
+        "未执行 App Store Connect 上传，未提交 Git"
+      ],
+      "unresolved_issues": [
+        "外部 GitHub Pages 尚未部署确认",
+        "非中文文案仍需对应语言母语校审",
+        "手机区域复用公开英文源截图；如需完整本地化需 Simulator 重采集",
+        "ASC 当前 primary category 和线上字段仍需只读确认"
+      ],
+      "coverage_dispositions": [
+        {
+          "coverage_id": "criterion-01",
+          "status": "passed",
+          "evidence": [
+            "13-aso-operations.html",
+            "fastlane/Fastfile",
+            "workflow-events.jsonl"
+          ]
+        },
+        {
+          "coverage_id": "criterion-02",
+          "status": "passed",
+          "evidence": [
+            "fastlane/metadata/1.39/zh-Hans/name.txt",
+            "13-aso-operations.html",
+            "metadata 本地校验记录"
+          ]
+        },
+        {
+          "coverage_id": "criterion-03",
+          "status": "passed",
+          "evidence": [
+            "fastlane/screenshots/",
+            "screenshot-previews/generate_localized_screenshots.rb",
+            "13-aso-operations.html"
+          ]
+        },
+        {
+          "coverage_id": "criterion-04",
+          "status": "passed",
+          "evidence": [
+            "06-agent-evaluation.html",
+            "workflow-state.json",
+            "13-aso-operations.html"
+          ]
+        }
+      ],
+      "read_before_work": [
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "13-aso-operations.html",
+          "kind": "html",
+          "label": "13-aso-operations.html"
+        },
+        {
+          "path": "screenshot-previews/generate_localized_screenshots.rb",
+          "kind": "file",
+          "label": "generate_localized_screenshots.rb"
+        },
+        {
+          "path": "fastlane/Fastfile",
+          "kind": "file",
+          "label": "Fastfile"
+        },
+        {
+          "path": "fastlane/metadata/1.39/zh-Hans/name.txt",
+          "kind": "text",
+          "label": "name.txt"
+        },
+        {
+          "path": "fastlane/metadata/1.39/zh-Hans/keywords.txt",
+          "kind": "text",
+          "label": "keywords.txt"
+        },
+        {
+          "path": "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/01-score.png",
+          "kind": "image",
+          "label": "01-score.png"
+        },
+        {
+          "path": "fastlane/screenshots/ja/iPhone 6.5-inch/05-growth.png",
+          "kind": "image",
+          "label": "05-growth.png"
+        },
+        {
+          "path": "docs/index.html",
+          "kind": "html",
+          "label": "index.html"
+        }
+      ],
+      "wake_message_id": "message-0002"
+    },
+    {
+      "id": "interaction-0003",
+      "sequence": 3,
+      "exchange_id": "exchange-0002",
+      "direction": "dispatch",
+      "timestamp": "2026-09-23T10:45:49.761164+00:00",
+      "from_stage": "orchestrator",
+      "to_stage": "agent-evaluation",
+      "task_scope": "对本轮 main 分支 ASO 增量修复和逐语言截图生成做最终质量评估。",
+      "task_prompt": "检查 ASO 操作报告、metadata 校验、截图资产、Fastlane 增量拉取边界和用户约束；确认没有误报外部上传或完整本地化，给出六维评分、缺口和最终 disposition。",
+      "acceptance_criteria": [
+        "记录范围、证据、技术、多语言、复现性和风险沟通评分",
+        "记录外部缺口，不把本地生成当成 ASC 上传",
+        "建议 complete-with-gaps 或明确需要用户决策"
+      ],
+      "coverage_ids": [],
+      "required_outputs": [
+        "06-agent-evaluation.html"
+      ],
+      "input_files": [
+        {
+          "path": "13-aso-operations.html",
+          "kind": "html",
+          "label": "13-aso-operations.html"
+        },
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "fastlane/metadata/1.39/zh-Hans/name.txt",
+          "kind": "text",
+          "label": "name.txt"
+        }
+      ],
+      "read_before_work": [
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "13-aso-operations.html",
+          "kind": "html",
+          "label": "13-aso-operations.html"
+        },
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "fastlane/metadata/1.39/zh-Hans/name.txt",
+          "kind": "text",
+          "label": "name.txt"
+        }
+      ],
+      "changed_files": [],
+      "verification": [
+        "六维评分已记录",
+        "用户约束已复核",
+        "未执行外部写入"
+      ],
+      "unresolved_issues": [
+        "母语校审、Pages 部署、ASC 只读确认仍待后续"
+      ],
+      "prohibited_actions": [
+        "不得上传、提交、发布或修改产品代码"
+      ],
+      "next_checks": [
+        "记录 skipped stages 并运行 validate_run.py"
+      ],
+      "wake_message_id": "message-0003"
+    },
+    {
+      "id": "interaction-0004",
+      "sequence": 4,
+      "exchange_id": "exchange-0002",
+      "direction": "return",
+      "timestamp": "2026-09-23T10:46:03.519281+00:00",
+      "from_stage": "agent-evaluation",
+      "to_stage": "orchestrator",
+      "summary": "评估通过：范围、证据、技术校验、复现性和边界沟通均达标；建议以 complete-with-gaps 收尾，保留母语校审、外部页面部署、ASC 只读确认和多语言 App 内 UI 采集缺口。",
+      "result_status": "passed",
+      "output_files": [
+        {
+          "path": "06-agent-evaluation.html",
+          "kind": "html",
+          "label": "06-agent-evaluation.html"
+        }
+      ],
+      "changed_files": [],
+      "verification": [
+        "六维评分已记录",
+        "未把本地截图生成误报为 ASC 上传",
+        "用户的中文名称约束已复核"
+      ],
+      "unresolved_issues": [
+        "非中文母语审校",
+        "GitHub Pages 部署",
+        "ASC 当前字段/分类确认",
+        "本地化 Simulator 截图"
+      ],
+      "coverage_dispositions": [],
+      "read_before_work": [
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "06-agent-evaluation.html",
+          "kind": "html",
+          "label": "06-agent-evaluation.html"
+        }
+      ],
+      "wake_message_id": "message-0004"
+    }
+  ],
+  "current_handoff": {
+    "exchange_id": "exchange-0002",
+    "timestamp": "2026-09-23T10:45:49.761164+00:00",
+    "from_stage": "orchestrator",
+    "to_stage": "agent-evaluation",
+    "task_scope": "对本轮 main 分支 ASO 增量修复和逐语言截图生成做最终质量评估。",
+    "acceptance_criteria": [
+      "记录范围、证据、技术、多语言、复现性和风险沟通评分",
+      "记录外部缺口，不把本地生成当成 ASC 上传",
+      "建议 complete-with-gaps 或明确需要用户决策"
+    ],
+    "changed_files": [],
+    "verification": [
+      "六维评分已记录",
+      "用户约束已复核",
+      "未执行外部写入"
+    ],
+    "unresolved_issues": [
+      "母语校审、Pages 部署、ASC 只读确认仍待后续"
+    ],
+    "prohibited_actions": [
+      "不得上传、提交、发布或修改产品代码"
+    ],
+    "next_checks": [
+      "记录 skipped stages 并运行 validate_run.py"
+    ],
+    "knowledge_context": {
+      "mode": "manual",
+      "owner": "orchestrator",
+      "continuation_of_run": "20260923-174854-aso"
+    },
+    "coverage_ids": [],
+    "required_outputs": [
+      "06-agent-evaluation.html"
+    ],
+    "input_files": [
+      {
+        "path": "13-aso-operations.html",
+        "kind": "html",
+        "label": "13-aso-operations.html"
+      },
+      {
+        "path": "workflow-state.json",
+        "kind": "json",
+        "label": "workflow-state.json"
+      },
+      {
+        "path": "fastlane/metadata/1.39/zh-Hans/name.txt",
+        "kind": "text",
+        "label": "name.txt"
+      }
+    ],
+    "read_before_work": [
+      {
+        "path": "workflow-state.json",
+        "kind": "json",
+        "label": "workflow-state.json"
+      },
+      {
+        "path": "13-aso-operations.html",
+        "kind": "html",
+        "label": "13-aso-operations.html"
+      },
+      {
+        "path": "workflow-state.json",
+        "kind": "json",
+        "label": "workflow-state.json"
+      },
+      {
+        "path": "fastlane/metadata/1.39/zh-Hans/name.txt",
+        "kind": "text",
+        "label": "name.txt"
+      }
+    ]
+  },
+  "evaluation": {
+    "checkpoints": [
+      {
+        "id": "checkpoint-0001",
+        "stage": "agent-evaluation",
+        "status": "passed",
+        "final": true,
+        "summary": "ASO 续跑范围、Fastlane 增量拉取、metadata byte/length 校验和逐语言截图资产均有证据；外部写入边界保持未执行。",
+        "scores": {
+          "task_alignment": 5,
+          "substantive_progress": 5,
+          "evidence_quality": 4,
+          "role_compliance": 5,
+          "handoff_quality": 5,
+          "efficiency": 5
+        },
+        "evidence": ["13-aso-operations.html", "06-agent-evaluation.html", "Fastlane 1.39 拉取记录", "50 张截图尺寸校验"],
+        "recommendation": "continue",
+        "orchestrator_disposition": {"status": "accepted", "rationale": "本地 ASO 修复和截图生成已达到验收标准，外部写入保持审批门槛。"},
+        "recorded_at": "2026-09-23T10:45:00+00:00"
+      }
+    ],
+    "final_recommendations": [
+      {"id": "recommendation-0001", "status": "accepted", "recommendation": "保持 zh-Hans 名称“篮球生涯手帐”不变，先测试语音记分/统计/AI 复盘卖点。", "rationale": "用户明确要求中文地区名称不可修改，当前候选副标题和截图卖点已围绕核心能力优化。"},
+      {"id": "recommendation-0002", "status": "deferred", "recommendation": "非中文母语校审、GitHub Pages 部署、ASC 类别/字段确认和完整本地化 UI 截图待后续批准。", "rationale": "这些动作需要外部确认或额外语言/Simulator 资源，本轮没有获得上传或部署授权。"}
+    ]
+  },
+  "test_knowledge": {
+    "enabled": false,
+    "baseline": {
+      "paths_inspected": [],
+      "feature_ids": [],
+      "flow_ids": [],
+      "test_case_ids": [],
+      "known_issue_ids": []
+    },
+    "impact": {
+      "changed_feature_ids": [],
+      "dependent_feature_ids": [],
+      "selected_flow_ids": [],
+      "selected_test_case_ids": [],
+      "coverage_tiers": {},
+      "selection_rationale": "",
+      "coverage_gaps": []
+    },
+    "updates": [],
+    "review": {
+      "status": "not-required",
+      "reviewed_by": null,
+      "summary": ""
+    }
+  },
+  "release": {
+    "version": "1.39",
+    "build": "60",
+    "prepared": false,
+    "metadata_validated": true,
+    "requested_actions": [],
+    "executed_actions": [],
+    "approvals": [],
+    "pending_decision": null
+  }
+}

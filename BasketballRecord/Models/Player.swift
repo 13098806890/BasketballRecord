@@ -5,6 +5,8 @@ struct Player: Identifiable, Codable, Hashable {
     var name: String
     var height: String = ""
     var weight: String = ""
+    var heightUnit: HeightUnit = .cm
+    var weightUnit: WeightUnit = .kg
     var number: String = ""
     var position: String = ""
     var photoData: Data?
@@ -17,6 +19,8 @@ struct Player: Identifiable, Codable, Hashable {
         name: String,
         height: String = "",
         weight: String = "",
+        heightUnit: HeightUnit = .cm,
+        weightUnit: WeightUnit = .kg,
         number: String = "",
         position: String = "",
         photoData: Data? = nil,
@@ -28,6 +32,8 @@ struct Player: Identifiable, Codable, Hashable {
         self.name = name
         self.height = height
         self.weight = weight
+        self.heightUnit = heightUnit
+        self.weightUnit = weightUnit
         self.number = number
         self.position = position
         self.photoData = photoData
@@ -42,6 +48,8 @@ struct Player: Identifiable, Codable, Hashable {
         name = try container.decode(String.self, forKey: .name)
         height = try container.decodeIfPresent(String.self, forKey: .height) ?? ""
         weight = try container.decodeIfPresent(String.self, forKey: .weight) ?? ""
+        heightUnit = try container.decodeIfPresent(HeightUnit.self, forKey: .heightUnit) ?? UnitSettings.heightUnit()
+        weightUnit = try container.decodeIfPresent(WeightUnit.self, forKey: .weightUnit) ?? UnitSettings.weightUnit()
         number = try container.decodeIfPresent(String.self, forKey: .number) ?? ""
         position = try container.decodeIfPresent(String.self, forKey: .position) ?? ""
         photoData = try container.decodeIfPresent(Data.self, forKey: .photoData)
@@ -84,11 +92,13 @@ struct Team: Identifiable, Codable, Hashable {
     var id = UUID()
     var name: String
     var playerIDs: [UUID] = []
+    var iconData: Data?
 
-    init(id: UUID = UUID(), name: String, playerIDs: [UUID] = []) {
+    init(id: UUID = UUID(), name: String, playerIDs: [UUID] = [], iconData: Data? = nil) {
         self.id = id
         self.name = name
         self.playerIDs = playerIDs
+        self.iconData = iconData
     }
 
     init(from decoder: Decoder) throws {
@@ -96,6 +106,7 @@ struct Team: Identifiable, Codable, Hashable {
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         name = try container.decode(String.self, forKey: .name)
         playerIDs = try container.decodeIfPresent([UUID].self, forKey: .playerIDs) ?? []
+        iconData = try container.decodeIfPresent(Data.self, forKey: .iconData)
     }
 }
 
@@ -104,6 +115,8 @@ struct ExportPlayer: Identifiable, Codable, Hashable {
     var name: String
     var height: String
     var weight: String
+    var heightUnit: HeightUnit
+    var weightUnit: WeightUnit
     var number: String
     var position: String
     var photoData: Data?
@@ -114,17 +127,21 @@ struct ExportPlayer: Identifiable, Codable, Hashable {
         name = player.name
         height = player.height
         weight = player.weight
+        heightUnit = player.heightUnit
+        weightUnit = player.weightUnit
         number = player.number
         position = player.position
         photoData = player.photoData
         nicknames = player.nicknames
     }
 
-    init(id: UUID, name: String, height: String = "", weight: String = "", number: String = "", position: String = "", photoData: Data? = nil, nicknames: [String] = []) {
+    init(id: UUID, name: String, height: String = "", weight: String = "", heightUnit: HeightUnit = .cm, weightUnit: WeightUnit = .kg, number: String = "", position: String = "", photoData: Data? = nil, nicknames: [String] = []) {
         self.id = id
         self.name = name
         self.height = height
         self.weight = weight
+        self.heightUnit = heightUnit
+        self.weightUnit = weightUnit
         self.number = number
         self.position = position
         self.photoData = photoData
@@ -137,6 +154,8 @@ struct ExportPlayer: Identifiable, Codable, Hashable {
         name = try container.decode(String.self, forKey: .name)
         height = try container.decode(String.self, forKey: .height)
         weight = try container.decode(String.self, forKey: .weight)
+        heightUnit = try container.decodeIfPresent(HeightUnit.self, forKey: .heightUnit) ?? UnitSettings.heightUnit()
+        weightUnit = try container.decodeIfPresent(WeightUnit.self, forKey: .weightUnit) ?? UnitSettings.weightUnit()
         number = try container.decodeIfPresent(String.self, forKey: .number) ?? ""
         position = try container.decodeIfPresent(String.self, forKey: .position) ?? ""
         photoData = try container.decodeIfPresent(Data.self, forKey: .photoData)
@@ -144,7 +163,7 @@ struct ExportPlayer: Identifiable, Codable, Hashable {
     }
 
     var playerWithoutPhoto: Player {
-        Player(id: id, name: name, height: height, weight: weight, number: number, position: position, nicknames: nicknames)
+        Player(id: id, name: name, height: height, weight: weight, heightUnit: heightUnit, weightUnit: weightUnit, number: number, position: position, nicknames: nicknames)
     }
 }
 
@@ -152,21 +171,24 @@ struct ExportTeam: Identifiable, Codable, Hashable {
     var id: UUID
     var name: String
     var playerIDs: [UUID]
+    var iconData: Data?
 
     init(team: Team) {
         id = team.id
         name = team.name
         playerIDs = team.playerIDs
+        iconData = team.iconData
     }
 
-    init(id: UUID, name: String, playerIDs: [UUID]) {
+    init(id: UUID, name: String, playerIDs: [UUID], iconData: Data? = nil) {
         self.id = id
         self.name = name
         self.playerIDs = playerIDs
+        self.iconData = iconData
     }
 
     var team: Team {
-        Team(id: id, name: name, playerIDs: playerIDs)
+        Team(id: id, name: name, playerIDs: playerIDs, iconData: iconData)
     }
 }
 

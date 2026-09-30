@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import CoreData
 
 /**
  AppStore - Central data manager for Basketball Record app
@@ -168,12 +169,15 @@ final class AppStore: ObservableObject {
 
     private func saveCloudEnabledGameIDs() {
         let ids = Array(cloudEnabledGameIDs).map(\.uuidString)
+        UserDefaults.standard.set(ids, forKey: "cloud_enabled_game_ids")
         NSUbiquitousKeyValueStore.default.set(ids, forKey: "cloud_enabled_game_ids")
         NSUbiquitousKeyValueStore.default.synchronize()
     }
 
     private func loadCloudEnabledGameIDs() {
-        if let ids = NSUbiquitousKeyValueStore.default.array(forKey: "cloud_enabled_game_ids") as? [String] {
+        let ids = (NSUbiquitousKeyValueStore.default.array(forKey: "cloud_enabled_game_ids") as? [String])
+            ?? (UserDefaults.standard.array(forKey: "cloud_enabled_game_ids") as? [String])
+        if let ids {
             cloudEnabledGameIDs = Set(ids.compactMap(UUID.init))
         }
         if let data = UserDefaults.standard.data(forKey: Self.deletedCloudGameIDsKey),
@@ -207,6 +211,9 @@ final class AppStore: ObservableObject {
     private let metaKey = "store_meta"
     private let gamesIndexKey = "store_games_index"
     private func gameKey(for id: UUID) -> String { "game_\(id.uuidString)" }
+    private var recoveryDiagnosticsNoWrite: Bool {
+        ProcessInfo.processInfo.arguments.contains("-recoveryDiagnosticsNoWrite")
+    }
 
     private var documentsDir: URL {
         guard let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
@@ -223,6 +230,14 @@ final class AppStore: ObservableObject {
         photosDir.appendingPathComponent("\(playerID.uuidString).jpg")
     }
 
+    var teamIconsDir: URL {
+        documentsDir.appendingPathComponent("team_icons", isDirectory: true)
+    }
+
+    func teamIconFile(for teamID: UUID) -> URL {
+        teamIconsDir.appendingPathComponent("\(teamID.uuidString).jpg")
+    }
+
     private struct StoreMeta: Codable {
         var players: [Player]
         var teams: [Team]
@@ -237,8 +252,32 @@ final class AppStore: ObservableObject {
         var voiceLogEnabled: Bool?
     }
 
+    private struct LegacyPayloadProbe: Decodable {
+        var players: [Player]
+        var teams: [Team]
+        var savedGames: [SavedGame]
+
+        private enum CodingKeys: String, CodingKey {
+            case players
+            case teams
+            case savedGames
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            players = try container.decodeIfPresent([Player].self, forKey: .players) ?? []
+            teams = try container.decodeIfPresent([Team].self, forKey: .teams) ?? []
+            savedGames = try container.decodeIfPresent([SavedGame].self, forKey: .savedGames) ?? []
+        }
+    }
+
     init() {
+        if recoveryDiagnosticsNoWrite {
+            print("[RecoveryCheck] SAFETY no-write mode enabled; migration and screenshot seed writes will be skipped")
+        }
+        logRecoveryState(phase: "before-load")
         load()
+        logRecoveryState(phase: "after-load")
         loadCloudEnabledGameIDs()
         NotificationCenter.default.addObserver(self, selector: #selector(cloudStoreDidChange), name: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: NSUbiquitousKeyValueStore.default)
         Task { await syncCloudGames() }
@@ -249,6 +288,109 @@ final class AppStore: ObservableObject {
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &cancellables)
     }
+
+#if DEBUG
+    func recoverRosterFromSavedGames() {
+        guard !savedGames.isEmpty else {
+            print("[RecoveryCheck] game-roster-recovery skipped; savedGames=0")
+            return
+        }
+
+        let existingPlayerIDs = Set(players.map(\.id))
+        let existingTeamIDs = Set(teams.map(\.id))
+        let knownTeamIDs = Set(savedGames.flatMap { [$0.snapshot.homeTeamID, $0.snapshot.awayTeamID].compactMap { $0 } })
+        var playerNamesByID: [UUID: String] = [:]
+        var recoveredPlayerIDs: [UUID] = []
+
+        func appendUnique(_ id: UUID, to ids: inout [UUID]) {
+            guard !ids.contains(id) else { return }
+            ids.append(id)
+        }
+
+        for game in savedGames {
+            for (id, name) in game.playerNamesByID where !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                playerNamesByID[id] = name
+            }
+            for id in game.homePlayerIDs + game.awayPlayerIDs {
+                appendUnique(id, to: &recoveredPlayerIDs)
+            }
+            for id in game.snapshot.statsByPlayerID.keys where !knownTeamIDs.contains(id) {
+                appendUnique(id, to: &recoveredPlayerIDs)
+            }
+            for event in game.snapshot.logs {
+                if let playerID = event.playerID, !knownTeamIDs.contains(playerID) {
+                    appendUnique(playerID, to: &recoveredPlayerIDs)
+                }
+                if let playerID = event.relatedPlayerID, !knownTeamIDs.contains(playerID) {
+                    appendUnique(playerID, to: &recoveredPlayerIDs)
+                }
+            }
+        }
+
+        var recoveredPlayers = players
+        var addedPlayers = 0
+        for id in recoveredPlayerIDs where !existingPlayerIDs.contains(id) {
+            let photoData = try? Data(contentsOf: photoFile(for: id))
+            let name = playerNamesByID[id] ?? NSLocalizedString("player_unknown_default", comment: "Unknown player")
+            recoveredPlayers.append(Player(id: id, name: name, photoData: photoData))
+            addedPlayers += 1
+        }
+
+        var recoveredTeams = teams
+        var teamIDByName: [String: UUID] = [:]
+        for team in teams {
+            teamIDByName[team.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()] = team.id
+        }
+        var addedTeams = 0
+        var updatedTeams = 0
+
+        func recoverTeam(id: UUID?, name: String, playerIDs: [UUID]) {
+            let normalizedName = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let resolvedID = id ?? teamIDByName[normalizedName] ?? UUID()
+            teamIDByName[normalizedName] = resolvedID
+
+            if let index = recoveredTeams.firstIndex(where: { $0.id == resolvedID }) {
+                var mergedPlayerIDs = recoveredTeams[index].playerIDs
+                for playerID in playerIDs {
+                    appendUnique(playerID, to: &mergedPlayerIDs)
+                }
+                if mergedPlayerIDs != recoveredTeams[index].playerIDs {
+                    recoveredTeams[index].playerIDs = mergedPlayerIDs
+                    updatedTeams += 1
+                }
+                return
+            }
+
+            recoveredTeams.append(Team(id: resolvedID, name: name, playerIDs: playerIDs))
+            addedTeams += 1
+        }
+
+        for game in savedGames {
+            recoverTeam(id: game.snapshot.homeTeamID, name: game.homeTeamName, playerIDs: game.homePlayerIDs)
+            recoverTeam(id: game.snapshot.awayTeamID, name: game.awayTeamName, playerIDs: game.awayPlayerIDs)
+        }
+
+        let teamsMissingFromCoreData = recoveredTeams.contains { !existingTeamIDs.contains($0.id) }
+        let rosterChanged = addedPlayers > 0 || addedTeams > 0 || updatedTeams > 0 || teamsMissingFromCoreData
+        guard rosterChanged else {
+            print("[RecoveryCheck] game-roster-recovery no changes players=\(players.count) teams=\(teams.count)")
+            return
+        }
+
+        players = recoveredPlayers
+        teams = recoveredTeams
+        dirtyKeys.insert(.players)
+        dirtyKeys.insert(.teams)
+        print("[RecoveryCheck] game-roster-recovery recovered players-added=\(addedPlayers) teams-added=\(addedTeams) teams-updated=\(updatedTeams) totals players=\(players.count) teams=\(teams.count)")
+
+        if recoveryDiagnosticsNoWrite {
+            print("[RecoveryCheck] game-roster-recovery skipped-save because no-write mode is enabled")
+        } else {
+            saveIfNeeded()
+            print("[RecoveryCheck] game-roster-recovery persisted")
+        }
+    }
+#endif
 
     func syncCloudGames() async {
         let cloudIDs = cloudEnabledGameIDs.subtracting(deletedCloudGameIDs)
@@ -302,7 +444,12 @@ final class AppStore: ObservableObject {
     func updateAISummary(_ summary: String, for gameID: UUID) {
         guard let index = savedGames.firstIndex(where: { $0.id == gameID }) else { return }
         savedGames[index].aiSummary = summary
-        savedGames[index].modifiedAt = Date()
+        markSavedGameModified(gameID)
+    }
+
+    func markSavedGameModified(_ gameID: UUID, at date: Date = Date()) {
+        guard let index = savedGames.firstIndex(where: { $0.id == gameID }) else { return }
+        savedGames[index].modifiedAt = date
     }
 
     // MARK: - Game Group Management
@@ -340,6 +487,7 @@ final class AppStore: ObservableObject {
             }
         }
 
+        savedGamesCopy[gameIndex].modifiedAt = Date()
         savedGames = savedGamesCopy
         gameGroups = gameGroupsCopy
     }
@@ -411,16 +559,19 @@ final class AppStore: ObservableObject {
         var savedGamesCopy = savedGames
 
         gameGroupsCopy[groupIndex].gameIDs = gameIDs
+        let modifiedAt = Date()
 
         for gameID in removed {
             if let gameIndex = savedGamesCopy.firstIndex(where: { $0.id == gameID }) {
                 savedGamesCopy[gameIndex].groupIDs.removeAll { $0 == groupID }
+                savedGamesCopy[gameIndex].modifiedAt = modifiedAt
             }
         }
         for gameID in added {
             if let gameIndex = savedGamesCopy.firstIndex(where: { $0.id == gameID }) {
                 if !savedGamesCopy[gameIndex].groupIDs.contains(groupID) {
                     savedGamesCopy[gameIndex].groupIDs.append(groupID)
+                    savedGamesCopy[gameIndex].modifiedAt = modifiedAt
                 }
             }
         }
@@ -533,10 +684,29 @@ final class AppStore: ObservableObject {
             strippedPlayers[i].photoData = nil
         }
 
+        var strippedTeams = teams
+        if dirtyKeys.contains(.teams) {
+            try? FileManager.default.createDirectory(at: teamIconsDir, withIntermediateDirectories: true)
+            for i in strippedTeams.indices {
+                let fileURL = teamIconFile(for: strippedTeams[i].id)
+                if let data = strippedTeams[i].iconData {
+                    let existingData = try? Data(contentsOf: fileURL)
+                    if data != existingData {
+                        try? data.write(to: fileURL, options: .atomic)
+                    }
+                } else {
+                    try? FileManager.default.removeItem(at: fileURL)
+                }
+            }
+        }
+        for i in strippedTeams.indices {
+            strippedTeams[i].iconData = nil
+        }
+
         // Save meta (players, teams, settings) — always write as single blob
         let meta = StoreMeta(
             players: strippedPlayers,
-            teams: teams,
+            teams: strippedTeams,
             gameGroups: gameGroups,
             playerGroups: playerGroups,
             hiddenCareerStatItems: hiddenCareerStatItems,
@@ -613,13 +783,36 @@ final class AppStore: ObservableObject {
     private func load() {
         suppressSave = true
         defer { suppressSave = false }
+        print("[RecoveryCheck] load-start")
         // Try loading from Core Data first
-        if coreDataStore.hasData() {
+        let coreDataHasData = coreDataStore.hasData()
+        print("[RecoveryCheck] branch-decision coreDataHasSavedGames=\(coreDataHasData)")
+        if coreDataHasData {
             var restoredPlayers = coreDataStore.fetchAllPlayers()
-            teams = coreDataStore.fetchAllTeams()
+            var restoredTeams = coreDataStore.fetchAllTeams()
             gameGroups = coreDataStore.fetchAllGameGroups()
             playerGroups = coreDataStore.fetchAllPlayerGroups()
             savedGames = coreDataStore.fetchAllSavedGames()
+            let splitMeta: StoreMeta? = safeRead(StoreMeta.self, forKey: metaKey)
+            var restoredRosterFromMeta = false
+            if let splitMeta {
+                print("[RecoveryCheck] split-meta counts players=\(splitMeta.players.count) teams=\(splitMeta.teams.count) gameGroups=\(splitMeta.gameGroups.count) playerGroups=\(splitMeta.playerGroups.count)")
+                let restoredPlayerIDs = Set(restoredPlayers.map(\.id))
+                let missingPlayers = splitMeta.players.filter { !restoredPlayerIDs.contains($0.id) }
+                if !missingPlayers.isEmpty {
+                    restoredPlayers.append(contentsOf: missingPlayers)
+                    restoredRosterFromMeta = true
+                    print("[RecoveryCheck] roster-fallback players-added-from-meta=\(missingPlayers.count) meta-total=\(splitMeta.players.count)")
+                }
+
+                let restoredTeamIDs = Set(restoredTeams.map(\.id))
+                let missingTeams = splitMeta.teams.filter { !restoredTeamIDs.contains($0.id) }
+                if !missingTeams.isEmpty {
+                    restoredTeams.append(contentsOf: missingTeams)
+                    restoredRosterFromMeta = true
+                    print("[RecoveryCheck] roster-fallback teams-added-from-meta=\(missingTeams.count) meta-total=\(splitMeta.teams.count)")
+                }
+            }
             // Restore photo data from files before final assignment
             for i in restoredPlayers.indices {
                 let fileURL = photoFile(for: restoredPlayers[i].id)
@@ -627,12 +820,20 @@ final class AppStore: ObservableObject {
                     restoredPlayers[i].photoData = photoData
                 }
             }
+            for i in restoredTeams.indices {
+                let fileURL = teamIconFile(for: restoredTeams[i].id)
+                if let iconData = try? Data(contentsOf: fileURL), !iconData.isEmpty {
+                    restoredTeams[i].iconData = iconData
+                }
+            }
             players = restoredPlayers
+            teams = restoredTeams
             hasMigratedToCoreData = true
+            print("[RecoveryCheck] branch=core-data players=\(players.count) teams=\(teams.count) gameGroups=\(gameGroups.count) playerGroups=\(playerGroups.count) savedGames=\(savedGames.count)")
             print("[LoadCheck] CoreData → players=\(players.count) teams=\(teams.count) gameGroups=\(gameGroups.count) playerGroups=\(playerGroups.count) savedGames=\(savedGames.count)")
 
             // Voice and group metadata is stored in UserDefaults as well
-            if let meta: StoreMeta = safeRead(StoreMeta.self, forKey: metaKey) {
+            if let meta = splitMeta {
                 if let cm = meta.customVoiceMappings { customVoiceMappings = cm }
                 if let vl = meta.voiceLog { voiceLog = vl }
                 showsVoiceButton = meta.showsVoiceButton ?? false
@@ -649,10 +850,20 @@ final class AppStore: ObservableObject {
                     print("[LoadCheck] Fallback UserDefaults → gameGroups=\(meta.gameGroups.count)")
                 }
             }
+            if restoredRosterFromMeta {
+                dirtyKeys = [.players, .teams]
+                if recoveryDiagnosticsNoWrite {
+                    print("[RecoveryCheck] roster-fallback skipped-save because no-write mode is enabled")
+                } else {
+                    save()
+                    print("[RecoveryCheck] roster-fallback persisted-to-core-data")
+                }
+            }
             awardAllBadges()
             return
         }
 
+        print("[RecoveryCheck] branch=split-or-legacy-fallback")
 
         // Load meta (players, teams, settings)
         if let meta: StoreMeta = safeRead(StoreMeta.self, forKey: metaKey) {
@@ -666,7 +877,14 @@ final class AppStore: ObservableObject {
             }
 
             players = restoredPlayers
-            teams = meta.teams
+            var restoredTeams = meta.teams
+            for i in restoredTeams.indices {
+                let fileURL = teamIconFile(for: restoredTeams[i].id)
+                if let iconData = try? Data(contentsOf: fileURL), !iconData.isEmpty {
+                    restoredTeams[i].iconData = iconData
+                }
+            }
+            teams = restoredTeams
             gameGroups = meta.gameGroups
             playerGroups = meta.playerGroups
             hiddenCareerStatItems = meta.hiddenCareerStatItems
@@ -712,7 +930,82 @@ final class AppStore: ObservableObject {
         guard !hasMigratedToCoreData else { return }
         hasMigratedToCoreData = true
         dirtyKeys = [.players, .teams, .gameGroups, .playerGroups, .savedGames]
+        print("[RecoveryCheck] migrate-to-core-data input players=\(players.count) teams=\(teams.count) gameGroups=\(gameGroups.count) playerGroups=\(playerGroups.count) savedGames=\(savedGames.count)")
+        if recoveryDiagnosticsNoWrite {
+            print("[RecoveryCheck] migrate-to-core-data skipped-save because no-write mode is enabled")
+            return
+        }
         save()
+    }
+
+    private func logRecoveryState(phase: String) {
+        print("[RecoveryCheck] phase=\(phase)")
+        let legacyFileURL = documentsDir.appendingPathComponent("appstore_v2.json")
+        logRecoverySource("legacy-userdefaults", data: UserDefaults.standard.data(forKey: storageKey))
+        logRecoverySource("legacy-file", data: try? Data(contentsOf: legacyFileURL))
+
+        let metaFileURL = documentsDir.appendingPathComponent("\(metaKey).json")
+        let gamesIndexFileURL = documentsDir.appendingPathComponent("\(gamesIndexKey).json")
+        logRecoverySource("split-meta-userdefaults", data: UserDefaults.standard.data(forKey: metaKey))
+        logRecoverySource("split-meta-file", data: try? Data(contentsOf: metaFileURL))
+        logRecoverySource("split-games-index-userdefaults", data: UserDefaults.standard.data(forKey: gamesIndexKey))
+        logRecoverySource("split-games-index-file", data: try? Data(contentsOf: gamesIndexFileURL))
+
+        logRecoveryDirectory(photosDir, label: "player-photos")
+        logRecoveryDirectory(teamIconsDir, label: "team-icons")
+
+        let stores = coreDataStore.stack.container.persistentStoreCoordinator.persistentStores
+        print("[RecoveryCheck] core-data-stores count=\(stores.count)")
+        for store in stores {
+            let storeURL = store.url?.path ?? "nil"
+            print("[RecoveryCheck] core-data-store type=\(store.type) url=\(storeURL)")
+        }
+
+        for entityName in ["CDPlayer", "CDTeam", "CDGameGroup", "CDPlayerGroup", "CDSavedGame"] {
+            let request = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+            if let count = try? coreDataStore.context.count(for: request) {
+                print("[RecoveryCheck] core-data-count entity=\(entityName) count=\(count)")
+            } else {
+                print("[RecoveryCheck] core-data-count entity=\(entityName) unavailable")
+            }
+        }
+    }
+
+    private func logRecoverySource(_ source: String, data: Data?) {
+        guard let data else {
+            print("[RecoveryCheck] source=\(source) present=false")
+            return
+        }
+
+        print("[RecoveryCheck] source=\(source) present=true bytes=\(data.count)")
+        if source.hasPrefix("legacy-") {
+            if let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                let keys = object.keys.sorted().joined(separator: ",")
+                let playerCount = (object["players"] as? [Any])?.count ?? -1
+                let teamCount = (object["teams"] as? [Any])?.count ?? -1
+                let gameCount = (object["savedGames"] as? [Any])?.count ?? -1
+                print("[RecoveryCheck] source=\(source) json-top-level-keys=\(keys) raw-players=\(playerCount) raw-teams=\(teamCount) raw-savedGames=\(gameCount)")
+            }
+
+            do {
+                let payload = try JSONDecoder().decode(LegacyPayloadProbe.self, from: data)
+                print("[RecoveryCheck] source=\(source) legacy-decodable=true players=\(payload.players.count) teams=\(payload.teams.count) savedGames=\(payload.savedGames.count)")
+            } catch {
+                print("[RecoveryCheck] source=\(source) legacy-decodable=false error=\(error)")
+            }
+        }
+    }
+
+    private func logRecoveryDirectory(_ directory: URL, label: String) {
+        guard let files = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.fileSizeKey], options: [.skipsHiddenFiles]) else {
+            print("[RecoveryCheck] directory=\(label) present=false")
+            return
+        }
+
+        let totalBytes = files.reduce(0) { total, fileURL in
+            total + ((try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0)
+        }
+        print("[RecoveryCheck] directory=\(label) present=true files=\(files.count) bytes=\(totalBytes)")
     }
 
     private func seedSampleData() {
@@ -737,4 +1030,3 @@ final class AppStore: ObservableObject {
     }
 
 }
-

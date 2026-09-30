@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>编排记录 · main 分支 ASO</title><style>body{font:16px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;max-width:960px;margin:40px auto;padding:0 24px;color:#172033;background:#f7f8fa}main{background:#fff;padding:32px;border-radius:16px;box-shadow:0 6px 24px #17203312}code{background:#eef1f5;padding:.15em .35em;border-radius:4px}.state{display:inline-block;padding:4px 10px;border-radius:999px;background:#d1fae5;color:#065f46}li{margin:6px 0}</style></head><body><main>
+<h1>编排 Agent</h1><p><strong>任务：</strong>main 分支 ASO 修复与 App Store 截图重制</p><p><strong>状态：</strong><span class="state">已完成（带外部缺口）</span></p>
+<h2>执行方式</h2><p>按用户要求沿用上一轮 ASO 任务，在手动模式下由 Orchestrator 直接执行，不创建临时 Agent。当前分支为 <code>main</code>，工作流运行号为 <code>20260923-182202-main-aso-app-store</code>。</p>
+<h2>完成内容</h2><ul><li>先用 Fastlane 只读拉取 App Store 1.39 数据，并扩展 download lane 读取 name/subtitle。</li><li>保留简体中文名称“篮球生涯手帐”，修复 1.39 的重复描述和关键词 byte 超限。</li><li>同步本地上架文档和宣传页的产品名称/上架状态。</li><li>为 10 个 locale 生成每个 5 张、1242×2688 的功能介绍型截图。</li></ul>
+<h2>验证</h2><ul><li>metadata：10/10 locale 字段齐全，keywords ≤100 UTF-8 bytes，subtitle ≤30 字符。</li><li>截图：50/50 PNG 尺寸通过。</li><li>外部副作用：App Store Connect 未写入，Git 未提交，Pages 未部署。</li></ul>
+<h2>保留决策</h2><p>非中文文案需要母语校审；当前截图手机区域沿用公开英文源图，如要完整本地化需再做多语言 Simulator 采集。ASC 类别、实际字段和外部页面部署留给后续审批。</p>
+</main></body></html>

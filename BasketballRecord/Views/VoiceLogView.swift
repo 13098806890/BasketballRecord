@@ -40,9 +40,10 @@ struct VoiceLogView: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         if !entry.textPinyin.isEmpty {
-                            Text("Pinyin: \(entry.textPinyin)")
+                            Text(String(format: NSLocalizedString("voice_log_pinyin_format", comment: "Pinyin"), entry.textPinyin))
                                 .font(.caption2)
                                 .foregroundStyle(.tertiary)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                         if let detail = entry.matchDetail {
                             Text(detail)
@@ -72,6 +73,7 @@ struct VoiceLogView: View {
                 }
             }
         }
+        .editorialSettingsListStyle()
         .navigationTitle(LocalizedStringKey("settings_voice_log"))
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {

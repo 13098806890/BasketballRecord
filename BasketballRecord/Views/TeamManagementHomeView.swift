@@ -21,6 +21,7 @@ struct TeamManagementHomeView: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .listRowBackground(EditorialDesign.card)
 
                     NavigationLink {
                         PlayerManagementView()
@@ -31,6 +32,7 @@ struct TeamManagementHomeView: View {
                             countText: "\(store.players.count)"
                         )
                     }
+                    .listRowBackground(EditorialDesign.card)
 
                     NavigationLink {
                         TeamManagementView()
@@ -41,6 +43,7 @@ struct TeamManagementHomeView: View {
                             countText: "\(store.teams.count)"
                         )
                     }
+                    .listRowBackground(EditorialDesign.card)
 
                     NavigationLink {
                         GameGroupManagementView(store: store)
@@ -59,6 +62,7 @@ struct TeamManagementHomeView: View {
                                 .onTapGesture { isShowingPurchase = true }
                         }
                     }
+                    .listRowBackground(EditorialDesign.card)
 
                     NavigationLink {
                         PlayerGroupManagementView(store: store)
@@ -77,9 +81,11 @@ struct TeamManagementHomeView: View {
                                 .onTapGesture { isShowingPurchase = true }
                         }
                     }
+                    .listRowBackground(EditorialDesign.card)
                 }
             }
             .navigationTitle(LocalizedStringKey("tab_management"))
+            .editorialListStyle()
         }
         .sheet(isPresented: $showingCreateEntry) {
             CreateRosterItemView()
@@ -102,21 +108,22 @@ struct TeamManagementHomeView: View {
             Image(systemName: systemImage)
                 .font(.subheadline.weight(.semibold))
                 .symbolRenderingMode(.monochrome)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(EditorialDesign.orange)
                 .frame(width: 28, height: 28)
 
             Text(title)
-                .font(.body.weight(.medium))
+                .font(.body.weight(.semibold))
+                .foregroundStyle(EditorialDesign.navy)
 
             Spacer()
 
             if let countText {
                 Text(countText)
                     .font(.callout)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(EditorialDesign.blue)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 2)
-                    .background(.ultraThinMaterial, in: Capsule())
+                    .background(EditorialDesign.paleBlue, in: Capsule())
             }
 
             if showsDisclosure {

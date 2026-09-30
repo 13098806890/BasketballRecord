@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Career 比赛记录与球队 UI 实施报告</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;background:#f8f6ed;color:#081b2f;max-width:960px;margin:0 auto;padding:32px;line-height:1.6}
+h1{font-size:32px;margin-bottom:8px}h2{margin-top:32px;color:#e33f18}
+.status{display:inline-block;background:#e33f18;color:#fff;border-radius:999px;padding:4px 12px;font-weight:700}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.card{background:#fff;border:1px solid #d8dde2;border-radius:18px;padding:18px;box-shadow:0 8px 24px #081b2f12}
+img{width:100%;border-radius:14px;border:1px solid #d8dde2}.small{color:#647080;font-size:14px}
+code{background:#ece9df;padding:2px 5px;border-radius:4px}
+@media(max-width:700px){body{padding:18px}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>Career 页面 UI 实施报告</h1>
+<p><span class="status">已完成并通过模拟器验收</span></p>
+<p>本次补齐了 Career 内尚未修改的「球队」和「比赛记录」两个 tab，沿用已确认的 Adaptive A 风格。</p>
+
+<h2>实施范围</h2>
+<div class="card">
+<ul>
+<li>球队页：新增战绩主信息、胜率环、六项现有统计卡片和橙色强调线。</li>
+<li>比赛记录页：重排比赛标题、主客队、比分、时间和状态图标，月份分组使用统一视觉标题。</li>
+<li>保留原有数据结构、搜索、月份折叠、详情导航、iCloud、锁定/解锁、删除、导入和 Excel 导出操作。</li>
+<li>没有修改 <code>BasketballRecord/Views/Game/</code> 下的记分操作界面，也没有新增存储字段或本地化 key。</li>
+</ul>
+</div>
+
+<h2>iPhone 17 Simulator 证据</h2>
+<div class="grid">
+<div class="card"><h3>球队 tab</h3><img src="screenshots/career-history-team-implementation/team.png" alt="球队 tab 截图"></div>
+<div class="card"><h3>比赛记录 tab</h3><img src="screenshots/career-history-team-implementation/history.png" alt="比赛记录 tab 截图"></div>
+</div>
+
+<h2>验证结果</h2>
+<div class="card">
+<ul>
+<li><code>xcodebuild ... build</code>：成功。</li>
+<li><code>git diff --check</code>：通过。</li>
+<li><code>git diff --name-only -- BasketballRecord/Views/Game/</code>：无输出，记分页面未被修改。</li>
+<li>未执行 commit；工作区原有改动保持不变。</li>
+</ul>
+</div>
+</body>
+</html>

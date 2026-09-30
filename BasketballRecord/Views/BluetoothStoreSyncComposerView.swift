@@ -280,6 +280,7 @@ struct BluetoothStoreSyncComposerView: View {
                 }
             }
         }
+        .editorialSettingsFormStyle()
         .navigationTitle(LocalizedStringKey("nav_select_sync_content"))
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {

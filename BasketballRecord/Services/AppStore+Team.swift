@@ -18,7 +18,13 @@ extension AppStore {
     }
 
     func deleteTeams(at offsets: IndexSet) {
+        let removedTeamIDs = offsets.compactMap { index in
+            teams.indices.contains(index) ? teams[index].id : nil
+        }
         teams.remove(atOffsets: offsets)
+        for teamID in removedTeamIDs {
+            try? FileManager.default.removeItem(at: teamIconFile(for: teamID))
+        }
     }
 
     @discardableResult
@@ -33,7 +39,11 @@ extension AppStore {
 
         for incoming in incomingTeams {
             if let existingIndex = nextTeams.firstIndex(where: { $0.id == incoming.id }) {
-                nextTeams[existingIndex] = incoming
+                var merged = incoming
+                if merged.iconData == nil {
+                    merged.iconData = nextTeams[existingIndex].iconData
+                }
+                nextTeams[existingIndex] = merged
                 updated += 1
             } else {
                 nextTeams.append(incoming)
@@ -82,13 +92,25 @@ extension AppStore {
 
         var seenPlayerIDs: Set<UUID> = []
         let orderedPlayerIDs = package.team.playerIDs.filter { seenPlayerIDs.insert($0).inserted }
-        let importedTeam = Team(id: package.team.id, name: package.team.name, playerIDs: orderedPlayerIDs)
+        let existingIconData = teams.first(where: { $0.id == package.team.id })?.iconData
+        let importedTeam = Team(
+            id: package.team.id,
+            name: package.team.name,
+            playerIDs: orderedPlayerIDs,
+            iconData: package.team.iconData ?? existingIconData
+        )
 
         var addedTeams = 0
         var updatedTeams = 0
         var nextTeams = teams
         if let existingIndex = nextTeams.firstIndex(where: { $0.id == importedTeam.id }) {
-            nextTeams[existingIndex] = importedTeam
+            if nextTeams[existingIndex].iconData != nil && importedTeam.iconData == nil {
+                var preservedTeam = importedTeam
+                preservedTeam.iconData = nextTeams[existingIndex].iconData
+                nextTeams[existingIndex] = preservedTeam
+            } else {
+                nextTeams[existingIndex] = importedTeam
+            }
             updatedTeams = 1
         } else {
             nextTeams.append(importedTeam)
@@ -115,20 +137,26 @@ extension AppStore {
         var seenPlayerIDs = Set(targetTeam.playerIDs)
         let addedPlayers = sourceTeam.playerIDs.filter { seenPlayerIDs.insert($0).inserted }
         targetTeam.playerIDs.append(contentsOf: addedPlayers)
+        if targetTeam.iconData == nil {
+            targetTeam.iconData = sourceTeam.iconData
+        }
 
         teams = teams.compactMap { team in
             if team.id == sourceID { return nil }
             if team.id == targetID {
-                return Team(id: team.id, name: team.name, playerIDs: targetTeam.playerIDs)
+                return Team(id: team.id, name: team.name, playerIDs: targetTeam.playerIDs, iconData: targetTeam.iconData)
             }
             return team
         }
 
+        try? FileManager.default.removeItem(at: teamIconFile(for: sourceID))
+
         var updatedGames = 0
+        let modifiedAt = Date()
         savedGames = savedGames.map { game in
             guard gameContainsTeam(game, sourceID: sourceID) else { return game }
             updatedGames += 1
-            return remappedGameForTeamMerge(game, sourceID: sourceID, targetID: targetID, targetName: targetTeam.name)
+            return remappedGameForTeamMerge(game, sourceID: sourceID, targetID: targetID, targetName: targetTeam.name, modifiedAt: modifiedAt)
         }
 
         return TeamMergeSummary(mergedPlayers: addedPlayers.count, updatedGames: updatedGames)
@@ -152,7 +180,8 @@ extension AppStore {
         _ game: SavedGame,
         sourceID: UUID,
         targetID: UUID,
-        targetName: String
+        targetName: String,
+        modifiedAt: Date? = nil
     ) -> SavedGame {
         let snapshot = remappedSnapshotForTeamMerge(game.snapshot, sourceID: sourceID, targetID: targetID)
         let homeChanged = game.snapshot.homeTeamID == sourceID
@@ -161,7 +190,7 @@ extension AppStore {
         return SavedGame(
             id: game.id,
             savedAt: game.savedAt,
-            modifiedAt: game.modifiedAt,
+            modifiedAt: modifiedAt ?? game.modifiedAt,
             snapshot: snapshot,
             aiSummary: game.aiSummary,
             previousSnapshot: game.previousSnapshot.map { remappedSnapshotForTeamMerge($0, sourceID: sourceID, targetID: targetID) },

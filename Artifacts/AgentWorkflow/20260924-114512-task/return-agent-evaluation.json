@@ -1,0 +1,55 @@
+{
+  "action": "return",
+  "from_stage": "agent-evaluation",
+  "exchange_id": "exchange-0007",
+  "summary": "最终评估建议 complete-with-gaps：视觉实现、保护边界、构建和本地化通过；criterion-03/05 因模拟器纯黑和缺少 AX/UI audit 配置保持 blocked。六维评分为 alignment 5、progress 5、evidence 4、compliance 5、handoff 4、efficiency 4。",
+  "result_status": "passed",
+  "output_files": [
+    {
+      "path": "06-agent-evaluation.html",
+      "kind": "html",
+      "label": "最终 Agent Evaluation 报告"
+    }
+  ],
+  "changed_files": [],
+  "verification": [
+    "所有 selected stage 都有报告、dispatch/return 和覆盖 disposition",
+    "所有 skipped stage 已记录 task-specific reason/risk/expected_savings",
+    "Debug iOS Simulator build succeeded",
+    "Views/Game diff 为空",
+    "ASO 外部动作未执行",
+    "criterion-01/02/04 可由静态和源码证据支持，criterion-03/05 的运行时缺口已显式列出"
+  ],
+  "unresolved_issues": [
+    "criterion-03：运行时导航/数据操作未取得页面证据",
+    "criterion-05：管理、历史/详情、职业成长、球员资料四个 surface 均未取得真实页面/AX evidence",
+    "EditorialDesign 的深色模式/Dynamic Type/A11Y 仍未专项验证"
+  ],
+  "coverage_dispositions": [
+    {
+      "coverage_id": "criterion-01",
+      "status": "passed",
+      "evidence": ["06-agent-evaluation.html", "10-visual-design.html", "02-developer.html"]
+    },
+    {
+      "coverage_id": "criterion-02",
+      "status": "passed",
+      "evidence": ["06-agent-evaluation.html", "03-code-review.html", "git diff --name-only -- BasketballRecord/Views/Game/"]
+    },
+    {
+      "coverage_id": "criterion-03",
+      "status": "blocked",
+      "evidence": ["06-agent-evaluation.html", "04-simulator-test.html", "02-developer.html"]
+    },
+    {
+      "coverage_id": "criterion-04",
+      "status": "passed",
+      "evidence": ["06-agent-evaluation.html", "03-code-review.html"]
+    },
+    {
+      "coverage_id": "criterion-05",
+      "status": "blocked",
+      "evidence": ["06-agent-evaluation.html", "04-simulator-test.html", "simulator-exploration-after-launch.png"]
+    }
+  ]
+}

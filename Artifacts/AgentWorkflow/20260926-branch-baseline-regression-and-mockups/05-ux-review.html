@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>UI/UX 审查 · 未改进页面与 mockup</title><style>body{font:15px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;max-width:1050px;margin:28px auto;padding:0 18px;color:#172033;background:#f5f7fb}main{background:#fff;padding:28px;border-radius:18px;box-shadow:0 8px 28px #17203312}h1,h2{color:#102a43}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}.card{border:1px solid #dfe6ef;border-radius:14px;padding:14px;background:#fbfcfe}.card img{max-width:100%;border-radius:12px;border:1px solid #e2e8f0}td,th{text-align:left;vertical-align:top;padding:9px;border-bottom:1px solid #e5eaf0}table{width:100%;border-collapse:collapse}.accept{color:#117a4b}.defer{color:#9b5a00}</style></head><body><main>
+<h1>UI/UX 审查 · 未改进页面与 mockup</h1>
+<p><strong>输入：</strong><a href="04-simulator-test.html">模拟器测试报告</a>、新旧主页面截图、源码功能矩阵、现有篮球 editorial visual system。</p>
+<h2>已经对齐的页面</h2><table><thead><tr><th>页面</th><th>证据</th><th>结论</th></tr></thead><tbody>
+<tr><td>记分页</td><td><a href="screenshots/new/tab-1-settled.png">score screenshot</a></td><td class="accept">接受当前 B 方案：功能优先、双色记分牌、3/4/5 球员自适应、透明语音长按入口、原有操作按钮保留。</td></tr>
+<tr><td>比赛详情</td><td><a href="screenshots/new/detail-game.png">game detail</a></td><td class="accept">球队球员、号码、头像、六项数据和顶部返回/导出/编辑入口都可见。</td></tr>
+<tr><td>比赛中的球员详情</td><td><a href="screenshots/new/detail-player.png">fixed-game player detail</a></td><td class="accept">与生涯球员卡同一头像面板风格；保留 This Game、分节选择和 Events。</td></tr>
+<tr><td>生涯球员详情</td><td><a href="screenshots/new/detail-careerPlayer.png">career player detail</a></td><td class="accept">保留 Choose Games、Career、Average、ELO History；按需求不显示 Events。</td></tr>
+</tbody></table>
+<h2>未改进页面的设计建议</h2><table><thead><tr><th>范围</th><th>当前风险</th><th>建议</th><th>状态</th></tr></thead><tbody>
+<tr><td>Settings 总览与下层入口</td><td>主页已经换皮，但 Voice、iCloud、Sync & Import、Language 等入口仍是线性列表，向下滚动时重要工具不够聚合。</td><td>保留全部 row action，按 Game Preferences / Units / Sync & Import / Language 分组；每行整行可点，二级值靠右显示。</td><td class="accept">已生成 mockup</td></tr>
+<tr><td>Voice & AI</td><td>功能多且跨语音开关、语言、映射、日志、AI provider/model/key，现有页面容易让用户不清楚录音状态。</td><td>把“是否正在听”和“按住说话”放在首组；映射/日志为工具组；AI 设置单独一组；测试语音放在底部明显按钮。</td><td class="accept">已生成 mockup</td></tr>
+<tr><td>Sync & Import</td><td>导入、导出、合并、iCloud、蓝牙、剪贴板功能分散，误触和权限边界不够明显。</td><td>导入导出、数据合并、连接工具三组；所有 row 大 hit target；合并操作使用橙色强调并在确认框显示对象数量。</td><td class="accept">已生成 mockup</td></tr>
+<tr><td>GameSetup / Substitute / Late Arrival</td><td>当前未纳入新风格证据，且这些弹窗直接影响记分准确性。</td><td>后续只改卡片、分组和 tap target，不改业务状态流；先截图确认字段完整，再实施。</td><td class="defer">待下一轮截图</td></tr>
+<tr><td>EventLogEdit / GameEventLogEditor</td><td>事件修正是数据准确性的关键，但本轮无法点击验证编辑、删除、撤销、时间/节次 picker。</td><td>采用与比赛详情一致的白卡/橙色主操作；保留所有时间、节次、动作类型、球员选择和删除确认。</td><td class="defer">待交互回归</td></tr>
+<tr><td>Player/Team Group、Import/Export Package、UUID Merge</td><td>功能密度高，不能只凭主入口截图判断是否丢失。</td><td>先用 fixture 进入每个子页，建立字段/操作清单，再做分页面 mockup。</td><td class="defer">待交互回归</td></tr>
+</tbody></table>
+<h2>Mockup</h2><div class="grid">
+<div class="card"><h3>Settings overview</h3><p><a href="screenshots/unimproved/settings-overview-mockup.png">打开原图</a></p><img src="screenshots/unimproved/settings-overview-mockup.png" alt="Settings mockup"></div>
+<div class="card"><h3>Voice & AI</h3><p><a href="screenshots/unimproved/voice-ai-mockup.png">打开原图</a></p><img src="screenshots/unimproved/voice-ai-mockup.png" alt="Voice and AI mockup"></div>
+<div class="card"><h3>Sync & Import</h3><p><a href="screenshots/unimproved/sync-import-mockup.png">打开原图</a></p><img src="screenshots/unimproved/sync-import-mockup.png" alt="Sync and import mockup"></div>
+</div>
+<h2>设计验收约束</h2><ol><li>不删除任何当前功能入口，不重排业务状态机。</li><li>所有可点击 cell 绑定整行区域，保留大 hit target。</li><li>新增文案必须同步 10 个本地化文件；mockup 文案仅作为设计候选，实施时按项目 i18n 规则落地。</li><li>复杂背景只放在页面底层，避免文字和设备/语言适配被图案干扰。</li></ol>
+<p><strong>完成状态：</strong><span class="accept">已完成未改进范围盘点和 3 个 surface-specific mockup；代码实施等待用户评审。</span></p>
+</main></body></html>

@@ -9,7 +9,9 @@ struct PlayerEditorView: View {
 
     @State private var name: String
     @State private var height: String
+    @State private var heightUnit: HeightUnit
     @State private var weight: String
+    @State private var weightUnit: WeightUnit
     @State private var number: String
     @State private var position: String
     @State private var photoData: Data?
@@ -20,8 +22,12 @@ struct PlayerEditorView: View {
     init(player: Player?) {
         self.player = player
         _name = State(initialValue: player?.name ?? "")
-        _height = State(initialValue: player?.height ?? "")
-        _weight = State(initialValue: player?.weight ?? "")
+        let initialHeightUnit = player?.heightUnit ?? UnitSettings.defaultHeightUnit
+        let initialWeightUnit = player?.weightUnit ?? UnitSettings.defaultWeightUnit
+        _heightUnit = State(initialValue: initialHeightUnit)
+        _weightUnit = State(initialValue: initialWeightUnit)
+        _height = State(initialValue: player.map { UnitSettings.editorHeightValue($0.height, unit: initialHeightUnit) } ?? "")
+        _weight = State(initialValue: player.map { UnitSettings.editorWeightValue($0.weight, unit: initialWeightUnit) } ?? "")
         _number = State(initialValue: player?.number ?? "")
         _position = State(initialValue: player?.position ?? "")
         _photoData = State(initialValue: player?.photoData)
@@ -58,20 +64,38 @@ struct PlayerEditorView: View {
                             Text(position.rawValue).tag(position.rawValue)
                         }
                     }
-                    TextField(LocalizedStringKey("placeholder_height_cm"), text: $height)
-                        .keyboardType(.decimalPad)
-                        .padding(.trailing, 36)
-                        .overlay(alignment: .trailing) {
-                            Text(UnitSettings.editorHeightUnitLabel())
-                                .foregroundStyle(.secondary)
+                    HStack(spacing: 8) {
+                        TextField(
+                            heightUnit == .cm ? LocalizedStringKey("placeholder_height_cm") : LocalizedStringKey("placeholder_height_ft_in"),
+                            text: $height
+                        )
+                        .keyboardType(heightUnit == .cm ? .decimalPad : .numbersAndPunctuation)
+
+                        Picker(LocalizedStringKey("label_height"), selection: $heightUnit) {
+                            ForEach(HeightUnit.allCases, id: \.rawValue) { unit in
+                                Text(unit.displayName).tag(unit)
+                            }
                         }
-                    TextField(LocalizedStringKey("placeholder_weight_kg"), text: $weight)
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .accessibilityLabel(LocalizedStringKey("label_height"))
+                    }
+                    HStack(spacing: 8) {
+                        TextField(
+                            weightUnit == .kg ? LocalizedStringKey("placeholder_weight_kg") : LocalizedStringKey("placeholder_weight_lbs"),
+                            text: $weight
+                        )
                         .keyboardType(.decimalPad)
-                        .padding(.trailing, 36)
-                        .overlay(alignment: .trailing) {
-                            Text(UnitSettings.editorWeightUnitLabel())
-                                .foregroundStyle(.secondary)
+
+                        Picker(LocalizedStringKey("label_weight"), selection: $weightUnit) {
+                            ForEach(WeightUnit.allCases, id: \.rawValue) { unit in
+                                Text(unit.displayName).tag(unit)
+                            }
                         }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .accessibilityLabel(LocalizedStringKey("label_weight"))
+                    }
                 }
 
                 Section {
@@ -126,6 +150,12 @@ struct PlayerEditorView: View {
                       let data = try? await selectedPhoto.loadTransferable(type: Data.self) else { return }
                 photoData = compressedPhotoData(from: data)
             }
+            .onChange(of: heightUnit) { oldUnit, newUnit in
+                height = UnitSettings.editorHeightValue(UnitSettings.canonicalHeight(height, unit: oldUnit), unit: newUnit)
+            }
+            .onChange(of: weightUnit) { oldUnit, newUnit in
+                weight = UnitSettings.editorWeightValue(UnitSettings.canonicalWeight(weight, unit: oldUnit), unit: newUnit)
+            }
         }
     }
 
@@ -160,8 +190,10 @@ struct PlayerEditorView: View {
         let next = Player(
             id: player?.id ?? UUID(),
             name: trimmedName,
-            height: height.trimmingCharacters(in: .whitespacesAndNewlines),
-            weight: weight.trimmingCharacters(in: .whitespacesAndNewlines),
+            height: UnitSettings.canonicalHeight(height, unit: heightUnit),
+            weight: UnitSettings.canonicalWeight(weight, unit: weightUnit),
+            heightUnit: heightUnit,
+            weightUnit: weightUnit,
             number: number.trimmingCharacters(in: .whitespacesAndNewlines),
             position: position.trimmingCharacters(in: .whitespacesAndNewlines),
             photoData: photoData,

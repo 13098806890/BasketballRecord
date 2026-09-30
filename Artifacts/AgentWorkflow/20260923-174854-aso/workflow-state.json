@@ -1,0 +1,1578 @@
+{
+  "version": 9,
+  "run_id": "20260923-174854-aso",
+  "title": "手动 ASO 审核与优化方案",
+  "created_at": "2026-09-23T09:48:54.381090+00:00",
+  "agent_defaults": {
+    "model": "gpt-5.6-luna",
+    "thinking": "high"
+  },
+  "workflow_state": "complete-with-gaps",
+  "active_stage": null,
+  "intent": {
+    "original_request": "$ios-agent-workflow\n手动模式，帮我检查和给出aso的优化方案，其中我的中文地区的名字是没有办法修改的",
+    "normalized_goal": "手动 ASO 审核与优化方案",
+    "captured_at": "2026-09-23T09:48:54.381090+00:00",
+    "source": "cli",
+    "immutable": true
+  },
+  "acceptance_criteria": [
+    "检查当前仓库内的 App Store listing、Fastlane metadata、版本信息和公开商店页面，并区分已验证事实与推断。",
+    "中文地区的 App 名称保持不变，方案只优化副标题、关键词、宣传文本、描述、截图卖点和页面一致性。",
+    "按 locale 给出有字符预算、优先级、风险和验证方法的 ASO 优化方案，不执行上传或外部发布。",
+    "生成可审计的 ASO 关键词快照和独立可视化，并明确公开搜索代理排名的局限。"
+  ],
+  "coverage_matrix": [
+    {
+      "id": "criterion-01",
+      "text": "检查当前仓库内的 App Store listing、Fastlane metadata、版本信息和公开商店页面，并区分已验证事实与推断。",
+      "required": true,
+      "status": "passed",
+      "owner": "aso-ops",
+      "evidence": ["13-aso-operations.html", "AGENTS.md", "fastlane/Fastfile", "公开中国区产品页"],
+      "design_artifacts": [],
+      "user_approved_deferral": false,
+      "notes": "已完成本地和公开页面审计；ASC 当前字段仍未读取。"
+    },
+    {
+      "id": "criterion-02",
+      "text": "中文地区的 App 名称保持不变，方案只优化副标题、关键词、宣传文本、描述、截图卖点和页面一致性。",
+      "required": true,
+      "status": "passed",
+      "owner": "aso-ops",
+      "evidence": ["13-aso-operations.html 第 5 节"],
+      "design_artifacts": [],
+      "user_approved_deferral": false,
+      "notes": "中文名称保持不变；其余字段提供候选方案。"
+    },
+    {
+      "id": "criterion-03",
+      "text": "按 locale 给出有字符预算、优先级、风险和验证方法的 ASO 优化方案，不执行上传或外部发布。",
+      "required": true,
+      "status": "passed",
+      "owner": "aso-ops",
+      "evidence": ["13-aso-operations.html 第 5-7 节"],
+      "design_artifacts": [],
+      "user_approved_deferral": false,
+      "notes": "已给出 byte 预算、优先级、风险和复测方法；多语言候选需母语校审。"
+    },
+    {
+      "id": "criterion-04",
+      "text": "生成可审计的 ASO 关键词快照和独立可视化，并明确公开搜索代理排名的局限。",
+      "required": true,
+      "status": "passed",
+      "owner": "aso-ops",
+      "evidence": ["aso/*.json", "aso/aso-keyword-visualization-*.html"],
+      "design_artifacts": [],
+      "user_approved_deferral": false,
+      "notes": "快照使用 public-search-proxy；未将其当作 Apple 官方自然排名。"
+    }
+  ],
+  "completion": {
+    "status": "complete-with-gaps",
+    "mode": "verified-with-gaps",
+    "gaps": ["未读取 App Store Connect 当前 metadata", "未提供仓库内截图/preview 资产", "未验证官方搜索量和真实自然排名", "非中文文案需母语校审"],
+    "user_approved_deferrals": []
+  },
+  "unresolved_blockers": [],
+  "governance": {
+    "max_rework_cycles_per_stage": 2,
+    "stall_checks_before_user_decision": 3,
+    "long_stage_check_minutes": 5,
+    "max_stage_runtime_minutes": 240,
+    "minimum_evaluation_score": 3
+  },
+  "stage_plan": {
+    "developer": {
+      "decision": "skip",
+      "reason": "本次为只读 ASO 审核，不涉及产品代码实现。",
+      "coverage_ids": [],
+      "risk_if_skipped": "",
+      "expected_savings": "",
+      "decided_at": null,
+      "decided_by": null
+    },
+    "code-review": {
+      "decision": "skip",
+      "reason": "没有产品代码 diff，不需要代码审查。",
+      "coverage_ids": [],
+      "risk_if_skipped": "",
+      "expected_savings": "",
+      "decided_at": null,
+      "decided_by": null
+    },
+    "simulator-test": {
+      "decision": "skip",
+      "reason": "本次不验证 UI 行为，只审计商店资产。",
+      "coverage_ids": [],
+      "risk_if_skipped": "",
+      "expected_savings": "",
+      "decided_at": null,
+      "decided_by": null
+    },
+    "ux-review": {
+      "decision": "skip",
+      "reason": "没有 UI 改动或可操作流程验收项。",
+      "coverage_ids": [],
+      "risk_if_skipped": "",
+      "expected_savings": "",
+      "decided_at": null,
+      "decided_by": null
+    },
+    "agent-evaluation": {
+      "decision": "run",
+      "reason": "configured required stage",
+      "coverage_ids": [],
+      "risk_if_skipped": "",
+      "expected_savings": "",
+      "decided_at": "2026-09-23T09:48:54.381090+00:00",
+      "decided_by": "orchestrator"
+    },
+    "release": {
+      "decision": "skip",
+      "reason": "本次明确不上传、不提交审核、不发布。",
+      "coverage_ids": [],
+      "risk_if_skipped": "",
+      "expected_savings": "",
+      "decided_at": null,
+      "decided_by": null
+    },
+    "architecture": {
+      "decision": "skip",
+      "reason": "ASO 资产审计不需要架构方案。",
+      "coverage_ids": [],
+      "risk_if_skipped": "不影响本次 ASO 结论；若后续改产品架构再单独启动。",
+      "expected_savings": "避免启动无关架构审查，节省一个阶段。",
+      "decided_at": null,
+      "decided_by": null
+    },
+    "interaction-design": {
+      "decision": "skip",
+      "reason": "没有新的应用内交互设计任务。",
+      "coverage_ids": [],
+      "risk_if_skipped": "不影响 listing 审核；截图交互建议仍需后续真实素材验证。",
+      "expected_savings": "避免启动无关交互设计阶段。",
+      "decided_at": null,
+      "decided_by": null
+    },
+    "visual-design": {
+      "decision": "skip",
+      "reason": "本次只提出截图顺序建议，未进行逐界面视觉设计。",
+      "coverage_ids": [],
+      "risk_if_skipped": "无法确认真实截图视觉转化，已列为本次缺口。",
+      "expected_savings": "没有截图资产可审，避免重复生成视觉稿。",
+      "decided_at": null,
+      "decided_by": null
+    },
+    "accessibility": {
+      "decision": "skip",
+      "reason": "没有可操作 UI 改动或无障碍验收范围。",
+      "coverage_ids": [],
+      "risk_if_skipped": "不影响商店文本和关键词结论。",
+      "expected_savings": "避免启动无关无障碍实测。",
+      "decided_at": null,
+      "decided_by": null
+    },
+    "copywriting": {
+      "decision": "skip",
+      "reason": "ASO 文案建议由 aso-ops 在本次手动范围内完成；未进入独立 CPY 阶段。",
+      "coverage_ids": [],
+      "risk_if_skipped": "非中文候选仍需母语校审；已在报告中标记。",
+      "expected_savings": "避免 ASO 与 CPY 重复改写同一 listing 字段。",
+      "decided_at": null,
+      "decided_by": null
+    },
+    "aso-ops": {
+      "decision": "run",
+      "reason": "用户明确要求手动 ASO 审核；本阶段由 Orchestrator 直接执行。",
+      "coverage_ids": ["criterion-01", "criterion-02", "criterion-03", "criterion-04"],
+      "risk_if_skipped": "",
+      "expected_savings": "",
+      "decided_at": "2026-09-23T09:48:54.381090+00:00",
+      "decided_by": "orchestrator"
+    },
+    "release-compliance": {
+      "decision": "skip",
+      "reason": "本次没有发布动作或合规提交请求。",
+      "coverage_ids": [],
+      "risk_if_skipped": "未对提交审核资格做独立合规结论；本次也未请求发布。",
+      "expected_savings": "避免对未授权发布动作做重复审查。",
+      "decided_at": null,
+      "decided_by": null
+    },
+    "growth-community": {
+      "decision": "skip",
+      "reason": "用户只请求 ASO，不涉及社媒或社区运营。",
+      "coverage_ids": [],
+      "risk_if_skipped": "不影响商店 listing 方案。",
+      "expected_savings": "避免启动无关社媒研究。",
+      "decided_at": null,
+      "decided_by": null
+    }
+  },
+  "stages": {
+    "developer": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "本次为只读 ASO 审核，不涉及产品代码实现。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "code-review": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "没有产品代码 diff，不需要代码审查。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "simulator-test": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "本次不验证 UI 行为，只审计商店资产。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "ux-review": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "没有 UI 改动或可操作流程验收项。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "agent-evaluation": {
+      "state": "passed",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": null,
+      "started_at": "2026-09-23T10:01:24.158086+00:00",
+      "completed_at": "2026-09-23T10:01:24.187454+00:00",
+      "duration_seconds": 0.02946,
+      "work_sessions": [
+        {
+          "attempt": 1,
+          "kind": "work",
+          "started_at": "2026-09-23T10:01:24.158086+00:00",
+          "completed_at": "2026-09-23T10:01:24.187454+00:00",
+          "duration_seconds": 0.02946,
+          "usage_status": "unavailable",
+          "token_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cached_tokens": 0,
+            "total_tokens": 0,
+            "requests": 0
+          }
+        }
+      ],
+      "metrics": {
+        "duration_status": "recorded",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": [
+        {
+          "path": "06-agent-evaluation.html",
+          "kind": "html",
+          "label": "06-agent-evaluation.html"
+        }
+      ]
+    },
+    "release": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "本次明确不上传、不提交审核、不发布。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "architecture": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "ASO 资产审计不需要架构方案。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "interaction-design": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "没有新的应用内交互设计任务。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "visual-design": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "本次只提出截图顺序建议，未进行逐界面视觉设计。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "accessibility": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "没有可操作 UI 改动或无障碍验收范围。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "copywriting": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "ASO 文案建议由 aso-ops 在本次手动范围内完成；未进入独立 CPY 阶段。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "aso-ops": {
+      "state": "passed",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": null,
+      "started_at": "2026-09-23T09:49:00.065663+00:00",
+      "completed_at": "2026-09-23T10:01:24.124135+00:00",
+      "duration_seconds": 744.059017,
+      "work_sessions": [
+        {
+          "attempt": 1,
+          "kind": "work",
+          "started_at": "2026-09-23T09:49:00.065663+00:00",
+          "completed_at": "2026-09-23T10:01:24.124135+00:00",
+          "duration_seconds": 744.059017,
+          "usage_status": "unavailable",
+          "token_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cached_tokens": 0,
+            "total_tokens": 0,
+            "requests": 0
+          }
+        }
+      ],
+      "metrics": {
+        "duration_status": "recorded",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": [
+        {
+          "path": "13-aso-operations.html",
+          "kind": "html",
+          "label": "13-aso-operations.html"
+        },
+        {
+          "path": "aso/cn-zh-Hans.json",
+          "kind": "json",
+          "label": "cn-zh-Hans.json"
+        },
+        {
+          "path": "aso/tw-zh-Hant.json",
+          "kind": "json",
+          "label": "tw-zh-Hant.json"
+        },
+        {
+          "path": "aso/jp-ja.json",
+          "kind": "json",
+          "label": "jp-ja.json"
+        },
+        {
+          "path": "aso/de-de.json",
+          "kind": "json",
+          "label": "de-de.json"
+        },
+        {
+          "path": "aso/us-en-US.json",
+          "kind": "json",
+          "label": "us-en-US.json"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-cn-zh-Hans.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-cn-zh-Hans.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-tw-zh-Hant.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-tw-zh-Hant.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-jp-ja.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-jp-ja.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-de-de.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-de-de.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-us-en-US.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-us-en-US.html"
+        }
+      ]
+    },
+    "release-compliance": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "本次没有发布动作或合规提交请求。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    },
+    "growth-community": {
+      "state": "skipped",
+      "rework_count": 0,
+      "consecutive_stall_checks": 0,
+      "skip_reason": "用户只请求 ASO，不涉及社媒或社区运营。",
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": 0,
+      "work_sessions": [],
+      "metrics": {
+        "duration_status": "not-started",
+        "usage_status": "unavailable",
+        "duration_source": "ledger",
+        "usage_source": "agent-host"
+      },
+      "watchdog": {
+        "status": "unknown",
+        "last_progress_at": null,
+        "last_checked_at": null,
+        "consecutive_stall_checks": 0,
+        "max_runtime_minutes": 240,
+        "message": "尚未检查"
+      },
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0
+      },
+      "artifacts": []
+    }
+  },
+  "handoffs": [
+    {
+      "exchange_id": "exchange-0001",
+      "timestamp": "2026-09-23T10:03:08.663495+00:00",
+      "from_stage": "orchestrator",
+      "to_stage": "aso-ops",
+      "task_scope": "由 Orchestrator 手动完成上架后 ASO 只读审计与优化提案，不启动临时 Agent。",
+      "acceptance_criteria": [
+        "区分仓库事实、公开页面事实、推断和未验证项",
+        "中文地区名称不改并给出其他字段方案",
+        "给出 locale 字符预算、优先级、风险和验证方法",
+        "生成可审计快照与独立可视化"
+      ],
+      "changed_files": [],
+      "verification": [
+        "公开 Apple 产品页可访问",
+        "public-apple 快照已生成",
+        "UTF-8 byte 预算已计算"
+      ],
+      "unresolved_issues": [
+        "未读取 App Store Connect 当前字段",
+        "仓库没有截图/preview 资产",
+        "没有官方搜索量或真实自然排名数据"
+      ],
+      "prohibited_actions": [
+        "不得修改中文名称",
+        "不得上传或提交 App Store Connect",
+        "不得使用 Apple Ads 或付费 ASO provider"
+      ],
+      "next_checks": [
+        "确认候选文案和目标发行分支",
+        "母语校审非中文候选词",
+        "发布后用同一关键词集合复测"
+      ],
+      "knowledge_context": {
+        "mode": "postlaunch",
+        "provider": "public-apple",
+        "app_id": "6773215187",
+        "rank_kind": "public-search-proxy"
+      },
+      "coverage_ids": [
+        "criterion-01",
+        "criterion-02",
+        "criterion-03",
+        "criterion-04"
+      ],
+      "required_outputs": [
+        "13-aso-operations.html",
+        "aso/cn-zh-Hans.json",
+        "aso/aso-keyword-visualization-cn-zh-Hans.html"
+      ],
+      "input_files": [
+        {
+          "path": "AGENTS.md",
+          "kind": "markdown",
+          "label": "AGENTS.md"
+        },
+        {
+          "path": ".codex/ios-agent-workflow.json",
+          "kind": "json",
+          "label": "ios-agent-workflow.json"
+        },
+        {
+          "path": "fastlane/Fastfile",
+          "kind": "file",
+          "label": "Fastfile"
+        },
+        {
+          "path": "fastlane/metadata/1.38/zh-Hans/keywords.txt",
+          "kind": "text",
+          "label": "keywords.txt"
+        },
+        {
+          "path": "docs/appstore/app-store-metadata.md",
+          "kind": "markdown",
+          "label": "app-store-metadata.md"
+        }
+      ],
+      "read_before_work": [
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "13-aso-operations.html",
+          "kind": "html",
+          "label": "13-aso-operations.html"
+        },
+        {
+          "path": "aso/cn-zh-Hans.json",
+          "kind": "json",
+          "label": "cn-zh-Hans.json"
+        },
+        {
+          "path": "aso/tw-zh-Hant.json",
+          "kind": "json",
+          "label": "tw-zh-Hant.json"
+        },
+        {
+          "path": "aso/jp-ja.json",
+          "kind": "json",
+          "label": "jp-ja.json"
+        },
+        {
+          "path": "aso/de-de.json",
+          "kind": "json",
+          "label": "de-de.json"
+        },
+        {
+          "path": "aso/us-en-US.json",
+          "kind": "json",
+          "label": "us-en-US.json"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-cn-zh-Hans.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-cn-zh-Hans.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-tw-zh-Hant.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-tw-zh-Hant.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-jp-ja.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-jp-ja.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-de-de.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-de-de.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-us-en-US.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-us-en-US.html"
+        }
+      ],
+      "returned_at": "2026-09-23T10:03:08.697491+00:00",
+      "result_status": "passed",
+      "return_summary": "已完成手动 ASO 只读审计，生成详细报告、5 个 storefront/locale 关键词快照和可视化；保留中文名称不变，并给出 subtitle、keywords、描述首屏、截图顺序和验证计划。",
+      "output_files": [
+        {
+          "path": "13-aso-operations.html",
+          "kind": "html",
+          "label": "13-aso-operations.html"
+        },
+        {
+          "path": "aso/cn-zh-Hans.json",
+          "kind": "json",
+          "label": "cn-zh-Hans.json"
+        },
+        {
+          "path": "aso/tw-zh-Hant.json",
+          "kind": "json",
+          "label": "tw-zh-Hant.json"
+        },
+        {
+          "path": "aso/jp-ja.json",
+          "kind": "json",
+          "label": "jp-ja.json"
+        },
+        {
+          "path": "aso/de-de.json",
+          "kind": "json",
+          "label": "de-de.json"
+        },
+        {
+          "path": "aso/us-en-US.json",
+          "kind": "json",
+          "label": "us-en-US.json"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-cn-zh-Hans.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-cn-zh-Hans.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-tw-zh-Hant.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-tw-zh-Hant.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-jp-ja.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-jp-ja.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-de-de.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-de-de.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-us-en-US.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-us-en-US.html"
+        }
+      ]
+    },
+    {
+      "exchange_id": "exchange-0002",
+      "timestamp": "2026-09-23T10:03:08.733183+00:00",
+      "from_stage": "orchestrator",
+      "to_stage": "agent-evaluation",
+      "task_scope": "由 Orchestrator 手动完成最终质量评估，检查 ASO 审核是否符合用户范围、证据是否充分、是否误把代理数据当官方排名，以及是否遵守不上传边界。",
+      "acceptance_criteria": [
+        "记录六维评分",
+        "记录缺口与建议",
+        "给出最终完成 disposition"
+      ],
+      "changed_files": [],
+      "verification": [
+        "报告状态为已完成带缺口",
+        "无外部副作用"
+      ],
+      "unresolved_issues": [
+        "ASC 当前字段和真实截图未验证"
+      ],
+      "prohibited_actions": [
+        "不得上传、提交、发布或修改产品代码"
+      ],
+      "next_checks": [
+        "为 pending stages 记录 skip 决策",
+        "运行 validate_run.py"
+      ],
+      "knowledge_context": {
+        "mode": "manual",
+        "owner": "orchestrator"
+      },
+      "coverage_ids": [],
+      "required_outputs": [
+        "06-agent-evaluation.html"
+      ],
+      "input_files": [
+        {
+          "path": "13-aso-operations.html",
+          "kind": "html",
+          "label": "13-aso-operations.html"
+        },
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "aso/cn-zh-Hans.json",
+          "kind": "json",
+          "label": "cn-zh-Hans.json"
+        }
+      ],
+      "read_before_work": [
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "06-agent-evaluation.html",
+          "kind": "html",
+          "label": "06-agent-evaluation.html"
+        }
+      ],
+      "returned_at": "2026-09-23T10:03:08.766165+00:00",
+      "result_status": "passed",
+      "return_summary": "范围、证据、角色边界和效率均符合手动 ASO 任务；建议以 complete-with-gaps 收尾，保留 ASC 当前字段、截图和真实搜索量缺口。",
+      "output_files": [
+        {
+          "path": "06-agent-evaluation.html",
+          "kind": "html",
+          "label": "06-agent-evaluation.html"
+        }
+      ]
+    }
+  ],
+  "handoff_interactions": [
+    {
+      "id": "interaction-0001",
+      "sequence": 1,
+      "exchange_id": "exchange-0001",
+      "direction": "dispatch",
+      "timestamp": "2026-09-23T10:03:08.663495+00:00",
+      "from_stage": "orchestrator",
+      "to_stage": "aso-ops",
+      "task_scope": "由 Orchestrator 手动完成上架后 ASO 只读审计与优化提案，不启动临时 Agent。",
+      "task_prompt": "读取项目配置、AGENTS.md、Fastlane metadata、公开产品页和 Apple 官方规则。保留中文地区名称不变，检查 subtitle、keywords、promotional text、description、截图卖点、类别和页面一致性；使用 public-apple 公开数据生成按 locale 的关键词快照和可视化。明确 public-search-proxy 局限，不使用付费 provider、ASC 写入或外部发布。",
+      "acceptance_criteria": [
+        "区分仓库事实、公开页面事实、推断和未验证项",
+        "中文地区名称不改并给出其他字段方案",
+        "给出 locale 字符预算、优先级、风险和验证方法",
+        "生成可审计快照与独立可视化"
+      ],
+      "coverage_ids": [
+        "criterion-01",
+        "criterion-02",
+        "criterion-03",
+        "criterion-04"
+      ],
+      "required_outputs": [
+        "13-aso-operations.html",
+        "aso/cn-zh-Hans.json",
+        "aso/aso-keyword-visualization-cn-zh-Hans.html"
+      ],
+      "input_files": [
+        {
+          "path": "AGENTS.md",
+          "kind": "markdown",
+          "label": "AGENTS.md"
+        },
+        {
+          "path": ".codex/ios-agent-workflow.json",
+          "kind": "json",
+          "label": "ios-agent-workflow.json"
+        },
+        {
+          "path": "fastlane/Fastfile",
+          "kind": "file",
+          "label": "Fastfile"
+        },
+        {
+          "path": "fastlane/metadata/1.38/zh-Hans/keywords.txt",
+          "kind": "text",
+          "label": "keywords.txt"
+        },
+        {
+          "path": "docs/appstore/app-store-metadata.md",
+          "kind": "markdown",
+          "label": "app-store-metadata.md"
+        }
+      ],
+      "read_before_work": [
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "AGENTS.md",
+          "kind": "markdown",
+          "label": "AGENTS.md"
+        },
+        {
+          "path": ".codex/ios-agent-workflow.json",
+          "kind": "json",
+          "label": "ios-agent-workflow.json"
+        },
+        {
+          "path": "fastlane/Fastfile",
+          "kind": "file",
+          "label": "Fastfile"
+        },
+        {
+          "path": "fastlane/metadata/1.38/zh-Hans/keywords.txt",
+          "kind": "text",
+          "label": "keywords.txt"
+        },
+        {
+          "path": "docs/appstore/app-store-metadata.md",
+          "kind": "markdown",
+          "label": "app-store-metadata.md"
+        }
+      ],
+      "changed_files": [],
+      "verification": [
+        "公开 Apple 产品页可访问",
+        "public-apple 快照已生成",
+        "UTF-8 byte 预算已计算"
+      ],
+      "unresolved_issues": [
+        "未读取 App Store Connect 当前字段",
+        "仓库没有截图/preview 资产",
+        "没有官方搜索量或真实自然排名数据"
+      ],
+      "prohibited_actions": [
+        "不得修改中文名称",
+        "不得上传或提交 App Store Connect",
+        "不得使用 Apple Ads 或付费 ASO provider"
+      ],
+      "next_checks": [
+        "确认候选文案和目标发行分支",
+        "母语校审非中文候选词",
+        "发布后用同一关键词集合复测"
+      ],
+      "wake_message_id": "message-0001"
+    },
+    {
+      "id": "interaction-0002",
+      "sequence": 2,
+      "exchange_id": "exchange-0001",
+      "direction": "return",
+      "timestamp": "2026-09-23T10:03:08.697491+00:00",
+      "from_stage": "aso-ops",
+      "to_stage": "orchestrator",
+      "summary": "已完成手动 ASO 只读审计，生成详细报告、5 个 storefront/locale 关键词快照和可视化；保留中文名称不变，并给出 subtitle、keywords、描述首屏、截图顺序和验证计划。",
+      "result_status": "passed",
+      "output_files": [
+        {
+          "path": "13-aso-operations.html",
+          "kind": "html",
+          "label": "13-aso-operations.html"
+        },
+        {
+          "path": "aso/cn-zh-Hans.json",
+          "kind": "json",
+          "label": "cn-zh-Hans.json"
+        },
+        {
+          "path": "aso/tw-zh-Hant.json",
+          "kind": "json",
+          "label": "tw-zh-Hant.json"
+        },
+        {
+          "path": "aso/jp-ja.json",
+          "kind": "json",
+          "label": "jp-ja.json"
+        },
+        {
+          "path": "aso/de-de.json",
+          "kind": "json",
+          "label": "de-de.json"
+        },
+        {
+          "path": "aso/us-en-US.json",
+          "kind": "json",
+          "label": "us-en-US.json"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-cn-zh-Hans.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-cn-zh-Hans.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-tw-zh-Hant.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-tw-zh-Hant.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-jp-ja.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-jp-ja.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-de-de.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-de-de.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-us-en-US.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-us-en-US.html"
+        }
+      ],
+      "changed_files": [],
+      "verification": [
+        "Apple 官方 metadata 规则已核对",
+        "关键词按 UTF-8 bytes 审计",
+        "没有执行外部写入"
+      ],
+      "unresolved_issues": [
+        "App Store Connect 当前 metadata、真实截图和官方搜索量仍未验证"
+      ],
+      "coverage_dispositions": [
+        {
+          "coverage_id": "criterion-01",
+          "status": "passed",
+          "evidence": [
+            "13-aso-operations.html",
+            "AGENTS.md",
+            "fastlane/Fastfile",
+            "公开中国区产品页"
+          ]
+        },
+        {
+          "coverage_id": "criterion-02",
+          "status": "passed",
+          "evidence": [
+            "13-aso-operations.html 第 5 节"
+          ]
+        },
+        {
+          "coverage_id": "criterion-03",
+          "status": "passed",
+          "evidence": [
+            "13-aso-operations.html 第 5-7 节"
+          ]
+        },
+        {
+          "coverage_id": "criterion-04",
+          "status": "passed",
+          "evidence": [
+            "aso/*.json",
+            "aso/aso-keyword-visualization-*.html"
+          ]
+        }
+      ],
+      "read_before_work": [
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "13-aso-operations.html",
+          "kind": "html",
+          "label": "13-aso-operations.html"
+        },
+        {
+          "path": "aso/cn-zh-Hans.json",
+          "kind": "json",
+          "label": "cn-zh-Hans.json"
+        },
+        {
+          "path": "aso/tw-zh-Hant.json",
+          "kind": "json",
+          "label": "tw-zh-Hant.json"
+        },
+        {
+          "path": "aso/jp-ja.json",
+          "kind": "json",
+          "label": "jp-ja.json"
+        },
+        {
+          "path": "aso/de-de.json",
+          "kind": "json",
+          "label": "de-de.json"
+        },
+        {
+          "path": "aso/us-en-US.json",
+          "kind": "json",
+          "label": "us-en-US.json"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-cn-zh-Hans.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-cn-zh-Hans.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-tw-zh-Hant.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-tw-zh-Hant.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-jp-ja.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-jp-ja.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-de-de.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-de-de.html"
+        },
+        {
+          "path": "aso/aso-keyword-visualization-us-en-US.html",
+          "kind": "html",
+          "label": "aso-keyword-visualization-us-en-US.html"
+        }
+      ],
+      "wake_message_id": "message-0002"
+    },
+    {
+      "id": "interaction-0003",
+      "sequence": 3,
+      "exchange_id": "exchange-0002",
+      "direction": "dispatch",
+      "timestamp": "2026-09-23T10:03:08.733183+00:00",
+      "from_stage": "orchestrator",
+      "to_stage": "agent-evaluation",
+      "task_scope": "由 Orchestrator 手动完成最终质量评估，检查 ASO 审核是否符合用户范围、证据是否充分、是否误把代理数据当官方排名，以及是否遵守不上传边界。",
+      "task_prompt": "检查 13-aso-operations.html、快照、可视化和当前 workflow state；给出六维评分、缺口和最终建议。手动模式下不派发其他 Agent，不修改产品文件。",
+      "acceptance_criteria": [
+        "记录六维评分",
+        "记录缺口与建议",
+        "给出最终完成 disposition"
+      ],
+      "coverage_ids": [],
+      "required_outputs": [
+        "06-agent-evaluation.html"
+      ],
+      "input_files": [
+        {
+          "path": "13-aso-operations.html",
+          "kind": "html",
+          "label": "13-aso-operations.html"
+        },
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "aso/cn-zh-Hans.json",
+          "kind": "json",
+          "label": "cn-zh-Hans.json"
+        }
+      ],
+      "read_before_work": [
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "13-aso-operations.html",
+          "kind": "html",
+          "label": "13-aso-operations.html"
+        },
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "aso/cn-zh-Hans.json",
+          "kind": "json",
+          "label": "cn-zh-Hans.json"
+        }
+      ],
+      "changed_files": [],
+      "verification": [
+        "报告状态为已完成带缺口",
+        "无外部副作用"
+      ],
+      "unresolved_issues": [
+        "ASC 当前字段和真实截图未验证"
+      ],
+      "prohibited_actions": [
+        "不得上传、提交、发布或修改产品代码"
+      ],
+      "next_checks": [
+        "为 pending stages 记录 skip 决策",
+        "运行 validate_run.py"
+      ],
+      "wake_message_id": "message-0003"
+    },
+    {
+      "id": "interaction-0004",
+      "sequence": 4,
+      "exchange_id": "exchange-0002",
+      "direction": "return",
+      "timestamp": "2026-09-23T10:03:08.766165+00:00",
+      "from_stage": "agent-evaluation",
+      "to_stage": "orchestrator",
+      "summary": "范围、证据、角色边界和效率均符合手动 ASO 任务；建议以 complete-with-gaps 收尾，保留 ASC 当前字段、截图和真实搜索量缺口。",
+      "result_status": "passed",
+      "output_files": [
+        {
+          "path": "06-agent-evaluation.html",
+          "kind": "html",
+          "label": "06-agent-evaluation.html"
+        }
+      ],
+      "changed_files": [],
+      "verification": [
+        "六维评分已记录",
+        "最终建议已记录"
+      ],
+      "unresolved_issues": [
+        "ASC 当前字段、截图资产和真实排名未验证"
+      ],
+      "coverage_dispositions": [],
+      "read_before_work": [
+        {
+          "path": "workflow-state.json",
+          "kind": "json",
+          "label": "workflow-state.json"
+        },
+        {
+          "path": "06-agent-evaluation.html",
+          "kind": "html",
+          "label": "06-agent-evaluation.html"
+        }
+      ],
+      "wake_message_id": "message-0004"
+    }
+  ],
+  "current_handoff": {
+    "exchange_id": "exchange-0002",
+    "timestamp": "2026-09-23T10:03:08.733183+00:00",
+    "from_stage": "orchestrator",
+    "to_stage": "agent-evaluation",
+    "task_scope": "由 Orchestrator 手动完成最终质量评估，检查 ASO 审核是否符合用户范围、证据是否充分、是否误把代理数据当官方排名，以及是否遵守不上传边界。",
+    "acceptance_criteria": [
+      "记录六维评分",
+      "记录缺口与建议",
+      "给出最终完成 disposition"
+    ],
+    "changed_files": [],
+    "verification": [
+      "报告状态为已完成带缺口",
+      "无外部副作用"
+    ],
+    "unresolved_issues": [
+      "ASC 当前字段和真实截图未验证"
+    ],
+    "prohibited_actions": [
+      "不得上传、提交、发布或修改产品代码"
+    ],
+    "next_checks": [
+      "为 pending stages 记录 skip 决策",
+      "运行 validate_run.py"
+    ],
+    "knowledge_context": {
+      "mode": "manual",
+      "owner": "orchestrator"
+    },
+    "coverage_ids": [],
+    "required_outputs": [
+      "06-agent-evaluation.html"
+    ],
+    "input_files": [
+      {
+        "path": "13-aso-operations.html",
+        "kind": "html",
+        "label": "13-aso-operations.html"
+      },
+      {
+        "path": "workflow-state.json",
+        "kind": "json",
+        "label": "workflow-state.json"
+      },
+      {
+        "path": "aso/cn-zh-Hans.json",
+        "kind": "json",
+        "label": "cn-zh-Hans.json"
+      }
+    ],
+    "read_before_work": [
+      {
+        "path": "workflow-state.json",
+        "kind": "json",
+        "label": "workflow-state.json"
+      },
+      {
+        "path": "13-aso-operations.html",
+        "kind": "html",
+        "label": "13-aso-operations.html"
+      },
+      {
+        "path": "workflow-state.json",
+        "kind": "json",
+        "label": "workflow-state.json"
+      },
+      {
+        "path": "aso/cn-zh-Hans.json",
+        "kind": "json",
+        "label": "cn-zh-Hans.json"
+      }
+    ]
+  },
+  "evaluation": {
+    "checkpoints": [
+      {
+        "timestamp": "2026-09-23T10:05:00+08:00",
+        "stage": "agent-evaluation",
+        "active_owner": "orchestrator",
+        "final": true,
+        "evidence": [
+          "06-agent-evaluation.html",
+          "13-aso-operations.html",
+          "aso/cn-zh-Hans.json"
+        ],
+        "scores": {
+          "task_alignment": 5,
+          "substantive_progress": 5,
+          "evidence_quality": 4,
+          "role_compliance": 5,
+          "handoff_quality": 4,
+          "efficiency": 5
+        },
+        "recommendation": "continue",
+        "summary": "手动 ASO 审计完成；保留 ASC、截图资产、官方热度与真实自然排名验证缺口。",
+        "orchestrator_disposition": {
+          "status": "accepted",
+          "rationale": "以 complete-with-gaps 收尾，不对未验证的官方指标和真实自然排名作结论。"
+        }
+      }
+    ],
+    "final_recommendations": [
+      {
+        "recommendation": "后续先补齐 1.39 metadata，并按 UTF-8 byte 限制复测各语言关键词。",
+        "status": "accepted",
+        "rationale": "这是当前最直接且风险最低的可执行 ASO 修复。"
+      }
+    ]
+  },
+  "test_knowledge": {
+    "enabled": false,
+    "baseline": {
+      "paths_inspected": [],
+      "feature_ids": [],
+      "flow_ids": [],
+      "test_case_ids": [],
+      "known_issue_ids": []
+    },
+    "impact": {
+      "changed_feature_ids": [],
+      "dependent_feature_ids": [],
+      "selected_flow_ids": [],
+      "selected_test_case_ids": [],
+      "coverage_tiers": {},
+      "selection_rationale": "",
+      "coverage_gaps": []
+    },
+    "updates": [],
+    "review": {
+      "status": "not-required",
+      "reviewed_by": null,
+      "summary": ""
+    }
+  },
+  "release": {
+    "version": null,
+    "build": null,
+    "prepared": false,
+    "metadata_validated": false,
+    "requested_actions": [],
+    "executed_actions": [],
+    "approvals": [],
+    "pending_decision": null
+  }
+}

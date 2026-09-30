@@ -64,7 +64,7 @@ struct VoiceShortcutSettingsView: View {
                         HStack(spacing: 12) {
                             Image(systemName: icon(for: StatAction(eventCode: code) ?? .twoMade))
                                 .font(.title3)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(EditorialDesign.orange)
                                 .frame(width: 24)
 
                             VStack(alignment: .leading, spacing: 2) {
@@ -82,6 +82,7 @@ struct VoiceShortcutSettingsView: View {
                                 .font(.caption2)
                                 .foregroundStyle(.tertiary)
                         }
+                        .contentShape(Rectangle())
                     }
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {
@@ -93,6 +94,7 @@ struct VoiceShortcutSettingsView: View {
                 }
             }
         }
+        .editorialSettingsListStyle()
         .navigationTitle(LocalizedStringKey("settings_voice_shortcuts"))
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -140,6 +142,7 @@ struct VoiceShortcutSettingsView: View {
                     .pickerStyle(.menu)
                 }
             }
+            .editorialSettingsFormStyle()
             .navigationTitle(title)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

@@ -1,0 +1,66 @@
+{
+  "action": "dispatch",
+  "to_stage": "agent-evaluation",
+  "task_scope": "做本 run 的最终交叉评估，核对每条验收项、阶段门、报告/交接完整性、阻塞和风险，给出是否 complete 或 complete-with-gaps 的建议；不修改产品代码。",
+  "task_prompt": "你是最终 Agent Evaluator。请读取 workflow-state.json、01-orchestrator.html、02-developer.html、03-code-review.html、04-simulator-test.html、05-ux-review.html、10-visual-design.html、13-aso-operations.html 及当前 diff/构建证据。按 rubric 对 task alignment、substantive progress、evidence quality、role compliance、handoff quality、efficiency 各打 1–5 分。逐条审查 criterion-01 至 criterion-05：视觉实现、记分保护、构建/导航/数据、本地化、模拟器覆盖。必须保留 simulator-test 的 blocked 事实和四个 surface 缺口，不能把静态截图/源码推断写成运行时通过。检查所有 selected/skipped stages、structured handoffs、required reports、ASO 只读边界；提出 final_recommendations，明确哪些已接受、哪些 deferred 以及最终 workflow_state 应为 complete-with-gaps。只写 06-agent-evaluation.html，并通过结构化 handoff 返回。",
+  "acceptance_criteria": [
+    "criterion-01",
+    "criterion-02",
+    "criterion-03",
+    "criterion-04",
+    "criterion-05"
+  ],
+  "coverage_ids": [
+    "criterion-01",
+    "criterion-02",
+    "criterion-03",
+    "criterion-04",
+    "criterion-05"
+  ],
+  "required_outputs": [
+    "06-agent-evaluation.html",
+    "六维评分",
+    "最终建议与每条 coverage disposition"
+  ],
+  "input_files": [
+    "workflow-state.json",
+    "01-orchestrator.html",
+    "02-developer.html",
+    "03-code-review.html",
+    "04-simulator-test.html",
+    "05-ux-review.html",
+    "10-visual-design.html",
+    "13-aso-operations.html",
+    "BasketballRecord/Views/Skin/EditorialDesign.swift"
+  ],
+  "changed_files": [],
+  "verification": [
+    "视觉/开发/代码审查/UX 报告已返回",
+    "simulator-test 已明确 blocked",
+    "ASO 已返回只读报告、快照和可视化",
+    "Debug iOS Simulator build succeeded",
+    "Views/Game diff 为空"
+  ],
+  "unresolved_issues": [
+    "四个受影响 surface 缺少真实运行时截图和 AX evidence",
+    "深色模式/动态字体/VoiceOver 未专项实测",
+    "App Store Connect 外部状态和自身排名未验证"
+  ],
+  "prohibited_actions": [
+    "不得修改产品代码、测试代码或商店资产",
+    "不得把 blocked 改成 passed 以满足完成门",
+    "不得执行任何外部发布动作",
+    "不得自行 commit"
+  ],
+  "next_checks": [
+    "验证每个 selected stage 有报告、dispatch/return 和覆盖 disposition",
+    "给出 complete-with-gaps 的 gaps 列表",
+    "确认所有 pending stage 已 resolved"
+  ],
+  "knowledge_context": {
+    "feature_ids": ["ui-editorial-theme", "app-store-screenshot-style"],
+    "flow_ids": ["management", "history", "career", "player-profile", "game-scoring-protected", "store-listing-review"],
+    "test_case_ids": ["build-debug-simulator", "protected-game-ui-diff", "runtime-surface-coverage", "aso-local-audit"],
+    "known_issue_ids": ["simulator-window-capture", "missing-ui-audit-config", "light-theme-only", "missing-app-id-evidence"]
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "action": "return",
+  "from_stage": "code-review",
+  "exchange_id": "exchange-0003",
+  "summary": "只读代码审查通过，无阻塞 finding。确认共享样式只影响非记分页面、导航/数据/点击区域未改变、CloudKit identifier 与 entitlements 一致；记录了浅色固定 token 的 P2 非阻塞风险。",
+  "result_status": "passed",
+  "output_files": [
+    {
+      "path": "03-code-review.html",
+      "kind": "html",
+      "label": "代码审查报告"
+    }
+  ],
+  "changed_files": [],
+  "verification": [
+    "实际 git diff 已检查",
+    "git diff --check 通过",
+    "git diff --name-only -- BasketballRecord/Views/Game/ 为空",
+    "Debug iOS Simulator build 返回 BUILD SUCCEEDED",
+    "CloudKit container identifier 与 BasketballRecord.entitlements 一致"
+  ],
+  "unresolved_issues": [
+    "P2：EditorialDesign 当前是浅色固定 token，深色模式/对比度需要后续专项证据",
+    "运行时 simulator screenshot 仍未捕获应用窗口"
+  ],
+  "coverage_dispositions": [
+    {
+      "coverage_id": "criterion-01",
+      "status": "passed",
+      "evidence": ["03-code-review.html", "BasketballRecord/Views/Skin/EditorialDesign.swift"]
+    },
+    {
+      "coverage_id": "criterion-02",
+      "status": "passed",
+      "evidence": ["03-code-review.html", "git diff --name-only -- BasketballRecord/Views/Game/"]
+    },
+    {
+      "coverage_id": "criterion-03",
+      "status": "passed",
+      "evidence": ["03-code-review.html", "xcodebuild Debug iOS Simulator BUILD SUCCEEDED"]
+    },
+    {
+      "coverage_id": "criterion-04",
+      "status": "passed",
+      "evidence": ["03-code-review.html", "实际 diff 与本地化扫描"]
+    }
+  ]
+}

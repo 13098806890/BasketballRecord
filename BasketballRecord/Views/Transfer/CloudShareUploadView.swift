@@ -116,6 +116,7 @@ struct CloudShareUploadView: View {
                     uploadFormContent
                 }
             }
+            .editorialSettingsFormStyle()
             .navigationTitle(LocalizedStringKey("cloudshare_upload_button"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

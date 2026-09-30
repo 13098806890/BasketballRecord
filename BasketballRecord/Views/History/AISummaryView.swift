@@ -150,8 +150,8 @@ struct AISummaryView: View {
                         }
                     }
                     .padding(14).frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(uiColor: .secondarySystemBackground)))
-                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(aiSummaryAccentColor.opacity(0.14), lineWidth: 1))
+                    .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(EditorialDesign.paleBlue))
+                    .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(EditorialDesign.blue.opacity(0.18), lineWidth: 1))
                     .contextMenu {
                         Button {
                             UIPasteboard.general.string = stripMarkdownDecorations(from: ([section.title] + section.items).joined(separator: "\n"))
@@ -215,7 +215,7 @@ struct AISummaryView: View {
     }
     
     private var aiSummaryAccentColor: Color {
-        Color(red: 0.22, green: 0.52, blue: 0.90)
+        EditorialDesign.blue
     }
     
     private func generateAISummary() {
@@ -456,7 +456,6 @@ struct AISummaryView: View {
                 // And-one detection
                 if code == "stat.bonusMade", let lastCode = lastScoringCode, let lastPid = lastScoringPID, lastPid == pid {
                     let basePoints = lastCode == "stat.threeMade" ? 3 : 2
-                    let totalPoints = basePoints + 1
                     let name = makeName(for: pid)
                     events.append((log.timestamp, lastPeriod, "  " + String(format: NSLocalizedString("ai_prompt_and_one", comment: ""), name, basePoints)))
                 }

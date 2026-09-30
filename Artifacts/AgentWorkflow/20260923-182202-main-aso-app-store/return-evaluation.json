@@ -1,0 +1,12 @@
+{
+  "action": "return",
+  "exchange_id": "exchange-0002",
+  "from_stage": "agent-evaluation",
+  "summary": "评估通过：范围、证据、技术校验、复现性和边界沟通均达标；建议以 complete-with-gaps 收尾，保留母语校审、外部页面部署、ASC 只读确认和多语言 App 内 UI 采集缺口。",
+  "result_status": "passed",
+  "output_files": ["06-agent-evaluation.html"],
+  "changed_files": [],
+  "verification": ["六维评分已记录", "未把本地截图生成误报为 ASC 上传", "用户的中文名称约束已复核"],
+  "unresolved_issues": ["非中文母语审校", "GitHub Pages 部署", "ASC 当前字段/分类确认", "本地化 Simulator 截图"],
+  "coverage_dispositions": []
+}

@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Adaptive A 产品迁移验收</title><style>body{font:16px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;max-width:1120px;margin:32px auto;padding:0 20px;color:#172033;background:#f7f8fa}main{background:#fff;padding:28px;border-radius:16px;box-shadow:0 6px 24px #17203312}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}figure{margin:0}img{width:100%;border:1px solid #dfe4ea;border-radius:14px}figcaption{margin:8px 0 20px;font-weight:700}.pass{color:#176b3a;font-weight:700}.note{background:#fff8e5;padding:14px;border-radius:10px}code{background:#eef1f5;padding:.15em .35em;border-radius:4px}@media(max-width:700px){.grid{grid-template-columns:1fr}}</style></head>
+<body><main>
+<h1>Adaptive A 产品迁移验收</h1>
+<p class="pass">状态：已完成代码迁移与 iPhone 17 截图验证，等待用户 review</p>
+<p><strong>范围：</strong>已确认的 Adaptive A 视觉层已迁入现有产品，并应用到管理、生涯、设置及已有的非记分页视觉组件。</p>
+<ul><li>保留原有页面结构、导航关系、交互动作、数据展示和存储模型。</li><li>没有修改 <code>BasketballRecord/Views/Game/</code>，记分页截图仅作为保护性证据。</li><li>背景由 SwiftUI 几何 Shape 绘制，不包含文字，不依赖语言或固定设备图片尺寸。</li><li>没有新增本地化文案、业务字段或持久化字段。</li><li>Debug 构建成功；iPhone 17 / iOS 27.0 截图分辨率均为 1206×2622。</li></ul>
+<p class="note">本轮没有执行 Git commit，也没有执行 Fastlane 或 App Store Connect 上传。</p>
+<div class="grid"><figure><img src="screenshots/product-adaptive-a/management.png" alt="产品管理页 Adaptive A"><figcaption>管理页：Adaptive A 球场线背景</figcaption></figure><figure><img src="screenshots/product-adaptive-a/career.png" alt="产品生涯页 Adaptive A"><figcaption>生涯页：保留原有统计卡和筛选结构</figcaption></figure><figure><img src="screenshots/product-adaptive-a/settings.png" alt="产品设置页 Adaptive A"><figcaption>设置页：保留原有分组、开关、Picker 和入口</figcaption></figure><figure><img src="screenshots/product-adaptive-a/score-protected.png" alt="产品记分页保护截图"><figcaption>记分页：保护截图，未纳入视觉改造</figcaption></figure></div>
+<h2>修改重点</h2><ul><li><code>BasketballRecord/Views/Skin/EditorialDesign.swift</code>：统一 Adaptive A 色彩、卡片、列表、Tab Bar 和自适应球场线背景。</li><li><code>BasketballRecord/Views/ContentView.swift</code>：经典主题使用统一的 Adaptive A Tab Bar 外观。</li><li><code>BasketballRecord/Views/Career/CareerView.swift</code>：非像素职业内容使用同一套自适应背景。</li></ul>
+</main></body></html>

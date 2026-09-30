@@ -139,6 +139,7 @@ struct AISettingsView: View {
                     }
                 }
             }
+            .editorialSettingsFormStyle()
             .navigationTitle(LocalizedStringKey("settings_ai"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

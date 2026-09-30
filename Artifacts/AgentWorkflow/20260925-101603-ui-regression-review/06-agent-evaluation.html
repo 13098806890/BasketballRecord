@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent 评估 · 新旧 UI 功能与数据对比</title><style>body{font:16px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;max-width:960px;margin:32px auto;padding:0 20px;color:#172033;background:#f7f8fa}main{background:#fff;padding:30px;border-radius:16px;box-shadow:0 6px 24px #17203312}dt{font-weight:700}code{background:#eef1f5;padding:.12em .35em;border-radius:4px}.state{display:inline-block;padding:4px 10px;border-radius:999px;background:#e7f7ee;color:#18794e;font-weight:700}</style></head>
+<body><main><h1>跨阶段 Agent 评估</h1><p><strong>任务：</strong>新旧 UI 功能与数据对比审查</p><p><strong>状态：</strong><span class="state">完成</span></p>
+<h2>评估结论</h2><p>本轮任务与用户请求对齐：没有继续修改 UI，而是审查当前改动并建立旧版/新版同数据证据。代码审查识别了“数据仍存在但默认不可见”和“实时模式错误出现历史编辑入口”两类问题，没有把视觉变化误判成数据删除。</p>
+<h2>证据质量</h2><ul><li>旧版来自 HEAD 隔离 worktree，新版来自当前工作树。</li><li>通过克隆 iPhone 17 Simulator 复用同一份 SavedGame 数据。</li><li>两版均成功构建并截取比赛详情、球员详情；截图显示比分、球员、得分和事件一致。</li><li>CUA 未暴露 Simulator 窗口，因此没有虚构点击结果；交互入口由源码核对，局限已写入测试报告。</li></ul>
+<h2>角色边界</h2><p>本轮未派发开发角色，未修改产品代码；代码审查和模拟器测试均保持只读。ASO、发布和增长不属于本任务范围，编排报告应将其明确跳过，而不是留下待定。</p>
+<h2>建议</h2><ol><li>先修复比赛页和球员页默认统计字段回退。</li><li>将实时模式事件日志卡片限定在历史详情。</li><li>修复后重新启动同两台模拟器，补一次完整点击/滚动验证。</li></ol>
+</main></body></html>

@@ -16,6 +16,7 @@ struct TeamManagementView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(team.name)
                             .font(.headline)
+                            .foregroundStyle(EditorialDesign.navy)
                         Text(ListFormatter.localizedString(byJoining: team.playerIDs.compactMap { store.player(for: $0)?.name }))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -37,9 +38,11 @@ struct TeamManagementView: View {
                     }
                     .buttonStyle(.plain)
                 }
+                .listRowBackground(EditorialDesign.card)
             }
             .onDelete(perform: store.deleteTeams)
         }
+        .editorialListStyle()
         .navigationTitle(LocalizedStringKey("settings_teams"))
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

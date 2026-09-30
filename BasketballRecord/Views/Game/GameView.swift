@@ -23,6 +23,7 @@ struct GameView: View {
     @State private var selectedPlayerID: UUID?
     @State private var selectedSide: TeamSide = .home
     @State private var isShowingSubstitution = false
+    @State private var isShowingOvertimeSubstitution = false
     @State private var isShowingLateArrival = false
     @State private var isShowingNewGameSetup = false
     @State private var isShowingUnfinishedGameAlert = false
@@ -42,6 +43,7 @@ struct GameView: View {
     @State private var lateArrivalIncomingPlayerID: UUID?
     @State private var saveConfirmation: String?
     @State private var statAlertMessage: String?
+    @State private var canStartPeriodFromStatAlert = false
     @State private var simulationAlertMessage: String?
     @State private var collaborationAlertMessage: String?
     @StateObject private var liveManager = LiveCollaborationManager()
@@ -49,6 +51,7 @@ struct GameView: View {
     @State private var clockNow = Date()
     @State private var scorePulseSide: TeamSide?
     @State private var scorePulseDismissTask: Task<Void, Never>?
+    @State private var isAwaitingNewGameAfterReset = false
     @State private var actionButtonPulseKey: String?
     @State private var actionButtonPulseDismissTask: Task<Void, Never>?
     @State private var recordingIndicatorBlink = false
@@ -58,6 +61,7 @@ struct GameView: View {
     @State private var voiceMatchDismissTask: Task<Void, Never>?
     @State private var voiceFlashDismissTask: Task<Void, Never>?
     @State private var voiceErrorDismissTask: Task<Void, Never>?
+    @State private var isVoiceButtonPressed = false
     @State private var showAutoEndAlert = false
     @State private var autoEndAlertMessage = ""
     @State private var isShowingPurchase = false
@@ -66,6 +70,7 @@ struct GameView: View {
     @State private var voiceErrorMessage: String?
     @State private var voiceSuccessItem: (player: Player, action: StatAction)?
     @State private var voiceSuccessDismissTask: Task<Void, Never>?
+    @State private var isAwaitingOvertimeAfterAutoEnd = false
 
     @StateObject private var voiceRecognizer = VoiceRecognizer()
     @AppStorage("voice_locale") private var voiceLocale: String = ""
@@ -74,6 +79,8 @@ struct GameView: View {
     @AppStorage("voice_show_success_animation") private var showVoiceSuccessAnimation = true
     @AppStorage("completed_games_count") private var completedGamesCount = 0
     @AppStorage("review_prompted_at_count") private var reviewPromptedAtCount = 0
+    @AppStorage("last_game_home_team_id") private var lastGameHomeTeamID = ""
+    @AppStorage("last_game_away_team_id") private var lastGameAwayTeamID = ""
 
     private let matchClockTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -112,8 +119,15 @@ struct GameView: View {
                                 .shadow(color: .black.opacity(0.15), radius: 12, y: 6)
 
                                 Text(item.action.message)
-                                    .font(.title.weight(.bold))
-                                    .foregroundStyle(.primary)
+                                    .font(.title2.weight(.semibold))
+                                    .foregroundStyle(GamePalette.text)
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 10)
+                                    .background(GamePalette.surface.opacity(0.96), in: Capsule())
+                                    .overlay {
+                                        Capsule()
+                                            .stroke(GamePalette.homeScoreboard.opacity(0.35), lineWidth: 1)
+                                    }
                             }
                         }
                     }
@@ -124,55 +138,7 @@ struct GameView: View {
                     .animation(.easeOut(duration: 0.25), value: voiceSuccessItem != nil)
                     .allowsHitTesting(false)
                 }
-                .navigationTitle(LocalizedStringKey("nav_game"))
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItemGroup(placement: .topBarLeading) {
-                        Button {
-                            isShowingResetConfirmation = true
-                        } label: {
-                            Image(systemName: "arrow.counterclockwise")
-                                .font(.callout)
-                        }
-
-                        Button {
-                            isShowingFinishGameConfirmation = true
-                        } label: {
-                            Image(systemName: "flag.checkered.circle.fill")
-                        }
-                        .disabled(gameVM.snapshot.isComplete || gameVM.snapshot.logs.isEmpty)
-                    }
-
-                    ToolbarItemGroup(placement: .topBarTrailing) {
-                        Button {
-                            if gameVM.snapshot.isComplete {
-                                isShowingFinishedGameAlert = true
-                            } else if hasUnfinishedGameToConfirm {
-                                isShowingUnfinishedGameAlert = true
-                            } else {
-                                isShowingNewGameSetup = true
-                            }
-                        } label: {
-                            Label(LocalizedStringKey("button_new_game"), systemImage: "plus.circle")
-                        }
-
-                        if store.showsBluetoothGamesButton {
-                            Button {
-                                handleInviteSyncTapped()
-                            } label: {
-                                Label(LocalizedStringKey("button_invite_collab"), systemImage: "dot.radiowaves.left.and.right")
-                            }
-                            .disabled(currentGameRecordID == nil || needsNewGameSetup)
-                        }
-
-                        Button {
-                            saveCurrentGame()
-                        } label: {
-                            Label(LocalizedStringKey("button_save_history"), systemImage: "clock.badge.checkmark")
-                        }
-                        .disabled(gameVM.snapshot.logs.isEmpty)
-                    }
-                }
+                .toolbar(.hidden, for: .navigationBar)
         }
     }
 
@@ -182,8 +148,8 @@ struct GameView: View {
                 NewGameSetupView(
                     teams: store.teams,
                     playersForTeam: players(in:),
-                    initialHomeTeamID: gameVM.snapshot.homeTeamID,
-                    initialAwayTeamID: gameVM.snapshot.awayTeamID,
+                    initialHomeTeamID: defaultNewGameHomeTeamID,
+                    initialAwayTeamID: defaultNewGameAwayTeamID,
                     onStart: startNewGame(with:)
                 )
             }
@@ -226,6 +192,14 @@ struct GameView: View {
                                 }
                             }
                         }
+                        Section(LocalizedStringKey("section_on_court")) {
+                            Button {
+                                substitutionSide = selectedSide
+                                isShowingOvertimeSubstitution = true
+                            } label: {
+                                Label(LocalizedStringKey("button_substitute"), systemImage: "arrow.left.arrow.right.circle")
+                            }
+                        }
                     }
                     .navigationTitle(LocalizedStringKey("overtime_setup_title"))
                     .navigationBarTitleDisplayMode(.inline)
@@ -241,20 +215,13 @@ struct GameView: View {
                         otTimeLimit = gameVM.snapshot.periodTimeLimit
                         otScoreLimit = gameVM.snapshot.periodScoreLimit
                     }
+                    .sheet(isPresented: $isShowingOvertimeSubstitution) {
+                        substitutionSheet
+                    }
                 }
             }
             .sheet(isPresented: $isShowingSubstitution) {
-                SubstitutionView(
-                    side: $substitutionSide,
-                    homeTeamName: store.team(for: gameVM.snapshot.homeTeamID)?.name ?? NSLocalizedString("team_home_default", comment: "Default home team name"),
-                    awayTeamName: store.team(for: gameVM.snapshot.awayTeamID)?.name ?? NSLocalizedString("team_away_default", comment: "Default away team name"),
-                    homePlayers: players(in: gameVM.snapshot.homeTeamID),
-                    awayPlayers: players(in: gameVM.snapshot.awayTeamID),
-                    homeOnCourtIDs: gameVM.snapshot.homeOnCourtPlayerIDs,
-                    awayOnCourtIDs: gameVM.snapshot.awayOnCourtPlayerIDs,
-                    courtPlayerCount: gameVM.snapshot.courtPlayerCount,
-                    onConfirm: performBatchSubstitution
-                )
+                substitutionSheet
             }
             .sheet(isPresented: $isShowingLateArrival) {
                 LateArrivalEntryView(
@@ -342,9 +309,22 @@ struct GameView: View {
             }
             .alert(LocalizedStringKey("alert_cannot_record_title"), isPresented: Binding(
                 get: { statAlertMessage != nil },
-                set: { if !$0 { statAlertMessage = nil } }
+                set: {
+                    if !$0 {
+                        statAlertMessage = nil
+                        canStartPeriodFromStatAlert = false
+                    }
+                }
             )) {
-                Button(LocalizedStringKey("button_ok")) { statAlertMessage = nil }
+                Button(LocalizedStringKey("button_ok")) {
+                    statAlertMessage = nil
+                    canStartPeriodFromStatAlert = false
+                }
+                if canStartPeriodFromStatAlert {
+                    Button(periodButtonTitle) {
+                        startPeriodFromStatAlert()
+                    }
+                }
             } message: {
                 Text(statAlertMessage ?? "")
             }
@@ -375,6 +355,9 @@ struct GameView: View {
         AnyView(alertWrappedView
             .onAppear {
                 restoreLatestGameIfNeeded()
+#if DEBUG
+                seedScorePageForScreenshotIfNeeded()
+#endif
             }
             .onReceive(matchClockTicker) { date in
                 clockNow = date
@@ -439,7 +422,7 @@ struct GameView: View {
                         return
                     }
                     guard gameVM.snapshot.periodIsRunning else {
-                        statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: ""), gameVM.snapshot.currentPeriod)
+                        showPeriodNotStartedAlert()
                         return
                     }
                     let now = Date()
@@ -469,7 +452,7 @@ struct GameView: View {
                         return
                     }
                     guard gameVM.snapshot.periodIsRunning else {
-                        statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: ""), gameVM.snapshot.currentPeriod)
+                        showPeriodNotStartedAlert()
                         return
                     }
                     let now = Date()
@@ -600,6 +583,8 @@ struct GameView: View {
     private var gameLayout: some View {
         ScrollView {
             VStack(spacing: 8) {
+                scorePageHeader
+
                 teamPickers
                     .padding(.horizontal)
                     .padding(.top, 8)
@@ -607,7 +592,7 @@ struct GameView: View {
                 teamRows
 
                 actionButtons
-                    .padding(.horizontal)
+                    .padding(.horizontal, 8)
 
                 liveGameDataEntry
                     .padding(.horizontal)
@@ -644,6 +629,7 @@ struct GameView: View {
                 .padding(.bottom, 24)
             }
         }
+        .background(EditorialBackground().ignoresSafeArea())
         .overlay(alignment: .center) {
             Group {
                 if voiceRecognizer.isRecording {
@@ -658,6 +644,81 @@ struct GameView: View {
                 }
             }
         }
+    }
+
+    private var scorePageHeader: some View {
+        HStack(alignment: .top, spacing: 0) {
+            headerAction(LocalizedStringKey("button_reset_game"), systemImage: "arrow.counterclockwise") {
+                isShowingResetConfirmation = true
+            }
+
+            Spacer(minLength: 0)
+
+            headerAction(LocalizedStringKey("button_finish_game"), systemImage: "flag.checkered.circle.fill") {
+                isShowingFinishGameConfirmation = true
+            }
+            .disabled(gameVM.snapshot.isComplete || gameVM.snapshot.logs.isEmpty)
+
+            Spacer(minLength: 0)
+
+            headerAction(isAwaitingOvertimeAfterAutoEnd ? LocalizedStringKey("button_overtime") : LocalizedStringKey("button_new_game"), systemImage: "plus.circle.fill", isTargeted: scorePageGuidance == .newGame || isAwaitingOvertimeAfterAutoEnd) {
+                if isAwaitingOvertimeAfterAutoEnd {
+                    isShowingOTSetup = true
+                } else if gameVM.snapshot.isComplete {
+                    isShowingFinishedGameAlert = true
+                } else if hasUnfinishedGameToConfirm {
+                    isShowingUnfinishedGameAlert = true
+                } else {
+                    isShowingNewGameSetup = true
+                }
+            }
+
+            if store.showsBluetoothGamesButton {
+                Spacer(minLength: 0)
+
+                headerAction(LocalizedStringKey("button_invite_collab"), systemImage: "dot.radiowaves.left.and.right") {
+                    handleInviteSyncTapped()
+                }
+                .disabled(currentGameRecordID == nil || needsNewGameSetup)
+            }
+
+            Spacer(minLength: 0)
+
+            headerAction(LocalizedStringKey("button_save_history"), systemImage: "clock.badge.checkmark") {
+                saveCurrentGame()
+            }
+            .disabled(gameVM.snapshot.logs.isEmpty)
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, 6)
+    }
+
+    private func headerAction(_ title: LocalizedStringKey, systemImage: String, isTargeted: Bool = false, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            GuidancePulseContent(isActive: isTargeted) { isPulsing in
+                VStack(spacing: 3) {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 24, weight: .medium))
+                        .frame(height: 30)
+                        .foregroundStyle(isPulsing ? EditorialDesign.orange : GamePalette.awayScoreboard)
+                    Text(title)
+                        .font(.system(size: 10, weight: .medium))
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                        .minimumScaleFactor(0.65)
+                }
+                .foregroundStyle(GamePalette.awayScoreboard)
+                .frame(width: 58)
+                .frame(minHeight: 66)
+                .contentShape(Rectangle())
+            }
+            .id(isTargeted)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func guidanceHighlight(color: Color) -> some View {
+        GuidanceHighlightView(color: color)
     }
 
     private var liveGameDataEntry: some View {
@@ -681,84 +742,55 @@ struct GameView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity)
-            .background(GamePalette.surface, in: RoundedRectangle(cornerRadius: 10))
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
         }
         .buttonStyle(.plain)
         .disabled(needsNewGameSetup)
         .opacity(needsNewGameSetup ? 0.5 : 1)
     }
 
-    @Environment(\.verticalSizeClass) private var verticalSizeClass
-
     private var teamRows: some View {
-        let isLandscape = verticalSizeClass == .compact
-        return Group {
-            if isLandscape {
-                HStack(spacing: 8) {
-                    CompactTeamRow(
-                        side: .home,
-                        team: store.team(for: gameVM.snapshot.homeTeamID),
-                        players: onCourtPlayers(for: .home),
-                        score: score(for: gameVM.snapshot.homeTeamID),
-                        isScorePulsing: scorePulseSide == .home,
-                        fouls: displayedTeamFouls(for: .home),
-                        foulLabel: gameVM.snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
-                        onCourtPlayerIDs: gameVM.snapshot.homeOnCourtPlayerIDs,
-                        selectedPlayerID: selectedPlayerID,
-                        selectedSide: selectedSide,
-                        onSelect: selectPlayer,
-                        teamStatsMode: gameVM.snapshot.homeTeamStatsMode
-                    )
+        let availableWidth = max(UIScreen.main.bounds.width - 16, 0)
+        return HStack(alignment: .top, spacing: 6) {
+            CompactTeamRow(
+                side: .home,
+                team: store.team(for: gameVM.snapshot.homeTeamID),
+                players: onCourtPlayers(for: .home),
+                score: score(for: gameVM.snapshot.homeTeamID),
+                isScorePulsing: scorePulseSide == .home,
+                fouls: displayedTeamFouls(for: .home),
+                foulLabel: compactFoulLabel,
+                onCourtPlayerIDs: gameVM.snapshot.homeOnCourtPlayerIDs,
+                selectedPlayerID: selectedPlayerID,
+                selectedSide: selectedSide,
+                onSelect: selectPlayer,
+                teamStatsMode: gameVM.snapshot.homeTeamStatsMode
+            )
+            .frame(width: (availableWidth - 6) / 2, alignment: .top)
 
-                    CompactTeamRow(
-                        side: .away,
-                        team: store.team(for: gameVM.snapshot.awayTeamID),
-                        players: onCourtPlayers(for: .away),
-                        score: score(for: gameVM.snapshot.awayTeamID),
-                        isScorePulsing: scorePulseSide == .away,
-                        fouls: displayedTeamFouls(for: .away),
-                        foulLabel: gameVM.snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
-                        onCourtPlayerIDs: gameVM.snapshot.awayOnCourtPlayerIDs,
-                        selectedPlayerID: selectedPlayerID,
-                        selectedSide: selectedSide,
-                        onSelect: selectPlayer,
-                        teamStatsMode: gameVM.snapshot.awayTeamStatsMode
-                    )
-                }
-            } else {
-                VStack(spacing: 6) {
-                    CompactTeamRow(
-                        side: .home,
-                        team: store.team(for: gameVM.snapshot.homeTeamID),
-                        players: onCourtPlayers(for: .home),
-                        score: score(for: gameVM.snapshot.homeTeamID),
-                        isScorePulsing: scorePulseSide == .home,
-                        fouls: displayedTeamFouls(for: .home),
-                        foulLabel: gameVM.snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
-                        onCourtPlayerIDs: gameVM.snapshot.homeOnCourtPlayerIDs,
-                        selectedPlayerID: selectedPlayerID,
-                        selectedSide: selectedSide,
-                        onSelect: selectPlayer,
-                        teamStatsMode: gameVM.snapshot.homeTeamStatsMode
-                    )
-
-                    CompactTeamRow(
-                        side: .away,
-                        team: store.team(for: gameVM.snapshot.awayTeamID),
-                        players: onCourtPlayers(for: .away),
-                        score: score(for: gameVM.snapshot.awayTeamID),
-                        isScorePulsing: scorePulseSide == .away,
-                        fouls: displayedTeamFouls(for: .away),
-                        foulLabel: gameVM.snapshot.resetsTeamFoulsEachPeriod ? NSLocalizedString("label_foul_period", comment: "Team fouls this period") : NSLocalizedString("label_foul_total", comment: "Team fouls total"),
-                        onCourtPlayerIDs: gameVM.snapshot.awayOnCourtPlayerIDs,
-                        selectedPlayerID: selectedPlayerID,
-                        selectedSide: selectedSide,
-                        onSelect: selectPlayer,
-                        teamStatsMode: gameVM.snapshot.awayTeamStatsMode
-                    )
-                }
-            }
+            CompactTeamRow(
+                side: .away,
+                team: store.team(for: gameVM.snapshot.awayTeamID),
+                players: onCourtPlayers(for: .away),
+                score: score(for: gameVM.snapshot.awayTeamID),
+                isScorePulsing: scorePulseSide == .away,
+                fouls: displayedTeamFouls(for: .away),
+                foulLabel: compactFoulLabel,
+                onCourtPlayerIDs: gameVM.snapshot.awayOnCourtPlayerIDs,
+                selectedPlayerID: selectedPlayerID,
+                selectedSide: selectedSide,
+                onSelect: selectPlayer,
+                teamStatsMode: gameVM.snapshot.awayTeamStatsMode
+            )
+            .frame(width: (availableWidth - 6) / 2, alignment: .top)
         }
+        .frame(width: availableWidth)
+    }
+
+    private var compactFoulLabel: String {
+        let localizedFoul = NSLocalizedString("action_foul", comment: "")
+        let fallback = NSLocalizedString("label_foul_compact_fallback", comment: "")
+        return localizedFoul.count < fallback.count ? localizedFoul : fallback
     }
 
     private var teamPickers: some View {
@@ -807,6 +839,9 @@ struct GameView: View {
                 .background((collaborationStatus.isDisconnected ? Color.orange : Color.blue).opacity(0.12), in: Capsule())
             }
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color.clear, in: RoundedRectangle(cornerRadius: 12))
     }
 
     private var collaborationStatus: (message: String, isDisconnected: Bool)? {
@@ -859,22 +894,22 @@ struct GameView: View {
     }
 
     private var actionButtons: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 8) {
+        VStack(spacing: 5) {
+            HStack(spacing: 5) {
                 actionButton(LocalizedStringKey("action_two_made"), systemImage: "2.circle.fill", style: .made) { record(.twoMade) }
                 actionButton(LocalizedStringKey("action_three_made"), systemImage: "3.circle.fill", style: .made) { record(.threeMade) }
                 actionButton(LocalizedStringKey("action_bonus_made"), systemImage: "plus.circle.fill", style: .made) { record(.bonusMade) }
                 actionButton(LocalizedStringKey("action_free_made"), systemImage: "f.circle.fill", style: .made) { record(.freeThrowMade) }
             }
 
-            HStack(spacing: 8) {
+            HStack(spacing: 5) {
                 actionButton(LocalizedStringKey("action_two_missed"), systemImage: "2.circle", style: .missed) { record(.twoMissed) }
                 actionButton(LocalizedStringKey("action_three_missed"), systemImage: "3.circle", style: .missed) { record(.threeMissed) }
                 actionButton(LocalizedStringKey("action_bonus_missed"), systemImage: "plus.circle", style: .missed) { record(.bonusMissed) }
                 actionButton(LocalizedStringKey("action_free_missed"), systemImage: "f.circle", style: .missed) { record(.freeThrowMissed) }
             }
 
-            HStack(spacing: 8) {
+            HStack(spacing: 5) {
                 if gameVM.snapshot.showsAssistButton {
                     actionButton(LocalizedStringKey("action_assist"), systemImage: "person.2.fill", style: .assist) { record(.assist) }
                 }
@@ -892,7 +927,7 @@ struct GameView: View {
                 }
             }
 
-            HStack(spacing: 8) {
+            HStack(spacing: 5) {
                 if gameVM.snapshot.showsOffensiveDefensiveRebound, gameVM.snapshot.showsStealButton {
                     actionButton(LocalizedStringKey("action_steal"), systemImage: "hand.raised.fill", style: .assist) { record(.steal) }
                 }
@@ -905,37 +940,52 @@ struct GameView: View {
                 Button {
                     togglePause()
                 } label: {
-                    HStack(spacing: 3) {
-                        Image(systemName: gameVM.snapshot.isPaused ? "play.fill" : "pause.fill")
-                        Text(pauseButtonTitle)
+                    GuidancePulseContent(isActive: scorePageGuidance?.targetsPauseButton == true) { isPulsing in
+                        HStack(spacing: 3) {
+                            Image(systemName: gameVM.snapshot.isPaused ? "play.fill" : "pause.fill")
+                                .foregroundStyle(isPulsing ? EditorialDesign.orange : GamePalette.text)
+                            Text(pauseButtonTitle)
+                        }
+                        .font(.caption.weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(maxWidth: .infinity, minHeight: 30)
                     }
-                    .font(.caption.weight(.semibold))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                    .frame(maxWidth: .infinity, minHeight: 34)
+                    .id(scorePageGuidance?.targetsPauseButton == true)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .pause))
+                .overlay {
+                    if scorePageGuidance?.targetsPauseButton == true {
+                        guidanceHighlight(color: GamePalette.pause)
+                    }
+                }
                 .disabled(gameVM.snapshot.isComplete)
             }
 
-            HStack(spacing: 8) {
+            HStack(spacing: 5) {
                 Button {
                     togglePeriod()
                     triggerTapFeedback()
-                    pulseActionButton("period-toggle")
                 } label: {
-                    HStack(spacing: 3) {
-                        Image(systemName: gameVM.snapshot.periodIsRunning ? "stop.circle" : "play.circle")
-                        Text(LocalizedStringKey(periodButtonTitle))
+                    GuidancePulseContent(isActive: scorePageGuidance?.targetsPeriodButton == true) { isPulsing in
+                        HStack(spacing: 3) {
+                            Image(systemName: gameVM.snapshot.periodIsRunning ? "stop.circle" : "play.circle")
+                                .foregroundStyle(isPulsing ? EditorialDesign.orange : GamePalette.text)
+                            Text(LocalizedStringKey(periodButtonTitle))
+                        }
+                        .font(.caption.weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(maxWidth: .infinity, minHeight: 30)
                     }
-                    .font(.caption.weight(.semibold))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                    .frame(maxWidth: .infinity, minHeight: 34)
+                    .id(scorePageGuidance?.targetsPeriodButton == true)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: gameVM.snapshot.periodIsRunning ? .periodEnd : .period))
-                .scaleEffect(actionButtonPulseKey == "period-toggle" ? 1.09 : 1)
-                .animation(.spring(response: 0.2, dampingFraction: 0.68), value: actionButtonPulseKey == "period-toggle")
+                .overlay {
+                    if scorePageGuidance?.targetsPeriodButton == true {
+                        guidanceHighlight(color: GamePalette.period)
+                    }
+                }
                 .disabled(gameVM.snapshot.isComplete)
 
                 Button {
@@ -948,7 +998,7 @@ struct GameView: View {
                     .font(.caption.weight(.semibold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
-                    .frame(maxWidth: .infinity, minHeight: 34)
+                    .frame(maxWidth: .infinity, minHeight: 30)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .assist))
                 .disabled(needsNewGameSetup)
@@ -963,13 +1013,13 @@ struct GameView: View {
                     .font(.caption.weight(.semibold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
-                    .frame(maxWidth: .infinity, minHeight: 34)
+                    .frame(maxWidth: .infinity, minHeight: 30)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .rebound))
                 .disabled(needsNewGameSetup)
             }
 
-            HStack(spacing: 8) {
+            HStack(spacing: 5) {
                 Button {
                     undo()
                 } label: {
@@ -978,7 +1028,7 @@ struct GameView: View {
                         Text(LocalizedStringKey("button_undo"))
                     }
                     .font(.caption.weight(.semibold))
-                    .frame(maxWidth: .infinity, minHeight: 34)
+                    .frame(maxWidth: .infinity, minHeight: 30)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .neutral))
                 .disabled(gameVM.undoStack.isEmpty)
@@ -991,7 +1041,7 @@ struct GameView: View {
                         Text(LocalizedStringKey("button_redo"))
                     }
                     .font(.caption.weight(.semibold))
-                    .frame(maxWidth: .infinity, minHeight: 34)
+                    .frame(maxWidth: .infinity, minHeight: 30)
                 }
                 .buttonStyle(PastelActionButtonStyle(style: .neutral))
                 .disabled(gameVM.redoStack.isEmpty)
@@ -1012,7 +1062,8 @@ struct GameView: View {
 
             if gameVM.snapshot.logs.isEmpty {
                 ContentUnavailableView(LocalizedStringKey("text_no_events"), systemImage: "list.bullet.clipboard")
-                    .frame(maxWidth: .infinity, minHeight: 120)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 250)
             } else {
                 ScrollViewReader { proxy in
                     ScrollView {
@@ -1030,7 +1081,7 @@ struct GameView: View {
                             }
                         }
                     }
-                    .frame(maxHeight: 250)
+                    .frame(height: 250)
                     .onChange(of: gameVM.snapshot.logs.count) { oldCount, newCount in
                         if newCount > oldCount, let newestId = gameVM.snapshot.logs.last?.id {
                             withAnimation {
@@ -1041,6 +1092,9 @@ struct GameView: View {
                 }
             }
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
     }
 
     private var selectedPlayer: Player? {
@@ -1112,26 +1166,28 @@ struct GameView: View {
     private var micButton: some View {
         ZStack {
             Circle()
-                .fill(.white.opacity(0.85))
+                .fill(isVoiceButtonPressed ? GamePalette.homeScoreboard.opacity(0.22) : .white.opacity(0.85))
                 .frame(width: 72, height: 72)
             Circle()
-                .stroke(Color.primary.opacity(0.12), lineWidth: 0.5)
+                .stroke(isVoiceButtonPressed ? GamePalette.homeScoreboard : Color.primary.opacity(0.12), lineWidth: isVoiceButtonPressed ? 2 : 0.5)
                 .frame(width: 72, height: 72)
             Image(systemName: voiceRecognizer.isRecording ? "mic.fill" : "mic")
                 .font(.system(size: 26, weight: .semibold))
-                .foregroundStyle(voiceRecognizer.isRecording ? Color.blue : Color.primary)
-                .scaleEffect(voiceRecognizer.isRecording ? 1.15 : 1)
-                .animation(.spring(response: 0.2), value: voiceRecognizer.isRecording)
+                .foregroundStyle(isVoiceButtonPressed ? GamePalette.homeScoreboard : Color.primary)
+                .scaleEffect(isVoiceButtonPressed ? 1.15 : 1)
+                .animation(.spring(response: 0.2), value: isVoiceButtonPressed)
         }
         .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in
-                    if !voiceRecognizer.isRecording {
+                    if !isVoiceButtonPressed {
+                        isVoiceButtonPressed = true
                         voiceRecognizer.startRecording()
                     }
                 }
                 .onEnded { _ in
+                    isVoiceButtonPressed = false
                     voiceRecognizer.stopRecording()
                 }
         )
@@ -1148,7 +1204,7 @@ struct GameView: View {
             }
             .padding(.horizontal, 18)
             .padding(.vertical, 14)
-        .background(GamePalette.surface, in: RoundedRectangle(cornerRadius: 12))
+            .background(Color.clear, in: RoundedRectangle(cornerRadius: 12))
         }
     }
 
@@ -1211,8 +1267,41 @@ struct GameView: View {
         return false
     }
 
+    private enum ScorePageGuidance: Equatable {
+        case newGame
+        case startPeriod(Int)
+        case resume
+
+        var targetsPauseButton: Bool {
+            if case .resume = self { return true }
+            return false
+        }
+
+        var targetsPeriodButton: Bool {
+            if case .startPeriod = self { return true }
+            return false
+        }
+
+    }
+
+    private var scorePageGuidance: ScorePageGuidance? {
+        if gameVM.snapshot.isComplete {
+            return nil
+        }
+        if isAwaitingNewGameAfterReset || currentGameRecordID == nil {
+            return .newGame
+        }
+        if gameVM.snapshot.isPaused {
+            return .resume
+        }
+        if !gameVM.snapshot.periodIsRunning {
+            return .startPeriod(gameVM.snapshot.currentPeriod)
+        }
+        return nil
+    }
+
     private var hasUnfinishedGameToConfirm: Bool {
-        currentGameRecordID != nil && !gameVM.snapshot.isComplete
+        !isAwaitingNewGameAfterReset && currentGameRecordID != nil && !gameVM.snapshot.isComplete
     }
 
     private var canEditTeamSelection: Bool {
@@ -1233,6 +1322,21 @@ struct GameView: View {
         if gameVM.snapshot.isComplete { return NSLocalizedString("period_button_finished", comment: "Period button title when game finished") }
         let action = gameVM.snapshot.periodIsRunning ? NSLocalizedString("period_button_action_end", comment: "Period button action end") : NSLocalizedString("period_button_action_start", comment: "Period button action start")
         return String(format: NSLocalizedString("period_button_toggle_format", comment: "Period button format"), gameVM.snapshot.currentPeriod, action)
+    }
+
+    private func showPeriodNotStartedAlert() {
+        canStartPeriodFromStatAlert = true
+        statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: "Period not started message"), gameVM.snapshot.currentPeriod)
+    }
+
+    private func startPeriodFromStatAlert() {
+        guard !gameVM.snapshot.isComplete, !gameVM.snapshot.periodIsRunning else { return }
+        statAlertMessage = nil
+        canStartPeriodFromStatAlert = false
+        let now = Date()
+        _ = liveManager.submitLiveOperation(.togglePeriod(at: now)) {
+            applyTogglePeriodOperation(at: now)
+        }
     }
 
     private var currentMatchElapsedSeconds: TimeInterval {
@@ -1303,7 +1407,7 @@ struct GameView: View {
                 Text(title)
             }
             .font(.caption.weight(.semibold))
-            .frame(maxWidth: .infinity, minHeight: 34)
+            .frame(maxWidth: .infinity, minHeight: 30)
         }
         .buttonStyle(PastelActionButtonStyle(style: style))
         .scaleEffect(actionButtonPulseKey == titleKey ? 1.09 : 1)
@@ -1448,13 +1552,33 @@ struct GameView: View {
 
     private func ensureInitialSelection() {
         if gameVM.snapshot.homeTeamID == nil {
-            gameVM.snapshot.homeTeamID = store.teams.first?.id
+            gameVM.snapshot.homeTeamID = defaultNewGameHomeTeamID
         }
         if gameVM.snapshot.awayTeamID == nil {
-            gameVM.snapshot.awayTeamID = store.teams.dropFirst().first?.id ?? store.teams.first?.id
+            gameVM.snapshot.awayTeamID = defaultNewGameAwayTeamID
         }
         trimInvalidLineups()
         ensureSelectedPlayer()
+    }
+
+    private var defaultNewGameHomeTeamID: UUID? {
+        validTeamID(from: lastGameHomeTeamID) ?? gameVM.snapshot.homeTeamID ?? store.teams.first?.id
+    }
+
+    private var defaultNewGameAwayTeamID: UUID? {
+        let homeTeamID = defaultNewGameHomeTeamID
+        if let savedAwayTeamID = validTeamID(from: lastGameAwayTeamID), savedAwayTeamID != homeTeamID {
+            return savedAwayTeamID
+        }
+        if let snapshotAwayTeamID = gameVM.snapshot.awayTeamID, snapshotAwayTeamID != homeTeamID {
+            return snapshotAwayTeamID
+        }
+        return store.teams.first(where: { $0.id != homeTeamID })?.id
+    }
+
+    private func validTeamID(from value: String) -> UUID? {
+        guard let teamID = UUID(uuidString: value), store.teams.contains(where: { $0.id == teamID }) else { return nil }
+        return teamID
     }
 
     private func ensureDefaultLineups() {
@@ -1514,7 +1638,7 @@ struct GameView: View {
             return
         }
         guard gameVM.snapshot.periodIsRunning else {
-            statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: "Period not started message"), gameVM.snapshot.currentPeriod)
+            showPeriodNotStartedAlert()
             return
         }
         let isTeamMode = selectedSide == .home ? gameVM.snapshot.homeTeamStatsMode : gameVM.snapshot.awayTeamStatsMode
@@ -1590,7 +1714,11 @@ struct GameView: View {
 
         let now = Date()
         applyTogglePeriodOperation(at: now)
-        showAutoEndAlert = true
+        if gameVM.snapshot.isComplete {
+            isAwaitingOvertimeAfterAutoEnd = true
+        } else {
+            showAutoEndAlert = true
+        }
         UINotificationFeedbackGenerator().notificationOccurred(.warning)
     }
 
@@ -1666,7 +1794,7 @@ struct GameView: View {
             return
         }
         guard gameVM.snapshot.periodIsRunning else {
-            statAlertMessage = String(format: NSLocalizedString("stat_period_not_started", comment: "Period not started message"), gameVM.snapshot.currentPeriod)
+            showPeriodNotStartedAlert()
             return
         }
         let now = Date()
@@ -2016,6 +2144,11 @@ struct GameView: View {
             liveManager.resetSession()
         }
 
+        actionButtonPulseDismissTask?.cancel()
+        actionButtonPulseDismissTask = nil
+        actionButtonPulseKey = nil
+        isAwaitingNewGameAfterReset = true
+        isAwaitingOvertimeAfterAutoEnd = false
         gameVM.undoStack.removeAll()
         gameVM.redoStack.removeAll()
         currentGameRecordID = keepLiveSession ? currentGameRecordID : nil
@@ -2041,9 +2174,13 @@ struct GameView: View {
 
     private func startNewGame(with config: GameSetupConfig) {
         liveManager.resetSession()
+        isAwaitingNewGameAfterReset = false
+        isAwaitingOvertimeAfterAutoEnd = false
         gameVM.undoStack.removeAll()
         gameVM.redoStack.removeAll()
         currentGameRecordID = UUID()
+        lastGameHomeTeamID = config.homeTeamID.uuidString
+        lastGameAwayTeamID = config.awayTeamID.uuidString
         gameVM.snapshot = GameSnapshot(
             homeTeamID: config.homeTeamID,
             awayTeamID: config.awayTeamID,
@@ -2113,6 +2250,20 @@ struct GameView: View {
     private func openSubstitution(_ side: TeamSide) {
         substitutionSide = side
         isShowingSubstitution = true
+    }
+
+    private var substitutionSheet: some View {
+        SubstitutionView(
+            side: $substitutionSide,
+            homeTeamName: store.team(for: gameVM.snapshot.homeTeamID)?.name ?? NSLocalizedString("team_home_default", comment: "Default home team name"),
+            awayTeamName: store.team(for: gameVM.snapshot.awayTeamID)?.name ?? NSLocalizedString("team_away_default", comment: "Default away team name"),
+            homePlayers: players(in: gameVM.snapshot.homeTeamID),
+            awayPlayers: players(in: gameVM.snapshot.awayTeamID),
+            homeOnCourtIDs: gameVM.snapshot.homeOnCourtPlayerIDs,
+            awayOnCourtIDs: gameVM.snapshot.awayOnCourtPlayerIDs,
+            courtPlayerCount: gameVM.snapshot.courtPlayerCount,
+            onConfirm: performBatchSubstitution
+        )
     }
 
     private func performBatchSubstitution(side: TeamSide, newOnCourtIDs: [UUID]) {
@@ -2598,6 +2749,7 @@ struct GameView: View {
 
     private func startOvertime() {
         isShowingOTSetup = false
+        isAwaitingOvertimeAfterAutoEnd = false
         mutateSnapshot {
             gameVM.snapshot.isComplete = false
             gameVM.snapshot.periodCount += otPeriodCount
@@ -2730,6 +2882,76 @@ struct GameView: View {
 
         ensureInitialSelection()
     }
+
+#if DEBUG
+    private func seedScorePageForScreenshotIfNeeded() {
+        guard ProcessInfo.processInfo.arguments.contains("-seedScorePageData"),
+              let homeTeam = store.teams.first,
+              let awayTeam = store.teams.dropFirst().first else {
+            return
+        }
+
+        let homePlayers = players(in: homeTeam.id).prefix(3)
+        let awayPlayers = players(in: awayTeam.id).prefix(3)
+        guard !homePlayers.isEmpty, !awayPlayers.isEmpty else { return }
+
+        let now = Date()
+        func playerStats(twoMade: Int, threeMade: Int, freeThrowMade: Int, fouls: Int) -> PlayerStats {
+            var value = PlayerStats()
+            value.twoMade = twoMade
+            value.threeMade = threeMade
+            value.freeThrowMade = freeThrowMade
+            value.fouls = fouls
+            return value
+        }
+
+        let homeIDs = homePlayers.map(\.id)
+        let awayIDs = awayPlayers.map(\.id)
+        let statsByPlayerID: [UUID: PlayerStats] = [
+            homeIDs[0]: playerStats(twoMade: 15, threeMade: 2, freeThrowMade: 0, fouls: 1),
+            homeIDs[1]: playerStats(twoMade: 12, threeMade: 3, freeThrowMade: 3, fouls: 1),
+            homeIDs[2]: playerStats(twoMade: 14, threeMade: 2, freeThrowMade: 2, fouls: 1),
+            awayIDs[0]: playerStats(twoMade: 13, threeMade: 2, freeThrowMade: 0, fouls: 1),
+            awayIDs[1]: playerStats(twoMade: 13, threeMade: 1, freeThrowMade: 4, fouls: 1),
+            awayIDs[2]: playerStats(twoMade: 13, threeMade: 2, freeThrowMade: 0, fouls: 0)
+        ]
+        let logs = [
+            GameLogEntry(timestamp: now.addingTimeInterval(-45), message: "\(homePlayers[0].name) made 3PT", eventCode: "stat.threeMade", playerID: homeIDs[0], period: 3, periodElapsedSeconds: 345),
+            GameLogEntry(timestamp: now.addingTimeInterval(-36), message: "\(awayPlayers[0].name) turnover", eventCode: "stat.turnover", playerID: awayIDs[0], period: 3, periodElapsedSeconds: 354),
+            GameLogEntry(timestamp: now.addingTimeInterval(-27), message: "\(homePlayers[1].name) made 2PT", eventCode: "stat.twoMade", playerID: homeIDs[1], period: 3, periodElapsedSeconds: 363),
+            GameLogEntry(timestamp: now.addingTimeInterval(-18), message: "\(awayPlayers[1].name) foul", eventCode: "stat.foul", playerID: awayIDs[1], period: 3, periodElapsedSeconds: 372),
+            GameLogEntry(timestamp: now.addingTimeInterval(-9), message: "\(homePlayers[2].name) made 2PT", eventCode: "stat.twoMade", playerID: homeIDs[2], period: 3, periodElapsedSeconds: 381)
+        ]
+        gameVM.snapshot = GameSnapshot(
+            statsByPlayerID: statsByPlayerID,
+            logs: logs,
+            homeTeamID: homeTeam.id,
+            awayTeamID: awayTeam.id,
+            periodCount: 4,
+            originalPeriodCount: 4,
+            currentPeriod: 3,
+            periodIsRunning: true,
+            courtPlayerCount: 3,
+            homeOnCourtPlayerIDs: homePlayers.map(\.id),
+            awayOnCourtPlayerIDs: awayPlayers.map(\.id),
+            homeAvailablePlayerIDs: homePlayers.map(\.id),
+            awayAvailablePlayerIDs: awayPlayers.map(\.id),
+            starterPlayerIDs: homePlayers.map(\.id) + awayPlayers.map(\.id),
+            startersRecorded: true,
+            currentPeriodFoulsBySide: [TeamSide.home.rawValue: 3, TeamSide.away.rawValue: 2],
+            matchElapsedSeconds: 754,
+            matchActiveSince: now.addingTimeInterval(-754),
+            periodElapsedSeconds: 388,
+            periodActiveSince: now.addingTimeInterval(-388),
+            periodEndCondition: .manual
+        )
+        currentGameRecordID = nil
+        selectedPlayerID = homePlayers.first?.id
+        selectedSide = .home
+        store.showsVoiceButton = true
+        voiceRecognizer.currentSnapshot = gameVM.snapshot
+    }
+#endif
 
     private func startActiveStints(at date: Date) {
         (gameVM.snapshot.homeOnCourtPlayerIDs + gameVM.snapshot.awayOnCourtPlayerIDs).forEach { playerID in
@@ -3037,4 +3259,69 @@ struct GameView: View {
         formatter.timeStyle = .medium
         return formatter
     }()
+}
+
+private struct GuidanceHighlightView: View {
+    let color: Color
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(color.opacity(0.1))
+
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(color.opacity(0.98), lineWidth: 2.5)
+
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(color.opacity(0.78), lineWidth: 2)
+        }
+        .shadow(color: color.opacity(0.38), radius: 5)
+        .allowsHitTesting(false)
+    }
+}
+
+private struct GuidancePulseContent<Content: View>: View {
+    let isActive: Bool
+    let content: (Bool) -> Content
+
+    @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
+    @State private var isPulsing = false
+
+    init(isActive: Bool, @ViewBuilder content: @escaping (Bool) -> Content) {
+        self.isActive = isActive
+        self.content = content
+    }
+
+    var body: some View {
+        content(isPulsing && isActive && !accessibilityReduceMotion)
+            .scaleEffect(isPulsing && isActive && !accessibilityReduceMotion ? 1.12 : 1)
+            .opacity(isActive && !accessibilityReduceMotion && !isPulsing ? 0.78 : 1)
+            .onAppear {
+                startPulsingIfNeeded()
+            }
+            .onChange(of: isActive) { _, newValue in
+                stopPulsing()
+                if newValue {
+                    startPulsingIfNeeded()
+                }
+            }
+            .onDisappear {
+                stopPulsing()
+            }
+    }
+
+    private func stopPulsing() {
+        var transaction = Transaction()
+        transaction.animation = nil
+        withTransaction(transaction) {
+            isPulsing = false
+        }
+    }
+
+    private func startPulsingIfNeeded() {
+        guard isActive, !accessibilityReduceMotion else { return }
+        withAnimation(.timingCurve(0.77, 0, 0.175, 1, duration: 0.6).repeatForever(autoreverses: true)) {
+            isPulsing = true
+        }
+    }
 }

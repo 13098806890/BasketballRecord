@@ -1,0 +1,12 @@
+{
+  "action": "dispatch",
+  "to_stage": "aso-ops",
+  "task_scope": "只读核对 fastlane 中文截图参考资产并确认本次没有商店写入",
+  "task_prompt": "核对中文 fastlane 参考截图与本次视觉对比证据；不要上传或修改 App Store Connect 内容。",
+  "acceptance_criteria": ["参考资产路径明确", "没有外部商店写入"],
+  "coverage_ids": ["criterion-02"],
+  "required_outputs": ["13-aso-operations.html"],
+  "input_files": ["fastlane/screenshots/zh-Hans/iPhone 6.5-inch/02-stats.png", "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/04-team.png", "fastlane/screenshots/zh-Hans/iPhone 6.5-inch/05-growth.png"],
+  "verification": ["参考图已复制到 design-reference/zh-Hans", "未调用上传命令"],
+  "prohibited_actions": ["不得上传 App Store Connect", "不得修改商店资产"]
+}

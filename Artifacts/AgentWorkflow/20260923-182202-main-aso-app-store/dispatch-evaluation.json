@@ -1,0 +1,21 @@
+{
+  "action": "dispatch",
+  "exchange_id": "exchange-0002",
+  "to_stage": "agent-evaluation",
+  "task_scope": "对本轮 main 分支 ASO 增量修复和逐语言截图生成做最终质量评估。",
+  "task_prompt": "检查 ASO 操作报告、metadata 校验、截图资产、Fastlane 增量拉取边界和用户约束；确认没有误报外部上传或完整本地化，给出六维评分、缺口和最终 disposition。",
+  "acceptance_criteria": [
+    "记录范围、证据、技术、多语言、复现性和风险沟通评分",
+    "记录外部缺口，不把本地生成当成 ASC 上传",
+    "建议 complete-with-gaps 或明确需要用户决策"
+  ],
+  "coverage_ids": [],
+  "required_outputs": ["06-agent-evaluation.html"],
+  "input_files": ["13-aso-operations.html", "workflow-state.json", "fastlane/metadata/1.39/zh-Hans/name.txt"],
+  "changed_files": [],
+  "verification": ["六维评分已记录", "用户约束已复核", "未执行外部写入"],
+  "unresolved_issues": ["母语校审、Pages 部署、ASC 只读确认仍待后续"],
+  "prohibited_actions": ["不得上传、提交、发布或修改产品代码"],
+  "next_checks": ["记录 skipped stages 并运行 validate_run.py"],
+  "knowledge_context": {"mode": "manual", "owner": "orchestrator", "continuation_of_run": "20260923-174854-aso"}
+}

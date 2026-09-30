@@ -1,0 +1,84 @@
+{
+  "action": "return",
+  "from_stage": "developer",
+  "exchange_id": "exchange-0002",
+  "summary": "开发核验通过：共享视觉样式已接入非记分页面，记分目录无 diff，未新增本地化文本，Debug iOS Simulator build 成功；CloudKit 显式 identifier 仅用于修复模拟器启动初始化。",
+  "result_status": "passed",
+  "output_files": [
+    {
+      "path": "02-developer.html",
+      "kind": "html",
+      "label": "开发报告"
+    },
+    {
+      "path": "BasketballRecord/Views/Skin/EditorialDesign.swift",
+      "kind": "file",
+      "label": "共享视觉实现"
+    },
+    {
+      "path": "BasketballRecord/Services/CloudKitManager.swift",
+      "kind": "file",
+      "label": "模拟器启动稳定化"
+    }
+  ],
+  "changed_files": [
+    "BasketballRecord/Views/Skin/EditorialDesign.swift",
+    "BasketballRecord/Views/ContentView.swift",
+    "BasketballRecord/Views/Career/CareerView.swift",
+    "BasketballRecord/Views/History/AISummaryView.swift",
+    "BasketballRecord/Views/History/HistoryView.swift",
+    "BasketballRecord/Views/History/PlayerGameDetailView.swift",
+    "BasketballRecord/Views/History/SavedGameDetailView.swift",
+    "BasketballRecord/Views/PlayerProfileView.swift",
+    "BasketballRecord/Views/Roster/PlayerManagementView.swift",
+    "BasketballRecord/Views/Roster/TeamManagementView.swift",
+    "BasketballRecord/Views/RosterView.swift",
+    "BasketballRecord/Views/TeamManagementHomeView.swift",
+    "BasketballRecord/Services/CloudKitManager.swift"
+  ],
+  "verification": [
+    "git diff --check 通过",
+    "git diff --name-only -- BasketballRecord/Views/Game/ 为空",
+    "Debug iOS Simulator xcodebuild 返回 BUILD SUCCEEDED",
+    "未新增用户可见字符串，未产生新的 localization key",
+    "既有导航、store API、模型和持久化字段未改变"
+  ],
+  "unresolved_issues": [
+    "运行时截图尚未捕获到应用页面，交给 simulator-test 探索优先阶段",
+    "深色模式、动态字体和 VoiceOver 未专项实测"
+  ],
+  "coverage_dispositions": [
+    {
+      "coverage_id": "criterion-01",
+      "status": "passed",
+      "evidence": [
+        "02-developer.html",
+        "BasketballRecord/Views/Skin/EditorialDesign.swift"
+      ]
+    },
+    {
+      "coverage_id": "criterion-02",
+      "status": "passed",
+      "evidence": [
+        "02-developer.html",
+        "git diff --name-only -- BasketballRecord/Views/Game/"
+      ]
+    },
+    {
+      "coverage_id": "criterion-03",
+      "status": "passed",
+      "evidence": [
+        "02-developer.html",
+        "xcodebuild Debug iOS Simulator BUILD SUCCEEDED"
+      ]
+    },
+    {
+      "coverage_id": "criterion-04",
+      "status": "passed",
+      "evidence": [
+        "02-developer.html",
+        "git diff --name-only -- BasketballRecord/Resources"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ASO 审核 · 手动 ASO 审核与优化方案</title>
+<style>body{font:16px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;max-width:1100px;margin:32px auto;padding:0 22px;color:#172033;background:#f7f8fa}main{background:#fff;padding:30px;border-radius:16px;box-shadow:0 6px 24px #17203312}h2{margin-top:30px;border-bottom:1px solid #e5e7eb;padding-bottom:6px}h3{margin-top:22px}.state{display:inline-block;padding:4px 10px;border-radius:999px;background:#d1fae5;color:#065f46}table{border-collapse:collapse;width:100%;margin:12px 0 20px}th,td{border:1px solid #dfe3e8;padding:8px;vertical-align:top;text-align:left}th{background:#f1f5f9}code{background:#eef1f5;padding:.12em .35em;border-radius:4px;word-break:break-word}.p0{color:#991b1b;font-weight:700}.p1{color:#9a3412;font-weight:700}.p2{color:#475569;font-weight:700}.note{background:#fff7ed;border-left:4px solid #fb923c;padding:10px 14px}.ok{background:#ecfdf5;border-left:4px solid #10b981;padding:10px 14px}li{margin:5px 0}</style>
+</head>
+<body><main>
+<h1>ASO 关键词研究与商店优化</h1>
+<p><strong>任务：</strong>手动 ASO 审核与优化方案</p>
+<p><strong>状态：</strong><span class="state">已完成（带明确缺口）</span></p>
+<p><strong>运行：</strong><code>20260923-174854-aso</code> · <strong>Git：</strong><code>main_free_pro@0e3d80a</code> · <strong>日期：</strong>2026-09-23</p>
+
+<h2>1. 工作模式与边界</h2>
+<ul>
+<li>模式：<code>postlaunch</code>；公开页面证明 App ID <code>6773215187</code> 已上架。</li>
+<li>Provider：<code>public-apple</code>，使用公开 iTunes Search / autocomplete 适配器；没有使用 App Store Connect API、Apple Ads、第三方付费数据或 OAuth。</li>
+<li>所有 rank 都是 <code>public-search-proxy</code>：仅表示公开 iTunes Search 前 50 结果中的位置，不是 Apple 官方自然搜索排名。</li>
+<li>中文地区 App 名称是用户约束，本报告不建议修改简体或繁体中文名称；只建议优化副标题、关键词、宣传文本、描述、截图卖点和页面一致性。</li>
+<li>没有上传 metadata、提交审核、发布版本或修改产品代码。</li>
+</ul>
+
+<h2>2. 事实基线</h2>
+<table><thead><tr><th>项目</th><th>已验证事实</th><th>来源</th></tr></thead><tbody>
+<tr><td>当前代码分支</td><td><code>main_free_pro</code>，营销版本 <code>2.39</code>，Build <code>60</code>；该分支按项目规则不是 App Store 发行分支。</td><td><code>BasketballRecord.xcodeproj/project.pbxproj</code>、<code>AGENTS.md</code></td></tr>
+<tr><td>App Store 发行基线</td><td><code>main</code> 为营销版本 <code>1.39</code>；公开中国区页面目前显示名称“篮球生涯手帐”、类别“工具”、评分 5.0/2 个评分。</td><td><a href="../../../BasketballRecord.xcodeproj/project.pbxproj">project.pbxproj</a>、<a href="https://apps.apple.com/cn/app/%E7%AF%AE%E7%90%83%E7%94%9F%E6%B6%AF%E6%89%8B%E5%B8%B3/id6773215187">中国区公开页面</a></td></tr>
+<tr><td>当前本地 1.39 metadata</td><td>10 个 locale 仅有 <code>promotional_text.txt</code> 与 <code>release_notes.txt</code>；没有当前版本的 subtitle、keywords、description 文件。</td><td><a href="../../../fastlane/metadata/1.39/">fastlane/metadata/1.39</a></td></tr>
+<tr><td>最近完整本地 metadata</td><td>1.38 具备 10 个 locale 的 description、keywords、subtitle、marketing_url、support_url；其中中文/日文/韩文/俄文 keywords 超过 Apple 100-byte 限制。</td><td><a href="../../../fastlane/metadata/1.38/">fastlane/metadata/1.38</a>、本报告字符审计</td></tr>
+<tr><td>公开页面链接</td><td>support、privacy、营销首页 HTTP 状态均为 200；营销首页仍显示“即将上架 App Store”，与已上架状态不一致。</td><td><a href="https://13098806890.github.io/BasketballRecord/">营销页面</a>、<a href="https://13098806890.github.io/BasketballRecord/appstore/support.html">支持页</a>、<a href="https://13098806890.github.io/BasketballRecord/appstore/privacy-policy.html">隐私页</a></td></tr>
+</tbody></table>
+
+<h2>3. 最高优先级发现</h2>
+<table><thead><tr><th>优先级</th><th>问题</th><th>建议</th></tr></thead><tbody>
+<tr><td class="p0">P0</td><td>关键词字符预算按“字符”记录，但 Apple 限制是 100 bytes。1.38 的 zh-Hans 为 169 bytes、zh-Hant 为 169 bytes、ja 为 171 bytes、ko 为 141 bytes、ru 为 167 bytes。</td><td>下一次 metadata 更新前，逐 locale 按 UTF-8 byte 计算；先换成报告第 5 节的候选词。不要直接把当前 1.20/1.38 keywords 原样上传。</td></tr>
+<tr><td class="p0">P0</td><td>1.39 metadata 不完整。它不包含 subtitle、keywords、description，无法从仓库复现这次 listing 的完整输入。</td><td>批准文案后，为 1.39/目标版本补齐每个实际维护 locale 的字段；上传前先与 App Store Connect 当前值做只读对照，避免把旧字段状态当成已更新。</td></tr>
+<tr><td class="p1">P1</td><td>公开页面类别是“工具”，而 Xcode 的 application category 是 Sports；商店类别不是由 Xcode build setting 自动证明的。</td><td>在 App Store Connect 只读确认 primary category。若实际仍是 Utilities，评估把 Sports 设为 primary；这需要单独确认和审核，不在本次执行。</td></tr>
+<tr><td class="p1">P1</td><td>描述开头重复两遍“快速记录篮球比赛数据”，浪费首屏；英文描述使用“Basketball Journey”，但公开名称是 Basketball Journal。</td><td>把首屏改成一句核心价值 + 一句差异化能力；统一产品称呼。Apple 说明描述第一句最重要。</td></tr>
+<tr><td class="p1">P1</td><td>营销首页仍写“即将上架 App Store”，会削弱已上架 App 的可信度；本地 support/privacy 与公开 listing 的名称也存在“篮球生涯”/“篮球生涯手帐”差异。</td><td>更新 Pages 源文件与部署页面的状态、名称和 CTA；这属于独立页面发布动作，本次只提出，不执行。</td></tr>
+<tr><td class="p1">P1</td><td>仓库没有 Fastlane screenshots/preview 资产，无法审核当前截图顺序和首屏转化。</td><td>先补齐截图证据；第一屏突出实时记分，第二屏语音记分，第三屏球员/球队统计，第四屏 AI 复盘，第五屏蓝牙协同，第六屏 Excel 批量导出。</td></tr>
+<tr><td class="p2">P2</td><td>Fastfile 的 upload 默认版本为 1.20，download 默认版本为 1.33，而当前发行分支为 1.39。</td><td>发布前将版本参数改为显式传入并做 lane 只读检查；不要从 main_free_pro 执行 App Store 上传。</td></tr>
+<tr><td class="p2">P2</td><td>中国区公开页面只有 2 个评分；评分质量是 Apple 搜索相关行为因素之一，但样本量很小。</td><td>保留现有第 3/12 场评分邀请逻辑，避免激励性评价；持续观察评分数量、转化和版本变化。</td></tr>
+</tbody></table>
+
+<h2>4. 公开关键词快照</h2>
+<p>快照时间为本次运行时间窗口。固定词没有 Apple 官方搜索量，因此 popularity/competition/opportunity 未被伪装成官方指标；当前数据只用于方向判断。</p>
+<table><thead><tr><th>Storefront / locale</th><th>较强代理信号</th><th>自身代理位置</th><th>限制</th></tr></thead><tbody>
+<tr><td>cn / zh-Hans</td><td>语音记分：2；篮球统计：4；篮球记分：22；篮球记录：32；比赛记录：40</td><td>以上为公开搜索前 50 内的位置；球员统计未进入前 50</td><td>不能等同 Apple 自然排名；中国区公开端点结果需重复采样确认</td></tr>
+<tr><td>tw / zh-Hant</td><td>籃球記分：1；籃球統計：11；語音記分：19；球員統計：25</td><td>籃球記分进入第 1 位代理结果</td><td>一次快照，不代表稳定排名</td></tr>
+<tr><td>jp / ja</td><td>バスケ統計：6；バスケ記録：18</td><td>前两者进入前 20</td><td>日文短语仍需母语校审和相同集合复测</td></tr>
+<tr><td>de / de-DE</td><td>Basketball Spielbericht：5；Basketball Spielstand：21；Basketball Statistik：39</td><td>Spielbericht 代理表现最好</td><td>德语组合词需要本地化校审</td></tr>
+<tr><td>us / en-US</td><td>本次固定词均未出现自身前 50 代理位置</td><td>未观察到自身代理位置</td><td>不代表真实 App Store organic rank，也不代表没有搜索需求</td></tr>
+</tbody></table>
+<p>快照文件：<a href="aso/cn-zh-Hans.json">cn-zh-Hans.json</a> · <a href="aso/tw-zh-Hant.json">tw-zh-Hant.json</a> · <a href="aso/jp-ja.json">jp-ja.json</a> · <a href="aso/de-de.json">de-de.json</a> · <a href="aso/us-en-US.json">us-en-US.json</a></p>
+<p>可视化：<a href="aso/aso-keyword-visualization-cn-zh-Hans.html">简体中文</a> · <a href="aso/aso-keyword-visualization-tw-zh-Hant.html">繁体中文</a> · <a href="aso/aso-keyword-visualization-jp-ja.html">日文</a> · <a href="aso/aso-keyword-visualization-de-de.html">德文</a> · <a href="aso/aso-keyword-visualization-us-en-US.html">英文</a></p>
+
+<h2>5. 推荐第一版 metadata 方案</h2>
+<div class="ok"><strong>执行原则：</strong>中文名称不改；候选 subtitle 控制在 30 字符内；keywords 按 UTF-8 bytes 控制在 100 bytes 内；同一 locale 内避免把 name/subtitle/category 已有词重复塞进 keywords。以下是可测试候选，不是已上传内容。</div>
+<table><thead><tr><th>Locale</th><th>名称策略</th><th>Subtitle 候选</th><th>Keywords 候选</th><th>UTF-8 bytes</th></tr></thead><tbody>
+<tr><td>zh-Hans</td><td>保持“篮球生涯手帐”不变</td><td><code>语音记分·球员统计·AI复盘</code></td><td><code>比赛记录,球队管理,训练赛,野球,蓝牙同步,Excel导出,赛后分析</code></td><td>80</td></tr>
+<tr><td>zh-Hant</td><td>保持现有繁中名称不变</td><td><code>語音記分·球員統計·AI復盤</code></td><td><code>比賽記錄,球隊管理,訓練賽,街頭籃球,藍牙同步,Excel匯出,賽後分析</code></td><td>86</td></tr>
+<tr><td>en-US</td><td>第一轮不改名，只测 subtitle/keywords</td><td><code>Voice Scoring &amp; Game Stats</code></td><td><code>scorebook,box score,player,team manager,season,excel export,bluetooth sync,game recap</code></td><td>85</td></tr>
+<tr><td>ja</td><td>第一轮不改名</td><td><code>音声記録・試合統計・AI分析</code></td><td><code>試合記録,チーム管理,練習試合,音声認識,試合分析,データ出力,選手管理</code></td><td>96</td></tr>
+<tr><td>ko</td><td>第一轮不改名</td><td><code>음성 기록·경기 통계·AI 분석</code></td><td><code>경기기록,팀관리,연습경기,음성인식,경기분석,데이터내보내기</code></td><td>83</td></tr>
+<tr><td>de-DE</td><td>第一轮不改名</td><td>以“Sprachscoring / Spielstatistik”为核心，需母语校审</td><td><code>Spielstatistik,Teamverwaltung,Trainingsspiel,Spracherkennung,Spielanalyse,Datenexport</code></td><td>85</td></tr>
+<tr><td>es-ES</td><td>第一轮不改名</td><td>以“anotar partidos / estadísticas”替换泛化的 AI/Teams 组合，需母语校审</td><td><code>estadísticas,anotador,partido,voz,gestión equipo,exportar datos</code></td><td>65</td></tr>
+<tr><td>fr-FR</td><td>第一轮不改名</td><td>以“score / statistiques / IA”为核心，需母语校审</td><td><code>statistiques,scoreur,match,voix,équipe,export données</code></td><td>55</td></tr>
+<tr><td>it</td><td>第一轮不改名</td><td>以“segnapunti / statistiche / voce”为核心，需母语校审</td><td><code>statistiche,segnapunti,partita,voce,squadra,export dati</code></td><td>55</td></tr>
+<tr><td>ru</td><td>第一轮不改名</td><td>以“голос / статистика / матч”为核心，需母语校审</td><td><code>статистика,табло,матч,игроки,голос,команда,экспорт</code></td><td>94</td></tr>
+</tbody></table>
+
+<h2>6. 文案与截图方案</h2>
+<h3>描述首屏</h3>
+<p>建议每个 locale 的前两句都回答“给谁、解决什么、为什么现在下载”，不要重复标题或把 Terms/Privacy 链接放在首屏。简体中文候选：</p>
+<p><code>实时记录篮球比赛，自动汇总比分、球员技术统计和球队数据。支持语音记分、AI 赛后复盘、蓝牙协同与 Excel 导出，适合训练赛、野球局和业余联赛。</code></p>
+<p>后续按功能顺序：实时记分 → 语音记分 → 球员/球队统计 → AI 总结/MVP → 蓝牙协同 → Excel 导出 → iCloud/导入导出。China locale 的 AI provider 只写 DeepSeek 或“AI 服务”，不要继续使用与项目规则不一致的 OpenAI/Anthropic 表述。</p>
+<h3>截图顺序</h3>
+<ol><li>实时记分：一眼展示比分和完整技术统计。</li><li>语音记分：按住麦克风说出“球员 + 动作”，突出解放双手。</li><li>球员/球队数据：累计、场均、胜率、位置和比赛历史。</li><li>AI 赛后复盘：总结、MVP、高光时刻；明确 Pro 或使用条件。</li><li>蓝牙协同：多人、多设备实时同步。</li><li>Excel 批量导出：多场比赛打包 ZIP，突出新版本价值。</li></ol>
+
+<h2>7. 验证计划</h2>
+<ol><li>先在 App Store Connect 只读确认每个 locale 的真实 name/subtitle/keywords/description、primary category 和截图版本。</li><li>以本报告候选词建立固定 keyword-set；发布前对所有关键词做 100-byte 校验，并让对应语言母语者校审自然度。</li><li>发布后用相同 storefront、locale、keyword-set、app-id 和 provider 做 validation 快照；至少等待一个稳定观察窗口，不用一次搜索归因下载增长。</li><li>使用 App Analytics 分拆 Product Page Views、App Units、转化率和 locale；若能使用 Product Page Optimization，为“语音记分”与“AI/统计”卖点做截图实验。</li><li>每次只改变一组变量，记录版本、日期、locale、关键词集合、截图版本和转化变化；不要同时改名、类别、subtitle、keywords 和截图后再判断效果。</li></ol>
+
+<h2>8. 未验证与不执行项</h2>
+<ul><li>未读取 App Store Connect API，因此公开页面不能替代 ASC 当前字段基线。</li><li>未验证真实 Apple Search Ads popularity、下载量、转化率和官方搜索排名。</li><li>未审核真实截图像素尺寸、首屏文字可读性和 Product Page Optimization 实验结果，原因是仓库没有 screenshot/preview 资产。</li><li>未修改 Fastlane metadata、Pages 源文件、App Store Connect、产品代码或 Git history。</li></ul>
+
+<h2>9. 官方依据</h2>
+<ul><li><a href="https://developer.apple.com/app-store/product-page/">Creating Your Product Page</a>：name/subtitle/宣传文本/关键词限制、描述首句和产品页实验。</li><li><a href="https://developer.apple.com/app-store/search/">App Store search</a>：关键词 100 bytes、避免重复和无关词、类别与 discoverability。</li><li><a href="https://developer.apple.com/app-store/discoverability/">Discovery on the App Store</a>：相关性、类别和用户行为/评分等因素。</li><li><a href="https://apps.apple.com/cn/app/%E7%AF%AE%E7%90%83%E7%94%9F%E6%B6%AF%E6%89%8B%E5%B8%B3/id6773215187">公开中国区产品页</a>：当前名称、类别、描述、评分和版本历史。</li></ul>
+</main></body></html>

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>代码审查 · 新旧 UI 功能与数据对比</title><style>
+body{font:16px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;max-width:1050px;margin:32px auto;padding:0 20px;color:#172033;background:#f7f8fa}main{background:white;padding:30px;border-radius:16px;box-shadow:0 6px 24px #17203312}table{border-collapse:collapse;width:100%;margin:12px 0 24px}th,td{border:1px solid #dfe4ea;padding:9px;vertical-align:top;text-align:left}th{background:#f1f4f7}.p1{color:#a12622;font-weight:700}.p2{color:#9a6500;font-weight:700}.pass{color:#18794e;font-weight:700}.state{display:inline-block;padding:4px 10px;border-radius:999px;background:#ffe8e6;color:#a12622;font-weight:700}img{max-width:330px;border:1px solid #dfe4ea;border-radius:12px;margin:6px 10px 6px 0}figcaption{font-size:14px;color:#5d6875}code{background:#eef1f5;padding:.12em .35em;border-radius:4px}</style></head>
+<body><main><h1>代码审查：新旧 UI 功能与数据对比</h1>
+<p><strong>任务：</strong>新旧 UI 功能与数据对比审查</p><p><strong>状态：</strong><span class="state">发现需修复的回归</span></p>
+<h2>审查范围与方法</h2>
+<p>只审查当前工作树中比赛详情、球员详情及其导航入口相关改动；没有修改当前项目代码，也没有提交。旧版来自 <code>HEAD d7f0f91</code> 的隔离 worktree，新版来自当前工作树。两台 iPhone 17 模拟器使用同一份克隆的 App 数据。</p>
+<p>旧版模拟器启动时因旧版 CloudKit 初始化在无 entitlement 的 Simulator 环境中崩溃；仅在隔离旧版 worktree 临时加入 Simulator 保护和 DEBUG 详情启动参数，当前项目目录不受影响。当前仓库没有 <code>.codex/ui-audit.json</code>，因此未声称完成官方 UI audit；本次使用 <code>simctl</code> 构建、启动和截图，并结合静态代码对照。</p>
+<h2>结论摘要</h2>
+<p>返回、工具栏导出、比赛名称编辑、比分、日期、时长、周期切换、球队统计、球员点击、事件日志和 AI 总结实现仍在；但“原来默认显示的数据不丢失”没有完全满足：比赛详情的球员行默认隐藏了旧版直接展示的 5 类以上统计字段，球员详情默认也把完整统计折叠到 Show All 后面。另外，比赛详情新增的事件日志卡片没有受 <code>displayMode</code> 限制，会出现在实时比赛页面。</p>
+<h2>逐项核对</h2>
+<table><thead><tr><th>项目</th><th>结论</th><th>证据</th></tr></thead><tbody>
+<tr><td>导航返回与标题</td><td class="pass">通过，视觉标题变化但返回入口保留</td><td>新版截图仍有左上返回按钮；<code>SavedGameDetailView.swift:78-79</code>、<code>PlayerProfileView.swift:39-46</code> 保留导航标题配置。</td></tr>
+<tr><td>工具栏</td><td class="pass">通过</td><td>编辑事件、Cloud、分组、Excel、导出按钮仍在 <code>SavedGameDetailView.swift:81-112</code>；旧版对应逻辑见 HEAD 同文件 <code>:122-155</code>。</td></tr>
+<tr><td>比赛信息与周期</td><td class="pass">通过</td><td>新版保留名称编辑、日期、时长、双方比分与周期选择：<code>SavedGameDetailView.swift:219-292</code>。</td></tr>
+<tr><td>球队统计与球员导航</td><td class="pass">通过</td><td>仍使用 <code>TeamStatsDisclosureView</code>，球员行仍是 <code>NavigationLink</code>：<code>SavedGameDetailView.swift:52-68</code>、<code>:501-534</code>。</td></tr>
+<tr><td>比赛详情球员数据</td><td class="p1">不通过：默认显示字段减少</td><td>旧版行的 <code>stats_line_format</code> 同时显示 Time、FG、FT、REB、AST、FOUL、BLK、STL、TO，另显示 +/- 和 Points/Shot（HEAD 同文件 <code>:245-294</code>）。新版表头只有 PTS、REB、AST、STL、BLK、TO（<code>:451-460</code>、<code>:501-540</code>）。数据模型和球员详情仍能提供部分字段，但比赛页默认不可见。</td></tr>
+<tr><td>球员详情统计</td><td class="p1">不通过：完整统计默认折叠</td><td>旧版 fixed-game 分支直接渲染 <code>buildGameStatRows()</code>（HEAD <code>PlayerProfileView.swift:137-139</code>）；新版先只显示 6 个核心指标，只有点击 <code>Show All</code> 才渲染完整统计（<code>PlayerProfileView.swift:173-233</code>）。完整数据未删除，但默认展示与旧版不等价。</td></tr>
+<tr><td>事件日志与 AI 总结</td><td class="p2">功能保留，但交互路径改变</td><td>事件日志仍可进入编辑器；AI 总结从旧版 inline 改成卡片后 sheet（<code>SavedGameDetailView.swift:318-349</code>、<code>:162-175</code>）。需额外点击，建议确认这是有意的 B 方案行为。</td></tr>
+<tr><td>实时比赛页面边界</td><td class="p2">发现行为回归</td><td><code>eventLogCard</code> 在 <code>SavedGameDetailView.swift:70</code> 无条件插入；旧版只在 <code>displayMode == .history</code> 下面显示 AI，且实时调用点为 <code>GameView.swift:656</code>。实时页面现在会出现“编辑事件日志”卡片，和旧版边界不一致。</td></tr>
+<tr><td>职业页选择比赛、分组、职业/平均统计、ELO</td><td class="pass">功能入口保留</td><td>新版普通球员分支仍有 Choose Games、分组筛选、Career Stats、Average Stats（<code>PlayerProfileView.swift:106-151</code>）；ELO 历史仍由 header 中 ELO 值触发。</td></tr>
+</tbody></table>
+<h2>必须修复的发现</h2>
+<ol><li><span class="p1">P1 数据可见性回退：</span>比赛详情默认球员表应恢复至少 Time、FG、FT、FOUL、+/-、Points/Shot，或提供清晰的“完整统计”入口并保证与旧版等价。</li><li><span class="p1">P1 数据可见性回退：</span>球员详情的完整 This Game 统计不应默认藏在 Show All 后面，除非产品明确接受该展示变化；至少应在审查标准中把“数据保留”和“默认可见”区分开。</li><li><span class="p2">P2 行为边界：</span>将 <code>eventLogCard</code> 限定在 <code>displayMode == .history</code>，避免实时比赛页出现历史编辑入口。</li></ol>
+<h2>证据截图</h2><figure><img src="screenshots/old-game-detail.png" alt="旧版比赛详情"><img src="screenshots/new-game-detail.png" alt="新版比赛详情"><figcaption>前者为旧版，后者为新版；同一场 Shohoku 9–5 Ryonan 数据。新版结构更清晰，但球员表默认字段明显减少。</figcaption></figure>
+<figure><img src="screenshots/old-player-detail.png" alt="旧版球员详情"><img src="screenshots/new-player-detail.png" alt="新版球员详情"><figcaption>球员详情数据值和事件仍对应同一场比赛；新版默认只露出核心指标，旧版默认展开完整统计。</figcaption></figure>
+<h2>验证状态</h2><ul><li>旧版隔离 worktree Debug 构建：通过。</li><li>当前工作树 Debug 构建：通过。</li><li>当前工作树 Release 构建：此前已通过。</li><li><code>git diff --check</code>：通过。</li><li>当前项目生产代码：本轮未修改、未提交。</li></ul>
+<h2>建议下一步</h2><p>先修复上面的 P1/P2，再重新跑同一份数据的两台模拟器截图，重点检查：比赛页所有旧字段、球员页完整统计、实时比赛页不出现历史编辑卡片。修复前不建议把这轮 UI 审查标记为通过。</p>
+</main></body></html>

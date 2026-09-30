@@ -244,6 +244,7 @@ struct EventLogEditSheet: View {
                         }
                     }
                 }
+                .listRowBackground(EditorialDesign.card)
 
                 Section(LocalizedStringKey("label_action")) {
                     Picker(LocalizedStringKey("label_type"), selection: $selectedAction) {
@@ -260,6 +261,7 @@ struct EventLogEditSheet: View {
                     }
                     .pickerStyle(.menu)
                 }
+                .listRowBackground(EditorialDesign.card)
 
                 Section(LocalizedStringKey("label_player")) {
                     let isFoul = selectedAction == .foul
@@ -287,7 +289,9 @@ struct EventLogEditSheet: View {
                     }
                     .padding(.vertical, 4)
                 }
+                .listRowBackground(EditorialDesign.card)
             }
+            .editorialSettingsFormStyle()
             .navigationTitle(existingEntry != nil
                 ? NSLocalizedString("label_edit_event", comment: "")
                 : NSLocalizedString("label_add_event", comment: ""))
@@ -338,22 +342,22 @@ struct EventLogEditSheet: View {
                         .resizable()
                         .frame(width: 44, height: 44)
                         .clipShape(Circle())
-                        .overlay(Circle().stroke(isSelected ? Color.blue : Color.gray.opacity(0.3), lineWidth: 2))
+                        .overlay(Circle().stroke(isSelected ? EditorialDesign.blue : EditorialDesign.divider, lineWidth: 2))
                 } else {
                     ZStack {
                         Circle()
-                            .fill(isSelected ? Color.blue.opacity(0.2) : Color.gray.opacity(0.1))
+                            .fill(isSelected ? EditorialDesign.paleBlue : EditorialDesign.card)
                             .frame(width: 44, height: 44)
                         Text(name.prefix(1).uppercased())
                             .font(.title3.weight(.semibold))
-                            .foregroundStyle(isSelected ? .blue : .secondary)
+                            .foregroundStyle(isSelected ? EditorialDesign.blue : .secondary)
                     }
-                    .overlay(Circle().stroke(isSelected ? Color.blue : Color.gray.opacity(0.3), lineWidth: 2))
+                    .overlay(Circle().stroke(isSelected ? EditorialDesign.blue : EditorialDesign.divider, lineWidth: 2))
                 }
                 Text(name)
                     .font(.caption2)
                     .lineLimit(1)
-                    .foregroundStyle(isSelected ? .blue : .primary)
+                    .foregroundStyle(isSelected ? EditorialDesign.blue : EditorialDesign.navy)
             }
             .frame(width: 56)
         }

@@ -1,0 +1,61 @@
+{
+  "action": "dispatch",
+  "to_stage": "simulator-test",
+  "task_scope": "按 exploratory-first 在指定 iOS Simulator 上验证非记分主要 surface，采集截图、启动日志和可用 accessibility evidence；若无法取得真实页面证据，明确阻塞并输出可复测固定测试计划。",
+  "task_prompt": "你是 Simulator Tester。请先读取 workflow-state.json、03-code-review.html 和 ios-simulator-ui-audit 技能说明。探索设备必须是 iPhone 17e（UDID 1DFF6F6E-8438-4D6D-873B-1B86368728BA），起始状态是 booted、当前 Debug build 已安装，安全边界是只做 terminate/install/launch/screenshot/log，不进入记分操作、不清除设备数据。先提供新截图和可用 AX metadata，再由你选择一个动作；禁止用预写脚本或固定坐标批量点击。由于仓库没有 ui-audit.json/UI Test target，若环境不能提供页面或 AX 证据，必须停止探索并把 management、history/detail、career、player-profile 各自标为 blocked，输出 offline 04-simulator-test.html、截图/日志和待重新运行的 fixed-test plan。不得修改产品代码、Fastlane 或上传内容。",
+  "acceptance_criteria": [
+    "criterion-03",
+    "criterion-05"
+  ],
+  "coverage_ids": [
+    "criterion-03",
+    "criterion-05"
+  ],
+  "required_outputs": [
+    "04-simulator-test.html",
+    "指定设备的启动日志",
+    "探索截图和 accessibility evidence（若可取得）",
+    "明确的 fixed-test plan 或阻塞说明"
+  ],
+  "input_files": [
+    "workflow-state.json",
+    "03-code-review.html",
+    "04-simulator-test.html",
+    "BasketballRecord.xcodeproj/project.pbxproj",
+    "BasketballRecord/Views/ContentView.swift",
+    "BasketballRecord/Views/RosterView.swift",
+    "BasketballRecord/Views/History/HistoryView.swift",
+    "BasketballRecord/Views/Career/CareerView.swift",
+    "BasketballRecord/Views/PlayerProfileView.swift",
+    "BasketballRecord/Views/Game/GameView.swift"
+  ],
+  "changed_files": [],
+  "verification": [
+    "Debug iOS Simulator build succeeded",
+    "指定 iPhone 17e 已 booted",
+    "simctl launch 返回 app PID"
+  ],
+  "unresolved_issues": [
+    "此前 simctl screenshot 只返回桌面或黑屏",
+    "仓库没有 .codex/ui-audit.json 和 UI Test target",
+    "CUA Simulator binding 不可用"
+  ],
+  "prohibited_actions": [
+    "不得修改产品代码、测试代码或 Fastlane 资产",
+    "不得进入或操作记分界面",
+    "不得从黑屏猜测坐标或批量点击",
+    "不得把代码推断写成运行时通过",
+    "不得自行 commit"
+  ],
+  "next_checks": [
+    "确认应用前台窗口和截图是否可见",
+    "尝试获取 accessibility metadata",
+    "如果 blocked，逐个记录四个 surface 和复测条件"
+  ],
+  "knowledge_context": {
+    "feature_ids": ["ui-editorial-theme"],
+    "flow_ids": ["management", "history", "career", "player-profile", "game-scoring-protected"],
+    "test_case_ids": ["exploratory-first", "runtime-surface-coverage"],
+    "known_issue_ids": ["simulator-window-capture", "missing-ui-audit-config"]
+  }
+}

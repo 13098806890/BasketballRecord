@@ -1,0 +1,42 @@
+{
+  "action": "return",
+  "from_stage": "ux-review",
+  "exchange_id": "exchange-0005",
+  "summary": "UX 静态复盘接受共享视觉系统和既有导航连续性建议，拒绝从黑屏猜测点击；深色模式建议改为后续 revised，运行时四个 surface 继续 blocked。",
+  "result_status": "passed",
+  "output_files": [
+    {
+      "path": "05-ux-review.html",
+      "kind": "html",
+      "label": "UX 复盘报告"
+    }
+  ],
+  "changed_files": [],
+  "verification": [
+    "逐个复盘管理、历史/详情、职业成长、球员资料和记分保护边界",
+    "明确区分静态、源码和运行时证据",
+    "所有建议均有 accepted/revised/rejected 处置",
+    "无产品代码或商店资产修改"
+  ],
+  "unresolved_issues": [
+    "四个非记分 surface 仍没有运行时页面/AX evidence",
+    "浅色 token 的深色模式风险保留为 P2"
+  ],
+  "coverage_dispositions": [
+    {
+      "coverage_id": "criterion-01",
+      "status": "passed",
+      "evidence": ["05-ux-review.html", "10-visual-design.html"]
+    },
+    {
+      "coverage_id": "criterion-03",
+      "status": "blocked",
+      "evidence": ["05-ux-review.html", "04-simulator-test.html"]
+    },
+    {
+      "coverage_id": "criterion-05",
+      "status": "blocked",
+      "evidence": ["05-ux-review.html", "04-simulator-test.html"]
+    }
+  ]
+}

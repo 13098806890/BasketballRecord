@@ -182,7 +182,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         self.store = store
         asrEngine = VoiceASREngine.effectiveStored
         if asrEngine == .legacySpeech {
-            prepareEngine()
+            Task { [weak self] in
+                await self?.prepareEngine()
+            }
         }
     }
 
@@ -194,22 +196,24 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     func updateASREngine(_ engine: VoiceASREngine) {
         asrEngine = engine.isAvailableOnCurrentOS ? engine : .legacySpeech
         if asrEngine == .legacySpeech {
-            prepareEngine()
+            Task { [weak self] in
+                await self?.prepareEngine()
+            }
         }
     }
 
-    private func prepareEngine() {
-        guard !enginePrepared else { return }
+    private func prepareEngine() async -> Bool {
+        guard !enginePrepared else { return true }
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
-            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+            try await audioSession.setActive(true, options: .notifyOthersOnDeactivation)
 
             let inputNode = audioEngine.inputNode
             let recordingFormat = inputNode.outputFormat(forBus: 0)
             guard recordingFormat.sampleRate > 0, recordingFormat.channelCount > 0 else {
                 print("[Voice] Invalid recording format: sampleRate=\(recordingFormat.sampleRate) channels=\(recordingFormat.channelCount)")
-                return
+                return false
             }
             inputNode.removeTap(onBus: 0)
             inputNode.installTap(onBus: 0, bufferSize: 512, format: recordingFormat) { [weak self] buffer, _ in
@@ -217,8 +221,10 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             }
             try audioEngine.start()
             enginePrepared = true
+            return true
         } catch {
             print("[Voice] Engine prepare failed: \(error)")
+            return false
         }
     }
 
@@ -246,19 +252,26 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         }
 
         isRecording = true
-        prepareEngine()
 
-        let request = SFSpeechAudioBufferRecognitionRequest()
-        request.shouldReportPartialResults = false
-        recognitionRequest = request
-
-        recognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, error in
+        Task { [weak self] in
             guard let self else { return }
-            if let result, result.isFinal {
-                processText(result.bestTranscription.formattedString)
+            guard await prepareEngine(), isRecording else {
+                isRecording = false
+                return
             }
-            if error != nil {
-                stopRecording()
+
+            let request = SFSpeechAudioBufferRecognitionRequest()
+            request.shouldReportPartialResults = false
+            recognitionRequest = request
+
+            recognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, error in
+                guard let self else { return }
+                if let result, result.isFinal {
+                    processText(result.bestTranscription.formattedString)
+                }
+                if error != nil {
+                    stopRecording()
+                }
             }
         }
     }

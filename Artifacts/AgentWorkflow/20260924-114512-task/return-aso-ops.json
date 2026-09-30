@@ -1,0 +1,44 @@
+{
+  "action": "return",
+  "from_stage": "aso-ops",
+  "exchange_id": "exchange-0006",
+  "summary": "ASO 只读审计完成：记录 version 1.51 中英文 listing 基线、10 locale/5 张截图序列、无版本号的中文截图视觉事实，并生成 prelaunch public-Apple 关键词快照和可视化；未执行任何 ASC 外部写入。",
+  "result_status": "passed",
+  "output_files": [
+    {
+      "path": "13-aso-operations.html",
+      "kind": "html",
+      "label": "ASO 审计报告"
+    },
+    {
+      "path": "aso-keywords-zh-Hans.json",
+      "kind": "json",
+      "label": "中文关键词快照"
+    },
+    {
+      "path": "aso-keywords-en-US.json",
+      "kind": "json",
+      "label": "英文关键词快照"
+    },
+    {
+      "path": "aso-keyword-visualization.html",
+      "kind": "html",
+      "label": "关键词可视化"
+    }
+  ],
+  "changed_files": [],
+  "verification": [
+    "zh-Hans/cn 和 en-US/us 两份 snapshot 已生成",
+    "standalone aso-keyword-visualization.html 已生成",
+    "version 1.51 的中英文 name/subtitle/keywords 字符基线已记录",
+    "zh-Hans 和 en-US 的 01–05 截图均为 1242 × 2688 px",
+    "rank_status=not-applicable，rank_semantics 明确为未上架自身排名不适用",
+    "未登录、未读取 credentials、未修改/上传 App Store Connect"
+  ],
+  "unresolved_issues": [
+    "没有可验证 App ID/ready-for-sale 状态，因此无法报告自身排名",
+    "public Apple autocomplete 返回 provider parse errors，不能得出官方热度",
+    "validation 仍待同一关键词集合和 provider 的复测"
+  ],
+  "coverage_dispositions": []
+}

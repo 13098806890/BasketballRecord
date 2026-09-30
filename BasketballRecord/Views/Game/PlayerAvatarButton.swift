@@ -23,11 +23,12 @@ struct SelectablePlayerAvatarButton: View {
                             .offset(y: 8)
                     }
                 }
-                Text(player.number.isEmpty ? player.name : "No\(player.number) \(player.name)")
+                Text(player.number.isEmpty ? player.name : String(format: NSLocalizedString("player_number_name_format", comment: "Player number and name"), player.number, player.name))
                     .font(.system(size: 14, weight: .medium))
-                    .lineLimit(1)
-                    .minimumScaleFactor(8.0 / 14.0)
-                    .frame(width: 72)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(width: 72, alignment: .top)
+                    .frame(minHeight: 34, alignment: .top)
             }
             .foregroundStyle(GamePalette.text)
         }

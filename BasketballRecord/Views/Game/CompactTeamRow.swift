@@ -14,125 +14,235 @@ struct CompactTeamRow: View {
     var onSelect: (Player, TeamSide) -> Void
     var teamStatsMode: Bool = false
 
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+    @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
+
+    private var usesRoomyLayout: Bool {
+        verticalSizeClass != .compact && UIScreen.main.bounds.height >= 780
+    }
+
+    private var scoreHeaderVerticalPadding: CGFloat {
+        usesRoomyLayout ? 10 : 7
+    }
+
+    private var scoreHeaderHeight: CGFloat {
+        usesRoomyLayout ? 72 : 62
+    }
+
+    private var scoreWidth: CGFloat {
+        let digitCount = max(String(abs(score)).count, 2)
+        let digitWidth = usesRoomyLayout ? 21 : 18
+        return CGFloat(digitCount * digitWidth) + (usesRoomyLayout ? 5 : 4)
+    }
+
+    private var avatarSize: CGFloat {
+        usesRoomyLayout ? 44 : 40
+    }
+
+    private var playerNameHeight: CGFloat {
+        usesRoomyLayout ? 26 : 24
+    }
+
+    private var playerContentHeight: CGFloat {
+        avatarSize + 2 + playerNameHeight
+    }
+
+    private var playerButtonHeight: CGFloat {
+        playerContentHeight + 6
+    }
+
+    private var playerRowSpacing: CGFloat {
+        usesRoomyLayout ? 5 : 3
+    }
+
+    private var playerGridItemSpacing: CGFloat {
+        usesRoomyLayout ? 8 : 6
+    }
+
+    private var teamRowBottomPadding: CGFloat {
+        playerRows.count > 1 ? (usesRoomyLayout ? 4 : 3) : (usesRoomyLayout ? 10 : 7)
+    }
+
+    private var playerRows: [[Player]] {
+        guard !players.isEmpty else { return [] }
+        if players.count <= 3 {
+            return [players]
+        }
+        if players.count == 4 {
+            return [Array(players.prefix(2)), Array(players.dropFirst(2))]
+        }
+
+        return stride(from: 0, to: players.count, by: 3).map { start in
+            Array(players.dropFirst(start).prefix(3))
+        }
+    }
+
+    private var scoreboardColor: Color {
+        side == .home ? GamePalette.homeScoreboard : GamePalette.awayScoreboard
+    }
+
+    private var selectionColor: Color {
+        side == .home ? GamePalette.homeScoreboard : GamePalette.selectedBorder
+    }
+
     var body: some View {
-        HStack(spacing: 10) {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 4) {
-                    Text(team?.name ?? side.displayName)
-                        .font(.caption.weight(.semibold))
-                    Text(side == .home ? LocalizedStringKey("team_home_default") : LocalizedStringKey("team_away_default"))
-                        .font(.system(size: 8, weight: .medium))
-                        .foregroundStyle(.tertiary)
-                }
-                .lineLimit(1)
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text("\(score)")
-                        .font(.title.monospacedDigit().weight(.bold))
-                        .foregroundStyle(isScorePulsing ? GamePalette.period : GamePalette.text)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.75)
-                        .layoutPriority(1)
-                        .scaleEffect(isScorePulsing ? 1.15 : 1)
-                        .animation(.spring(response: 0.2, dampingFraction: 0.72), value: isScorePulsing)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(foulLabel)
-                            .font(.caption2)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .lineLimit(2)
-                        Text("\(fouls)")
-                            .font(.caption.monospacedDigit().weight(.semibold))
-                    }
-                    .frame(maxWidth: 48, alignment: .leading)
-                    .foregroundStyle(.secondary)
-                }
-            }
-            .fixedSize(horizontal: true, vertical: false)
+        VStack(spacing: usesRoomyLayout ? 7 : 5) {
+            scoreHeader
 
             if teamStatsMode {
-                Button {
-                    if let teamID = team?.id {
-                        onSelect(Player(id: teamID, name: team?.name ?? ""), side)
-                    }
-                } label: {
-                    VStack(spacing: 6) {
-                        ZStack {
-                            Circle()
-                                .fill(Color(.systemBackground))
-                                .frame(width: 52, height: 52)
-                                .overlay(Circle().stroke(selectedPlayerID == team?.id && selectedSide == side ? GamePalette.selectedBorder : Color.primary.opacity(0.3), lineWidth: selectedPlayerID == team?.id && selectedSide == side ? 3 : 1.5))
-                            Image(systemName: side == .home ? "crown.fill" : "bolt.fill")
-                                .font(.title3)
-                                .foregroundStyle(.primary)
-                        }
-                        Text(team?.name ?? "")
-                            .font(.system(size: 9, weight: .medium))
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
-                            .frame(width: 72)
-                    }
-                }
-                .buttonStyle(.plain)
-                .opacity(selectedPlayerID == team?.id && selectedSide == side ? 1 : 0.6)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.vertical, 7)
-            } else if players.isEmpty {
+                teamStatsButton
+            } else if playerRows.isEmpty {
                 Text(LocalizedStringKey("text_no_players"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 6)
             } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    let isPad = UIDevice.current.userInterfaceIdiom == .pad
-                    let spacing: CGFloat = isPad ? 10 : players.count >= 5 ? 0 : 6
-                    HStack(spacing: spacing) {
-                        ForEach(players) { player in
-                            let isSelected = selectedPlayerID == player.id && selectedSide == side
-                            let avatarSize: CGFloat = isSelected ? 52 : 42
+                playerGrid
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.top, usesRoomyLayout ? 10 : 7)
+        .padding(.bottom, teamRowBottomPadding)
+        .background(Color.clear, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.white.opacity(0.85), lineWidth: 1))
+    }
 
-                            Button {
-                                onSelect(player, side)
-                            } label: {
-                                VStack(spacing: 3) {
-                                    ZStack(alignment: .bottomTrailing) {
-                                        PlayerAvatarView(player: player, size: avatarSize, isSelected: isSelected)
-                                            .overlay {
-                                                if isSelected {
-                                                    Circle().stroke(GamePalette.selectedBorder, lineWidth: 3)
-                                                } else {
-                                                    Circle().stroke(Color.primary.opacity(0.3), lineWidth: 1.5)
-                                                }
-                                            }
-                                            .animation(.easeInOut(duration: 0.15), value: isSelected)
-
-                                        if onCourtPlayerIDs.contains(player.id) {
-                                            Image(systemName: "checkmark.circle.fill")
-                                                .font(.caption)
-                                                .foregroundStyle(.white, GamePalette.make)
-                                                .background(Circle().fill(.white))
-                                        }
-                                    }
-                                    Text(player.number.isEmpty ? player.name : "No\(player.number) \(player.name)")
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundStyle(onCourtPlayerIDs.contains(player.id) ? .primary : .secondary)
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(7.0 / 12.0)
-                                        .frame(width: 64)
-                                }
-                                .opacity(isSelected ? 1 : 0.6)
-                            }
-                            .buttonStyle(.plain)
+    private var playerGrid: some View {
+        GeometryReader { proxy in
+            VStack(spacing: playerRowSpacing) {
+                ForEach(Array(playerRows.enumerated()), id: \.offset) { _, row in
+                    let cellWidth = playerCellWidth(in: proxy.size.width, rowCount: row.count)
+                    HStack(spacing: playerGridItemSpacing) {
+                        ForEach(row) { player in
+                            playerButton(player)
+                                .frame(width: cellWidth, height: playerButtonHeight)
                         }
                     }
-                    .padding(.vertical, 7)
-                    .padding(.trailing, 8)
+                    .frame(maxWidth: .infinity)
                 }
             }
         }
-        .frame(height: 78)
-        .padding(.horizontal, 12)
-        .background(GamePalette.surface, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.white.opacity(0.85), lineWidth: 1))
-        .padding(.horizontal)
+        .frame(maxWidth: .infinity)
+        .frame(height: CGFloat(playerRows.count) * playerButtonHeight + CGFloat(max(playerRows.count - 1, 0)) * playerRowSpacing)
+    }
 
+    private func playerCellWidth(in availableWidth: CGFloat, rowCount: Int) -> CGFloat {
+        let gaps = CGFloat(max(rowCount - 1, 0)) * playerGridItemSpacing
+        return (availableWidth - gaps) / CGFloat(rowCount)
+    }
+
+    private var scoreHeader: some View {
+        HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(team?.name ?? side.displayName)
+                    .font(.system(size: usesRoomyLayout ? 16 : 14, weight: .bold))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
+                    .multilineTextAlignment(.leading)
+                Text(side == .home ? LocalizedStringKey("team_home_default") : LocalizedStringKey("team_away_default"))
+                    .font(.system(size: usesRoomyLayout ? 11 : 10, weight: .medium))
+                    .opacity(0.78)
+            }
+            .frame(minWidth: 52, maxWidth: .infinity, alignment: .leading)
+            .layoutPriority(1)
+
+            Text("\(score)")
+                .font(.system(size: usesRoomyLayout ? 34 : 30, weight: .bold, design: .monospaced))
+                .lineLimit(1)
+                .minimumScaleFactor(0.55)
+                .frame(width: scoreWidth, height: usesRoomyLayout ? 42 : 36, alignment: .trailing)
+                .layoutPriority(1)
+                .contentTransition(.numericText(countsDown: false))
+                .scaleEffect(isScorePulsing && !accessibilityReduceMotion ? 1.08 : 1)
+                .animation(accessibilityReduceMotion ? nil : .timingCurve(0.23, 1, 0.32, 1, duration: 0.2), value: score)
+                .animation(accessibilityReduceMotion ? nil : .spring(response: 0.2, dampingFraction: 0.72), value: isScorePulsing)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(foulLabel)
+                    .font(.system(size: usesRoomyLayout ? 10 : 9, weight: .medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                Text("\(fouls)")
+                    .font(.system(size: usesRoomyLayout ? 15 : 13, weight: .bold).monospacedDigit())
+            }
+            .fixedSize(horizontal: true, vertical: false)
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 8)
+        .padding(.vertical, scoreHeaderVerticalPadding)
+        .frame(height: scoreHeaderHeight)
+        .background(scoreboardColor, in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    private var teamStatsButton: some View {
+        Button {
+            if let teamID = team?.id {
+                onSelect(Player(id: teamID, name: team?.name ?? ""), side)
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: side == .home ? "crown.fill" : "bolt.fill")
+                Text(team?.name ?? "")
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                Spacer(minLength: 0)
+                Text(LocalizedStringKey("label_team_stats_mode"))
+                    .foregroundStyle(.secondary)
+            }
+            .font(.caption.weight(.semibold))
+            .frame(maxWidth: .infinity, minHeight: 30)
+            .padding(.horizontal, 10)
+            .background(Color.clear, in: RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(GamePalette.text)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(selectedPlayerID == team?.id && selectedSide == side ? GamePalette.selectedBorder : Color.primary.opacity(0.15), lineWidth: selectedPlayerID == team?.id && selectedSide == side ? 2 : 1)
+        )
+    }
+
+    private func playerButton(_ player: Player) -> some View {
+        let isSelected = selectedPlayerID == player.id && selectedSide == side
+
+        return Button {
+            onSelect(player, side)
+        } label: {
+            VStack(spacing: 2) {
+                PlayerAvatarView(player: player, size: avatarSize, isSelected: isSelected)
+                    .overlay {
+                        Circle().stroke(isSelected ? selectionColor : Color.primary.opacity(0.22), lineWidth: isSelected ? 3 : 1)
+                    }
+                    .overlay(alignment: .bottomTrailing) {
+                        if !player.number.isEmpty {
+                            Text("#\(player.number)")
+                                .font(.system(size: 8, weight: .bold, design: .monospaced))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 3)
+                                .padding(.vertical, 2)
+                                .background(scoreboardColor.opacity(0.72), in: Capsule())
+                                .overlay {
+                                    Capsule()
+                                        .stroke(.white.opacity(0.45), lineWidth: 0.5)
+                                }
+                                .padding(2)
+                        }
+                    }
+
+                Text(player.name)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(onCourtPlayerIDs.contains(player.id) ? GamePalette.text : .secondary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.55)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity, minHeight: playerNameHeight)
+            }
+            .frame(maxWidth: .infinity, minHeight: playerContentHeight)
+            .padding(.vertical, 3)
+            .contentShape(Rectangle())
+            .opacity(isSelected ? 1 : 0.72)
+        }
+        .buttonStyle(.plain)
     }
 }
