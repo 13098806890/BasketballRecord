@@ -1,0 +1,3 @@
+Updated localized product pages with new screenshots and clearer highlights for live scoring, player stats, AI game review, team collaboration, and career data.
+
+Refined store copy to make the app’s core features easier to understand.
