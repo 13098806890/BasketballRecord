@@ -1,0 +1,1 @@
+Manage games with more flexibility: batch Excel exports, player positions, natural multilingual AI recaps, and reliable event editing and stat recalculation.

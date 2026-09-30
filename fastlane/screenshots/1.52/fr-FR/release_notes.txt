@@ -1,0 +1,3 @@
+Pages produit localisées avec de nouvelles captures et des points forts plus clairs : score en direct, statistiques, analyse IA, collaboration d’équipe et données de carrière.
+
+Les textes de la fiche ont été améliorés pour présenter plus clairement les fonctions principales.
