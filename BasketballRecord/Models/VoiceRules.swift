@@ -162,6 +162,9 @@ struct VoiceRules: Sendable {
     func namePinyinVariants(_ name: String) -> [String] {
         let clean = toPinyin(name)
         var variants = [clean]
+        for variant in generatePinyinVariants(name) where !variants.contains(variant) {
+            variants.append(variant)
+        }
         let letters = name.lowercased().filter { $0.isLetter && $0.isASCII }
         if letters.count >= 1 && letters.count <= 4 {
             let letterPinyins = letters.map { letterPinyin($0) }
@@ -172,13 +175,17 @@ struct VoiceRules: Sendable {
         if !surnamePinyinOverrides.isEmpty {
             let chars = Array(name)
             let syllables = clean.split(separator: " ").map(String.init)
-            guard syllables.count == chars.count else { return variants }
-            for (i, ch) in chars.enumerated() {
-                guard let alternatives = surnamePinyinOverrides[ch] else { continue }
-                for alt in alternatives {
-                    var altSyllables = syllables
-                    altSyllables[i] = alt
-                    variants.append(altSyllables.joined(separator: " "))
+            if syllables.count == chars.count {
+                for (i, ch) in chars.enumerated() {
+                    guard let alternatives = surnamePinyinOverrides[ch] else { continue }
+                    for alt in alternatives {
+                        var altSyllables = syllables
+                        altSyllables[i] = alt
+                        let variant = altSyllables.joined(separator: " ")
+                        if !variants.contains(variant) {
+                            variants.append(variant)
+                        }
+                    }
                 }
             }
         }
@@ -206,18 +213,74 @@ struct VoiceRules: Sendable {
     /// Detect the best rule set for the current app language.
     static func forCurrentAppLanguage() -> VoiceRules {
         let preferredLang = Bundle.main.preferredLocalizations.first ?? "zh-Hans"
-        switch preferredLang {
-        case "en": return .english
-        case "ja": return .japanese
-        case "ko": return .korean
-        case "de": return .german
-        case "es": return .spanish
-        case "fr": return .french
-        case "it": return .italian
-        case "ru": return .russian
-        case "zh-Hant-TW", "zh-Hant-HK": return .traditionalChinese
+        return forLocale(Locale(identifier: preferredLang))
+    }
+
+    static func forLocale(_ locale: Locale) -> VoiceRules {
+        let identifier = locale.identifier
+        switch identifier {
+        case let id where id.hasPrefix("en"): return .english
+        case let id where id.hasPrefix("ja"): return .japanese
+        case let id where id.hasPrefix("ko"): return .korean
+        case let id where id.hasPrefix("de"): return .german
+        case let id where id.hasPrefix("es"): return .spanish
+        case let id where id.hasPrefix("fr"): return .french
+        case let id where id.hasPrefix("it"): return .italian
+        case let id where id.hasPrefix("ru"): return .russian
+        case let id where id.hasPrefix("zh-Hant"): return .traditionalChinese
         default: return .chinese
         }
+    }
+
+    func contextualStrings(playerNames: [String], playerNumbers: [String] = []) -> [String] {
+        var values = playerNames
+        values.append(contentsOf: shotKeywords.map(\.keyword))
+        values.append(contentsOf: madeStates)
+        values.append(contentsOf: missedStates)
+        values.append(contentsOf: statEvents.map(\.keyword))
+        values.append(contentsOf: substitutionKeywords)
+        values.append(contentsOf: commandEvents.map(\.keyword))
+        values.append(contentsOf: playerNumberContextualStrings(numbers: playerNumbers))
+        let languageCode: String
+        if locale.identifier.hasPrefix("zh-Hant") {
+            languageCode = "zh-Hant"
+        } else {
+            languageCode = locale.identifier.split(separator: "-").first.map(String.init) ?? locale.identifier
+        }
+        let templates = VoiceCommandExamples.templates(for: languageCode)
+        for (index, name) in playerNames.enumerated() {
+            let number = index < playerNumbers.count ? playerNumbers[index].trimmingCharacters(in: .whitespacesAndNewlines) : ""
+            for template in templates.actionTemplates.values.flatMap({ $0 }) {
+                var phrase = template.replacingOccurrences(of: "{name}", with: name)
+                phrase = phrase.replacingOccurrences(of: "{number}", with: number)
+                phrase = phrase.replacingOccurrences(of: "{team}", with: "")
+                if let target = playerNames.first(where: { $0 != name }) {
+                    phrase = phrase.replacingOccurrences(of: "{target}", with: target)
+                }
+                if !phrase.contains("{") && !phrase.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    values.append(phrase)
+                }
+            }
+        }
+        values.append(contentsOf: templates.shotExamples.map(\.1))
+        values.append(contentsOf: templates.statExamples.map(\.1))
+        return Array(Set(values.filter { !$0.isEmpty })).sorted()
+    }
+
+    private func playerNumberContextualStrings(numbers: [String]) -> [String] {
+        let values = numbers.filter { Int($0) != nil }.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        guard !values.isEmpty else { return [] }
+        let uniqueNumbers = Array(Set(values)).sorted { (Int($0) ?? 0) < (Int($1) ?? 0) }
+        if locale.identifier.hasPrefix("zh-Hant") { return uniqueNumbers.map { "\($0)號" } }
+        if locale.identifier.hasPrefix("zh") { return uniqueNumbers.map { "\($0)号" } }
+        if locale.identifier.hasPrefix("ja") { return uniqueNumbers.map { "\($0)番" } }
+        if locale.identifier.hasPrefix("ko") { return uniqueNumbers.map { "\($0)번" } }
+        if locale.identifier.hasPrefix("de") { return uniqueNumbers.map { "Nummer \($0)" } }
+        if locale.identifier.hasPrefix("es") { return uniqueNumbers.map { "número \($0)" } }
+        if locale.identifier.hasPrefix("fr") { return uniqueNumbers.map { "numéro \($0)" } }
+        if locale.identifier.hasPrefix("it") { return uniqueNumbers.map { "numero \($0)" } }
+        if locale.identifier.hasPrefix("ru") { return uniqueNumbers.map { "номер \($0)" } }
+        return uniqueNumbers.map { "number \($0)" }
     }
 
     /// All supported rule sets for testing.

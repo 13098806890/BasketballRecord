@@ -42,8 +42,8 @@ extension VoiceRulesData {
             ShotKeywordData(keyword: "penetrazione", eventPrefix: "stat.two"),
             ShotKeywordData(keyword: "tiro in sospensione", eventPrefix: "stat.two")
         ],
-        madeStates: ["segnato", "fatto", "dentro", "buono", "riuscito"],
-        missedStates: ["sbagliato", "fuori", "bloccato", "mancato", "no", "aria"],
+        madeStates: ["segnato", "segnata", "fatto", "dentro", "buono", "riuscito", "realizzato"],
+        missedStates: ["sbagliato", "sbagliata", "fuori", "bloccato", "mancato", "no", "aria"],
         statEvents: [
             ["fallo", "stat.foul"],
             ["falo", "stat.foul"],

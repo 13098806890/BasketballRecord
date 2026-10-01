@@ -49,8 +49,8 @@ extension VoiceRulesData {
              ShotKeywordData(keyword: "percée", eventPrefix: "stat.two"),
             ShotKeywordData(keyword: "tir en suspension", eventPrefix: "stat.two")
         ],
-        madeStates: ["réussi", "bon", "dedans", "marqué", "rentré"],
-        missedStates: ["raté", "dehors", "loupé", "contré", "manqué", "bloqué", "non", "airball"],
+        madeStates: ["réussi", "réussit", "bon", "dedans", "marqué", "rentré", "réalise"],
+        missedStates: ["raté", "rate", "dehors", "loupé", "contré", "manqué", "bloqué", "non", "airball"],
         statEvents: [
             ["faute", "stat.foul"],
             ["fot", "stat.foul"],
@@ -78,6 +78,7 @@ extension VoiceRulesData {
             ["intersetion", "stat.steal"],
             ["perte de balle", "stat.turnover"],
             ["perte de bal", "stat.turnover"],
+            ["perd de balle", "stat.turnover"],
             ["marcher", "stat.turnover"],
             ["marche", "stat.turnover"],
             ["marché", "stat.turnover"],

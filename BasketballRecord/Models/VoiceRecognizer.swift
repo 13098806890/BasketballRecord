@@ -12,6 +12,40 @@ struct VoiceLogEntry: Identifiable, Codable, Hashable {
     let playerName: String?
     let matchedPattern: String?
     let matchDetail: String?
+    let locale: String?
+    let engine: String?
+    let stage: String?
+    let failureReason: String?
+
+    init(
+        id: UUID = UUID(),
+        timestamp: Date,
+        text: String,
+        textPinyin: String,
+        isSuccess: Bool,
+        action: String?,
+        playerName: String?,
+        matchedPattern: String?,
+        matchDetail: String?,
+        locale: String? = nil,
+        engine: String? = nil,
+        stage: String? = nil,
+        failureReason: String? = nil
+    ) {
+        self.id = id
+        self.timestamp = timestamp
+        self.text = text
+        self.textPinyin = textPinyin
+        self.isSuccess = isSuccess
+        self.action = action
+        self.playerName = playerName
+        self.matchedPattern = matchedPattern
+        self.matchDetail = matchDetail
+        self.locale = locale
+        self.engine = engine
+        self.stage = stage
+        self.failureReason = failureReason
+    }
 
     var summary: String {
         if isSuccess {
@@ -54,6 +88,32 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
     private var enginePrepared = false
+    private var asrEngine = VoiceASREngine.effectiveStored
+    private var speechTranscriberStartTask: Task<Void, Never>?
+    private var speechTranscriberStopRequested = false
+    private var speechTranscriberFinishing = false
+    private var speechTranscriberFinalSegments: [[String]] = []
+    private var speechTranscriberEngineStorage: AnyObject?
+
+    @available(iOS 26.0, *)
+    private var speechTranscriberEngine: SpeechTranscriberEngine {
+        if let engine = speechTranscriberEngineStorage as? SpeechTranscriberEngine {
+            return engine
+        }
+        let engine = SpeechTranscriberEngine()
+        engine.onResult = { [weak self] text, alternatives, isFinal in
+            guard let self, isFinal else { return }
+            self.appendSpeechTranscriberFinalSegment(primary: text, alternatives: alternatives)
+        }
+        engine.onError = { [weak self] error in
+            self?.handleSpeechTranscriberError(error)
+        }
+        engine.onFinished = { [weak self] in
+            self?.finishSpeechTranscriberRecording()
+        }
+        speechTranscriberEngineStorage = engine
+        return engine
+    }
 
     override init() {
         let rules = VoiceRules.forCurrentAppLanguage()
@@ -63,19 +123,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     func updateRules(for locale: Locale) {
-        let rules: VoiceRules
-        switch locale.identifier {
-        case let id where id.hasPrefix("en"): rules = .english
-        case let id where id.hasPrefix("ja"): rules = .japanese
-        case let id where id.hasPrefix("ko"): rules = .korean
-        case let id where id.hasPrefix("de"): rules = .german
-        case let id where id.hasPrefix("es"): rules = .spanish
-        case let id where id.hasPrefix("fr"): rules = .french
-        case let id where id.hasPrefix("it"): rules = .italian
-        case let id where id.hasPrefix("ru"): rules = .russian
-        case let id where id.hasPrefix("zh-Hant"): rules = .traditionalChinese
-        default: rules = .chinese
-        }
+        let rules = VoiceRules.forLocale(locale)
         applyRules(rules)
         speechRecognizer = SFSpeechRecognizer(locale: rules.speechRecognizerLocale)
     }
@@ -128,6 +176,14 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             }
         }
         voiceNonShotEvents.append(contentsOf: allCommandEvents)
+        if usesStructuralSpeechMatching {
+            voiceNonShotEvents.sort { left, right in
+                if left.0.count == right.0.count {
+                    return left.1 < right.1
+                }
+                return left.0.count > right.0.count
+            }
+        }
     }
 
     private var store: AppStore?
@@ -150,6 +206,20 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     private var voiceShotEvents: [(keyword: String, chinese: String, code: String, isShot: Bool)] = []
     private var voiceNonShotEvents: [(chinese: String, code: String)] = []
 
+    private var usesStructuralSpeechMatching: Bool {
+        let identifier = currentRules.locale.identifier
+        return identifier.hasPrefix("ja") || identifier.hasPrefix("ko")
+    }
+
+    private struct SpeechActionCandidate {
+        let keyword: String
+        let code: String
+        let leftText: String
+        let rightText: String
+        let isShot: Bool
+        let score: Double
+    }
+
     /// Full list of stat events from the current rules (unfiltered).
     private var allStatEvents: [(chinese: String, code: String)] = []
     /// Full list of command events from the current rules.
@@ -171,8 +241,25 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     func configure(store: AppStore) {
         self.store = store
-        Task { [weak self] in
-            await self?.prepareEngine()
+        asrEngine = VoiceASREngine.effectiveStored
+        if asrEngine == .legacySpeech {
+            Task { [weak self] in
+                await self?.prepareEngine()
+            }
+        }
+    }
+
+    func configureForFileEvaluation(store: AppStore, engine: VoiceASREngine = .speechTranscriber) {
+        self.store = store
+        asrEngine = engine
+    }
+
+    func updateASREngine(_ engine: VoiceASREngine) {
+        asrEngine = engine.isAvailableOnCurrentOS ? engine : .legacySpeech
+        if asrEngine == .legacySpeech {
+            Task { [weak self] in
+                await self?.prepareEngine()
+            }
         }
     }
 
@@ -181,7 +268,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
-            try await audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+            try await AudioSessionActivation.activate(audioSession)
 
             let inputNode = audioEngine.inputNode
             let recordingFormat = inputNode.outputFormat(forBus: 0)
@@ -203,6 +290,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     func startRecording() {
+        guard !speechTranscriberFinishing else { return }
         onClear?()
 
         guard SFSpeechRecognizer.authorizationStatus() == .authorized else {
@@ -215,6 +303,11 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             showError(NSLocalizedString("voice_auth_microphone", comment: ""))
             return
         }
+        if asrEngine == .speechTranscriber {
+            startSpeechTranscriberRecording()
+            return
+        }
+
         guard let recognizer = speechRecognizer, recognizer.isAvailable else {
             showError(NSLocalizedString("voice_unavailable", comment: ""))
             return
@@ -247,11 +340,165 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     func stopRecording() {
         guard isRecording else { return }
+
+        if asrEngine == .speechTranscriber {
+            isRecording = false
+            speechTranscriberStopRequested = true
+            speechTranscriberFinishing = true
+            if #available(iOS 26.0, *) {
+                speechTranscriberEngine.requestStop()
+            }
+            return
+        }
+
         isRecording = false
         recognitionRequest?.endAudio()
         recognitionTask?.finish()
         recognitionTask = nil
         recognitionRequest = nil
+    }
+
+    private func startSpeechTranscriberRecording() {
+        guard #available(iOS 26.0, *) else {
+            showError(NSLocalizedString("voice_speech_transcriber_unavailable", comment: ""))
+            return
+        }
+
+        isRecording = true
+        speechTranscriberFinalSegments.removeAll()
+        speechTranscriberStopRequested = false
+        speechTranscriberFinishing = false
+        speechTranscriberStartTask?.cancel()
+        let locale = currentRules.speechRecognizerLocale
+        let contextualStrings = speechTranscriberContextualStrings()
+        speechTranscriberStartTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await speechTranscriberEngine.start(locale: locale, contextualStrings: contextualStrings)
+                if speechTranscriberStopRequested {
+                    speechTranscriberEngine.requestStop()
+                }
+            } catch is CancellationError {
+            } catch {
+                isRecording = false
+                speechTranscriberFinishing = false
+                speechTranscriberFinalSegments.removeAll()
+                showError(error.localizedDescription)
+            }
+        }
+    }
+
+    private func speechTranscriberContextualStrings() -> [String] {
+        guard let store else { return currentRules.contextualStrings(playerNames: []) }
+        let snapshotIDs = (currentSnapshot?.homeOnCourtPlayerIDs ?? [])
+            + (currentSnapshot?.homeAvailablePlayerIDs ?? [])
+            + (currentSnapshot?.awayOnCourtPlayerIDs ?? [])
+            + (currentSnapshot?.awayAvailablePlayerIDs ?? [])
+        let players = snapshotIDs.isEmpty ? store.players : snapshotIDs.compactMap { store.player(for: $0) }
+        return currentRules.contextualStrings(
+            playerNames: players.map(\.name),
+            playerNumbers: players.map(\.number)
+        )
+    }
+
+    private func processSpeechTranscriberCandidates(primary: String, alternatives: [String]) {
+        var candidates = [primary]
+        for alternative in alternatives where !alternative.isEmpty && !candidates.contains(alternative) {
+            candidates.append(alternative)
+        }
+        let selected = candidates.max { left, right in
+            speechTranscriberCandidateScore(left) < speechTranscriberCandidateScore(right)
+        } ?? primary
+        processText(selected)
+    }
+
+    private func appendSpeechTranscriberFinalSegment(primary: String, alternatives: [String]) {
+        var candidates = [primary]
+        for alternative in alternatives where !alternative.isEmpty && !candidates.contains(alternative) {
+            candidates.append(alternative)
+        }
+        speechTranscriberFinalSegments.append(candidates)
+    }
+
+    private func finishSpeechTranscriberRecording() {
+        guard speechTranscriberFinishing else { return }
+        speechTranscriberFinishing = false
+
+        let segmentCandidates = speechTranscriberFinalSegments
+        speechTranscriberFinalSegments.removeAll()
+        guard !segmentCandidates.isEmpty else { return }
+
+        var combinedCandidates = [""]
+        for segment in segmentCandidates {
+            let options = segment.prefix(4)
+            var nextCandidates: [String] = []
+            for prefix in combinedCandidates {
+                for option in options {
+                    let combined = [prefix, option]
+                        .filter { !$0.isEmpty }
+                        .joined(separator: " ")
+                    if !nextCandidates.contains(combined) {
+                        nextCandidates.append(combined)
+                    }
+                    if nextCandidates.count >= 64 { break }
+                }
+                if nextCandidates.count >= 64 { break }
+            }
+            combinedCandidates = nextCandidates
+        }
+
+        guard let primary = combinedCandidates.first else { return }
+        processSpeechTranscriberCandidates(
+            primary: primary,
+            alternatives: Array(combinedCandidates.dropFirst())
+        )
+    }
+
+    private func speechTranscriberCandidateScore(_ text: String) -> Int {
+        let normalized = normalizeSpeechTranscriberText(text).lowercased()
+        guard !normalized.isEmpty else { return 0 }
+        var score = 0
+        let pinyinVariants = currentRules.generatePinyinVariants(normalized)
+        for keyword in currentRules.shotKeywords.map(\.keyword) where normalized.contains(keyword.lowercased()) {
+            score += 3
+        }
+        for keyword in currentRules.shotKeywords.map(\.keyword) where pinyinVariants.contains(where: { $0.contains(currentRules.toPinyin(keyword)) }) {
+            score += 3
+        }
+        for keyword in currentRules.statEvents.map(\.keyword) where normalized.contains(keyword.lowercased()) {
+            score += 3
+        }
+        for keyword in currentRules.statEvents.map(\.keyword) where pinyinVariants.contains(where: { $0.contains(currentRules.toPinyin(keyword)) }) {
+            score += 3
+        }
+        for keyword in currentRules.commandEvents.map(\.keyword) where normalized.contains(keyword.lowercased()) {
+            score += 3
+        }
+        for keyword in currentRules.commandEvents.map(\.keyword) where pinyinVariants.contains(where: { $0.contains(currentRules.toPinyin(keyword)) }) {
+            score += 3
+        }
+        for keyword in currentRules.madeStates + currentRules.missedStates where normalized.contains(keyword.lowercased()) {
+            score += 1
+        }
+        for player in store?.players ?? [] where normalized.contains(player.name.lowercased()) {
+            score += 4
+        }
+        for player in store?.players ?? [] {
+            let nameVariants = currentRules.namePinyinVariants(player.name)
+            if nameVariants.contains(where: { name in pinyinVariants.contains(where: { $0.contains(name) }) }) {
+                score += 4
+            }
+        }
+        return score
+    }
+
+    private func handleSpeechTranscriberError(_ error: Error) {
+        guard isRecording else { return }
+        isRecording = false
+        speechTranscriberStopRequested = false
+        speechTranscriberFinishing = false
+        speechTranscriberFinalSegments.removeAll()
+        showError(error.localizedDescription)
     }
 
     /// Start buffering log details for a new recognition session.
@@ -277,15 +524,22 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     /// Should be called when recognition completes (success or failure).
     private func logFlush(isSuccess: Bool, action: String? = nil, playerName: String? = nil, matchedPattern: String? = nil) {
         guard let store, store.voiceLogEnabled else { return }
+        let finalAction = action ?? logAction
+        let finalPlayerName = playerName ?? logPlayerName
+        let finalSuccess = isSuccess || (logIsSuccess && finalAction != nil && finalPlayerName != nil)
         let entry = VoiceLogEntry(
             timestamp: Date(),
             text: logText,
             textPinyin: currentRules.toPinyin(logText),
-            isSuccess: isSuccess,
-            action: action ?? logAction,
-            playerName: playerName ?? logPlayerName,
+            isSuccess: finalSuccess,
+            action: finalAction,
+            playerName: finalPlayerName,
             matchedPattern: matchedPattern ?? logPattern,
-            matchDetail: logBuffer
+            matchDetail: logBuffer,
+            locale: currentRules.locale.identifier,
+            engine: asrEngine.rawValue,
+            stage: "parser",
+            failureReason: finalSuccess ? nil : voiceLogFailureReason(logBuffer)
         )
         appendToVoiceLog(entry)
         // Clear buffer after flushing
@@ -339,9 +593,22 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             action: action,
             playerName: playerName,
             matchedPattern: matchedPattern,
-            matchDetail: matchDetail
+            matchDetail: matchDetail,
+            locale: currentRules.locale.identifier,
+            engine: asrEngine.rawValue,
+            stage: "parser",
+            failureReason: isSuccess ? nil : voiceLogFailureReason(matchDetail)
         )
         appendToVoiceLog(entry)
+    }
+
+    private func voiceLogFailureReason(_ detail: String?) -> String {
+        guard let detail else { return "parser_failure" }
+        if detail.contains("全文无匹配") { return "no_parser_match" }
+        if detail.contains("未匹配到球员") { return "player_not_matched" }
+        if detail.contains("无对应StatAction") { return "unknown_action" }
+        if detail.contains("无球员匹配") { return "player_not_matched" }
+        return "parser_failure"
     }
 
     // MARK: - Helper Methods for UI Feedback
@@ -378,6 +645,42 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         return results
     }
 
+    private func localizedPlayerNameVariants(_ playerName: String) -> [String] {
+        let locale = currentRules.locale.identifier
+        let name = playerName.lowercased()
+        if locale.hasPrefix("ja") {
+            let aliases: [String: [String]] = [
+                "emma": ["エマ"],
+                "michael": ["マイケル", "マイコー"],
+                "alice": ["アリス"],
+                "john": ["ジョン"],
+                "david": ["デイビッド", "デビッド"]
+            ]
+            var variants = aliases[name] ?? []
+            let characters = Array(playerName)
+            if characters.count >= 3, characters.allSatisfy(Self.isSpeechTranscriberNativeScriptCharacter) {
+                variants.append(String(characters.prefix(2)))
+            }
+            return variants
+        }
+        if locale.hasPrefix("ko") {
+            let aliases: [String: [String]] = [
+                "emma": ["엠마"],
+                "michael": ["마이클", "마이콜", "마이컬"],
+                "alice": ["앨리스", "알리스"],
+                "john": ["존"],
+                "david": ["데이비드", "데이빗"]
+            ]
+            var variants = aliases[name] ?? []
+            let characters = Array(playerName)
+            if characters.count >= 3, characters.allSatisfy(Self.isSpeechTranscriberNativeScriptCharacter) {
+                variants.append(String(characters.suffix(2)))
+            }
+            return variants
+        }
+        return []
+    }
+
     private func matchPlayerIDsDebug(text: String, textPinyin: String, in allIDs: [UUID], context: String = "") -> ([(UUID, TeamSide, Double)], String) {
         guard let store, let snapshot = currentSnapshot else { return ([], "\(context): store/snapshot=nil") }
         var results: [(UUID, TeamSide, Double)] = []
@@ -391,10 +694,17 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 let nameLower = player.name.lowercased()
 
                 // Priority 1: Direct text match (highest confidence)
-                if text.lowercased().contains(nameLower) || nameLower.contains(text.lowercased()) {
+                let lowerText = text.lowercased()
+                if lowerText == nameLower || lowerText.contains(nameLower) {
                     let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
                     results.append((id, side, 1.0))
                     details.append("\(player.name)(直配1.0)")
+                    continue
+                }
+                if !lowerText.isEmpty, nameLower.contains(lowerText) {
+                    let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
+                    results.append((id, side, 0.86))
+                    details.append("\(player.name)(姓名片段0.86)")
                     continue
                 }
 
@@ -413,12 +723,44 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     if results.last?.0 == id { continue }
                 }
 
+                if asrEngine == .speechTranscriber {
+                    let normalizedText = text.lowercased()
+                    if let matchedVariant = localizedPlayerNameVariants(player.name).first(where: { normalizedText.contains($0.lowercased()) }) {
+                        let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
+                        results.append((id, side, 0.98))
+                        details.append("\(player.name)(本地发音别名:\(matchedVariant))")
+                        continue
+                    }
+                }
+
+                if asrEngine == .speechTranscriber,
+                   speechTranscriberHasUniqueNameToken(
+                       text: text,
+                       playerName: player.name,
+                       playerNames: allIDs.compactMap { store.player(for: $0)?.name }
+                   ) {
+                    let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
+                    results.append((id, side, 0.92))
+                    details.append("\(player.name)(唯一姓名词匹配0.92)")
+                    continue
+                }
+
                 // Priority 1.5: Levenshtein distance for Latin-script names
-                if currentRules.useLevenshteinMatching {
+                if currentRules.useLevenshteinMatching || asrEngine == .speechTranscriber {
                     let dist = Self.levenshteinDistance(text, player.name)
-                    let threshold = player.name.count < 4
+                    let baseThreshold = player.name.count < 4
                         ? currentRules.levenshteinThreshold.short
                         : currentRules.levenshteinThreshold.long
+                    let hasLatin = player.name.contains { $0.isASCII && $0.isLetter }
+                    let hasNonLatin = player.name.contains { !$0.isASCII }
+                    let threshold: Int
+                    if asrEngine == .speechTranscriber && hasLatin && hasNonLatin {
+                        threshold = max(baseThreshold, 4)
+                    } else if asrEngine == .speechTranscriber && player.name.count >= 4 {
+                        threshold = max(baseThreshold, 3)
+                    } else {
+                        threshold = baseThreshold
+                    }
                     if dist > 0 && dist <= threshold {
                         let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
                         let score = max(0.65, 0.85 - Double(dist) * 0.05)
@@ -484,11 +826,14 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
 
                 // Priority 1.5: Levenshtein distance for team names
-                if currentRules.useLevenshteinMatching {
+                if currentRules.useLevenshteinMatching || asrEngine == .speechTranscriber {
                     let dist = Self.levenshteinDistance(text, team.name)
-                    let threshold = team.name.count < 4
+                    let baseThreshold = team.name.count < 4
                         ? currentRules.levenshteinThreshold.short
                         : currentRules.levenshteinThreshold.long
+                    let threshold = asrEngine == .speechTranscriber && team.name.count >= 4
+                        ? max(baseThreshold, 3)
+                        : baseThreshold
                     if dist > 0 && dist <= threshold {
                         let side: TeamSide = isHome ? .home : .away
                         let score = max(0.65, 0.85 - Double(dist) * 0.05)
@@ -527,6 +872,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             if a.2 != b.2 { return a.2 > b.2 }
             let aName = store.player(for: a.0)?.name ?? store.team(for: a.0)?.name ?? ""
             let bName = store.player(for: b.0)?.name ?? store.team(for: b.0)?.name ?? ""
+            if a.2 == 0.86, aName.count != bName.count {
+                return aName.count < bName.count
+            }
             return aName.count > bName.count
         }
 
@@ -690,12 +1038,10 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
         if playerID == nil, !left.isEmpty {
             let leftPinyin = currentRules.toPinyin(left)
-            let matchIDs = matchableIDs(from: allIDs, snapshot: snapshot)
-            let (matches, dbg) = matchPlayerIDsDebug(text: left, textPinyin: leftPinyin, in: matchIDs, context: "锚点左侧球员")
-            dbgPlayer = dbg
-            if let m = matches.first {
-                playerID = m.0
-                side = m.1
+            if let res = resolvedPlayerCandidate(text: left, textPinyin: leftPinyin, in: allIDs, context: "锚点左侧球员") {
+                playerID = res.playerID
+                side = res.side
+                dbgPlayer = res.debug
             }
         }
 
@@ -722,54 +1068,701 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     private func processText(_ text: String) {
+        let normalizedText = asrEngine == .speechTranscriber
+            ? normalizeSpeechTranscriberText(text)
+            : text
         preferredPlayerNumber = nil
-        logStart(text)
-        let textPinyin = currentRules.toPinyin(text)
-        logStep("原文: \(text) | 拼音: \(textPinyin)")
+        logStart(normalizedText)
+        let textPinyin = currentRules.toPinyin(normalizedText)
+        logStep("原文: \(normalizedText) | 拼音: \(textPinyin)")
 
         if let mappings = store?.customVoiceMappings {
             for (phrase, eventCode) in mappings {
-                guard let range = text.range(of: phrase, options: [.caseInsensitive]) else { continue }
+                guard let range = normalizedText.range(of: phrase, options: [.caseInsensitive]) else { continue }
                 let action = StatAction.allCases.first(where: { $0.eventCode == eventCode })
                 guard let store, let snapshot = currentSnapshot, let act = action else {
-                    addLog(text: text, isSuccess: false, action: eventCode, matchDetail: "自定义映射无对应动作: \(phrase)")
+                    addLog(text: normalizedText, isSuccess: false, action: eventCode, matchDetail: "自定义映射无对应动作: \(phrase)")
                     return
                 }
-                let leftText = String(text[text.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
+                let leftText = String(normalizedText[normalizedText.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
                 let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
                 var pid: UUID?; var sd: TeamSide?
                 if let res = resolvePlayerNumber(from: leftText, allIDs: allIDs) { pid = res.playerID; sd = res.side }
                 if pid == nil, !leftText.isEmpty {
                     let leftPinyin = currentRules.toPinyin(leftText)
-                    let (matches, _) = matchPlayerIDsDebug(text: leftText, textPinyin: leftPinyin, in: allIDs, context: "自定义映射")
-                    if let m = matches.first { pid = m.0; sd = m.1 }
+                    if let res = resolvedPlayerCandidate(text: leftText, textPinyin: leftPinyin, in: allIDs, context: "自定义映射") {
+                        pid = res.playerID
+                        sd = res.side
+                    }
                 }
                 guard let playerID = pid, let side = sd else {
-                    addLog(text: text, isSuccess: false, action: eventCode, matchDetail: "自定义映射无球员匹配: \(phrase)")
+                    addLog(text: normalizedText, isSuccess: false, action: eventCode, matchDetail: "自定义映射无球员匹配: \(phrase)")
                     return
                 }
                 let pn = store.player(for: playerID)?.name ?? "?"
-                addLog(text: text, isSuccess: true, action: act.message, playerName: pn, matchedPattern: eventCode, matchDetail: "自定义映射: \(phrase)")
-                showSuccessFeedback(text: text, action: act, playerID: playerID, side: side)
+                addLog(text: normalizedText, isSuccess: true, action: act.message, playerName: pn, matchedPattern: eventCode, matchDetail: "自定义映射: \(phrase)")
+                showSuccessFeedback(text: normalizedText, action: act, playerID: playerID, side: side)
                 return
             }
         }
 
-        if currentRules.substitutionKeywords.contains(where: { text.range(of: $0, options: [.caseInsensitive]) != nil }) {
-            handleSubstitution(text: text, textPinyin: textPinyin)
+        if asrEngine == .speechTranscriber, processSpeechTranscriberCommand(normalizedText) { return }
+
+        if currentRules.substitutionKeywords.contains(where: { normalizedText.range(of: $0, options: [.caseInsensitive]) != nil }) {
+            handleSubstitution(text: normalizedText, textPinyin: textPinyin)
             return
         }
 
         // Only preprocess English text for English locale
-        let processedText = currentRules.locale.identifier.hasPrefix("en") ? preprocessEnglishText(text) : text
+        let preprocessedText = currentRules.locale.identifier.hasPrefix("en") ? preprocessEnglishText(normalizedText) : normalizedText
+        let processedText = expandMergedPlayerShotNumber(in: preprocessedText)
+        let processedTextPinyin = currentRules.toPinyin(processedText)
 
         if processAnchorMatch(processedText) { return }
-        if processByDirectTextMatching(text: processedText, textPinyin: textPinyin) { return }
-        if processByPinyinFallback(text: processedText, textPinyin: textPinyin) { return }
+        if processByDirectTextMatching(text: processedText, textPinyin: processedTextPinyin) { return }
+        if processByPinyinFallback(text: processedText, textPinyin: processedTextPinyin) { return }
 
-        addLog(text: processedText, isSuccess: false, matchDetail: "❌ 全文无匹配: \(processedText) | 拼音: \(textPinyin)")
+        addLog(text: processedText, isSuccess: false, matchDetail: "❌ 全文无匹配: \(processedText) | 拼音: \(processedTextPinyin)")
         showError(String(format: NSLocalizedString("voice_unrecognized_format", comment: ""), processedText))
         onFlash?(.red)
+    }
+
+    private func expandMergedPlayerShotNumber(in text: String) -> String {
+        guard let store, let snapshot = currentSnapshot else { return text }
+        let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
+        let playerNumbers = Set(allIDs.compactMap { store.player(for: $0)?.number })
+        guard !playerNumbers.isEmpty,
+              let regex = try? NSRegularExpression(pattern: "(?i)\\bnumber\\s+(\\d{2,3})\\b") else { return text }
+
+        var expanded = text
+        let matches = regex.matches(in: text, range: NSRange(text.startIndex..., in: text)).reversed()
+        for match in matches {
+            guard match.numberOfRanges > 1,
+                  let tokenRange = Range(match.range(at: 1), in: text) else { continue }
+            let digits = String(text[tokenRange])
+            guard let last = digits.last,
+                  last == "2" || last == "3" else { continue }
+            let prefix = String(digits.dropLast())
+            guard prefix != "0",
+                  playerNumbers.contains(prefix),
+                  !playerNumbers.contains(digits),
+                  let fullRange = Range(match.range, in: expanded) else { continue }
+            expanded.replaceSubrange(fullRange, with: "number \(prefix) \(last)")
+        }
+        return expanded
+    }
+
+    private func normalizeSpeechTranscriberText(_ text: String) -> String {
+        var normalized = text.precomposedStringWithCanonicalMapping
+        for punctuation in ["，", "。", "！", "？", "、", ",", ".", "!", "?", ";", "：", ":"] {
+            normalized = normalized.replacingOccurrences(of: punctuation, with: " ")
+        }
+        normalized = compactSpeechTranscriberCJKWhitespace(normalized)
+        normalized = normalizeSpeechTranscriberPlayerNumberWords(normalized)
+            let aliases: [(String, String)] = [
+            ("兰下", "篮下"),
+            ("拦下", "篮下"),
+            ("攔下", "籃下"),
+            ("上蓝", "上篮"),
+            ("上兰", "上篮"),
+            ("上藍", "上籃"),
+            ("家伐", "加罚"),
+            ("加伐", "加罚"),
+            ("将罚", "加罚"),
+            ("家罚", "加罚"),
+            ("將罰", "加罰"),
+            ("伐墨", "没中"),
+            ("伐默", "没中"),
+            ("默中", "没中"),
+            ("为中", "没中"),
+            ("味中", "命中"),
+            ("米钟", "命中"),
+            ("秒钟", "命中"),
+            ("助公", "助攻"),
+            ("祖公", "助攻"),
+            ("想乱", "抢断"),
+            ("相乱", "抢断"),
+            ("枪断", "抢断"),
+            ("寇难", "扣篮"),
+            ("钟头", "中投"),
+            ("沖座", "重做"),
+            ("冲座", "重做"),
+            ("罰錢", "罰球"),
+            ("闆", "板")
+        ]
+        for (source, replacement) in aliases {
+            normalized = normalized.replacingOccurrences(of: source, with: replacement)
+        }
+        if currentRules.locale.identifier.hasPrefix("en") {
+            let englishAliases: [(String, String)] = [
+                ("got one", "got and one"),
+                ("missed it one", "missed and one"),
+                ("mystery throw", "missed free throw"),
+                ("got paid", "got paint"),
+                ("mispaid", "missed paint"),
+                ("got made range", "got mid range"),
+                ("got close back", "got putback"),
+                ("close back", "putback"),
+                ("hoodback", "putback"),
+                ("miss hoodback", "missed putback"),
+                ("miss zug", "missed dunk"),
+                ("put match", "putback"),
+                ("quarterback", "putback"),
+                ("got dug", "got dunk"),
+                ("got done", "got dunk"),
+                ("godmid", "got mid"),
+                ("miss sugg", "missed dunk"),
+                ("remound", "rebound"),
+                ("time out", "timeout"),
+                ("miss who", "missed two"),
+                ("missed and won", "missed and one"),
+                ("missing one", "missed and one"),
+                ("mr one", "missed and one"),
+                ("offensive remount", "offensive rebound"),
+                ("turned over", "turnover"),
+                ("layoff", "layup"),
+                ("pained", "paint"),
+                ("pot back", "putback"),
+                ("ms putback", "missed putback"),
+                ("pushback", "putback"),
+                ("dong", "dunk"),
+                ("sunk", "dunk"),
+                ("miss sun", "missed dunk"),
+                ("n1", "and one"),
+                ("mr. one", "missed and one"),
+                ("new last action", "undo"),
+                ("his sister", "assist"),
+                ("'s sister", "assist"),
+                ("’s sister", "assist"),
+                ("’s the", " steal"),
+                ("'s the", " steal"),
+                ("i do", "undo"),
+                ("we do", "redo"),
+                ("stars", "start")
+            ]
+            for (source, replacement) in englishAliases {
+                normalized = normalized.replacingOccurrences(of: source, with: replacement, options: .caseInsensitive)
+            }
+        } else if currentRules.locale.identifier.hasPrefix("zh-Hant") {
+            let traditionalChineseAliases: [(String, String)] = [
+                ("將伐", "加罰"),
+                ("扣來", "扣籃"),
+                ("伐墨", "沒中"),
+                ("墨中", "沒中"),
+                ("攔下", "籃下"),
+                ("聖藍", "上籃"),
+                ("補來", "補籃"),
+                ("後來", "扣籃"),
+                ("前場籃板", "前場板"),
+                ("後場籃板", "後場板"),
+                ("超級", "抄截")
+            ]
+            for (source, replacement) in traditionalChineseAliases {
+                normalized = normalized.replacingOccurrences(of: source, with: replacement)
+            }
+        } else if currentRules.locale.identifier.hasPrefix("ja") {
+            normalized = normalized.replacingOccurrences(of: " ", with: "")
+            normalized = normalized.replacingOccurrences(of: "ディフェンスリバウンド", with: "守備リバウンド")
+            let japaneseAliases: [(String, String)] = [
+                ("タイムラブを", "タイムアウト"),
+                ("おしこ", "ペイント成功"),
+                ("2番外した", "2番ツー外した"),
+                ("今向けと外した", "2番ペイント外した"),
+                ("ラマンバブル", "5番ファウル"),
+                ("ヒューマ500スリバウンド", "9番オフェンスリバウンド"),
+                ("10マリのリバウンド", "10番ディフェンスリバウンド"),
+                ("3マラシスト40", "3番アシスト4番ツー"),
+                ("1番口座にる", "1番交代2番"),
+                ("聖校", "成功"),
+                ("通", "ツー"),
+                ("害した", "外した"),
+                ("製鋼", "成功"),
+                ("メドル", "ミドル"),
+                ("スリーマウンド", "リバウンド"),
+                ("釣り", "スリー"),
+                ("設外した", "ツー外した"),
+                ("棒ナス", "ボーナス"),
+                ("敏子", "成功"),
+                ("山田園", "山田エマ"),
+                ("パッドバック", "パットバック"),
+                ("プットバック", "パットバック"),
+                ("プットバク", "パットバク"),
+                ("英馬", "エマ"),
+                ("鈴木賞", "鈴木翔"),
+                ("美作数", "美咲ツー"),
+                ("美作", "美咲"),
+                ("伊藤親", "伊藤葵"),
+                ("異断苦", "ダンク"),
+                ("断苦いした", "ダンク外した"),
+                ("バットバック買いした", "パットバック外した"),
+                ("オーバー", "ターンオーバー"),
+                ("ミドルセコ", "ミドル成功"),
+                ("ミドルセイコ", "ミドル成功"),
+                ("フェンスリバウンド", "オフェンスリバウンド"),
+                ("リマウンド", "リバウンド"),
+                ("スリマインド", "リバウンド"),
+                ("スピール", "スティール"),
+                ("アローバー", "ターンオーバー"),
+                ("タイムラブと", "タイムアウト"),
+                ("ハウル", "ファウル"),
+                ("ファール", "ファウル"),
+                ("ミドルシュート", "ミドル"),
+                ("トーンオーバー", "ターンオーバー"),
+                ("ターンオーバ", "ターンオーバー"),
+                ("アシスト", "アシスト")
+            ]
+            for (source, replacement) in japaneseAliases {
+                normalized = normalized.replacingOccurrences(of: source, with: replacement)
+            }
+            normalized = normalized.replacingOccurrences(of: "守備リバウンド", with: "ディフェンスリバウンド")
+            let japaneseNumberAliases: [(String, String)] = [
+                ("ロマンボ", "5番ボーナス"),
+                ("ロマン南", "5番ダンク"),
+                ("6000", "6番ダンク"),
+                ("日本版", "4番"),
+                ("ネバーズ", "2番"),
+                ("ネバ", "2番"),
+                ("サンマン", "3番"),
+                ("サンマ", "3番"),
+                ("ロマン", "5番"),
+                ("60000", "6番"),
+                ("ヒューマン", "9番"),
+                ("ゆうま", "10番"),
+                ("1000円", "1番"),
+                ("サムマン", "3番"),
+                ("日本マン", "4番"),
+                ("日本", "1番")
+            ]
+            for (source, replacement) in japaneseNumberAliases {
+                normalized = normalized.replacingOccurrences(of: source, with: replacement)
+            }
+        } else if currentRules.locale.identifier.hasPrefix("ko") {
+            let koreanAliases: [(String, String)] = [
+                ("삼 노시스 투 사 투", "3번 어시스트 4번 투"),
+                ("삼노시스투사투", "3번 어시스트 4번 투"),
+                ("시스 투 육 투 쓰리", "5번 어시스트 6번 쓰리"),
+                ("시스투육투쓰리", "5번 어시스트 6번 쓰리"),
+                ("일본 수선", "2번 투 성공"),
+                ("일본수선", "2번 투 성공"),
+                ("수리", "쓰리 성공"),
+                ("어떤 습니까", "보너스 성공"),
+                ("어떤습니까", "보너스 성공"),
+                ("오너심해", "5번 보너스 실패"),
+                ("할머니아유조심해", "8번 자유투 실패"),
+                ("일본페인수성공", "1번 페인트 성공"),
+                ("삼어시스트투사투", "3번 어시스트 4번 투"),
+                ("시스투육투쓰리", "5번 어시스트 6번 쓰리"),
+                ("12터미널", "12번 블록"),
+                ("여기점이요", "종료"),
+                ("마지막일행", "재실행"),
+                ("일본요제일본", "1번 교체 2번"),
+                ("전공", "투 성공"),
+                ("점검", "투 성공"),
+                ("두시에", "투 실패"),
+                ("수리 선물", "쓰리 성공"),
+                ("수리 성공", "쓰리 성공"),
+                ("수리성공", "쓰리 성공"),
+                ("술이", "쓰리"),
+                ("수선", "투 성공"),
+                ("수선공", "투 성공"),
+                ("레이협", "레이업"),
+                ("레이역시", "레이업 실패"),
+                ("태백", "팟백"),
+                ("김애마", "김엠마"),
+                ("연수를 실패", "쓰리 실패"),
+                ("바울", "파울"),
+                ("오시스트", "어시스트"),
+                ("로시스트", "어시스트"),
+                ("수틸", "스틸"),
+                ("수질", "스틸"),
+                ("스필", "스틸"),
+                ("리마운드", "리바운드"),
+                ("마운드", "리바운드"),
+                ("오버", "턴오버"),
+                ("노버", "턴오버"),
+                ("시스트", "어시스트"),
+                ("노시스", "어시스트"),
+                ("번수", "보너스"),
+                ("본수", "보너스"),
+                ("풋백", "팟백"),
+                ("풋백슛", "팟백"),
+                ("100 실패", "팟백 실패"),
+                ("100 성공", "팟백 성공"),
+                ("블락", "블록"),
+                ("블럭", "블록"),
+                ("레이 협", "레이업"),
+                ("레이 역시", "레이업 실패"),
+                ("레이 협성공", "레이업 성공"),
+                ("레이협성공", "레이업 성공"),
+                ("미투", "미드"),
+                ("믿으실패", "미드 실패"),
+                ("믿으실 패", "미드 실패"),
+                ("레이 없습니까", "레이업 성공"),
+                ("타임마웃", "타임아웃"),
+                ("턴 로버", "턴오버"),
+                ("턴로버", "턴오버"),
+                ("조성공", "투 성공"),
+                ("팥팩", "팟백"),
+                ("파택", "팟백"),
+                ("팟팩", "팟백"),
+                ("수비를 파운드", "수비 리바운드"),
+                ("3번 830", "3번 팟백 성공"),
+                ("4번 맛 택시에", "4번 팟백 실패"),
+                ("5번 넘교실에", "5번 덩크 실패"),
+                ("1번 일", "1번 스틸")
+            ]
+            for (source, replacement) in koreanAliases {
+                normalized = normalized.replacingOccurrences(of: source, with: replacement)
+            }
+            let koreanNumberAliases: [(String, String)] = [
+                ("오 너 심해", "5번 보너스 실패"),
+                ("할머니 아유 조심해", "8번 자유투 실패"),
+                ("일본", "1번"),
+                ("이번", "2번"),
+                ("십이", "12번"),
+                ("십일", "11번"),
+                ("삼", "3번"),
+                ("사", "4번"),
+                ("오", "5번"),
+                ("육", "6번"),
+                ("칠", "7번"),
+                ("팔", "8번"),
+                ("구", "9번"),
+                ("십", "10번")
+            ]
+            for (source, replacement) in koreanNumberAliases {
+                normalized = replaceSpeechTranscriberRegex(
+                    normalized,
+                    pattern: "(?<![가-힣])\(source)(?![가-힣])",
+                    template: replacement
+                )
+            }
+            if normalized.contains("어시스트") {
+                normalized = replaceSpeechTranscriberRegex(normalized, pattern: "([가-힣])3$", template: "$1 쓰리")
+            }
+        } else if currentRules.locale.identifier.hasPrefix("de") {
+            normalized = normalized.replacingOccurrences(of: "nummer ", with: "number ", options: .caseInsensitive)
+            let germanAliases: [(String, String)] = [
+                ("number 6 number mehr fehlt", "number 6 bonus verfehlt"),
+                ("number 12 mit der distanzählt", "number 12 mitteldistanz verfehlt"),
+                ("anna fischer verfehlt", "anna fischer korbnähe verfehlt"),
+                ("number 4 gut erzählt", "number 4 putback verfehlt"),
+                ("number 5 getroffen", "number 5 dunk getroffen"),
+                ("wurde getroffen", "bonus getroffen"),
+                ("muss getroffen", "bonus getroffen"),
+                ("getroffn", "getroffen"),
+                ("getrofen", "getroffen"),
+                ("erfolgt", "erfolg"),
+                ("nicht drin", "nicht"),
+                ("korb nähe", "korbnähe"),
+                ("mittel distanz", "mitteldistanz"),
+                ("leib", "layup"),
+                ("redund", "rebound"),
+                ("redound", "rebound"),
+                ("bund", "rebound"),
+                ("dung", "dunk"),
+                ("Fuhl", "foul"),
+                ("Steice", "steal"),
+                ("mit distanz", "mitteldistanz"),
+                ("du verfehlt", "dunk verfehlt"),
+                ("kolail", "korbnähe"),
+                ("kutback", "putback"),
+                ("organisiert", "offensiv rebound"),
+                ("stau das spiel", "start"),
+                ("nämlich die letzte aktion", "rückgängig"),
+                ("diese eure letzte aktion", "wiederholen"),
+                ("nummer ", "number ")
+            ]
+            for (source, replacement) in germanAliases {
+                normalized = normalized.replacingOccurrences(of: source, with: replacement, options: .caseInsensitive)
+            }
+        } else if currentRules.locale.identifier.hasPrefix("es") {
+            normalized = normalized.replacingOccurrences(of: "número ", with: "number ", options: .caseInsensitive)
+            normalized = normalized.replacingOccurrences(of: "numero ", with: "number ", options: .caseInsensitive)
+            let spanishAliases: [(String, String)] = [
+                ("mi number 33 anotótó", "number 3 tres anotó"),
+                ("ana torres que ha fallado", "ana torres tres fallado"),
+                ("number 5 y", "number 5 y uno anotó"),
+                ("number 61 fallado", "number 6 y uno fallado"),
+                ("juan pérezputbakanotó", "juan pérez putback anotó"),
+                ("carlos garcía ro", "carlos garcía robo"),
+                ("number 10 pero el bote es defensivo", "number 10 rebote defensivo"),
+                ("ano", "anotó"),
+                ("anoto", "anotó"),
+                ("anotao", "anotó"),
+                ("fallo", "fallado"),
+                ("falló", "fallado"),
+                ("no se anotó", "anotó"),
+                ("Aventura", "pintura"),
+                ("Valistencia", "asistencia"),
+                ("Futback", "putback"),
+                ("Llevo muerto", "tiempo muerto"),
+                ("tiempo y muerto", "tiempo muerto"),
+                ("cambió", "cambio"),
+                ("y una", "y uno"),
+                ("del partido", "fin del partido"),
+                ("de bandeja", "bandeja"),
+                ("libro", "libre"),
+                ("Royaltair", "rehacer"),
+                ("rayado", "bandeja"),
+                ("valle", "mate"),
+                ("metano", "mate"),
+                ("pbak", "putback"),
+                ("budback", "putback"),
+                ("revolte", "rebote"),
+                ("bloque", "bloqueo"),
+                ("hallado", "fallado"),
+                ("número ", "number "),
+                ("numero ", "number ")
+            ]
+            for (source, replacement) in spanishAliases {
+                normalized = normalized.replacingOccurrences(of: source, with: replacement, options: .caseInsensitive)
+            }
+            normalized = replaceSpeechTranscriberRegex(
+                normalized,
+                pattern: "(?i)(?<![A-Za-zÁÉÍÓÚÜÑáéíóúüñ])rebo(?![A-Za-zÁÉÍÓÚÜÑáéíóúüñ])",
+                template: "rebote"
+            )
+        } else if currentRules.locale.identifier.hasPrefix("fr") {
+            normalized = normalized.replacingOccurrences(of: "numéro ", with: "number ", options: .caseInsensitive)
+            normalized = normalized.replacingOccurrences(of: "numero ", with: "number ", options: .caseInsensitive)
+            let frenchAliases: [(String, String)] = [
+                ("thomas petit est réussi", "thomas petit bonus réussi"),
+                ("number 5 réussi", "number 5 bonus réussi"),
+                ("léa moreau est un raté", "léa moreau bonus raté"),
+                ("number 6 c'est un raté", "number 6 bonus raté"),
+                ("alice réussi", "alice layup réussi"),
+                ("léa maudraté", "léa moreau dunk raté"),
+                ("michael rubon", "michael rebond"),
+                ("number de balle", "number 2 perte de balle"),
+                ("première dernière réaction", "refaire dernière action"),
+                ("réussit", "réussi"),
+                ("reussit", "réussi"),
+                ("réussite", "réussi"),
+                ("rate", "raté"),
+                ("doit réussir", "deux réussi"),
+                ("de rater", "deux raté"),
+                ("L'air du bois de balle", "perte de balle"),
+                ("putbach", "putback"),
+                ("putba", "putback"),
+                ("miance", "mi-distance"),
+                ("mance", "mi-distance"),
+                ("numéroception", "interception"),
+                ("praté", "raté"),
+                ("mort", "temps mort"),
+                ("numéro ", "number "),
+                ("numero ", "number ")
+            ]
+            for (source, replacement) in frenchAliases {
+                normalized = normalized.replacingOccurrences(of: source, with: replacement, options: .caseInsensitive)
+            }
+        } else if currentRules.locale.identifier.hasPrefix("it") {
+            normalized = normalized.replacingOccurrences(of: "numero ", with: "number ", options: .caseInsensitive)
+            let italianAliases: [(String, String)] = [
+                ("segnata", "segnato"),
+                ("sbagliata", "sbagliato"),
+                ("Bon segnato", "bonus segnato"),
+                ("ti ero", "tiro"),
+                ("va segnato", "putback segnato"),
+                ("con sbagliato", "putback sbagliato"),
+                ("rivalso", "rimbalzo"),
+                ("Assis ", "assist "),
+                ("farla rubata", "palla rubata"),
+                ("Cabrio", "cambio"),
+                ("putball", "putback"),
+                ("putbal", "putback"),
+                ("l'hai segnato", "layup segnato"),
+                ("la sbagliato", "layup sbagliato"),
+                ("lype", "layup"),
+                ("stottata", "stoppata"),
+                ("cagliato", "sbagliato"),
+                ("ostensivo", "offensivo"),
+                ("numero ", "number ")
+            ]
+            for (source, replacement) in italianAliases {
+                normalized = normalized.replacingOccurrences(of: source, with: replacement, options: .caseInsensitive)
+            }
+        } else if currentRules.locale.identifier.hasPrefix("ru") {
+            normalized = normalized.replacingOccurrences(of: "номер ", with: "number ", options: .caseInsensitive)
+            let russianNumberAliases: [(String, String)] = [
+                ("номер ", "number ")
+            ]
+            for (source, replacement) in russianNumberAliases {
+                normalized = normalized.replacingOccurrences(of: source, with: replacement, options: .caseInsensitive)
+            }
+        }
+        return normalized
+            .split(whereSeparator: { $0.isWhitespace })
+            .joined(separator: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func normalizeSpeechTranscriberPlayerNumberWords(_ text: String) -> String {
+        var normalized = text
+        let locale = currentRules.locale.identifier
+        let numberWords: [(String, String)]
+        if locale.hasPrefix("de") {
+            numberWords = [("eins", "1"), ("zwei", "2"), ("drei", "3"), ("vier", "4"), ("fünf", "5"), ("funf", "5"), ("sechs", "6"), ("sieben", "7"), ("acht", "8"), ("neun", "9"), ("zehn", "10"), ("elf", "11"), ("zwölf", "12"), ("zwolf", "12")]
+        } else if locale.hasPrefix("es") {
+            numberWords = [("uno", "1"), ("una", "1"), ("dos", "2"), ("tres", "3"), ("cuatro", "4"), ("cinco", "5"), ("seis", "6"), ("siete", "7"), ("ocho", "8"), ("nueve", "9"), ("diez", "10"), ("once", "11"), ("doce", "12")]
+        } else if locale.hasPrefix("fr") {
+            numberWords = [("un", "1"), ("une", "1"), ("deux", "2"), ("trois", "3"), ("quatre", "4"), ("cinq", "5"), ("six", "6"), ("sept", "7"), ("huit", "8"), ("neuf", "9"), ("dix", "10"), ("onze", "11"), ("douze", "12")]
+        } else if locale.hasPrefix("it") {
+            numberWords = [("uno", "1"), ("una", "1"), ("due", "2"), ("tre", "3"), ("quattro", "4"), ("cinque", "5"), ("sei", "6"), ("sette", "7"), ("otto", "8"), ("nove", "9"), ("dieci", "10"), ("undici", "11"), ("dodici", "12")]
+        } else if locale.hasPrefix("ru") {
+            numberWords = [("один", "1"), ("одна", "1"), ("два", "2"), ("три", "3"), ("четыре", "4"), ("пять", "5"), ("шесть", "6"), ("семь", "7"), ("восемь", "8"), ("девять", "9"), ("десять", "10"), ("одиннадцать", "11"), ("двенадцать", "12")]
+        } else {
+            numberWords = []
+        }
+        let marker: String?
+        if locale.hasPrefix("de") { marker = "Nummer" }
+        else if locale.hasPrefix("es") { marker = "número" }
+        else if locale.hasPrefix("fr") { marker = "numéro" }
+        else if locale.hasPrefix("it") { marker = "numero" }
+        else if locale.hasPrefix("ru") { marker = "номер" }
+        else { marker = nil }
+        if let marker {
+            for (word, number) in numberWords {
+                normalized = normalized.replacingOccurrences(of: "\(marker) \(word)", with: "\(marker) \(number)", options: [.caseInsensitive])
+            }
+        }
+        if locale.hasPrefix("zh") {
+            let marker = locale.hasPrefix("zh-Hant") ? "號" : "号"
+            let values = [("十二", "12"), ("十一", "11"), ("十", "10"), ("九", "9"), ("八", "8"), ("七", "7"), ("六", "6"), ("五", "5"), ("四", "4"), ("三", "3"), ("二", "2"), ("一", "1")]
+            for (word, number) in values {
+                normalized = normalized.replacingOccurrences(of: "\(word)\(marker)", with: "\(number)\(marker)")
+            }
+        } else if locale.hasPrefix("ja") {
+            let values = [("十二", "12"), ("十一", "11"), ("十", "10"), ("九", "9"), ("八", "8"), ("七", "7"), ("六", "6"), ("五", "5"), ("四", "4"), ("三", "3"), ("二", "2"), ("一", "1")]
+            for (word, number) in values {
+                normalized = normalized.replacingOccurrences(of: "\(word)番", with: "\(number)番")
+            }
+        } else if locale.hasPrefix("ko") {
+            let values = [("십이", "12"), ("십일", "11"), ("십", "10"), ("구", "9"), ("팔", "8"), ("칠", "7"), ("육", "6"), ("오", "5"), ("사", "4"), ("삼", "3"), ("이", "2"), ("일", "1")]
+            for (word, number) in values {
+                normalized = normalized.replacingOccurrences(of: "\(word)번", with: "\(number)번")
+            }
+            normalized = replaceSpeechTranscriberRegex(normalized, pattern: "(\\d+)\\s*분", template: "$1번")
+        }
+        return normalized
+    }
+
+    private func replaceSpeechTranscriberRegex(_ text: String, pattern: String, template: String) -> String {
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return text }
+        return regex.stringByReplacingMatches(in: text, range: NSRange(text.startIndex..., in: text), withTemplate: template)
+    }
+
+    private func speechTranscriberHasUniqueNameToken(text: String, playerName: String, playerNames: [String]) -> Bool {
+        let textTokens = speechTranscriberNameTokens(text)
+        let nameTokens = speechTranscriberNameTokens(playerName)
+        if nameTokens.count > 1, nameTokens.allSatisfy({ textTokens.contains($0) }) {
+            return true
+        }
+        let sharedTokens = Set(textTokens).intersection(nameTokens)
+        for token in sharedTokens {
+            let isLatinToken = token.count >= 3 && token.allSatisfy { $0.isASCII && $0.isLetter }
+            let isCJKToken = token.count >= 2 && token.unicodeScalars.contains { scalar in
+                switch scalar.value {
+                case 0x3400...0x4DBF, 0x4E00...0x9FFF, 0xF900...0xFAFF:
+                    return true
+                default:
+                    return false
+                }
+            }
+            guard isLatinToken || isCJKToken else { continue }
+            let matchingNames = playerNames.filter { name in
+                speechTranscriberNameTokens(name).contains { candidate in
+                    let distanceLimit = min(candidate.count, token.count) <= 3 ? 1 : 2
+                    return candidate == token
+                        || (candidate.count >= 2 && token.count > candidate.count && token.contains(candidate))
+                        || (token.count >= 3 && candidate.count >= 3 && Self.levenshteinDistance(candidate, token) <= distanceLimit)
+                }
+            }
+            if matchingNames.count == 1 {
+                return true
+            }
+        }
+        return false
+    }
+
+    private func speechTranscriberNameTokens(_ text: String) -> [String] {
+        var tokens: [String] = []
+        var current = ""
+        var previousIsNativeScript: Bool?
+
+        func flush() {
+            guard !current.isEmpty else { return }
+            tokens.append(current)
+            current = ""
+            previousIsNativeScript = nil
+        }
+
+        for character in text.lowercased() {
+            guard character.isLetter || character.isNumber else {
+                flush()
+                continue
+            }
+            let isNativeScript = Self.isSpeechTranscriberNativeScriptCharacter(character)
+            if let previousIsNativeScript, previousIsNativeScript != isNativeScript {
+                flush()
+            }
+            current.append(character)
+            previousIsNativeScript = isNativeScript
+        }
+        flush()
+        return tokens
+    }
+
+    private func compactSpeechTranscriberCJKWhitespace(_ text: String) -> String {
+        let characters = Array(text)
+        var compacted = ""
+        for index in characters.indices {
+            if characters[index].isWhitespace,
+               index > 0,
+               index + 1 < characters.count,
+               Self.isCJKCharacter(characters[index - 1]),
+               Self.isCJKCharacter(characters[index + 1]) {
+                continue
+            }
+            compacted.append(characters[index])
+        }
+        return compacted
+    }
+
+    private static func isCJKCharacter(_ character: Character) -> Bool {
+        isSpeechTranscriberNativeScriptCharacter(character)
+    }
+
+    private static func isSpeechTranscriberNativeScriptCharacter(_ character: Character) -> Bool {
+        character.unicodeScalars.contains { scalar in
+            switch scalar.value {
+            case 0x3400...0x4DBF, 0x4E00...0x9FFF, 0xF900...0xFAFF,
+                 0x3040...0x309F, 0x30A0...0x30FF, 0xAC00...0xD7AF:
+                return true
+            default:
+                return false
+            }
+        }
+    }
+
+    private func processSpeechTranscriberCommand(_ text: String) -> Bool {
+        let isChinese = currentRules.locale.identifier.hasPrefix("zh") || currentRules.locale.identifier.hasPrefix("zh-Hant")
+        let pinyin = currentRules.toPinyin(text)
+        let command: VoiceCommand?
+        if text == "结束" || text == "結束" || text == "结束比赛" || text == "結束比賽" || (isChinese && (pinyin.contains("jie shu") || pinyin.contains("bi sai jie shu"))) {
+            command = .finishGame
+        } else {
+            command = nil
+        }
+        guard let command else { return false }
+        logStep(isChinese ? "SpeechTranscriber拼音命令" : "SpeechTranscriber命令别名")
+        logFlush(isSuccess: true, action: "比赛结束")
+        onFlash?(.green)
+        DispatchQueue.main.async { [weak self] in
+            self?.onCommand?(command)
+            self?.onFlash?(.green)
+        }
+        return true
     }
 
     private func detectTeamPrefix(_ text: String) -> TeamSide? {
@@ -809,6 +1802,13 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         return nil
     }
 
+    private func hasExplicitPlayerNumberMarker(in text: String) -> Bool {
+        if preferredPlayerNumber != nil { return true }
+        let pattern = "(?i)(?:number|no\\.?|#)\\s*\\d+|\\d+\\s*(?:号|號|hao|番|번)"
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return false }
+        return regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) != nil
+    }
+
     private func appendToVoiceLog(_ entry: VoiceLogEntry) {
         guard let store, store.voiceLogEnabled else { return }
         store.voiceLog.insert(entry, at: 0)
@@ -827,6 +1827,14 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let leftWords = leftText.lowercased().split { $0.isWhitespace }.map(String.init)
         for state in voiceMissedStates where !state.isEmpty {
             if let idx = leftWords.firstIndex(of: state.lowercased()) {
+                if asrEngine == .speechTranscriber,
+                   currentRules.locale.identifier.hasPrefix("en"),
+                   state.lowercased() == "no",
+                   leftWords.dropFirst(idx + 1).contains(where: { madeState in
+                       voiceMadeStates.contains { $0.lowercased() == madeState }
+                   }) {
+                    continue
+                }
                 let effectiveLeft = leftWords.enumerated().filter { $0.offset != idx }.map { $0.element }.joined(separator: " ")
                 return (effectiveLeft, state)
             }
@@ -869,6 +1877,11 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             }
         }
         for state in voiceMissedStates {
+            if currentRules.locale.identifier.hasPrefix("ja"),
+               state == "ない",
+               rightText.contains("お願い") {
+                continue
+            }
             let stateVariants = currentRules.generatePinyinVariants(state)
             if !stateVariants.isDisjoint(with: rightVariants) {
                 if 1.0 > bestScore { bestScore = 1.0; foundMade = false }
@@ -882,38 +1895,332 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     private func findKeyword(_ kw: String, in text: String) -> (left: String, right: String)? {
         let parts = kw.split(separator: " ", omittingEmptySubsequences: true)
-        let pattern = parts.isEmpty ? kw : parts.joined(separator: "\\s*")
+        let body = parts.isEmpty ? kw : parts.joined(separator: "\\s*")
+        let isShortLatinWord = kw.count <= 3 && kw.unicodeScalars.allSatisfy { scalar in
+            (scalar.value >= 65 && scalar.value <= 90) || (scalar.value >= 97 && scalar.value <= 122)
+        }
+        let isNumericKeyword = !kw.isEmpty && kw.unicodeScalars.allSatisfy { scalar in
+            scalar.value >= 48 && scalar.value <= 57
+        }
+        let pattern: String
+        if isNumericKeyword {
+            pattern = "(?<![0-9])\\s*\(body)\\s*(?![0-9])"
+        } else if isShortLatinWord {
+            pattern = "(?<![A-Za-z])\\s*\(body)\\s*(?![A-Za-z])"
+        } else {
+            pattern = body
+        }
         guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
-              let match = regex.firstMatch(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count))
+              !regex.matches(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count)).isEmpty
         else { return nil }
-        guard let range = Range(match.range, in: text) else { return nil }
-        let left = String(text[text.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
-        let right = String(text[range.upperBound...]).trimmingCharacters(in: .whitespaces)
-        return (left, right)
+        let matches = regex.matches(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count))
+        for match in matches {
+            guard let range = Range(match.range, in: text) else { continue }
+            let left = String(text[text.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
+            let right = String(text[range.upperBound...]).trimmingCharacters(in: .whitespaces)
+            if isShortLatinWord && left.range(of: #"(?:^|\s)(?:number|no\.?|#)$"#, options: [.regularExpression, .caseInsensitive]) != nil {
+                continue
+            }
+            return (left, right)
+        }
+        return nil
+    }
+
+    private func findPinyinKeyword(_ kw: String, in pinyin: String) -> (left: String, right: String)? {
+        let normalizedPinyin = currentRules.toPinyin(pinyin)
+        let keywordVariants = currentRules.generatePinyinVariants(kw).sorted { left, right in
+            if left.count != right.count { return left.count > right.count }
+            return left < right
+        }
+        for keywordPinyin in keywordVariants {
+            guard let range = normalizedPinyin.range(of: keywordPinyin) else { continue }
+            let left = String(normalizedPinyin[normalizedPinyin.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
+            let right = String(normalizedPinyin[range.upperBound...]).trimmingCharacters(in: .whitespaces)
+            return (left, right)
+        }
+        return nil
+    }
+
+    private func speechActionSlots(leftText: String, rightText: String, isShot: Bool) -> (subject: String, predicate: String) {
+        guard isShot, rightText.isEmpty, !leftText.isEmpty else {
+            return (leftText, rightText)
+        }
+        let extracted = extractStateFromLeftText(leftText)
+        guard usesStructuralSpeechMatching else {
+            return (extracted.effectiveLeft, extracted.effectiveRight)
+        }
+        if !extracted.effectiveRight.isEmpty {
+            return (extracted.effectiveLeft, extracted.effectiveRight)
+        }
+        let states = (voiceMissedStates.map { ($0, false) } + voiceMadeStates.map { ($0, true) })
+            .sorted { $0.0.count > $1.0.count }
+        for (state, isMade) in states where !state.isEmpty {
+            guard let slots = findKeyword(state, in: leftText) else { continue }
+            if !isMade,
+               currentRules.locale.identifier.hasPrefix("en"),
+               state.lowercased() == "no",
+               slots.right.split(whereSeparator: { $0.isWhitespace }).contains(where: { word in
+                   voiceMadeStates.contains { $0.lowercased() == word.lowercased() }
+               }) {
+                continue
+            }
+            let separator = currentRules.locale.identifier.hasPrefix("zh") ||
+                currentRules.locale.identifier.hasPrefix("ja") ||
+                currentRules.locale.identifier.hasPrefix("ko") ? "" : " "
+            let subject = [slots.left, slots.right]
+                .filter { !$0.isEmpty }
+                .joined(separator: separator)
+            return (subject, state)
+        }
+        for shot in voiceShotTypes.sorted(by: { $0.keyword.count > $1.keyword.count }) {
+            guard let slots = findKeyword(shot.keyword, in: leftText),
+                  slots.right.isEmpty,
+                  !slots.left.isEmpty else { continue }
+            return (slots.left, rightText)
+        }
+        return (leftText, rightText)
+    }
+
+    private func speechActionScore(keyword: String, leftText: String, rightText: String, text: String) -> Double {
+        let characterCount = keyword.count
+        let lengthScore = min(0.18, Double(characterCount) * 0.018)
+        let phraseScore = keyword.contains { $0.isWhitespace } ? 0.08 : 0.0
+        let slotScore = (!leftText.isEmpty || !rightText.isEmpty) ? 0.04 : 0.0
+        let localeScore: Double
+        if currentRules.locale.identifier.hasPrefix("ja") || currentRules.locale.identifier.hasPrefix("ko") {
+            localeScore = keyword.count >= 2 ? 0.04 : 0.0
+        } else if currentRules.locale.identifier.hasPrefix("zh") {
+            localeScore = keyword.count >= 2 ? 0.04 : 0.0
+        } else {
+            localeScore = keyword.count >= 4 ? 0.04 : 0.0
+        }
+        let normalizedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let exactPhraseScore = normalizedText.caseInsensitiveCompare(keyword) == .orderedSame ? 0.04 : 0.0
+        return min(0.99, 0.68 + lengthScore + phraseScore + slotScore + localeScore + exactPhraseScore)
+    }
+
+    private func directSpeechActionCandidates(text: String) -> [SpeechActionCandidate] {
+        var candidates: [SpeechActionCandidate] = []
+        for (keyword, code) in voiceNonShotEvents where code.hasPrefix("stat.") {
+            guard let slots = findKeyword(keyword, in: text) else { continue }
+            let rightText = (code == "stat.steal" || code == "stat.assist") ? slots.right : ""
+            candidates.append(SpeechActionCandidate(
+                keyword: keyword,
+                code: code,
+                leftText: slots.left,
+                rightText: rightText,
+                isShot: false,
+                score: speechActionScore(keyword: keyword, leftText: slots.left, rightText: rightText, text: text)
+            ))
+        }
+        for event in voiceShotEvents {
+            guard let slots = findKeyword(event.keyword, in: text) else { continue }
+            candidates.append(SpeechActionCandidate(
+                keyword: event.keyword,
+                code: event.code,
+                leftText: slots.left,
+                rightText: slots.right,
+                isShot: true,
+                score: speechActionScore(keyword: event.keyword, leftText: slots.left, rightText: slots.right, text: text)
+            ))
+        }
+        return adjustedSpeechActionCandidates(candidates).map { candidate in
+            guard candidate.code == "stat.assist",
+                  !candidate.rightText.isEmpty,
+                  candidates.contains(where: { $0.isShot }) else {
+                return candidate
+            }
+            return SpeechActionCandidate(
+                keyword: candidate.keyword,
+                code: candidate.code,
+                leftText: candidate.leftText,
+                rightText: candidate.rightText,
+                isShot: candidate.isShot,
+                score: candidate.score + 0.18
+            )
+        }
+    }
+
+    private func adjustedSpeechActionCandidates(_ candidates: [SpeechActionCandidate]) -> [SpeechActionCandidate] {
+        candidates.map { candidate in
+            let compoundAdjustment = candidates.reduce(0.0) { adjustment, other in
+                guard other.code != candidate.code else { return adjustment }
+                if currentRules.locale.identifier.hasPrefix("en"),
+                   candidate.isShot,
+                   candidate.code == "stat.freeThrow",
+                   other.code == "stat.foul",
+                   candidate.keyword.lowercased().hasSuffix("shot"),
+                   candidate.keyword.lowercased() != "free throw" {
+                    return adjustment - 0.30
+                }
+                guard usesStructuralSpeechMatching else { return adjustment }
+                if candidate.isShot && other.isShot {
+                    if candidate.leftText.range(of: other.keyword, options: [.caseInsensitive]) != nil {
+                        return adjustment + 0.12
+                    }
+                    if other.leftText.range(of: candidate.keyword, options: [.caseInsensitive]) != nil {
+                        return adjustment - 0.12
+                    }
+                }
+                if candidate.isShot && other.isShot && !currentRules.locale.identifier.hasPrefix("en") {
+                    return adjustment
+                }
+                if other.keyword.count > candidate.keyword.count,
+                   other.keyword.range(of: candidate.keyword, options: [.caseInsensitive]) != nil {
+                    if !candidate.isShot && other.isShot && currentRules.locale.identifier.hasPrefix("en") {
+                        return adjustment + 0.12
+                    }
+                    return adjustment - 0.12
+                }
+                if candidate.keyword.count > other.keyword.count,
+                   candidate.keyword.range(of: other.keyword, options: [.caseInsensitive]) != nil {
+                    if candidate.isShot && !other.isShot && currentRules.locale.identifier.hasPrefix("en") {
+                        return adjustment - 0.12
+                    }
+                    return adjustment + 0.12
+                }
+                return adjustment
+            }
+            guard compoundAdjustment != 0 else { return candidate }
+            return SpeechActionCandidate(
+                keyword: candidate.keyword,
+                code: candidate.code,
+                leftText: candidate.leftText,
+                rightText: candidate.rightText,
+                isShot: candidate.isShot,
+                score: candidate.score + compoundAdjustment
+            )
+        }
+    }
+
+    private func pinyinSpeechActionCandidates(textVariants: Set<String>) -> [SpeechActionCandidate] {
+        var candidates: [SpeechActionCandidate] = []
+        let sortedTextVariants = textVariants.sorted { left, right in
+            if left.count != right.count { return left.count > right.count }
+            return left < right
+        }
+        func slots(for keyword: String, variants: Set<String>) -> (left: String, right: String, text: String)? {
+            let sortedKeywords = variants.sorted { left, right in
+                if left.count != right.count { return left.count > right.count }
+                return left < right
+            }
+            for variant in sortedKeywords {
+                for text in sortedTextVariants {
+                    guard let range = text.range(of: variant) else { continue }
+                    let left = String(text[text.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
+                    let right = String(text[range.upperBound...]).trimmingCharacters(in: .whitespaces)
+                    return (left, right, text)
+                }
+            }
+            return nil
+        }
+        for shot in voiceShotTypes {
+            let variants = currentRules.generatePinyinVariants(shot.keyword)
+            guard let result = slots(for: shot.keyword, variants: variants) else { continue }
+            candidates.append(SpeechActionCandidate(
+                keyword: shot.keyword,
+                code: shot.eventPrefix,
+                leftText: result.left,
+                rightText: result.right,
+                isShot: true,
+                score: speechActionScore(keyword: shot.keyword, leftText: result.left, rightText: result.right, text: result.text)
+            ))
+        }
+        for (keyword, code) in voiceNonShotEvents where code.hasPrefix("stat.") {
+            let variants = currentRules.generatePinyinVariants(keyword)
+            guard let result = slots(for: keyword, variants: variants) else { continue }
+            let right = (code == "stat.steal" || code == "stat.assist") ? result.right : ""
+            candidates.append(SpeechActionCandidate(
+                keyword: keyword,
+                code: code,
+                leftText: result.left,
+                rightText: right,
+                isShot: false,
+                score: speechActionScore(keyword: keyword, leftText: result.left, rightText: right, text: result.text)
+            ))
+        }
+        return adjustedSpeechActionCandidates(candidates).map { candidate in
+            guard candidate.code == "stat.assist",
+                  !candidate.rightText.isEmpty,
+                  candidates.contains(where: { $0.isShot }) else {
+                return candidate
+            }
+            return SpeechActionCandidate(
+                keyword: candidate.keyword,
+                code: candidate.code,
+                leftText: candidate.leftText,
+                rightText: candidate.rightText,
+                isShot: candidate.isShot,
+                score: candidate.score + 0.18
+            )
+        }
+    }
+
+    private func selectSpeechActionCandidate(_ candidates: [SpeechActionCandidate]) -> SpeechActionCandidate? {
+        let sorted = candidates.sorted { left, right in
+            if left.score != right.score { return left.score > right.score }
+            if left.keyword.count != right.keyword.count { return left.keyword.count > right.keyword.count }
+            return left.code < right.code
+        }
+        guard let best = sorted.first, best.score >= 0.72 else { return nil }
+        guard usesStructuralSpeechMatching else { return best }
+        guard let second = sorted.first(where: { $0.code != best.code }) else { return best }
+        let margin = best.score - second.score
+        if margin < 0.06 {
+            return nil
+        }
+        return best
+    }
+
+    private func resolvedPlayerCandidate(
+        text: String,
+        textPinyin: String,
+        in allIDs: [UUID],
+        context: String
+    ) -> (playerID: UUID, side: TeamSide, debug: String)? {
+        guard let snapshot = currentSnapshot else { return nil }
+        let matchIDs = matchableIDs(from: allIDs, snapshot: snapshot)
+        let (matches, debug) = matchPlayerIDsDebug(text: text, textPinyin: textPinyin, in: matchIDs, context: context)
+        guard let best = matches.first else { return nil }
+        guard usesStructuralSpeechMatching else {
+            return (best.0, best.1, debug)
+        }
+        guard best.2 >= max(0.62, matchingThreshold) else { return nil }
+        guard let second = matches.dropFirst().first else {
+            return (best.0, best.1, debug)
+        }
+        let margin = best.2 - second.2
+        if margin < 0.08 && best.2 < 0.98 {
+            return nil
+        }
+        let bestScore = String(format: "%.2f", best.2)
+        let secondScore = String(format: "%.2f", second.2)
+        let marginScore = String(format: "%.2f", margin)
+        return (best.0, best.1, debug + " | 首选得分=" + bestScore + " | 次选得分=" + secondScore + " | 分差=" + marginScore)
     }
 
     private func resolvePlayerAndExecute(leftText: String, eventCode: String, isShot: Bool, rightText: String, text: String, textPinyin: String) -> Bool {
         guard let store, let snapshot = currentSnapshot else { return false }
-        var effectiveLeft = leftText
-        var effectiveRight = rightText
-        if isShot && effectiveRight.isEmpty && !effectiveLeft.isEmpty {
-            let result = extractStateFromLeftText(effectiveLeft)
-            effectiveLeft = result.effectiveLeft
-            effectiveRight = result.effectiveRight
-        }
+        let slots = speechActionSlots(leftText: leftText, rightText: rightText, isShot: isShot)
+        let effectiveLeft = slots.subject
+        let effectiveRight = slots.predicate
         let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
         var playerID: UUID?; var side: TeamSide?
         var dbgPlayer = ""
         if let res = resolvePlayerNumber(from: effectiveLeft, allIDs: allIDs) {
             playerID = res.playerID; side = res.side; dbgPlayer = res.debug
         }
+            if playerID == nil,
+               hasExplicitPlayerNumberMarker(in: text),
+               let res = resolvePlayerNumber(from: text, allIDs: allIDs) {
+                playerID = res.playerID; side = res.side; dbgPlayer = "全文(res.debug)"
+            }
         if playerID == nil, !effectiveLeft.isEmpty {
             let leftPinyin = currentRules.toPinyin(effectiveLeft)
-                let matchIDs = matchableIDs(from: allIDs, snapshot: snapshot)
-                let (matches, dbg) = matchPlayerIDsDebug(text: effectiveLeft, textPinyin: leftPinyin, in: matchIDs, context: "左侧球员")
-            dbgPlayer = dbg
-            if let m = matches.first {
-                playerID = m.0; side = m.1
+            if let res = resolvedPlayerCandidate(text: effectiveLeft, textPinyin: leftPinyin, in: allIDs, context: "左侧球员") {
+                playerID = res.playerID
+                side = res.side
+                dbgPlayer = res.debug
             }
         }
         let finalCode: String
@@ -981,10 +2288,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
                 if targetID == nil {
                     let targetPinyin = currentRules.toPinyin(candidate)
-                    let matchIDs = matchableIDs(from: allIDs, snapshot: snapshot)
-                    let (matches, _) = matchPlayerIDsDebug(text: candidate, textPinyin: targetPinyin, in: matchIDs, context: "抢断目标")
-                    if let m = matches.first {
-                        targetID = m.0; targetSide = m.1
+                    if let res = resolvedPlayerCandidate(text: candidate, textPinyin: targetPinyin, in: allIDs, context: "抢断目标") {
+                        targetID = res.playerID
+                        targetSide = res.side
                     }
                 }
                 if let tid = targetID, let ts = targetSide, ts != sd, tid != pid {
@@ -1004,7 +2310,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         if action == .assist && !effectiveRight.isEmpty {
             let shotEvents = voiceShotEvents
             for evt in shotEvents {
-                guard let (playerBText, shotRight) = findKeyword(evt.keyword, in: effectiveRight) else { continue }
+                let shotMatch = findKeyword(evt.keyword, in: effectiveRight)
+                    ?? findPinyinKeyword(evt.keyword, in: effectiveRight)
+                guard let (playerBText, shotRight) = shotMatch else { continue }
                 let shotFinalCode: String
                 let (isMade, _) = determineShotState(rightText: shotRight)
                 shotFinalCode = evt.code + (isMade ? "Made" : "Missed")
@@ -1017,10 +2325,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 }
                 if targetID == nil, !playerBText.isEmpty {
                     let targetPinyin = currentRules.toPinyin(playerBText)
-                    let matchIDs = matchableIDs(from: allIDs, snapshot: snapshot)
-                    let (matches, _) = matchPlayerIDsDebug(text: playerBText, textPinyin: targetPinyin, in: matchIDs, context: "助攻目标")
-                    if let m = matches.first {
-                        targetID = m.0; targetSide = m.1
+                    if let res = resolvedPlayerCandidate(text: playerBText, textPinyin: targetPinyin, in: allIDs, context: "助攻目标") {
+                        targetID = res.playerID
+                        targetSide = res.side
                     }
                 }
                 if let tid = targetID, let ts = targetSide, ts == sd, tid != pid {
@@ -1082,6 +2389,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             text = "number \(match.1) four"
             logStep("X4重写: \(match.1)4 → \(text)")
         }
+        text = text.replacingOccurrences(of: "is three", with: "no three", options: .caseInsensitive)
+        text = text.replacingOccurrences(of: "ms pushback", with: "missed putback", options: .caseInsensitive)
+        text = text.replacingOccurrences(of: "mr one", with: "missed and one", options: .caseInsensitive)
         text = Self.replaceWordBoundary(text, target: "to", replacement: "2")
         text = Self.replaceWordBoundary(text, target: "know", replacement: "no")
         text = Self.replaceWordBoundary(text, target: "mr", replacement: "miss")
@@ -1096,46 +2406,56 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     private func processByDirectTextMatching(text: String, textPinyin: String) -> Bool {
-        let nonShotEvents = voiceNonShotEvents
-        for (chinese, code) in nonShotEvents {
-            guard code.hasPrefix("stat.") else { continue }
-            if let (left, right) = findKeyword(chinese, in: text) {
-                addLog(text: text, isSuccess: false, action: code, matchDetail: "🔍 找到关键词「\(chinese)」 | 左侧原文: \(left.isEmpty ? "空" : left) | 右侧原文: \(right.isEmpty ? "空" : right)")
-                let rText = (code == "stat.steal" || code == "stat.assist") ? right : ""
-                if resolvePlayerAndExecute(leftText: left, eventCode: code, isShot: false, rightText: rText, text: text, textPinyin: textPinyin) { return true }
-            }
-        }
-        for (chinese, code) in nonShotEvents {
-            guard code.hasPrefix("event.") else { continue }
-            if findKeyword(chinese, in: text) != nil {
-                addLog(text: text, isSuccess: true, action: code, matchDetail: "命令: \(chinese)")
-                onFlash?(.green)
-                let cmd: VoiceCommand
-                if code == "event.period" { cmd = .startPeriod }
-                else if code == "event.pause" { cmd = .togglePause }
-                else if code == "event.undo" { cmd = .undo }
-                else if code == "event.redo" { cmd = .redo }
-                else { cmd = .finishGame }
-                DispatchQueue.main.async { [weak self] in
-                    self?.onCommand?(cmd)
-                    self?.onFlash?(.green)
-                }
+        let candidates = directSpeechActionCandidates(text: text)
+        if let candidate = selectSpeechActionCandidate(candidates) {
+            addLog(text: text, isSuccess: false, action: candidate.code, matchDetail: "🔍 动作候选: \(candidate.keyword) | 得分=\(String(format: "%.2f", candidate.score)) | 左侧=\(candidate.leftText.isEmpty ? "空" : candidate.leftText) | 右侧=\(candidate.rightText.isEmpty ? "空" : candidate.rightText)")
+            if resolvePlayerAndExecute(leftText: candidate.leftText, eventCode: candidate.code, isShot: candidate.isShot, rightText: candidate.rightText, text: text, textPinyin: textPinyin) {
                 return true
             }
-        }
-        for evt in voiceShotEvents {
-            if let (left, right) = findKeyword(evt.keyword, in: text) {
-                addLog(text: text, isSuccess: false, action: evt.code, matchDetail: "🔍 找到关键词「\(evt.keyword)」 | 左侧原文: \(left.isEmpty ? "空" : left) | 右侧原文: \(right.isEmpty ? "空" : right)")
-                if resolvePlayerAndExecute(leftText: left, eventCode: evt.code, isShot: true, rightText: right, text: text, textPinyin: textPinyin) { return true }
-            }
+        } else if candidates.contains(where: { $0.score >= 0.72 }) {
+            addLog(text: text, isSuccess: false, matchDetail: "❌ 动作候选置信度不足或候选分差过小")
+            showErrorWithFlash(String(format: NSLocalizedString("voice_unrecognized_format", comment: ""), text))
+            return true
         }
         return false
     }
 
     private func processByPinyinFallback(text: String, textPinyin: String) -> Bool {
         let textVariants = currentRules.generatePinyinVariants(text)
-        let shotPinyinVariants = voiceShotTypes.map { (shot: $0, variants: currentRules.generatePinyinVariants($0.keyword)) }
-        for (shot, variants) in shotPinyinVariants {
+        let commandEvents = voiceNonShotEvents.filter { $0.1.hasPrefix("event.") }
+        for (keyword, code) in commandEvents {
+            let keywordVariants = currentRules.generatePinyinVariants(keyword)
+            guard keywordVariants.contains(where: { key in textVariants.contains(where: { $0.contains(key) }) }) else { continue }
+            addLog(text: text, isSuccess: true, action: code, matchDetail: "拼音命令: \(currentRules.toPinyin(keyword))")
+            onFlash?(.green)
+            let command: VoiceCommand
+            if code == "event.period" { command = .startPeriod }
+            else if code == "event.pause" { command = .togglePause }
+            else if code == "event.undo" { command = .undo }
+            else if code == "event.redo" { command = .redo }
+            else { command = .finishGame }
+            DispatchQueue.main.async { [weak self] in
+                self?.onCommand?(command)
+                self?.onFlash?(.green)
+            }
+            return true
+        }
+        let statEvents = voiceNonShotEvents.filter { $0.1.hasPrefix("stat.") }
+        let pinyinCandidates = pinyinSpeechActionCandidates(textVariants: textVariants)
+        guard let selectedAction = selectSpeechActionCandidate(pinyinCandidates) else {
+            guard pinyinCandidates.isEmpty else {
+                addLog(text: text, isSuccess: false, matchDetail: "❌ 动作候选置信度不足或候选分差过小")
+                showErrorWithFlash(String(format: NSLocalizedString("voice_unrecognized_format", comment: ""), text))
+                return true
+            }
+            return false
+        }
+        let shotPinyinVariants = voiceShotTypes.map { shot in
+            (shot: shot, variants: currentRules.generatePinyinVariants(shot.keyword))
+        }
+        if selectedAction.isShot {
+            for (shot, variants) in shotPinyinVariants {
+            guard shot.eventPrefix == selectedAction.code else { continue }
             var matchedVariant: String?
             var matchedText: String?
             for kv in variants {
@@ -1162,15 +2482,15 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             guard let store, let snapshot = currentSnapshot else { return false }
             let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
             var playerID: UUID?; var side: TeamSide?; var dbgPlayer = ""
-            if let res = resolvePlayerNumber(from: text, allIDs: allIDs) {
+            if hasExplicitPlayerNumberMarker(in: text),
+               let res = resolvePlayerNumber(from: text, allIDs: allIDs) {
                 playerID = res.playerID; side = res.side; dbgPlayer = res.debug
             }
             if playerID == nil, !leftPinyin.isEmpty {
-                let matchIDs = matchableIDs(from: allIDs, snapshot: snapshot)
-                let (matches, dbg) = matchPlayerIDsDebug(text: leftPinyin, textPinyin: leftPinyin, in: matchIDs, context: "拼音回退球员")
-                dbgPlayer = dbg
-                if let m = matches.first {
-                    playerID = m.0; side = m.1
+                if let res = resolvedPlayerCandidate(text: leftPinyin, textPinyin: leftPinyin, in: allIDs, context: "拼音回退球员") {
+                    playerID = res.playerID
+                    side = res.side
+                    dbgPlayer = res.debug
                 }
             }
             guard let pid = playerID, let sd = side else {
@@ -1187,11 +2507,14 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             addLog(text: text, isSuccess: true, action: action.message, playerName: pn, matchedPattern: finalCode, matchDetail: "拼音回退球员: \(dbgPlayer)")
             showSuccessFeedback(text: text, action: action, playerID: pid, side: sd)
             return true
+            }
         }
 
-        let statEvents = voiceNonShotEvents.filter { $0.1.hasPrefix("stat.") }
-        let statPinyinVariants = statEvents.map { (keyword: $0.0, code: $0.1, variants: currentRules.generatePinyinVariants($0.0)) }
+        let statPinyinVariants = statEvents.map { keyword, code in
+            (keyword: keyword, code: code, variants: currentRules.generatePinyinVariants(keyword))
+        }
         for stat in statPinyinVariants {
+            guard stat.code == selectedAction.code else { continue }
             var matchedVariant: String?
             var matchedText: String?
             for kv in stat.variants {
@@ -1211,15 +2534,15 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             guard let store, let snapshot = currentSnapshot else { return false }
             let allIDs = snapshot.homeOnCourtPlayerIDs + snapshot.awayOnCourtPlayerIDs
             var playerID: UUID?; var side: TeamSide?; var dbgPlayer = ""
-            if let res = resolvePlayerNumber(from: text, allIDs: allIDs) {
+            if hasExplicitPlayerNumberMarker(in: text),
+               let res = resolvePlayerNumber(from: text, allIDs: allIDs) {
                 playerID = res.playerID; side = res.side; dbgPlayer = res.debug
             }
             if playerID == nil, !leftPinyin.isEmpty {
-                let matchIDs = matchableIDs(from: allIDs, snapshot: snapshot)
-                let (matches, dbg) = matchPlayerIDsDebug(text: leftPinyin, textPinyin: leftPinyin, in: matchIDs, context: "统计拼音回退球员")
-                dbgPlayer = dbg
-                if let m = matches.first {
-                    playerID = m.0; side = m.1
+                if let res = resolvedPlayerCandidate(text: leftPinyin, textPinyin: leftPinyin, in: allIDs, context: "统计拼音回退球员") {
+                    playerID = res.playerID
+                    side = res.side
+                    dbgPlayer = res.debug
                 }
             }
             guard let pid = playerID, let sd = side else {
@@ -1276,10 +2599,14 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 if !candidate.isEmpty {
                     var targetID: UUID?
                     var targetSide: TeamSide?
-                    let matchIDs = matchableIDs(from: allIDs, snapshot: snapshot)
-                    let (matches, _) = matchPlayerIDsDebug(text: candidate, textPinyin: candidate, in: matchIDs, context: "统计拼音回退抢断目标")
-                    if let m = matches.first {
-                        targetID = m.0; targetSide = m.1
+                    if let res = resolvePlayerNumber(from: candidate, allIDs: allIDs) {
+                        targetID = res.playerID
+                        targetSide = res.side
+                    } else {
+                        if let res = resolvedPlayerCandidate(text: candidate, textPinyin: candidate, in: allIDs, context: "统计拼音回退抢断目标") {
+                            targetID = res.playerID
+                            targetSide = res.side
+                        }
                     }
                     if let tid = targetID, let ts = targetSide, ts != sd, tid != pid {
                         guard let turnoverAction = StatAction.allCases.first(where: { $0.eventCode == "stat.turnover" }) else {
@@ -1290,6 +2617,32 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                         let pn2 = store.player(for: tid)?.name ?? "?"
                         addLog(text: text, isSuccess: true, action: "\(action.message) + \(turnoverAction.message)", playerName: "\(pn) → \(pn2)", matchedPattern: "\(stat.code)+turnover", matchDetail: "统计拼音回退双事件: \(pn)抢断\(pn2)")
                         showDualSuccessFeedback(action1: action, playerID1: pid, side1: sd, action2: turnoverAction, playerID2: tid, side2: ts)
+                        return true
+                    }
+                }
+            }
+
+            if action == .assist && !rightPinyin.isEmpty {
+                for evt in voiceShotEvents {
+                    guard let (playerBText, shotRight) = findPinyinKeyword(evt.keyword, in: rightPinyin) else { continue }
+                    let (isMade, _) = determineShotState(rightText: shotRight)
+                    let shotFinalCode = evt.code + (isMade ? "Made" : "Missed")
+                    guard let shotAction = StatAction.allCases.first(where: { $0.eventCode == shotFinalCode }) else { continue }
+                    var targetID: UUID?
+                    var targetSide: TeamSide?
+                    if let res = resolvePlayerNumber(from: playerBText, allIDs: allIDs) {
+                        targetID = res.playerID
+                        targetSide = res.side
+                    } else if !playerBText.isEmpty {
+                        if let res = resolvedPlayerCandidate(text: playerBText, textPinyin: playerBText, in: allIDs, context: "拼音回退助攻目标") {
+                            targetID = res.playerID
+                            targetSide = res.side
+                        }
+                    }
+                    if let targetID, let targetSide, targetSide == sd, targetID != pid {
+                        let targetName = store.player(for: targetID)?.name ?? "?"
+                        addLog(text: text, isSuccess: true, action: "\(action.message) + \(shotAction.message)", playerName: "\(pn) → \(targetName)", matchedPattern: "\(stat.code)+\(shotFinalCode)", matchDetail: "拼音回退双事件: \(pn)助攻\(targetName)\(shotAction.message)")
+                        showDualSuccessFeedback(action1: action, playerID1: pid, side1: sd, action2: shotAction, playerID2: targetID, side2: targetSide)
                         return true
                     }
                 }
@@ -1309,7 +2662,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     private func extractAllNumbers(from text: String) -> [Int] {
         // CJK: 号, hao, 番, 번
-        let cjk = try? NSRegularExpression(pattern: "(\\d+)\\s*(号|hao|番|번)")
+        let cjk = try? NSRegularExpression(pattern: "(\\d+)\\s*(号|號|hao|番|번)", options: [.caseInsensitive])
         var nums = cjk?.matches(in: text, range: NSRange(text.startIndex..., in: text)).compactMap { match -> Int? in
             guard match.numberOfRanges > 1,
                   let range = Range(match.range(at: 1), in: text),
