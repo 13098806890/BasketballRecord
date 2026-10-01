@@ -39,8 +39,8 @@ extension VoiceRulesData {
             ShotKeywordData(keyword: "durchbruch", eventPrefix: "stat.two"),
             ShotKeywordData(keyword: "sprungwurf", eventPrefix: "stat.two")
         ],
-        madeStates: ["getroffen", "drin", "gut", "erfolg"],
-        missedStates: ["verfehlt", "daneben", "blockiert", "nicht", "vorbei", "nein", "miss"],
+        madeStates: ["getroffen", "drin", "gut", "erfolg", "erfolgreich", "erzielt", "rein"],
+        missedStates: ["verfehlt", "daneben", "blockiert", "nicht", "vorbei", "nein", "miss", "fehlwurf"],
         statEvents: [
             ["foul", "stat.foul"],
             ["faul", "stat.foul"],

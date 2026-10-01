@@ -51,6 +51,7 @@ final class SpeechTranscriberEngine {
 
     var onResult: ((String, [String], Bool) -> Void)?
     var onError: ((Error) -> Void)?
+    var onFinished: (() -> Void)?
 
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "BasketballRecord", category: "SpeechTranscriber")
     private var audioEngine: AVAudioEngine?
@@ -208,7 +209,7 @@ final class SpeechTranscriberEngine {
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
-            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+            try await AudioSessionActivation.activate(audioSession)
             try engine.start()
             audioEngine = engine
         } catch {
@@ -233,12 +234,18 @@ final class SpeechTranscriberEngine {
         inputContinuation?.finish()
         inputContinuation = nil
 
-        guard let analyzer else { return }
+        guard let analyzer else {
+            onFinished?()
+            return
+        }
         self.analyzer = nil
         Task {
             try? await analyzer.finalizeAndFinishThroughEndOfInput()
+            await resultTask?.value
             self.transcriber = nil
+            self.resultTask = nil
             await self.releaseReservedLocale()
+            self.onFinished?()
         }
     }
 

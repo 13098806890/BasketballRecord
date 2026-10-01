@@ -16,6 +16,60 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
         }
     }
 
+    func testConfiguredTranscriptReplay() async throws {
+        guard let scorePath = ProcessInfo.processInfo.environment["VOICE_ASR_EVAL_SCORE_JSON"] else {
+            throw XCTSkip("VOICE_ASR_EVAL_SCORE_JSON is not configured")
+        }
+        let data = try Data(contentsOf: URL(fileURLWithPath: scorePath))
+        let score = try JSONDecoder().decode(TranscriptReplayScore.self, from: data)
+        var total = 0
+        var matched = 0
+        var byLocale: [String: (matched: Int, total: Int)] = [:]
+        for row in score.rows where !row.transcript.isEmpty {
+            total += 1
+            var counts = byLocale[row.locale] ?? (0, 0)
+            counts.total += 1
+            let store = replayStore(player: row.expectedPlayer, relatedPlayer: row.expectedRelatedPlayer)
+            let recognizer = VoiceRecognizer()
+            recognizer.configureForFileEvaluation(store: store, engine: .speechTranscriber)
+            recognizer.currentSnapshot = replaySnapshot(store: store)
+            recognizer.updateRules(for: Locale(identifier: row.locale))
+            var events: [String] = []
+            recognizer.onAction = { action, _, _, _ in
+                events.append(action.eventCode)
+            }
+            recognizer.onDualAction = { first, _, _, second, _, _ in
+                events.append(first.eventCode)
+                events.append(second.eventCode)
+            }
+            recognizer.onCommand = { command in
+                switch command {
+                case .startPeriod: events.append("event.period")
+                case .togglePause: events.append("event.pause")
+                case .finishGame: events.append("event.game_end")
+                case .substitution: events.append("event.substitution")
+                case .undo: events.append("event.undo")
+                case .redo: events.append("event.redo")
+                }
+            }
+            recognizer.simulateText(row.transcript)
+            await Task.yield()
+            if replayEventMatches(events: events, expected: row.expectedEvent) {
+                matched += 1
+                counts.matched += 1
+            }
+            byLocale[row.locale] = counts
+        }
+        let summary = byLocale.keys.sorted().map { locale in
+            let value = byLocale[locale]!
+            return "\(locale)=\(value.matched)/\(value.total)"
+        }.joined(separator: " ")
+        print("VOICE_TRANSCRIPT_REPLAY matched=\(matched)/\(total) \(summary)")
+        if let outputPath = ProcessInfo.processInfo.environment["VOICE_ASR_EVAL_REPLAY_OUTPUT"] {
+            try? summary.write(toFile: outputPath, atomically: true, encoding: .utf8)
+        }
+    }
+
     func testConfiguredFileCorpus() async throws {
         let corpus = try evaluationCorpus()
         let allRows = try loadManifest(at: corpus.manifestURL)
@@ -37,7 +91,7 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
         }
         var resultRows: [String] = []
 
-        engineLoop: for engineName in engineNames {
+        for engineName in engineNames {
             guard let engine = VoiceASREngine(rawValue: engineName) else {
                 XCTFail("Unknown voice ASR engine: \(engineName)")
                 continue
@@ -62,8 +116,20 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
                 } catch let error as VoiceASRFileTranscriberError {
                     switch error {
                     case .speechAuthorizationDenied, .recognizerUnavailable, .localeUnsupported, .modelUnavailable:
-                        print("VOICE_ASR_UNAVAILABLE,\(engine.rawValue),\(error.localizedDescription)")
-                        continue engineLoop
+                        resultRows.append(csvRow(
+                            engine: engine.rawValue,
+                            row: row,
+                            transcript: "",
+                            firstResultMilliseconds: nil,
+                            finalResultMilliseconds: nil,
+                            eventCode: "",
+                            playerMatch: false,
+                            relatedPlayerMatch: false,
+                            error: error.localizedDescription,
+                            recognitionStatus: "asr_unavailable"
+                        ))
+                        print("VOICE_ASR_UNAVAILABLE,\(engine.rawValue),\(row.locale),\(error.localizedDescription)")
+                        continue
                     case .noResult, .emptyAudio:
                         resultRows.append(csvRow(
                             engine: engine.rawValue,
@@ -358,5 +424,62 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
 
     private func csvField(_ value: String) -> String {
         "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
+    }
+
+    private func replayStore(player: String, relatedPlayer: String) -> AppStore {
+        let store = AppStore()
+        let names = [player, relatedPlayer].filter { !$0.isEmpty }
+        let players = names.enumerated().map { index, name in
+            Player(name: name, number: String(index + 1))
+        }
+        store.players = players
+        let teamID = UUID()
+        store.teams = [Team(id: teamID, name: "Replay", playerIDs: players.map(\.id))]
+        return store
+    }
+
+    private func replaySnapshot(store: AppStore) -> GameSnapshot {
+        var snapshot = GameSnapshot()
+        guard let team = store.teams.first else { return snapshot }
+        snapshot.homeTeamID = team.id
+        snapshot.homeOnCourtPlayerIDs = team.playerIDs
+        snapshot.homeAvailablePlayerIDs = team.playerIDs
+        return snapshot
+    }
+
+    private func replayEventMatches(events: [String], expected: String) -> Bool {
+        if events.contains(expected) { return true }
+        if expected == "stat.assistTwoMade" {
+            return events.contains("stat.assist") && events.contains("stat.twoMade")
+        }
+        if expected == "stat.assistThreeMade" {
+            return events.contains("stat.assist") && events.contains("stat.threeMade")
+        }
+        if expected == "stat.stealTurnover" {
+            return events.contains("stat.steal") && events.contains("stat.turnover")
+        }
+        return false
+    }
+}
+
+private struct TranscriptReplayScore: Decodable {
+    let rows: [TranscriptReplayRow]
+}
+
+private struct TranscriptReplayRow: Decodable {
+    let caseID: String
+    let locale: String
+    let expectedEvent: String
+    let expectedPlayer: String
+    let expectedRelatedPlayer: String
+    let transcript: String
+
+    enum CodingKeys: String, CodingKey {
+        case caseID = "case_id"
+        case locale
+        case expectedEvent = "expected_event"
+        case expectedPlayer = "expected_player"
+        case expectedRelatedPlayer = "expected_related_player"
+        case transcript
     }
 }

@@ -43,8 +43,8 @@ extension VoiceRulesData {
              ShotKeywordData(keyword: "penetracion", eventPrefix: "stat.two"),
              ShotKeywordData(keyword: "tiro saltando", eventPrefix: "stat.two")
         ],
-        madeStates: ["anotó", "entró", "metió", "canasta", "bueno"],
-        missedStates: ["fallado", "fuera", "bloqueado", "perdido", "no", "fallo", "aire"],
+        madeStates: ["anotó", "anoto", "entró", "metió", "canasta", "bueno", "encestó", "encesto"],
+        missedStates: ["fallado", "falló", "fuera", "bloqueado", "perdido", "no", "fallo", "aire"],
         statEvents: [
             ["falta", "stat.foul"],
             ["farta", "stat.foul"],

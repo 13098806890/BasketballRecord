@@ -228,7 +228,7 @@ def render_iteration_history(history):
             previous_overall = overall
     return (
         "<section><h2>方案二语音识别演进</h2>"
-        "<p>每一轮都使用同一套 10 个 locale × 70 条语料，在当前连接的 iOS 27 真机上运行。"
+        "<p>R0–R10 使用每个 locale 70 条固定语料；从 R11 起，每个 locale 在固定 70 条之外再加入 35 条按语言地区随机生成的动态语料，并在当前连接的 iOS 27 真机上运行。"
         "R5 起结果同时保留 SpeechTranscriber 的候选转写和 App 内 VoiceLog parser trace；R0–R4 没有保存 VoiceLog 的历史结果会明确标注，不能当作已采集日志。</p>"
         "<table><thead><tr><th>轮次</th><th>版本</th><th>本轮改动</th><th>日志证据与分析</th><th>有效用例</th><th>事件准确率</th><th>姓名准确率</th><th>整体准确率</th><th>较上一轮</th><th>备注</th></tr></thead><tbody>"
         + "".join(rows)
@@ -374,15 +374,15 @@ table{{border-collapse:collapse;width:100%;white-space:nowrap}} th,td{{border-bo
 <h1>BasketballRecord 多语言语音识别评测</h1>
 <p><strong>状态：</strong>{status}　<strong>语料：</strong>{len(manifest)} 条 WAV，10 个 locale，命名格式为 <code>语言-测试内容.wav</code></p>
 <div class="note">本轮只运行 SpeechTranscriber，不修改中文第一方案的生产逻辑。本报告把事件准确率与整体准确率作为 80% 门槛，姓名准确率单独列为诊断指标。SpeechTranscriber 不可用或模型未下载时显示为 unavailable，不会被伪计为失败或通过。</div>
-<section><h2>测试设计摘要</h2><p>每种语言 70 条不同用例：35 条使用当地球员姓名的标准口令，35 条使用替代表达。日语和韩语使用符合当地习惯的本地姓名，以及标准篮球词搭配当地自然语气；其他语言保留球衣号码替代口令。基础语料包含 18 个命中/未中投篮、8 个统计动作、3 个组合动作、5 个比赛控制命令、1 个换人命令。每条结果还会保留 SpeechTranscriber 的候选转写和 App 内 VoiceLog parser trace，方便按“识别错误 / 解析错误 / 球员匹配错误”拆分优化。详情列同时展示本地化原文、中文翻译、识别结果、事件判断、识别状态和 WAV 链接。</p></section>
+<section><h2>测试设计摘要</h2><p>固定语料每种语言 70 条不同用例：35 条使用当地球员姓名的标准口令，35 条使用替代表达。从 R11 起，每种语言再随机生成 35 条动态语料，按照该语言和地区的自然表达、姓名和上下文变化生成，因此每种语言每轮共 105 条。日语和韩语使用符合当地习惯的本地姓名，以及标准篮球词搭配当地自然语气；其他语言保留球衣号码替代口令。基础语料包含 18 个命中/未中投篮、8 个统计动作、3 个组合动作、5 个比赛控制命令、1 个换人命令。每条结果还会保留 SpeechTranscriber 的候选转写和 App 内 VoiceLog parser trace，方便按“识别错误 / 解析错误 / 球员匹配错误”拆分优化。详情列同时展示本地化原文、中文翻译、识别结果、事件判断、识别状态和 WAV 链接。</p></section>
 <section><h2>语言和姓名覆盖</h2><table><thead><tr><th>Locale</th><th>球员姓名数</th><th>用例数</th></tr></thead><tbody>{''.join(locale_rows)}</tbody></table></section>
-<section><h2>当前指标口径</h2><p>逐语言汇总使用该语言自己的 70 条用例；俄语因当前真机不支持 SpeechTranscriber，标记为设备不可用，不计入“有效用例”整体准确率。因此本页简体中文 60/70 = 85.7%，繁体中文 59/70 = 84.3%，英文 60/70 = 85.7%，意大利语 56/70 = 80.0%。<code>score.json</code> 仍保留 700 条全量结果，包含俄语不可用行，不能与这里的有效用例口径直接比较。</p></section>
+<section><h2>当前指标口径</h2><p>逐语言汇总使用当前 manifest 中该语言的全部用例；历史固定轮次为 70 条，从 R11 起为 70 条固定语料加 35 条动态语料。俄语因当前真机不支持 SpeechTranscriber，标记为设备不可用，不计入“有效用例”整体准确率。<code>score.json</code> 保留当前 manifest 的全量结果，包含俄语不可用行，不能与排除 unavailable 后的“有效用例”口径直接比较。</p></section>
 <section><h2>引擎汇总</h2><table><thead><tr><th>Locale</th><th>引擎</th><th>有效/总用例</th><th>事件准确率</th><th>姓名准确率</th><th>整体准确率</th><th>判定</th><th>首结果 P50/P95</th><th>最终结果 P50/P95</th></tr></thead><tbody>{''.join(summary_rows) or '<tr><td colspan="9">尚未写入真实设备识别结果</td></tr>'}</tbody></table><p>{html.escape(speech_note)}</p></section>
 {baseline_comparison}
 {evolution_html}
 {log_analysis_html}
 <section><details><summary><h2 style="display:inline">逐条结果（{len(results)} 条，点击展开）</h2></summary><table><thead><tr><th>语言</th><th>样本组</th><th>类别</th><th>引擎</th><th>Localized 测试内容</th><th>中文翻译</th><th>期望事件</th><th>识别 transcript</th><th>解析事件</th><th>是否通过</th><th>识别状态</th><th>错误</th><th>候选转写</th><th>VoiceLog</th><th>WAV</th></tr></thead><tbody>{''.join(detail_rows)}</tbody></table></details></section>
-{baseline_html}<section><h2>解释与后续</h2><p>合成语音结果只能回答“本地规则与系统识别器在固定语料上的可重复表现”。正式发布前还应追加真人录音、不同口音、篮球场噪声、多人重叠说话和近场/远场样本。未达到 80% 的语言会以失败 transcript、对应 WAV 和 parser 事件码作为优化入口。</p></section>
+{baseline_html}<section><h2>解释与后续</h2><p>合成语音结果只能回答“本地规则与系统识别器在固定及动态合成语料上的可重复表现”。正式发布前还应追加真人录音、不同口音、篮球场噪声、多人重叠说话和近场/远场样本。未达到 80% 的语言会以失败 transcript、对应 WAV 和 parser 事件码作为优化入口。</p></section>
 </main></body></html>"""
     pathlib.Path(output_path).write_text(content, encoding="utf-8")
 

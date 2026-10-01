@@ -47,8 +47,8 @@ extension VoiceRulesData {
             ShotKeywordData(keyword: "드라이브", eventPrefix: "stat.two"),
             ShotKeywordData(keyword: "점프슛", eventPrefix: "stat.two")
         ],
-        madeStates: ["성공", "들어갔다", "득점", "성공했다"],
-        missedStates: ["실패", "빗나감", "블록", "못 넣음", "안 들어감", "놓침", "노", "에어볼"],
+        madeStates: ["성공", "들어갔다", "득점", "성공했다", "성공했어", "넣었다", "넣었어"],
+        missedStates: ["실패", "빗나감", "블록", "못 넣음", "안 들어감", "놓침", "놓쳤어", "노", "에어볼"],
         statEvents: [
             ["파울", "stat.foul"],
             ["파올", "stat.foul"],

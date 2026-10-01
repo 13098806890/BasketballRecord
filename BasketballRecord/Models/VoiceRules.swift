@@ -162,6 +162,9 @@ struct VoiceRules: Sendable {
     func namePinyinVariants(_ name: String) -> [String] {
         let clean = toPinyin(name)
         var variants = [clean]
+        for variant in generatePinyinVariants(name) where !variants.contains(variant) {
+            variants.append(variant)
+        }
         let letters = name.lowercased().filter { $0.isLetter && $0.isASCII }
         if letters.count >= 1 && letters.count <= 4 {
             let letterPinyins = letters.map { letterPinyin($0) }
@@ -172,13 +175,17 @@ struct VoiceRules: Sendable {
         if !surnamePinyinOverrides.isEmpty {
             let chars = Array(name)
             let syllables = clean.split(separator: " ").map(String.init)
-            guard syllables.count == chars.count else { return variants }
-            for (i, ch) in chars.enumerated() {
-                guard let alternatives = surnamePinyinOverrides[ch] else { continue }
-                for alt in alternatives {
-                    var altSyllables = syllables
-                    altSyllables[i] = alt
-                    variants.append(altSyllables.joined(separator: " "))
+            if syllables.count == chars.count {
+                for (i, ch) in chars.enumerated() {
+                    guard let alternatives = surnamePinyinOverrides[ch] else { continue }
+                    for alt in alternatives {
+                        var altSyllables = syllables
+                        altSyllables[i] = alt
+                        let variant = altSyllables.joined(separator: " ")
+                        if !variants.contains(variant) {
+                            variants.append(variant)
+                        }
+                    }
                 }
             }
         }
@@ -234,6 +241,29 @@ struct VoiceRules: Sendable {
         values.append(contentsOf: substitutionKeywords)
         values.append(contentsOf: commandEvents.map(\.keyword))
         values.append(contentsOf: playerNumberContextualStrings(numbers: playerNumbers))
+        let languageCode: String
+        if locale.identifier.hasPrefix("zh-Hant") {
+            languageCode = "zh-Hant"
+        } else {
+            languageCode = locale.identifier.split(separator: "-").first.map(String.init) ?? locale.identifier
+        }
+        let templates = VoiceCommandExamples.templates(for: languageCode)
+        for (index, name) in playerNames.enumerated() {
+            let number = index < playerNumbers.count ? playerNumbers[index].trimmingCharacters(in: .whitespacesAndNewlines) : ""
+            for template in templates.actionTemplates.values.flatMap({ $0 }) {
+                var phrase = template.replacingOccurrences(of: "{name}", with: name)
+                phrase = phrase.replacingOccurrences(of: "{number}", with: number)
+                phrase = phrase.replacingOccurrences(of: "{team}", with: "")
+                if let target = playerNames.first(where: { $0 != name }) {
+                    phrase = phrase.replacingOccurrences(of: "{target}", with: target)
+                }
+                if !phrase.contains("{") && !phrase.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    values.append(phrase)
+                }
+            }
+        }
+        values.append(contentsOf: templates.shotExamples.map(\.1))
+        values.append(contentsOf: templates.statExamples.map(\.1))
         return Array(Set(values.filter { !$0.isEmpty })).sorted()
     }
 

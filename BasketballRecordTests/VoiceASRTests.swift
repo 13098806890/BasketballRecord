@@ -61,6 +61,30 @@ final class VoiceASRTests: XCTestCase {
 
     func testZhAssist_common() throws { assertMatch(text: "张三助攻", .chinese, "stat.assist") }
     func testZhAssist_zhugong() throws { assertMatch(text: "张三主攻", .chinese, "stat.assist") }
+    func testZhAssistTwo_composite() throws { assertAssistShot(text: "张三助攻李四两分", rules: .chinese, shotCode: "stat.twoMade") }
+    func testZhAssistTwo_numberComposite() throws { assertAssistShot(text: "3号助攻7号2分", rules: .chinese, shotCode: "stat.twoMade") }
+    func testZhAssistTwo_speechTranscriberComposite() throws { assertSpeechTranscriberAssistShot(text: "张三助攻李四2分", rules: .chinese, shotCode: "stat.twoMade") }
+    func testZhAssistTwo_speechTranscriberNumberComposite() throws { assertSpeechTranscriberAssistShot(text: "3号助攻7号2分", rules: .chinese, shotCode: "stat.twoMade") }
+
+    func testZhPolyphonicName_speechTranscriber() throws {
+        let playerID = UUID()
+        store.players.append(Player(id: playerID, name: "朝阳", number: "19"))
+        snapshot.homeOnCourtPlayerIDs.append(playerID)
+        snapshot.homeAvailablePlayerIDs.append(playerID)
+        let rec = VoiceRecognizer()
+        rec.configureForFileEvaluation(store: store, engine: .speechTranscriber)
+        rec.currentSnapshot = snapshot
+        rec.updateRules(for: Locale(identifier: "zh-CN"))
+        var capturedID: UUID?
+        let exp = expectation(description: "polyphonic_name")
+        rec.onAction = { _, id, _, _ in
+            capturedID = id
+            exp.fulfill()
+        }
+        rec.simulateText("招阳两分")
+        wait(for: [exp], timeout: 0.5)
+        XCTAssertEqual(capturedID, playerID)
+    }
 
     func testZhBlock_common() throws { assertMatch(text: "张三盖帽", .chinese, "stat.block") }
     func testZhBlock_gaimao() throws { assertMatch(text: "张三概貌", .chinese, "stat.block") }
@@ -81,6 +105,10 @@ final class VoiceASRTests: XCTestCase {
     func testHantMissed() throws { assertMatch(text: "張三三分沒進", .traditionalChinese, "stat.threeMissed") }
     func testHantFoul() throws { assertMatch(text: "張三犯規", .traditionalChinese, "stat.foul") }
     func testHantRebound() throws { assertMatch(text: "張三籃板", .traditionalChinese, "stat.rebound") }
+    func testHantAssistTwo_numberComposite() throws { assertAssistShot(text: "3號助攻7號2分", rules: .traditionalChinese, shotCode: "stat.twoMade") }
+    func testHantAssistTwo_speechTranscriberNumberComposite() throws { assertSpeechTranscriberAssistShot(text: "3號助攻7號2分", rules: .traditionalChinese, shotCode: "stat.twoMade") }
+    func testHantSteal_commonAlias() throws { assertSpeechTranscriberMatch(text: "張三搶斷", .traditionalChinese, "stat.steal") }
+    func testHantOffensiveRebound_fullCourtAlias() throws { assertSpeechTranscriberMatch(text: "張三全場籃板", .traditionalChinese, "stat.rebound") }
 
     // MARK: - en-US
     // Tests for every event with common ASR homophone/phonetic errors
@@ -146,6 +174,7 @@ final class VoiceASRTests: XCTestCase {
 
     func testJaTwo_common() throws { assertMatch(text: "山田ツー", .japanese, "stat.twoMade") }
     func testJaTwo_short() throws { assertMatch(text: "山田ツ", .japanese, "stat.twoMade") }
+    func testJaTwo_politeRequest() throws { assertSpeechTranscriberMatch(text: "山田ツーお願いします", .japanese, "stat.twoMade") }
 
     func testJaLayup_common() throws { assertMatch(text: "山田レイアップ", .japanese, "stat.layupMade") }
     func testJaLayup_drop() throws { assertMatch(text: "山田レアップ", .japanese, "stat.layupMade") }
@@ -169,6 +198,9 @@ final class VoiceASRTests: XCTestCase {
     func testJaTurnover_common() throws { assertMatch(text: "山田ターンオーバー", .japanese, "stat.turnover") }
     func testJaTurnover_short() throws { assertMatch(text: "山田ターンオーバ", .japanese, "stat.turnover") }
     func testJaTurnover_drop_t() throws { assertMatch(text: "山田タンオーバ", .japanese, "stat.turnover") }
+    func testJaDunkMissed_transcriberVariant() throws { assertSpeechTranscriberMatch(text: "山田断苦いしたお願いします", .japanese, "stat.dunkMissed") }
+    func testJaPutbackMissed_transcriberVariant() throws { assertSpeechTranscriberMatch(text: "山田バットバック買いした今", .japanese, "stat.putbackMissed") }
+    func testJaTurnover_transcriberVariant() throws { assertSpeechTranscriberMatch(text: "山田オーバーお願いします", .japanese, "stat.turnover") }
 
     func testJaSubstitution() throws { assertCmd(text: "3番交代10番", .japanese, "substitution") }
     func testJaTimeout() throws { assertCmd(text: "タイムアウト", .japanese, "togglePause") }
@@ -326,6 +358,24 @@ final class VoiceASRTests: XCTestCase {
     func testRuSubstitution() throws { assertCmd(text: "3 замена 10", .russian, "substitution") }
     func testRuGameEnd() throws { assertCmd(text: "конец игры", .russian, "finishGame") }
 
+    func testSpeechTranscriberObservedVariants() throws {
+        assertSpeechTranscriberMatch(text: "张三寇难命中", .chinese, "stat.dunkMade")
+        assertSpeechTranscriberMatch(text: "张三钟头命中", .chinese, "stat.midRangeMade")
+        assertSpeechTranscriberMatch(text: "张三枪断", .chinese, "stat.steal")
+        assertSpeechTranscriberCommand(text: "冲座上一条", .chinese, "event.redo")
+        assertSpeechTranscriberMatch(text: "Müller 2 getroffen", .german, "stat.twoMade")
+        assertSpeechTranscriberMatch(text: "García tres ano", .spanish, "stat.threeMade")
+        assertSpeechTranscriberMatch(text: "Martin trois réussit", .french, "stat.threeMade")
+        assertSpeechTranscriberMatch(text: "Rossi tre segnata", .italian, "stat.threeMade")
+        assertSpeechTranscriberMatch(text: "김선수 턴 로버", .korean, "stat.turnover")
+        assertSpeechTranscriberMatch(text: "김선수 팥팩 실패", .korean, "stat.putbackMissed")
+    }
+
+    func testSpeechTranscriberSpecificReboundPrecedesGeneric() throws {
+        snapshot.showsOffensiveDefensiveRebound = true
+        assertSpeechTranscriberMatch(text: "García rebote ofensivo", .spanish, "stat.offensiveRebound")
+    }
+
 
     // MARK: - Helpers
 
@@ -383,6 +433,77 @@ final class VoiceASRTests: XCTestCase {
         guard let valid = map[expected] else { XCTFail("Unknown: \(expected)", line: line); return }
         guard let c = code else { XCTFail("NO MATCH: '\(text)'", line: line); return }
         XCTAssertTrue(valid.contains(c), "'\(text)' → '\(c)' expected '\(expected)'", line: line)
+    }
+
+    private func assertSpeechTranscriberMatch(text: String, _ rules: VoiceRules, _ expected: String, line: UInt = #line) {
+        let rec = VoiceRecognizer()
+        rec.configureForFileEvaluation(store: store, engine: .speechTranscriber)
+        rec.currentSnapshot = snapshot
+        rec.updateRules(for: rules.locale)
+        var code: String?
+        let exp = expectation(description: "speech_transcriber_match_\(text)")
+        rec.onAction = { (a: StatAction, _, _, _) in code = a.eventCode; exp.fulfill() }
+        rec.onDualAction = { a1, _, _, _, _, _ in code = a1.eventCode; exp.fulfill() }
+        rec.simulateText(text)
+        wait(for: [exp], timeout: 0.5)
+        guard let code else { XCTFail("NO SPEECH TRANSCRIBER MATCH: '\(text)'", line: line); return }
+        let prefix = expected.replacingOccurrences(of: "Made", with: "").replacingOccurrences(of: "Missed", with: "")
+        XCTAssertTrue(code.hasPrefix(prefix) || code == expected, "'\(text)' → '\(code)' ≠ '\(expected)'", line: line)
+    }
+
+    private func assertSpeechTranscriberCommand(text: String, _ rules: VoiceRules, _ expected: String, line: UInt = #line) {
+        let rec = VoiceRecognizer()
+        rec.configureForFileEvaluation(store: store, engine: .speechTranscriber)
+        rec.currentSnapshot = snapshot
+        rec.updateRules(for: rules.locale)
+        var code: String?
+        let exp = expectation(description: "speech_transcriber_command_\(text)")
+        rec.onCommand = { command in
+            switch command {
+            case .startPeriod: code = "event.period"
+            case .togglePause: code = "event.pause"
+            case .finishGame: code = "event.game_end"
+            case .substitution: code = "event.substitution"
+            case .undo: code = "event.undo"
+            case .redo: code = "event.redo"
+            }
+            exp.fulfill()
+        }
+        rec.simulateText(text)
+        wait(for: [exp], timeout: 0.5)
+        XCTAssertEqual(code, expected, line: line)
+    }
+
+    private func assertAssistShot(text: String, rules: VoiceRules, shotCode: String, line: UInt = #line) {
+        let rec = VoiceRecognizer()
+        rec.configure(store: store)
+        rec.currentSnapshot = snapshot
+        rec.updateRules(for: rules.locale)
+        var codes: [String] = []
+        let exp = expectation(description: "assist_shot_\(text)")
+        rec.onDualAction = { first, _, _, second, _, _ in
+            codes = [first.eventCode, second.eventCode]
+            exp.fulfill()
+        }
+        rec.simulateText(text)
+        wait(for: [exp], timeout: 0.5)
+        XCTAssertEqual(codes, ["stat.assist", shotCode], line: line)
+    }
+
+    private func assertSpeechTranscriberAssistShot(text: String, rules: VoiceRules, shotCode: String, line: UInt = #line) {
+        let rec = VoiceRecognizer()
+        rec.configureForFileEvaluation(store: store, engine: .speechTranscriber)
+        rec.currentSnapshot = snapshot
+        rec.updateRules(for: rules.locale)
+        var codes: [String] = []
+        let exp = expectation(description: "speech_transcriber_assist_shot_\(text)")
+        rec.onDualAction = { first, _, _, second, _, _ in
+            codes = [first.eventCode, second.eventCode]
+            exp.fulfill()
+        }
+        rec.simulateText(text)
+        wait(for: [exp], timeout: 0.5)
+        XCTAssertEqual(codes, ["stat.assist", shotCode], line: line)
     }
 
     private func assertNotMatch(text: String, _ rules: VoiceRules, line: UInt = #line) {

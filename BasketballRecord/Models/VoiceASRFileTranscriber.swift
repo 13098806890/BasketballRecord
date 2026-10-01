@@ -84,9 +84,11 @@ enum VoiceASRFileTranscriber {
     @available(iOS 26.0, *)
     static func transcribeSpeechTranscriber(url: URL, locale: Locale, contextualStrings: [String] = []) async throws -> VoiceASRFileTranscriptionResult {
         guard SpeechTranscriber.isAvailable else {
+            print("VOICE_ASR_DIAGNOSTIC,locale=\(locale.identifier),reason=transcriber_unavailable")
             throw VoiceASRFileTranscriberError.modelUnavailable
         }
         guard let supportedLocale = await SpeechTranscriber.supportedLocale(equivalentTo: locale) else {
+            print("VOICE_ASR_DIAGNOSTIC,locale=\(locale.identifier),reason=locale_unsupported")
             throw VoiceASRFileTranscriberError.localeUnsupported
         }
 
@@ -101,6 +103,7 @@ enum VoiceASRFileTranscriber {
         var reservedByTranscriber = false
         if !alreadyReserved {
             guard try await AssetInventory.reserve(locale: supportedLocale) else {
+                print("VOICE_ASR_DIAGNOSTIC,locale=\(supportedLocale.identifier),reason=reserve_failed")
                 throw VoiceASRFileTranscriberError.modelUnavailable
             }
             reservedByTranscriber = true
@@ -119,15 +122,18 @@ enum VoiceASRFileTranscriber {
         do {
             switch status {
             case .unsupported:
+                print("VOICE_ASR_DIAGNOSTIC,locale=\(supportedLocale.identifier),reason=asset_unsupported")
                 throw VoiceASRFileTranscriberError.modelUnavailable
             case .supported, .downloading:
                 guard let installationRequest = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) else {
+                    print("VOICE_ASR_DIAGNOSTIC,locale=\(supportedLocale.identifier),reason=installation_request_missing")
                     throw VoiceASRFileTranscriberError.modelUnavailable
                 }
                 try await installationRequest.downloadAndInstall()
             case .installed:
                 break
             @unknown default:
+                print("VOICE_ASR_DIAGNOSTIC,locale=\(supportedLocale.identifier),reason=asset_status_unknown")
                 throw VoiceASRFileTranscriberError.modelUnavailable
             }
         } catch {
