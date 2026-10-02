@@ -165,6 +165,42 @@ struct VoiceRules: Sendable {
         for variant in generatePinyinVariants(name) where !variants.contains(variant) {
             variants.append(variant)
         }
+        let alphanumeric = name.lowercased().filter { $0.isASCII && ($0.isLetter || $0.isNumber) }
+        if alphanumeric.contains(where: { $0.isLetter }),
+           alphanumeric.contains(where: { $0.isNumber }),
+           locale.identifier.hasPrefix("zh") {
+            let rawTokens = alphanumeric.map(String.init)
+            let letterTokens = rawTokens.map { token in
+                token.first.map(letterPinyin) ?? token
+            }
+            let digitTokens = rawTokens.map { token -> Bool in
+                guard token.count == 1, let digit = token.first?.wholeNumberValue else { return false }
+                return (0...9).contains(digit)
+            }
+            let spokenTokens = zip(rawTokens, digitTokens).map { raw, isDigit in
+                guard isDigit, let digit = raw.first?.wholeNumberValue else { return raw }
+                return ["ling", "yi", "er", "san", "si", "wu", "liu", "qi", "ba", "jiu"][digit]
+            }
+            let rawSpoken = rawTokens.joined(separator: " ")
+            let letterSpoken = letterTokens.joined(separator: " ")
+            let digitSpoken = spokenTokens.joined(separator: " ")
+            let mixedSpoken = zip(zip(rawTokens, letterTokens), spokenTokens).map { rawAndLetter, digit in
+                rawAndLetter.0.first?.isNumber == true ? digit : rawAndLetter.1
+            }.joined(separator: " ")
+            let variantsToAdd = [
+                rawSpoken,
+                letterSpoken,
+                digitSpoken,
+                mixedSpoken,
+                rawSpoken.replacingOccurrences(of: " ", with: ""),
+                letterSpoken.replacingOccurrences(of: " ", with: ""),
+                digitSpoken.replacingOccurrences(of: " ", with: ""),
+                mixedSpoken.replacingOccurrences(of: " ", with: "")
+            ]
+            for variant in variantsToAdd where !variant.isEmpty && !variants.contains(variant) {
+                variants.append(variant)
+            }
+        }
         let letters = name.lowercased().filter { $0.isLetter && $0.isASCII }
         if letters.count >= 1 && letters.count <= 4 {
             let letterPinyins = letters.map { letterPinyin($0) }

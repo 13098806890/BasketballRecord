@@ -20,6 +20,24 @@ struct AboutDeveloperView: View {
                     .padding(.vertical, 18)
                     .fixedSize(horizontal: false, vertical: true)
                     .editorialCard(tint: EditorialDesign.card, radius: 18)
+
+                Link(destination: URL(string: "https://xhslink.cn/o/1yb03G63m6F")!) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "book.closed.fill")
+                            .foregroundStyle(EditorialDesign.orange)
+                        Text(LocalizedStringKey("settings_xiaohongshu"))
+                            .font(.body.weight(.medium))
+                            .foregroundStyle(EditorialDesign.navy)
+                        Spacer()
+                        Image(systemName: "arrow.up.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .editorialCard(tint: EditorialDesign.card, radius: 18)
+                }
             }
             .padding(.vertical)
             .padding(.bottom, 24)

@@ -31,12 +31,17 @@ struct TeamEditorView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section(LocalizedStringKey("label_team")) {
+            List {
+                Section {
                     TextField(LocalizedStringKey("team_name_placeholder"), text: $name)
+                } header: {
+                    Text(LocalizedStringKey("label_team"))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(EditorialDesign.navy)
                 }
+                .listRowBackground(EditorialDesign.card)
 
-                Section(LocalizedStringKey("label_team_icon")) {
+                Section {
                     HStack(spacing: 16) {
                         iconPreview
                         Menu {
@@ -61,11 +66,18 @@ struct TeamEditorView: View {
                             Label(LocalizedStringKey("label_remove_team_icon"), systemImage: "trash")
                         }
                     }
+                } header: {
+                    Text(LocalizedStringKey("label_team_icon"))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(EditorialDesign.navy)
                 }
+                .listRowBackground(EditorialDesign.card)
 
-                Section(LocalizedStringKey("team_select_players")) {
+                Section {
                     if store.players.isEmpty {
                         ContentUnavailableView(LocalizedStringKey("team_no_players_hint"), systemImage: "person.crop.circle.badge.plus")
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
                     }
 
                     ForEach(filteredPlayers) { player in
@@ -75,16 +87,25 @@ struct TeamEditorView: View {
                             HStack {
                                 PlayerAvatarView(player: player, size: 36)
                                 Text(player.name)
+                                    .foregroundStyle(EditorialDesign.navy)
                                 Spacer()
                                 if selectedPlayerIDs.contains(player.id) {
                                     Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(.green)
+                                        .foregroundStyle(EditorialDesign.blue)
                                 }
                             }
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
                     }
+                } header: {
+                    Text(LocalizedStringKey("team_select_players"))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(EditorialDesign.navy)
                 }
+                .listRowBackground(EditorialDesign.card)
             }
+            .editorialListStyle()
             .navigationTitle(LocalizedStringKey(team == nil ? "nav_new_team" : "nav_edit_team"))
             .toolbar {
                 if store.isPro {

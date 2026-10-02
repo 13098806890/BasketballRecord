@@ -150,6 +150,7 @@ extension VoiceRulesData {
             ["uan", "ian"]
         ],
         multiPronunciations: [
+            "仔": ["zi", "zai"],
             "長": ["chang", "zhang"],
             "行": ["xing", "hang"],
             "樂": ["le", "yue"],

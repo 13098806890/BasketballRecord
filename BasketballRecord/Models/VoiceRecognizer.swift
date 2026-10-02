@@ -105,6 +105,8 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     private var speechTranscriberScoreContextTask: Task<SpeechTranscriberScoreContext, Never>?
     private var speechTranscriberReadyScoreContext: SpeechTranscriberScoreContext?
     private var speechTranscriberScoreContextKey: String?
+    private var speechTranscriberProcessingTask: Task<Void, Never>?
+    private var speechTranscriberSessionGeneration = 0
 
     @available(iOS 26.0, *)
     private var speechTranscriberEngine: SpeechTranscriberEngine {
@@ -134,6 +136,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     func updateRules(for locale: Locale) {
+        invalidateSpeechTranscriberProcessing()
         let rules = VoiceRules.forLocale(locale)
         applyRules(rules)
         speechRecognizer = SFSpeechRecognizer(locale: rules.speechRecognizerLocale)
@@ -301,6 +304,15 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     }
 
     func clearSpeechTranscriberGameCache() {
+        speechTranscriberSessionGeneration += 1
+        speechTranscriberStartTask?.cancel()
+        speechTranscriberStartTask = nil
+        speechTranscriberProcessingTask?.cancel()
+        speechTranscriberProcessingTask = nil
+        speechTranscriberProcessing = false
+        speechTranscriberFinishing = false
+        speechTranscriberStopRequested = false
+        speechTranscriberFinalSegments.removeAll()
         speechTranscriberPreparationGeneration += 1
         let preparationTask = speechTranscriberPreparationTask
         speechTranscriberPreparationTask?.cancel()
@@ -330,6 +342,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
     func updateASREngine(_ engine: VoiceASREngine) {
         asrEngine = engine.isAvailableOnCurrentDevice ? engine : .legacySpeech
         if asrEngine == .legacySpeech {
+            invalidateSpeechTranscriberProcessing()
+            speechTranscriberStartTask?.cancel()
+            speechTranscriberStartTask = nil
             Task { [weak self] in
                 await self?.prepareEngine()
             }
@@ -368,7 +383,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let rules = currentRules
         let playerNames = (store?.players ?? []).map(\.name)
         let (contextualPlayerNames, contextualPlayerNumbers) = speechTranscriberContextualPlayerValues()
-        let teamNames = (store?.teams ?? []).map(\.name)
+        let teamNames = speechTranscriberContextualTeamNames()
         let key = "\(rules.locale.identifier)|\(playerNames.joined(separator: "\u{1F}"))|\(contextualPlayerNames.joined(separator: "\u{1F}"))|\(contextualPlayerNumbers.joined(separator: "\u{1F}"))|\(teamNames.joined(separator: "\u{1F}"))"
         guard speechTranscriberScoreContextKey != key else { return }
         speechTranscriberScoreContextKey = key
@@ -389,6 +404,13 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             guard let self, self.speechTranscriberScoreContextKey == key else { return }
             self.speechTranscriberReadyScoreContext = context
         }
+    }
+
+    private func invalidateSpeechTranscriberProcessing() {
+        speechTranscriberSessionGeneration += 1
+        speechTranscriberProcessingTask?.cancel()
+        speechTranscriberProcessingTask = nil
+        speechTranscriberProcessing = false
     }
 
     private func prepareEngine() async -> Bool {
@@ -473,6 +495,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
         if asrEngine == .speechTranscriber {
             isRecording = false
+            speechTranscriberStartTask?.cancel()
             speechTranscriberStopStartedAt = Date()
             speechTranscriberStopRequested = true
             speechTranscriberFinishing = true
@@ -504,6 +527,8 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         speechTranscriberStopStartedAt = nil
         speechTranscriberTimingDetail = nil
         speechTranscriberStopToFinalMilliseconds = nil
+        speechTranscriberSessionGeneration += 1
+        let sessionGeneration = speechTranscriberSessionGeneration
         let locale = currentRules.speechRecognizerLocale
         if speechTranscriberPreparationTask == nil {
             prepareSpeechTranscriber()
@@ -514,12 +539,21 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             guard let self else { return }
             do {
                 await preparationTask?.value
+                try Task.checkCancellation()
+                guard self.speechTranscriberSessionGeneration == sessionGeneration,
+                      self.isRecording,
+                      !self.speechTranscriberStopRequested else { return }
                 let contextualStrings = if let scoreContextTask {
                     await scoreContextTask.value.contextualStrings
                 } else {
                     speechTranscriberContextualStrings()
                 }
+                try Task.checkCancellation()
+                guard self.speechTranscriberSessionGeneration == sessionGeneration,
+                      self.isRecording,
+                      !self.speechTranscriberStopRequested else { return }
                 try await speechTranscriberEngine.start(locale: locale, contextualStrings: contextualStrings)
+                guard self.speechTranscriberSessionGeneration == sessionGeneration else { return }
                 if speechTranscriberStopRequested {
                     speechTranscriberEngine.requestStop()
                 }
@@ -543,10 +577,17 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             + (currentSnapshot?.awayOnCourtPlayerIDs ?? [])
             + (currentSnapshot?.awayAvailablePlayerIDs ?? [])
         let players = snapshotIDs.isEmpty ? store.players : snapshotIDs.compactMap { store.player(for: $0) }
-        return currentRules.contextualStrings(
+        let values = currentRules.contextualStrings(
             playerNames: players.map(\.name),
             playerNumbers: players.map(\.number)
         )
+        return Array(Set(values + speechTranscriberContextualTeamNames())).sorted()
+    }
+
+    private func speechTranscriberContextualTeamNames() -> [String] {
+        guard let store else { return [] }
+        let teamIDs = [currentSnapshot?.homeTeamID, currentSnapshot?.awayTeamID].compactMap { $0 }
+        return teamIDs.compactMap { store.team(for: $0)?.name }.filter { !$0.isEmpty }
     }
 
     nonisolated private static func makeSpeechTranscriberScoreContext(
@@ -582,6 +623,12 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let teamPinyinVariants = Dictionary(uniqueKeysWithValues: teamNames.map { name in
             (name, rules.generatePinyinVariants(name))
         })
+        let contextualStrings = Array(Set(
+            rules.contextualStrings(
+                playerNames: contextualPlayerNames,
+                playerNumbers: contextualPlayerNumbers
+            ) + teamNames.filter { !$0.isEmpty }
+        )).sorted()
         return SpeechTranscriberScoreContext(
             rules: rules,
             players: playerNames.map {
@@ -593,10 +640,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             pinyinShotKeywords: rules.shotKeywords.map { rules.toPinyin($0.keyword) },
             pinyinStatKeywords: rules.statEvents.map { rules.toPinyin($0.keyword) },
             pinyinCommandKeywords: rules.commandEvents.map { rules.toPinyin($0.keyword) },
-            contextualStrings: rules.contextualStrings(
-                playerNames: contextualPlayerNames,
-                playerNumbers: contextualPlayerNumbers
-            ),
+            contextualStrings: contextualStrings,
             keywordPinyinVariants: keywordPinyinVariants,
             playerPinyinVariants: playerPinyinVariants,
             playerNamePinyinVariants: playerNamePinyinVariants,
@@ -666,7 +710,10 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         prepareSpeechTranscriberScoreContext()
         let scoreContextTask = speechTranscriberScoreContextTask
         speechTranscriberProcessing = true
-        Task { [weak self] in
+        speechTranscriberSessionGeneration += 1
+        let sessionGeneration = speechTranscriberSessionGeneration
+        speechTranscriberProcessingTask?.cancel()
+        let processingTask = Task { [weak self] in
             guard let self else { return }
             let selectionStartedAt = Date()
             let context: SpeechTranscriberScoreContext
@@ -674,7 +721,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 context = await scoreContextTask.value
             } else {
                 let (contextualPlayerNames, contextualPlayerNumbers) = self.speechTranscriberContextualPlayerValues()
-                let teamNames = (self.store?.teams ?? []).map(\.name)
+                let teamNames = self.speechTranscriberContextualTeamNames()
                 context = Self.makeSpeechTranscriberScoreContext(
                     rules: rules,
                     playerNames: playerNames,
@@ -683,6 +730,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     teamNames: teamNames
                 )
             }
+            guard !Task.isCancelled, self.speechTranscriberSessionGeneration == sessionGeneration else { return }
             let selected = await Task.detached(priority: .userInitiated) {
                 let inputs = candidates.map {
                     let normalized = Self.normalizeSpeechTranscriberText($0, rules: rules)
@@ -696,6 +744,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     Self.speechTranscriberCandidateScore(left, context: context) < Self.speechTranscriberCandidateScore(right, context: context)
                 }?.text ?? primary
             }.value
+            guard !Task.isCancelled, self.speechTranscriberSessionGeneration == sessionGeneration else { return }
             let selectionMilliseconds = Int(Date().timeIntervalSince(selectionStartedAt) * 1000)
             let actionStartedAt = Date()
             self.processText(selected)
@@ -711,6 +760,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
             self.speechTranscriberStopToFinalMilliseconds = nil
             self.speechTranscriberProcessing = false
         }
+        speechTranscriberProcessingTask = processingTask
     }
 
     private func appendSpeechTranscriberFinalSegment(primary: String, alternatives: [String]) {
@@ -821,6 +871,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     private func handleSpeechTranscriberError(_ error: Error) {
         guard isRecording else { return }
+        invalidateSpeechTranscriberProcessing()
         isRecording = false
         speechTranscriberStopRequested = false
         speechTranscriberFinishing = false
@@ -1078,6 +1129,17 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     continue
                 }
 
+                if asrEngine == .speechTranscriber,
+                   currentRules.locale.identifier.hasPrefix("zh"),
+                   let inputKey = speechTranscriberAlphanumericNameKey(text),
+                   let playerKey = speechTranscriberAlphanumericNameKey(player.name),
+                   inputKey == playerKey {
+                    let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
+                    results.append((id, side, 1.0))
+                    details.append("\(player.name)(字母数字姓名规范化直配1.0)")
+                    continue
+                }
+
                 // Priority 1a: Nickname direct match
                 if !player.nicknames.isEmpty {
                     let lowerText = text.lowercased()
@@ -1172,7 +1234,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                         if score >= matchingThreshold {
                             let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
                             results.append((id, side, score))
-                            details.append("\(player.name)(拼音相似\(String(format:"%.2f", score)))")
+                            details.append("\(player.name)(拼音相似\(score))")
                             matched = true
                             break
                         }
@@ -1181,7 +1243,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 if !matched {
                     let pinyin = currentRules.toPinyin(player.name)
                     let score = Self.nameSimilarity(pinyin, textPinyin)
-                    details.append("\(player.name)(拼音=\(pinyin) vs \(textPinyin)=\(String(format:"%.2f", score)))")
+                    details.append("\(player.name)(拼音=\(pinyin) vs \(textPinyin)=\(score))")
                 }
             } else if let team = store.team(for: id) {
                 let nameLower = team.name.lowercased()
@@ -1236,7 +1298,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 } else {
                     let teamPinyin = currentRules.toPinyin(team.name)
                     let score = Self.nameSimilarity(teamPinyin, textPinyin)
-                    details.append("\(team.name)(球队拼音=\(teamPinyin) vs \(textPinyin)=\(String(format:"%.2f", score)))")
+                    details.append("\(team.name)(球队拼音=\(teamPinyin) vs \(textPinyin)=\(score))")
                 }
             }
         }
@@ -1738,7 +1800,6 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                 ("시스투육투쓰리", "5번 어시스트 6번 쓰리"),
                 ("일본 수선", "2번 투 성공"),
                 ("일본수선", "2번 투 성공"),
-                ("수리", "쓰리 성공"),
                 ("어떤 습니까", "보너스 성공"),
                 ("어떤습니까", "보너스 성공"),
                 ("오너심해", "5번 보너스 실패"),
@@ -2136,6 +2197,12 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         return tokens
     }
 
+    private func speechTranscriberAlphanumericNameKey(_ text: String) -> String? {
+        let key = text.lowercased().filter { $0.isASCII && ($0.isLetter || $0.isNumber) }
+        guard key.contains(where: { $0.isLetter }), key.contains(where: { $0.isNumber }) else { return nil }
+        return key
+    }
+
     nonisolated private static func compactSpeechTranscriberCJKWhitespace(_ text: String) -> String {
         let characters = Array(text)
         var compacted = ""
@@ -2281,6 +2348,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
 
     private func resolvePlayerNumber(from text: String, allIDs: [UUID]) -> (playerID: UUID, side: TeamSide, debug: String)? {
         guard let store, let snapshot = currentSnapshot else { return nil }
+        if let player = speechTranscriberAlphanumericPlayer(from: text, allIDs: allIDs) {
+            return player
+        }
         let number = preferredPlayerNumber ?? extractNumber(from: text)
         guard let number else { return nil }
         let preferredSide = detectTeamPrefix(text)
@@ -2300,6 +2370,21 @@ final class VoiceRecognizer: NSObject, ObservableObject {
                     return (id, pSide, "号码\(number)直配(跨队)")
                 }
             }
+        }
+        return nil
+    }
+
+    private func speechTranscriberAlphanumericPlayer(from text: String, allIDs: [UUID]) -> (playerID: UUID, side: TeamSide, debug: String)? {
+        guard asrEngine == .speechTranscriber,
+              currentRules.locale.identifier.hasPrefix("zh"),
+              let inputKey = speechTranscriberAlphanumericNameKey(text),
+              let store,
+              let snapshot = currentSnapshot else { return nil }
+        for id in allIDs {
+            guard let player = store.player(for: id),
+                  speechTranscriberAlphanumericNameKey(player.name) == inputKey else { continue }
+            let side: TeamSide = snapshot.homeOnCourtPlayerIDs.contains(id) ? .home : .away
+            return (id, side, "字母数字姓名规范化直配")
         }
         return nil
     }
@@ -2762,9 +2847,9 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         if margin < 0.08 && best.2 < 0.98 {
             return nil
         }
-        let bestScore = String(format: "%.2f", best.2)
-        let secondScore = String(format: "%.2f", second.2)
-        let marginScore = String(format: "%.2f", margin)
+        let bestScore = String(best.2)
+        let secondScore = String(second.2)
+        let marginScore = String(margin)
         return (best.0, best.1, debug + " | 首选得分=" + bestScore + " | 次选得分=" + secondScore + " | 分差=" + marginScore)
     }
 
@@ -3374,6 +3459,7 @@ final class VoiceRecognizer: NSObject, ObservableObject {
         let aChars = Array(aClean)
         let bChars = Array(bClean)
         guard !aChars.isEmpty else { return 0 }
+        if aClean == bClean { return 1.0 }
         let denom = Double(max(aChars.count, bChars.count))
         let cap = 0.80 + Double(aChars.count) * 0.03
         if bChars.count < aChars.count {

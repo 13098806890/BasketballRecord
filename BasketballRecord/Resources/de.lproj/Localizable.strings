@@ -1048,6 +1048,7 @@ Format:
 
 "settings_section_about" = "Über";
 "settings_contact_developer" = "Entwickler kontaktieren";
+"settings_xiaohongshu" = "Auf Xiaohongshu folgen";
 "settings_rate_app" = "App bewerten";
 "voice_instruction_combined" = "Kombinierte Befehle";
 "settings_about_content" = "Hallo! Ich bin ein unabhängiger Entwickler und liebe Basketball.\n\nIch habe diese App entwickelt, damit Basketballfans auf der ganzen Welt ihre Spiele aufzeichnen können. Meine Möglichkeiten sind begrenzt, aber ich werde mein Bestes tun, die App zu verbessern und neue Funktionen hinzuzufügen.\n\nWenn du Vorschläge oder Feedback hast, schreib mir gern:\nclassicalxie@163.com\n\nVielen Dank, dass du %@ verwendest!";

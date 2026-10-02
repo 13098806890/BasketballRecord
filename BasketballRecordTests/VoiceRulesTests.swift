@@ -43,6 +43,13 @@ final class VoiceRulesTests: XCTestCase {
         XCTAssertTrue(rules.commandEvents.contains(where: { $0.keyword == "暂停" }))
     }
 
+    func testChinesePolyphonicZiAndZai() {
+        XCTAssertTrue(VoiceRules.chinese.namePinyinVariants("仔").contains("zi"))
+        XCTAssertTrue(VoiceRules.chinese.namePinyinVariants("仔").contains("zai"))
+        XCTAssertTrue(VoiceRules.traditionalChinese.namePinyinVariants("仔").contains("zi"))
+        XCTAssertTrue(VoiceRules.traditionalChinese.namePinyinVariants("仔").contains("zai"))
+    }
+
     // MARK: - Chinese (Traditional)
 
     func testTraditionalChinese() {

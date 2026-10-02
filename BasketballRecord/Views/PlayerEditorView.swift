@@ -36,7 +36,7 @@ struct PlayerEditorView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
+            List {
                 Section {
                     HStack(spacing: 16) {
                         preview
@@ -52,9 +52,14 @@ struct PlayerEditorView: View {
                             Label(LocalizedStringKey("label_remove_photo"), systemImage: "trash")
                         }
                     }
+                } header: {
+                    Text(LocalizedStringKey("label_select_photo"))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(EditorialDesign.navy)
                 }
+                .listRowBackground(EditorialDesign.card)
 
-                Section(LocalizedStringKey("section_basic_info")) {
+                Section {
                     TextField(LocalizedStringKey("placeholder_name_required"), text: $name)
                     TextField(LocalizedStringKey("placeholder_number"), text: $number)
                         .keyboardType(.numberPad)
@@ -96,7 +101,12 @@ struct PlayerEditorView: View {
                         .pickerStyle(.menu)
                         .accessibilityLabel(LocalizedStringKey("label_weight"))
                     }
+                } header: {
+                    Text(LocalizedStringKey("section_basic_info"))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(EditorialDesign.navy)
                 }
+                .listRowBackground(EditorialDesign.card)
 
                 Section {
                     ForEach(nicknames, id: \.self) { nick in
@@ -127,14 +137,21 @@ struct PlayerEditorView: View {
                 } footer: {
                     Text(LocalizedStringKey("section_voice_nicknames_footer"))
                 }
+                .listRowBackground(EditorialDesign.card)
 
-                Section(LocalizedStringKey("section_uuid")) {
+                Section {
                     Text(player?.id.uuidString ?? NSLocalizedString("text_generated_after_save", comment: "Generated after save"))
                         .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                         .textSelection(.enabled)
+                } header: {
+                    Text(LocalizedStringKey("section_uuid"))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(EditorialDesign.navy)
                 }
+                .listRowBackground(EditorialDesign.card)
             }
+            .editorialListStyle()
             .navigationTitle(player == nil ? NSLocalizedString("nav_new_player", comment: "New player") : NSLocalizedString("nav_edit_player", comment: "Edit player"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

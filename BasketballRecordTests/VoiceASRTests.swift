@@ -86,6 +86,52 @@ final class VoiceASRTests: XCTestCase {
         XCTAssertEqual(capturedID, playerID)
     }
 
+    func testZhPolyphonicZiAndZaiName_speechTranscriber() throws {
+        let playerID = UUID()
+        store.players.append(Player(id: playerID, name: "仔", number: "19"))
+        snapshot.homeOnCourtPlayerIDs.append(playerID)
+        snapshot.homeAvailablePlayerIDs.append(playerID)
+
+        for text in ["zai两分", "zi两分"] {
+            let rec = VoiceRecognizer()
+            rec.configureForFileEvaluation(store: store, engine: .speechTranscriber)
+            rec.currentSnapshot = snapshot
+            rec.updateRules(for: Locale(identifier: "zh-CN"))
+            var capturedID: UUID?
+            let exp = expectation(description: "polyphonic_zai_zi_\(text)")
+            rec.onAction = { _, id, _, _ in
+                capturedID = id
+                exp.fulfill()
+            }
+            rec.simulateText(text)
+            wait(for: [exp], timeout: 0.5)
+            XCTAssertEqual(capturedID, playerID, "方案二应同时支持仔的 zi/zai 读音: \(text)")
+        }
+    }
+
+    func testZhAlphanumericName_speechTranscriber() throws {
+        let playerID = UUID()
+        store.players.append(Player(id: playerID, name: "P7", number: "27"))
+        snapshot.homeOnCourtPlayerIDs.append(playerID)
+        snapshot.homeAvailablePlayerIDs.append(playerID)
+
+        for text in ["P7两分", "P 7两分", "P7 2分", "P 7 2分", "屁七两分"] {
+            let rec = VoiceRecognizer()
+            rec.configureForFileEvaluation(store: store, engine: .speechTranscriber)
+            rec.currentSnapshot = snapshot
+            rec.updateRules(for: Locale(identifier: "zh-CN"))
+            var capturedID: UUID?
+            let exp = expectation(description: "alphanumeric_name_\(text)")
+            rec.onAction = { _, id, _, _ in
+                capturedID = id
+                exp.fulfill()
+            }
+            rec.simulateText(text)
+            wait(for: [exp], timeout: 0.5)
+            XCTAssertEqual(capturedID, playerID, "方案二应识别中文语音中的字母数字姓名: \(text)")
+        }
+    }
+
     func testZhBlock_common() throws { assertMatch(text: "张三盖帽", .chinese, "stat.block") }
     func testZhBlock_gaimao() throws { assertMatch(text: "张三概貌", .chinese, "stat.block") }
 
