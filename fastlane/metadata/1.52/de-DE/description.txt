@@ -1,4 +1,4 @@
-Basketballspiele in Sekunden erfassen.
+Basketballspiele in Sekunden erfassen – per Tippen oder Sprachbefehl.
 
 Punkte, Spielerstatistiken, KI-Spielzusammenfassungen. Perfekt für Training, Pickup-Spiele und Amateurligen.
 
@@ -9,6 +9,7 @@ Basketball Scorebook ist eine Basketball-Aufzeichnungs-App für Trainingsspiele,
 Kernfunktionen:
 
 - Schnelle Punkteerfassung & Vollständige Statistiken: 2PT/3PT, Freiwürfe, Rebounds, Assists, Steals, Blocks, Turnover, Fouls und mehr;
+- Sprach-Scoring: Halte das Mikrofon gedrückt und sprich den vollständigen Befehl; 10 Sprachen, kontextbezogene Spielernamen und zuverlässiger Fallback;
 - Kompletter Spielablauf: Periodenverwaltung, Auswechslungen, Nachzügler, automatischer Periodenende, Pause/Fortsetzen und Spielabschluss;
 - Team- & Spielerverwaltung: Teams und Spieler mit Avataren, Trikotnummern, Größe, Gewicht erstellen und bearbeiten;
 - Verlaufs- & Karriereanalyse: Details pro Spiel, kumulierte und durchschnittliche Statistiken pro Spieler, Starter-/Bankeinsätze;

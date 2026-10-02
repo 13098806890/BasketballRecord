@@ -1,4 +1,4 @@
-Track basketball games in seconds.
+Track basketball games in seconds with touch or voice.
 
 Record scores, player stats, and generate AI game summaries. Perfect for coaches, pickup games, and amateur leagues.
 
@@ -9,7 +9,7 @@ Basketball Journal is a basketball record app for training matches, pickup games
 Key Features:
 
 - Real-time Scoring & Full Stats: 2PT/3PT, free throws, rebounds, assists, steals, blocks, turnovers, fouls, and more;
-- Voice Scoring: Hold the mic and speak commands — supports 10 languages with intelligent ASR error handling;
+- Voice Scoring: Hold the mic and release after the full command — supports 10 languages, contextual player names, and reliable ASR fallback;
 - Complete Game Flow: Period management, substitutions, late arrivals, auto-end period, pause/resume;
 - Team & Player Management: Avatars, jersey numbers, height, weight, and more;
 - Career & Season Analysis: Per-game details, per-player cumulative and average stats;

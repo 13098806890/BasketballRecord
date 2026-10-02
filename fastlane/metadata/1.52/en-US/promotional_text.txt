@@ -1,1 +1,1 @@
-Manage games with more flexibility: batch Excel exports, player positions, natural multilingual AI recaps, and reliable event editing and stat recalculation.
+New voice scoring with 10-language support, smarter player-name matching, and clearer team and player management.

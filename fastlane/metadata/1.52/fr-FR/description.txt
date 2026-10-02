@@ -1,4 +1,4 @@
-Enregistrez les matchs de basket en quelques secondes.
+Enregistrez les matchs de basket en quelques secondes, par toucher ou à la voix.
 
 Scores, statistiques, résumés IA. Idéal pour les entraînements, matchs informels et ligues amateurs.
 
@@ -9,6 +9,7 @@ Basketball Scorebook est une application d'enregistrement de basketball pour les
 Fonctionnalités principales :
 
 - Score rapide et statistiques complètes : 2PT/3PT, lancers francs, rebonds, passes décisives, interceptions, contres, pertes de balle, fautes et plus ;
+- Score vocal : maintenez le micro enfoncé et relâchez-le après la commande complète ; 10 langues, noms des joueurs selon le contexte et solution de secours ASR fiable ;
 - Gestion complète du match : Gestion des périodes, remplacements, arrivées tardives, fin automatique de période, pause/reprise et fin de match ;
 - Gestion des équipes et joueurs : Créez et modifiez équipes et joueurs avec avatars, numéros, taille, poids, etc. ;
 - Analyse historique et carrière : Détails par match, statistiques cumulées et moyennes par joueur, titularisations/remplacements ;
