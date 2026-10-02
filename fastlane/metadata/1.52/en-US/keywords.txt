@@ -1,1 +1,1 @@
-scorekeeper,score keeping,stat tracker,basketball stats,box score,play by play,game tracker,training
+scorekeeper,voice scoring,play by play,box score,coach,game log,season

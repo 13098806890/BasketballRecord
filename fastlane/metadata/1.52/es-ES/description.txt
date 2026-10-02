@@ -1,4 +1,4 @@
-Registra partidos de baloncesto en segundos.
+Registra partidos de baloncesto en segundos, por toque o por voz.
 
 Puntos, estadísticas de jugadores y resúmenes por IA. Perfecto para entrenamientos, partidos casuales y ligas amateurs.
 
@@ -9,7 +9,7 @@ Diario Basket es una app de registro y estadísticas de baloncesto para aficiona
 Funciones principales:
 
 - Marcador en tiempo real y estadísticas completas: 2PT/3PT, tiros libres, rebotes, asistencias, robos, tapones, pérdidas y faltas;
-- Registro por voz: mantén pulsado el micrófono y habla para registrar eventos, admite 10 idiomas con corrección inteligente de errores ASR;
+- Registro por voz: mantén pulsado el micrófono y suelta después del comando completo; admite 10 idiomas, nombres de jugadores y corrección inteligente de errores ASR;
 - Gestión completa del partido: inicio de periodo, pausa, reanudación, sustituciones, jugadores que llegan tarde, fin automático y finalización;
 - Gestión de equipos y jugadores: crea y edita equipos y jugadores con avatar, número de camiseta, altura y peso;
 - Estadísticas de carrera y temporada: detalle por partido, acumulados y promedios por jugador;

@@ -48,7 +48,7 @@ platform :ios do
       app_version: version,
       submit_for_review: false,
       automatic_release: false,
-      metadata_path: "fastlane/metadata/#{version}",
+      metadata_path: options[:metadata_path] || "fastlane/metadata/#{version}",
       screenshots_path: options[:screenshots_path] || "fastlane/screenshots",
       api_key: api_key,
       precheck_include_in_app_purchases: false

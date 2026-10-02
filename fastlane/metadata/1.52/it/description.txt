@@ -1,4 +1,4 @@
-Registra le partite di basket in secondi.
+Registra le partite di basket in pochi secondi, con tocchi o comandi vocali.
 
 Punteggi, statistiche, riassunti AI. Perfetto per allenamenti, partite informali e leghe amatoriali.
 
@@ -9,6 +9,7 @@ Basketball Scorebook è un'app per la registrazione di basket per allenamenti, p
 Funzionalità principali:
 
 - Punteggio rapido e statistiche complete: 2PT/3PT, tiri liberi, rimbalzi, assist, rubate, stoppate, palle perse, falli e altro;
+- Punteggio vocale: tieni premuto il microfono e rilascialo dopo il comando completo; supporta 10 lingue, nomi dei giocatori contestuali e un fallback ASR affidabile;
 - Flusso partita completo: Gestione periodi, sostituzioni, arrivi tardivi, termine automatico periodo, pausa/ripresa e fine partita;
 - Gestione squadre e giocatori: Crea e modifica squadre e giocatori con avatar, numeri, altezza, peso e altro;
 - Analisi cronologia e carriera: Dettagli per partita, statistiche cumulate e medie per giocatore, titolari/panchina;

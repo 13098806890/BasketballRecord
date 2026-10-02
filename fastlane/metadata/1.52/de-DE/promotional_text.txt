@@ -1,1 +1,1 @@
-Spieldaten flexibler verwalten: Excel-Stapelexport, Spielerpositionen, mehrsprachige KI-Berichte sowie zuverlässige Ereignisbearbeitung und Neuberechnung.
+Neue Sprachsteuerung in 10 Sprachen, bessere Spielernamenerkennung sowie klarere Team- und Spielerverwaltung.
