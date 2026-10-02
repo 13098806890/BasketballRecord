@@ -166,7 +166,12 @@ final class SpeechTranscriberEngine {
     func start(locale: Locale, contextualStrings: [String] = []) async throws {
         logger.info("xdz start requested locale=\(locale.identifier, privacy: .public) available=\(SpeechTranscriber.isAvailable, privacy: .public)")
         stopRequested = false
+        try Task.checkCancellation()
         try await prepare(locale: locale)
+        guard !Task.isCancelled else {
+            await releaseReservedLocale()
+            return
+        }
         guard let supportedLocale = preparedLocale else { throw EngineError.modelUnavailable }
         let profile = SpeechTranscriberProfile.forLocale(supportedLocale, live: true)
         let reservedLocales = await AssetInventory.reservedLocales
@@ -207,7 +212,23 @@ final class SpeechTranscriberEngine {
                 context.contextualStrings[.general] = contextualStrings
                 try await analyzer.setContext(context)
             }
+            try Task.checkCancellation()
+            guard !stopRequested else {
+                self.inputContinuation?.finish()
+                self.inputContinuation = nil
+                await analyzer.cancelAndFinishNow()
+                await releaseReservedLocale()
+                return
+            }
             try await analyzer.prepareToAnalyze(in: analyzerFormat)
+            try Task.checkCancellation()
+            guard !stopRequested else {
+                self.inputContinuation?.finish()
+                self.inputContinuation = nil
+                await analyzer.cancelAndFinishNow()
+                await releaseReservedLocale()
+                return
+            }
             try await analyzer.start(inputSequence: inputSequence)
             recordingStartedAt = Date()
         } catch {
@@ -291,6 +312,15 @@ final class SpeechTranscriberEngine {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
             try await AudioSessionActivation.activate(audioSession)
+            try Task.checkCancellation()
+            guard !stopRequested else {
+                engineInputNode.removeTap(onBus: 0)
+                self.inputContinuation?.finish()
+                self.inputContinuation = nil
+                await analyzer.cancelAndFinishNow()
+                await releaseReservedLocale()
+                return
+            }
             try engine.start()
             audioEngine = engine
         } catch {

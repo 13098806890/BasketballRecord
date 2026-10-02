@@ -58,6 +58,11 @@ final class VoiceMatchingTests: XCTestCase {
         XCTAssertEqual(score, 1.0, accuracy: 0.01)
     }
 
+    func testNameSimilarityExactMatch() {
+        XCTAssertEqual(VoiceRecognizer.nameSimilarity("zi", "zi"), 1.0, accuracy: 0.000001)
+        XCTAssertEqual(VoiceRecognizer.nameSimilarity("zai", "zai"), 1.0, accuracy: 0.000001)
+    }
+
     func testPartialMatchWithinText() {
         let score = VoiceRecognizer.similarity("lan ban", "zhang san lan ban")
         XCTAssertGreaterThan(score, 0.37)

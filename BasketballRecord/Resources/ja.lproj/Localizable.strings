@@ -1059,6 +1059,7 @@
 
 "settings_section_about" = "このアプリについて";
 "settings_contact_developer" = "開発者に連絡";
+"settings_xiaohongshu" = "Xiaohongshu でフォロー";
 "settings_rate_app" = "アプリを評価する";
 "voice_instruction_combined" = "複合コマンド";
 "settings_about_content" = "こんにちは！バスケットボールが大好きな個人開発者です。\n\n世界中のバスケットボール愛好家が試合を記録できるよう、このアプリを作りました。できることには限りがありますが、改善や新機能の追加に努めていきます。\n\nご意見やご提案がありましたら、ぜひメールでお知らせください：\nclassicalxie@163.com\n\n%@をご利用いただきありがとうございます！";
