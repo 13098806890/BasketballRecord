@@ -919,10 +919,19 @@
 "settings_voice_locale" = "音声言語";
 "settings_voice_locale_follow_app" = "アプリ言語に従う";
 "settings_voice_locale_footer" = "音声認識に使用する言語を選択します。スコアリングページとチュートリアルの両方に影響します。";
+"settings_voice_asr_engine" = "認識エンジン";
+"settings_voice_asr_legacy" = "Apple Speech（従来版）";
+"settings_voice_asr_speech_transcriber" = "Apple SpeechTranscriber";
+"settings_voice_asr_engine_footer" = "方式 2 は iOS 26 以降で、SpeechTranscriber に対応したハードウェアのデバイスと対応する音声言語でのみ利用できます。iOS 26 を搭載できるすべてのデバイスが方式 2 に対応するわけではありません。非対応の場合は従来の Apple Speech に自動的に切り替えます。";
+"voice_engine_upgrade_title" = "音声認識がアップグレードされました";
+"voice_engine_upgrade_message" = "このアップデートで、音声認識が Apple SpeechTranscriber（方式 2）に切り替わりました。認識速度と精度が向上します。以前の動作に戻す場合は、「設定 > 音声 > 認識エンジン」から Apple Speech（従来版）に切り替えてください。";
+"voice_engine_upgrade_open_settings" = "音声設定を開く";
 "settings_voice_matching_threshold" = "マッチング感度";
 "settings_voice_matching_threshold_footer" = "値が低いほど緩やかな一致を許容（推奨 0.6）";
 
 "settings_voice_instruction" = "音声の使い方";
+"voice_instruction_requirements" = "認識に必要な条件";
+"voice_instruction_requirements_content" = "方式 2 は音声認識に Apple SpeechTranscriber を使用します。\n\nシステム：iOS 26 以降。\nハードウェア：SpeechTranscriber に対応したハードウェアのデバイス。iOS 26 を搭載できるすべてのデバイスが対応するわけではありません。対応状況はシステムが提供するハードウェア情報に基づいてアプリが自動的に確認します。\n音声言語：選択した言語に対応するシステム音声モデルが必要です。\n\nデバイスまたは言語が非対応の場合、アプリは従来の Apple Speech に自動的に切り替えます。方式 2 を初めて使用するときは、音声リソースの準備が必要になる場合があります。「設定 > 音声 > 認識エンジン」で2つの方式を切り替えられます。";
 "voice_instruction_shots" = "シュート記録";
 "voice_instruction_stats" = "統計記録";
 "voice_instruction_substitution" = "選手交代";
@@ -934,6 +943,8 @@
 "settings_voice_log_enable_footer" = "音声認識の詳細なマッチング過程を記録し、デバッグや確認に役立てます。";
 "settings_voice_show_success_animation" = "成功アニメーションを表示";
 "settings_voice_show_success_animation_footer" = "音声入力が認識されたときに、選手のアバターとアクション名を表示するアニメーションを表示します。";
+"voice_speech_transcriber_unavailable" = "このデバイスまたは音声言語では SpeechTranscriber を利用できません。";
+"voice_speech_transcriber_setup_failed" = "SpeechTranscriber を起動できませんでした。Apple Speech（従来版）を試すか、デバイスの音声リソースを確認してください。";
 "voice_shortcuts_empty" = "音声ショートカットがありません";
 "voice_shortcuts_empty_desc" = "カスタムフレーズを作成してアクションをトリガーします。";
 "voice_shortcuts_custom" = "カスタム";

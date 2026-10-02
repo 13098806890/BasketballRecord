@@ -918,10 +918,19 @@ Format:
 "settings_voice_locale" = "Voice Language";
 "settings_voice_locale_follow_app" = "Follow App Language";
 "settings_voice_locale_footer" = "Select the language used for voice recognition. Affects both the scoring page and the tutorial.";
+"settings_voice_asr_engine" = "Recognition Engine";
+"settings_voice_asr_legacy" = "Apple Speech (Legacy)";
+"settings_voice_asr_speech_transcriber" = "Apple SpeechTranscriber";
+"settings_voice_asr_engine_footer" = "Option 2 is available only on iOS 26 or later, on devices whose hardware supports SpeechTranscriber, and for supported voice languages. Not every iOS 26 device supports it. Unsupported devices or languages automatically use Apple Speech (Legacy).";
+"voice_engine_upgrade_title" = "Voice recognition upgraded";
+"voice_engine_upgrade_message" = "This update switched voice recognition to Apple SpeechTranscriber (Option 2) to improve recognition speed and accuracy. If you prefer the previous behavior, you can switch back to Apple Speech (Legacy) in Settings > Voice > Recognition Engine.";
+"voice_engine_upgrade_open_settings" = "Open Voice Settings";
 "settings_voice_matching_threshold" = "Matching Sensitivity";
 "settings_voice_matching_threshold_footer" = "Lower values allow looser matching (recommended: 0.6)";
 
 "settings_voice_instruction" = "Voice Instructions";
+"voice_instruction_requirements" = "Recognition Requirements";
+"voice_instruction_requirements_content" = "Option 2 uses Apple SpeechTranscriber for voice recognition.\n\nSystem: iOS 26 or later.\nHardware: a device whose hardware supports SpeechTranscriber. Not every device that runs iOS 26 supports it; the app checks the system-provided hardware capability automatically.\nVoice language: the selected language must have a supported system speech model.\n\nIf the device or language is unsupported, the app automatically uses Apple Speech (Legacy). Voice resources may need to be prepared the first time you use Option 2. You can switch between the two options in Settings > Voice > Recognition Engine.";
 "voice_instruction_shots" = "Shots";
 "voice_instruction_stats" = "Stats";
 "voice_instruction_substitution" = "Substitution";
@@ -933,6 +942,8 @@ Format:
 "settings_voice_log_enable_footer" = "Record recognition details for debugging and review.";
 "settings_voice_show_success_animation" = "Show Success Animation";
 "settings_voice_show_success_animation_footer" = "Show an animation with player avatar and action name when voice input is recognized.";
+"voice_speech_transcriber_unavailable" = "SpeechTranscriber is unavailable for this device or voice language.";
+"voice_speech_transcriber_setup_failed" = "SpeechTranscriber could not be started. Try Apple Speech (Legacy) or check the device's speech resources.";
 "voice_shortcuts_empty" = "No Voice Shortcuts";
 "voice_shortcuts_empty_desc" = "Create custom phrases to trigger actions.";
 "voice_shortcuts_custom" = "Custom";

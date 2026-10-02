@@ -17,7 +17,7 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
     }
 
     func testConfiguredTranscriptReplay() async throws {
-        guard let scorePath = ProcessInfo.processInfo.environment["VOICE_ASR_EVAL_SCORE_JSON"] else {
+        guard let scorePath = evaluationValue("VOICE_ASR_EVAL_SCORE_JSON") else {
             throw XCTSkip("VOICE_ASR_EVAL_SCORE_JSON is not configured")
         }
         let data = try Data(contentsOf: URL(fileURLWithPath: scorePath))
@@ -73,22 +73,23 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
     func testConfiguredFileCorpus() async throws {
         let corpus = try evaluationCorpus()
         let allRows = try loadManifest(at: corpus.manifestURL)
-        let localeFilter = Set((ProcessInfo.processInfo.environment["VOICE_ASR_EVAL_LOCALES"] ?? "")
+        let localeFilter = Set((evaluationValue("VOICE_ASR_EVAL_LOCALES") ?? "")
             .split(separator: ",")
             .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty })
         let rows = localeFilter.isEmpty ? allRows : allRows.filter { localeFilter.contains($0.locale) }
-        let engineNames = (ProcessInfo.processInfo.environment["VOICE_ASR_EVAL_ENGINES"] ?? VoiceASREngine.speechTranscriber.rawValue)
+        let engineNames = (evaluationValue("VOICE_ASR_EVAL_ENGINES") ?? VoiceASREngine.speechTranscriber.rawValue)
             .split(separator: ",")
             .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
         if #available(iOS 26.0, *),
            engineNames.contains(VoiceASREngine.speechTranscriber.rawValue),
-           ProcessInfo.processInfo.environment["VOICE_ASR_EVAL_RELEASE_ALL_LOCALES"] == "1" {
+           evaluationValue("VOICE_ASR_EVAL_RELEASE_ALL_LOCALES") == "1" {
             for locale in await AssetInventory.reservedLocales {
                 _ = await AssetInventory.release(reservedLocale: locale)
             }
         }
+        let evaluationStore = AppStore()
         var resultRows: [String] = []
 
         for engineName in engineNames {
@@ -161,7 +162,7 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
                     continue
                 }
 
-                let parsed = await parsedResult(for: row, in: rows, engine: engine, transcript: result.transcript, alternatives: result.alternatives)
+                let parsed = await parsedResult(for: row, in: rows, engine: engine, transcript: result.transcript, alternatives: result.alternatives, store: evaluationStore)
                 resultRows.append(csvRow(
                     engine: engine.rawValue,
                     row: row,
@@ -182,7 +183,12 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
             throw XCTSkip("No ASR evaluation rows were produced")
         }
 
-        print("VOICE_ASR_HEADER,engine,case_id,transcript,first_result_ms,final_result_ms,event_code,player_match,related_player_match,error,recognition_status,candidates,voice_log")
+        let header = "engine,case_id,transcript,first_result_ms,final_result_ms,event_code,player_match,related_player_match,error,recognition_status,candidates,voice_log"
+        let csv = ([header] + resultRows).joined(separator: "\n") + "\n"
+        for outputURL in evaluationOutputURLs() {
+            try? csv.write(to: outputURL, atomically: true, encoding: .utf8)
+        }
+        print("VOICE_ASR_HEADER,\(header)")
         for row in resultRows {
             print("VOICE_ASR_RESULT,\(row)")
         }
@@ -211,14 +217,21 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
     }
 
     private func evaluationCorpus() throws -> EvaluationCorpus {
-        if let audioDirectoryPath = ProcessInfo.processInfo.environment["VOICE_ASR_EVAL_AUDIO_DIR"],
-           let manifestPath = ProcessInfo.processInfo.environment["VOICE_ASR_EVAL_MANIFEST"] {
+        if let audioDirectoryPath = evaluationValue("VOICE_ASR_EVAL_AUDIO_DIR"),
+           let manifestPath = evaluationValue("VOICE_ASR_EVAL_MANIFEST") {
             let audioDirectory = URL(fileURLWithPath: audioDirectoryPath)
             let manifestURL = URL(fileURLWithPath: manifestPath)
             if FileManager.default.fileExists(atPath: audioDirectory.path),
                FileManager.default.fileExists(atPath: manifestURL.path) {
                 return EvaluationCorpus(audioDirectory: audioDirectory, manifestURL: manifestURL)
             }
+        }
+
+        let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let evaluationDirectory = documentDirectory.appendingPathComponent("VoiceEvaluation", isDirectory: true)
+        let evaluationManifest = evaluationDirectory.appendingPathComponent("manifest.tsv")
+        if FileManager.default.fileExists(atPath: evaluationManifest.path) {
+            return EvaluationCorpus(audioDirectory: evaluationDirectory, manifestURL: evaluationManifest)
         }
 
         guard let manifestURL = Bundle(for: Self.self).url(forResource: "manifest", withExtension: "tsv") else {
@@ -228,6 +241,24 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
             audioDirectory: manifestURL.deletingLastPathComponent(),
             manifestURL: manifestURL
         )
+    }
+
+    private func evaluationValue(_ key: String) -> String? {
+        if let value = ProcessInfo.processInfo.environment[key], !value.isEmpty {
+            return value
+        }
+        let prefix = "--\(key)="
+        return ProcessInfo.processInfo.arguments.first { $0.hasPrefix(prefix) }?.dropFirst(prefix.count).description
+    }
+
+    private func evaluationOutputURLs() -> [URL] {
+        var urls: [URL] = []
+        if let outputPath = evaluationValue("VOICE_ASR_EVAL_OUTPUT") {
+            urls.append(URL(fileURLWithPath: outputPath))
+        }
+        let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        urls.append(documentDirectory.appendingPathComponent("VoiceEvaluation/results.csv"))
+        return urls
     }
 
     private func loadManifest(at url: URL) throws -> [ManifestRow] {
@@ -256,8 +287,7 @@ final class VoiceASRFileTranscriptionTests: XCTestCase {
         }
     }
 
-    private func parsedResult(for row: ManifestRow, in rows: [ManifestRow], engine: VoiceASREngine, transcript: String, alternatives: [String]) async -> ParsedResult {
-        let store = AppStore()
+    private func parsedResult(for row: ManifestRow, in rows: [ManifestRow], engine: VoiceASREngine, transcript: String, alternatives: [String], store: AppStore) async -> ParsedResult {
         store.voiceLogEnabled = true
         store.voiceLog = []
         let names = orderedNames(for: row, in: rows)

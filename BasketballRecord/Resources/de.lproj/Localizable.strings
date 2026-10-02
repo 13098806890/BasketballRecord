@@ -908,10 +908,19 @@ Format:
 "settings_voice_locale" = "Sprache für Spracheingabe";
 "settings_voice_locale_follow_app" = "App-Sprache verwenden";
 "settings_voice_locale_footer" = "Wählen Sie die Sprache für die Spracherkennung. Dies betrifft sowohl die Spielseite als auch das Tutorial.";
+"settings_voice_asr_engine" = "Erkennungssystem";
+"settings_voice_asr_legacy" = "Apple Speech (Legacy)";
+"settings_voice_asr_speech_transcriber" = "Apple SpeechTranscriber";
+"settings_voice_asr_engine_footer" = "Option 2 ist ab iOS 26 auf Geräten verfügbar, deren Hardware SpeechTranscriber unterstützt, und für unterstützte Sprachen. Nicht jedes Gerät mit iOS 26 unterstützt Option 2. Nicht unterstützte Geräte oder Sprachen verwenden automatisch Apple Speech (Legacy).";
+"voice_engine_upgrade_title" = "Spracherkennung aktualisiert";
+"voice_engine_upgrade_message" = "Mit diesem Update wurde die Spracherkennung auf Apple SpeechTranscriber (Option 2) umgestellt, um Geschwindigkeit und Genauigkeit zu verbessern. Wenn Sie die vorherige Erkennung bevorzugen, können Sie unter Einstellungen > Sprache > Erkennungssystem zu Apple Speech (Legacy) zurückwechseln.";
+"voice_engine_upgrade_open_settings" = "Spracheinstellungen öffnen";
 "settings_voice_matching_threshold" = "Übereinstimmungsempfindlichkeit";
 "settings_voice_matching_threshold_footer" = "Niedrigere Werte ermöglichen lockerere Übereinstimmungen (0.6 empfohlen)";
 
 "settings_voice_instruction" = "Sprachanleitung";
+"voice_instruction_requirements" = "Voraussetzungen für die Erkennung";
+"voice_instruction_requirements_content" = "Option 2 verwendet Apple SpeechTranscriber für die Spracherkennung.\n\nSystem: iOS 26 oder neuer.\nHardware: Ein Gerät, dessen Hardware SpeechTranscriber unterstützt. Nicht jedes Gerät mit iOS 26 unterstützt die Funktion; die App prüft die vom System gemeldete Hardwarefähigkeit automatisch.\nSprache: Für die ausgewählte Sprache muss ein unterstütztes Sprachmodell verfügbar sein.\n\nWenn das Gerät oder die Sprache nicht unterstützt wird, verwendet die App automatisch Apple Speech (Legacy). Beim ersten Einsatz von Option 2 müssen möglicherweise Sprachressourcen vorbereitet werden. Zwischen den beiden Optionen können Sie unter Einstellungen > Sprache > Erkennungssystem wechseln.";
 "voice_instruction_shots" = "Wurf";
 "voice_instruction_stats" = "Statistiken";
 "voice_instruction_substitution" = "Auswechslung";
@@ -923,6 +932,8 @@ Format:
 "settings_voice_log_enable_footer" = "Zeichnet Erkennungsdetails zum Debuggen und Überprüfen auf.";
 "settings_voice_show_success_animation" = "Erfolgsanimation anzeigen";
 "settings_voice_show_success_animation_footer" = "Zeigt bei erfolgreicher Spracherkennung eine Animation mit Spielerfoto und Aktionsname an.";
+"voice_speech_transcriber_unavailable" = "SpeechTranscriber ist für dieses Gerät oder diese Sprache nicht verfügbar.";
+"voice_speech_transcriber_setup_failed" = "SpeechTranscriber konnte nicht gestartet werden. Versuchen Sie Apple Speech (Legacy) oder prüfen Sie die Sprachressourcen des Geräts.";
 "voice_shortcuts_empty" = "Keine Sprachkurzbefehle";
 "voice_shortcuts_empty_desc" = "Erstellen Sie benutzerdefinierte Phrasen, um Aktionen auszulösen.";
 "voice_shortcuts_custom" = "Benutzerdefiniert";

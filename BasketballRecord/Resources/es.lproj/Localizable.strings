@@ -908,10 +908,19 @@ Formato:
 "settings_voice_locale" = "Idioma de voz";
 "settings_voice_locale_follow_app" = "Seguir idioma de la app";
 "settings_voice_locale_footer" = "Seleccione el idioma utilizado para el reconocimiento de voz. Afecta tanto a la página de puntuación como al tutorial.";
+"settings_voice_asr_engine" = "Motor de reconocimiento";
+"settings_voice_asr_legacy" = "Apple Speech (heredado)";
+"settings_voice_asr_speech_transcriber" = "Apple SpeechTranscriber";
+"settings_voice_asr_engine_footer" = "La opción 2 solo está disponible en iOS 26 o posterior, en dispositivos cuyo hardware sea compatible con SpeechTranscriber y para idiomas de voz compatibles. No todos los dispositivos con iOS 26 admiten la opción 2. Los dispositivos o idiomas no compatibles usan Apple Speech (heredado) automáticamente.";
+"voice_engine_upgrade_title" = "Reconocimiento de voz actualizado";
+"voice_engine_upgrade_message" = "Esta actualización cambió el reconocimiento de voz a Apple SpeechTranscriber (opción 2) para mejorar la velocidad y la precisión. Si prefieres el comportamiento anterior, puedes volver a Apple Speech (heredado) en Ajustes > Voz > Motor de reconocimiento.";
+"voice_engine_upgrade_open_settings" = "Abrir ajustes de voz";
 "settings_voice_matching_threshold" = "Sensibilidad de coincidencia";
 "settings_voice_matching_threshold_footer" = "Valores más bajos permiten coincidencias más flexibles (0.6 recomendado)";
 
 "settings_voice_instruction" = "Instrucciones de voz";
+"voice_instruction_requirements" = "Requisitos de reconocimiento";
+"voice_instruction_requirements_content" = "La opción 2 utiliza Apple SpeechTranscriber para el reconocimiento de voz.\n\nSistema: iOS 26 o posterior.\nHardware: un dispositivo cuyo hardware sea compatible con SpeechTranscriber. No todos los dispositivos que ejecutan iOS 26 son compatibles; la app comprueba automáticamente la capacidad de hardware indicada por el sistema.\nIdioma de voz: el idioma seleccionado debe tener un modelo de voz del sistema compatible.\n\nSi el dispositivo o el idioma no son compatibles, la app usa automáticamente Apple Speech (heredado). Es posible que los recursos de voz deban prepararse la primera vez que uses la opción 2. Puedes cambiar entre las dos opciones en Ajustes > Voz > Motor de reconocimiento.";
 "voice_instruction_shots" = "Tiros";
 "voice_instruction_stats" = "Estadísticas";
 "voice_instruction_substitution" = "Sustitución";
@@ -923,6 +932,8 @@ Formato:
 "settings_voice_log_enable_footer" = "Registra los detalles de reconocimiento para depuración y revisión.";
 "settings_voice_show_success_animation" = "Mostrar animación de éxito";
 "settings_voice_show_success_animation_footer" = "Muestra una animación con el avatar del jugador y el nombre de la acción cuando se reconoce la voz.";
+"voice_speech_transcriber_unavailable" = "SpeechTranscriber no está disponible para este dispositivo o idioma de voz.";
+"voice_speech_transcriber_setup_failed" = "No se pudo iniciar SpeechTranscriber. Pruebe Apple Speech (heredado) o compruebe los recursos de voz del dispositivo.";
 "voice_shortcuts_empty" = "Sin accesos directos de voz";
 "voice_shortcuts_empty_desc" = "Cree frases personalizadas para activar acciones.";
 "voice_shortcuts_custom" = "Personalizado";

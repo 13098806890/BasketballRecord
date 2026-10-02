@@ -28,6 +28,7 @@ struct VoiceInstructionView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 header
+                requirementsSection
                 shotSection
                 statSection
                 substitutionSection
@@ -92,6 +93,14 @@ struct VoiceInstructionView: View {
             icon: "basketball.fill",
             title: LocalizedStringKey("voice_instruction_shots"),
             content: shotContent
+        )
+    }
+
+    private var requirementsSection: some View {
+        section(
+            icon: "cpu",
+            title: LocalizedStringKey("voice_instruction_requirements"),
+            content: NSLocalizedString("voice_instruction_requirements_content", comment: "SpeechTranscriber requirements")
         )
     }
 
@@ -220,9 +229,9 @@ struct VoiceInstructionView: View {
             let exs = t.statExamples.prefix(6).map { "「\($0.1)」" }.joined()
             return "說出「球員名 + 統計類型」。\n\n示例：\n\(exs)\n\n統計類型：\(names)"
         case "ja":
-            return "「選手名 + 統計種類」で記録します。\n\n例：\n「田中ファウル」「李四リバウンド」「王五アシスト」"
+            return "「選手名 + 統計種類」で記録します。\n\n例：\n「田中ファウル」「山田リバウンド」「鈴木アシスト」"
         case "ko":
-            return "「선수명 + 통계 종류」로 기록합니다.\n\n예시：\n「张三 파울」「李四 리바운드」「王五 어시스트」"
+            return "「선수명 + 통계 종류」로 기록합니다.\n\n예시：\n「김철수 파울」「박민수 리바운드」「이영희 어시스트」"
         case "de":
             let exs = t.statExamples.prefix(6).map { "'\($0.1)'" }.joined(separator: " · ")
             return "Sprich 'Spielername + Statistik'.\n\nBeispiele:\n\(exs)"

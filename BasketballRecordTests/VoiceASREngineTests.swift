@@ -4,14 +4,16 @@ import XCTest
 final class VoiceASREngineTests: XCTestCase {
     override func tearDown() {
         UserDefaults.standard.removeObject(forKey: kVoiceASREngineKey)
+        UserDefaults.standard.removeObject(forKey: kVoiceASREngineUpgradeNoticePendingKey)
+        UserDefaults.standard.removeObject(forKey: "voice_asr_engine_migration_completed")
         super.tearDown()
     }
 
-    func testMissingStoredEngineUsesLegacySpeech() {
+    func testMissingStoredEngineUsesSpeechTranscriber() {
         UserDefaults.standard.removeObject(forKey: kVoiceASREngineKey)
 
-        XCTAssertEqual(VoiceASREngine.stored, .legacySpeech)
-        XCTAssertEqual(VoiceASREngine.effectiveStored, .legacySpeech)
+        XCTAssertEqual(VoiceASREngine.stored, .speechTranscriber)
+        XCTAssertEqual(VoiceASREngine.effectiveStored, VoiceASREngine.speechTranscriber.isAvailableOnCurrentDevice ? .speechTranscriber : .legacySpeech)
     }
 
     func testStoredEngineRoundTrips() {
@@ -25,6 +27,24 @@ final class VoiceASREngineTests: XCTestCase {
 
         XCTAssertEqual(VoiceASREngine.stored, .legacySpeech)
         XCTAssertEqual(VoiceASREngine.effectiveStored, .legacySpeech)
+    }
+
+    func testExistingUserWithLegacyEngineMigratesToSpeechTranscriber() {
+        guard VoiceASREngine.speechTranscriber.isAvailableOnCurrentDevice else { return }
+
+        UserDefaults.standard.set(VoiceASREngine.legacySpeech.rawValue, forKey: kVoiceASREngineKey)
+
+        VoiceASREngine.migrateToSpeechTranscriberIfNeeded(hasExistingUserData: true)
+
+        XCTAssertEqual(VoiceASREngine.stored, .speechTranscriber)
+        XCTAssertTrue(UserDefaults.standard.bool(forKey: kVoiceASREngineUpgradeNoticePendingKey))
+    }
+
+    func testNewUserDoesNotReceiveUpgradeNotice() {
+        VoiceASREngine.migrateToSpeechTranscriberIfNeeded(hasExistingUserData: false)
+
+        XCTAssertFalse(UserDefaults.standard.bool(forKey: kVoiceASREngineUpgradeNoticePendingKey))
+        XCTAssertTrue(UserDefaults.standard.bool(forKey: "voice_asr_engine_migration_completed"))
     }
 
     func testEveryEngineHasStableIdentifierAndTitle() {
@@ -44,12 +64,16 @@ final class VoiceASREngineTests: XCTestCase {
     }
 
     @available(iOS 26.0, *)
-    func testSpeechTranscriberProfilesPreferAccuracyOverFastResults() {
+    func testSpeechTranscriberProfilesUseFastResultsForLiveRecognition() {
         for locale in ["zh-Hans", "en-US", "ja-JP", "ko-KR", "de-DE", "es-ES", "fr-FR", "it-IT", "ru-RU"] {
-            let profile = SpeechTranscriberProfile.forLocale(Locale(identifier: locale), live: false)
-            XCTAssertFalse(profile.reportingOptions.contains(.fastResults), locale)
-            XCTAssertTrue(profile.reportingOptions.contains(.alternativeTranscriptions), locale)
-            XCTAssertTrue(profile.attributeOptions.contains(.transcriptionConfidence), locale)
+            let liveProfile = SpeechTranscriberProfile.forLocale(Locale(identifier: locale), live: true)
+            let fileProfile = SpeechTranscriberProfile.forLocale(Locale(identifier: locale), live: false)
+            XCTAssertTrue(liveProfile.reportingOptions.contains(.fastResults), locale)
+            XCTAssertTrue(liveProfile.reportingOptions.contains(.volatileResults), locale)
+            XCTAssertTrue(liveProfile.reportingOptions.contains(.alternativeTranscriptions), locale)
+            XCTAssertFalse(fileProfile.reportingOptions.contains(.fastResults), locale)
+            XCTAssertTrue(fileProfile.reportingOptions.contains(.alternativeTranscriptions), locale)
+            XCTAssertTrue(fileProfile.attributeOptions.contains(.transcriptionConfidence), locale)
         }
     }
 }

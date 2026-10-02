@@ -278,9 +278,14 @@ final class AppStore: ObservableObject {
         logRecoveryState(phase: "before-load")
         load()
         logRecoveryState(phase: "after-load")
+        VoiceASREngine.migrateToSpeechTranscriberIfNeeded(
+            hasExistingUserData: !players.isEmpty || !teams.isEmpty || !savedGames.isEmpty
+        )
         loadCloudEnabledGameIDs()
         NotificationCenter.default.addObserver(self, selector: #selector(cloudStoreDidChange), name: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: NSUbiquitousKeyValueStore.default)
-        Task { await syncCloudGames() }
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
+            Task { await syncCloudGames() }
+        }
 
         // Forward PurchaseManager.isPro changes so all store observers re-render
         PurchaseManager.shared.$isPro

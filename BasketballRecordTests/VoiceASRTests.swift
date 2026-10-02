@@ -358,6 +358,26 @@ final class VoiceASRTests: XCTestCase {
     func testRuSubstitution() throws { assertCmd(text: "3 замена 10", .russian, "substitution") }
     func testRuGameEnd() throws { assertCmd(text: "конец игры", .russian, "finishGame") }
 
+    func testZhEndDuringRunningPeriodLegacyEndsPeriod() throws {
+        snapshot.periodIsRunning = true
+        assertLegacyCommand(text: "结束", .chinese, "event.period")
+    }
+
+    func testZhEndDuringRunningPeriodSpeechTranscriberEndsPeriod() throws {
+        snapshot.periodIsRunning = true
+        assertSpeechTranscriberCommand(text: "结束", .chinese, "event.period")
+    }
+
+    func testZhPeriodEndPhraseDuringRunningPeriodSpeechTranscriberEndsPeriod() throws {
+        snapshot.periodIsRunning = true
+        assertSpeechTranscriberCommand(text: "本节比赛结束", .chinese, "event.period")
+    }
+
+    func testZhExplicitGameEndDuringRunningPeriodSpeechTranscriberFinishesGame() throws {
+        snapshot.periodIsRunning = true
+        assertSpeechTranscriberCommand(text: "结束比赛", .chinese, "event.game_end")
+    }
+
     func testSpeechTranscriberObservedVariants() throws {
         assertSpeechTranscriberMatch(text: "张三寇难命中", .chinese, "stat.dunkMade")
         assertSpeechTranscriberMatch(text: "张三钟头命中", .chinese, "stat.midRangeMade")
@@ -374,6 +394,24 @@ final class VoiceASRTests: XCTestCase {
     func testSpeechTranscriberSpecificReboundPrecedesGeneric() throws {
         snapshot.showsOffensiveDefensiveRebound = true
         assertSpeechTranscriberMatch(text: "García rebote ofensivo", .spanish, "stat.offensiveRebound")
+    }
+
+    func testLegacySpeechNonChineseASRCorrections() throws {
+        assertLegacyMatch(text: "Müller cool", .german, "stat.foul")
+        assertLegacyMatch(text: "Müller Freiburg gekommen", .german, "stat.freeThrowMade")
+        let fuzzyNameID = UUID()
+        store.players.append(Player(id: fuzzyNameID, name: "Noah Anderson", number: "19"))
+        snapshot.homeOnCourtPlayerIDs.append(fuzzyNameID)
+        snapshot.homeAvailablePlayerIDs.append(fuzzyNameID)
+        assertLegacyMatch(text: "No Anderson got free throw", .english, "stat.freeThrowMade")
+        assertLegacyMatch(text: "García Ventura agosto", .spanish, "stat.paintMade")
+    }
+
+    func testLegacySpeechChineseASRCorrections() throws {
+        assertLegacyMatch(text: "江山南下命中", .chinese, "stat.paintMade")
+        assertLegacyCommand(text: "结束", .chinese, "event.game_end")
+        assertLegacyCommand(text: "結束", .traditionalChinese, "event.game_end")
+        assertLegacyCommand(text: "リアり直す", .japanese, "event.redo")
     }
 
 
@@ -449,6 +487,49 @@ final class VoiceASRTests: XCTestCase {
         guard let code else { XCTFail("NO SPEECH TRANSCRIBER MATCH: '\(text)'", line: line); return }
         let prefix = expected.replacingOccurrences(of: "Made", with: "").replacingOccurrences(of: "Missed", with: "")
         XCTAssertTrue(code.hasPrefix(prefix) || code == expected, "'\(text)' → '\(code)' ≠ '\(expected)'", line: line)
+    }
+
+    private func assertLegacyMatch(text: String, _ rules: VoiceRules, _ expected: String, line: UInt = #line) {
+        let rec = VoiceRecognizer()
+        rec.configureForFileEvaluation(store: store, engine: .legacySpeech)
+        rec.currentSnapshot = snapshot
+        rec.updateRules(for: rules.locale)
+        store.voiceLogEnabled = true
+        var code: String?
+        let exp = expectation(description: "legacy_speech_match_\(text)")
+        rec.onAction = { (a: StatAction, _, _, _) in code = a.eventCode; exp.fulfill() }
+        rec.onDualAction = { a1, _, _, _, _, _ in code = a1.eventCode; exp.fulfill() }
+        rec.simulateText(text)
+        wait(for: [exp], timeout: 0.5)
+        guard let code else {
+            XCTFail("NO LEGACY SPEECH MATCH: '\(text)'", line: line)
+            return
+        }
+        let prefix = expected.replacingOccurrences(of: "Made", with: "").replacingOccurrences(of: "Missed", with: "")
+        XCTAssertTrue(code.hasPrefix(prefix) || code == expected, "'\(text)' → '\(code)' ≠ '\(expected)'", line: line)
+    }
+
+    private func assertLegacyCommand(text: String, _ rules: VoiceRules, _ expected: String, line: UInt = #line) {
+        let rec = VoiceRecognizer()
+        rec.configureForFileEvaluation(store: store, engine: .legacySpeech)
+        rec.currentSnapshot = snapshot
+        rec.updateRules(for: rules.locale)
+        var code: String?
+        let exp = expectation(description: "legacy_speech_command_\(text)")
+        rec.onCommand = { command in
+            switch command {
+            case .startPeriod: code = "event.period"
+            case .togglePause: code = "event.pause"
+            case .finishGame: code = "event.game_end"
+            case .substitution: code = "event.substitution"
+            case .undo: code = "event.undo"
+            case .redo: code = "event.redo"
+            }
+            exp.fulfill()
+        }
+        rec.simulateText(text)
+        wait(for: [exp], timeout: 0.5)
+        XCTAssertEqual(code, expected, line: line)
     }
 
     private func assertSpeechTranscriberCommand(text: String, _ rules: VoiceRules, _ expected: String, line: UInt = #line) {
