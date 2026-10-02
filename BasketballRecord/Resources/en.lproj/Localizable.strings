@@ -1335,7 +1335,6 @@ Format:
 "stats_fast_break_points_short" = "FB PTS";
 "stats_full_misc_short" = "REB / AST / PF / BLK / STL / TO";
 "stats_advanced_short" = "ADV";
-"section_on_court" = "On court";
 "game_event_status_new" = "NEW";
 "game_event_status_edited" = "EDITED";
 "game_event_status_deleted" = "DELETED";
