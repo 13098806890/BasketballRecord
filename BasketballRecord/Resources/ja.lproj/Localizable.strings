@@ -186,7 +186,6 @@
 "starter_home_bench_title" = "ホームベンチ";
 "starter_away_bench_title" = "アウェイベンチ";
 "section_starter_select_format" = "%@ · 選択 %d";
-"section_on_court" = "コート上の選手";
 "section_bench" = "ベンチ";
 "section_bench_optional_format" = "%@ 任意";
 "text_team_has_no_players" = "このチームは、まだプレイヤーがいない";
@@ -198,6 +197,7 @@
 "nav_substitution" = "助成制度";
 "nav_late_arrival" = "オンコートを追加";
 "picker_team" = "スタッフ";
+"section_on_court" = "コート上の選手";
 "section_substitute_out" = "サブアウト";
 "section_substitute_in" = "サブイン";
 "text_no_on_court_players" = "オンコートプレイヤーは使用できません";

@@ -177,7 +177,6 @@
 "starter_home_bench_title" = "Banca Local";
 "starter_away_bench_title" = "Banca Visitante";
 "section_starter_select_format" = "%@ · Seleccionar %d";
-"section_on_court" = "En cancha";
 "section_bench" = "Banca";
 "section_bench_optional_format" = "%@ · Opcional";
 "text_team_has_no_players" = "Este equipo aún no tiene jugadores";

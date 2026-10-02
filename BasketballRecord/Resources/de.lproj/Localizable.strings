@@ -176,7 +176,6 @@
 "starter_home_bench_title" = "Heimbank";
 "starter_away_bench_title" = "Auswärtsbank";
 "section_starter_select_format" = "%@ · %d auswählen";
-"section_on_court" = "Auf dem Feld";
 "section_bench" = "Bank";
 "section_bench_optional_format" = "%@ · Optional";
 "text_team_has_no_players" = "Dieses Team hat noch keine Spieler";

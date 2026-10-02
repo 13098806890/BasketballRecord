@@ -176,7 +176,6 @@
 "starter_home_bench_title" = "Panchina della squadra di casa";
 "starter_away_bench_title" = "Panchina della squadra ospite";
 "section_starter_select_format" = "%@ · Seleziona %d";
-"section_on_court" = "In campo";
 "section_bench" = "Panchina";
 "section_bench_optional_format" = "%@ · Opzionale";
 "text_team_has_no_players" = "Questa squadra non ha ancora giocatori";

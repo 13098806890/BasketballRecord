@@ -264,6 +264,7 @@
 "nav_substitution" = "Substitution";
 "nav_late_arrival" = "Add On-Court";
 "picker_team" = "Team";
+"section_on_court" = "On Court";
 "section_substitute_out" = "Sub Out";
 "section_substitute_in" = "Sub In";
 "text_no_on_court_players" = "No on-court players available";
@@ -1334,7 +1335,6 @@ Format:
 "stats_fast_break_points_short" = "FB PTS";
 "stats_full_misc_short" = "REB / AST / PF / BLK / STL / TO";
 "stats_advanced_short" = "ADV";
-"section_on_court" = "On court";
 "game_event_status_new" = "NEW";
 "game_event_status_edited" = "EDITED";
 "game_event_status_deleted" = "DELETED";
