@@ -918,10 +918,19 @@
 "settings_voice_locale" = "語音語言";
 "settings_voice_locale_follow_app" = "跟隨 App 語言";
 "settings_voice_locale_footer" = "選擇語音辨識使用的語言。同時影響計分頁面和教學。";
+"settings_voice_asr_engine" = "辨識方案";
+"settings_voice_asr_legacy" = "Apple Speech（舊版）";
+"settings_voice_asr_speech_transcriber" = "Apple SpeechTranscriber";
+"settings_voice_asr_engine_footer" = "方案二僅在 iOS 26 以上、硬體支援 SpeechTranscriber 的裝置和支援的語音語言上可用。並非所有支援 iOS 26 的裝置都支援方案二。不支援時會自動使用方案一。";
+"voice_engine_upgrade_title" = "語音辨識已升級";
+"voice_engine_upgrade_message" = "本次更新已將語音辨識切換為 Apple SpeechTranscriber（方案二），以提升辨識速度和準確率。如果使用不習慣，可以在「設定 > 語音 > 辨識方案」中切換回 Apple Speech（舊版）。";
+"voice_engine_upgrade_open_settings" = "前往語音設定";
 "settings_voice_matching_threshold" = "匹配靈敏度";
 "settings_voice_matching_threshold_footer" = "數值越低匹配越寬鬆（建議 0.6）";
 
 "settings_voice_instruction" = "語音說明";
+"voice_instruction_requirements" = "辨識方案要求";
+"voice_instruction_requirements_content" = "方案二使用 Apple SpeechTranscriber 進行語音辨識。\n\n系統：iOS 26 或以上版本。\n硬體：裝置硬體需要支援 SpeechTranscriber，並非所有能執行 iOS 26 的裝置都支援方案二；App 會根據系統提供的硬體能力自動判斷。\n語音語言：選擇的語音語言需要有對應的系統語音模型。\n\n如果裝置或語言不支援，App 會自動使用 Apple Speech（舊版，方案一）。首次使用方案二時，系統可能需要準備語音資源。你可以在「設定 > 語音 > 辨識方案」中切換兩種方案。";
 "voice_instruction_shots" = "投籃記錄";
 "voice_instruction_stats" = "統計記錄";
 "voice_instruction_substitution" = "換人";
@@ -933,6 +942,8 @@
 "settings_voice_log_enable_footer" = "記錄語音識別的詳細匹配過程，便於除錯和回顧。";
 "settings_voice_show_success_animation" = "顯示成功動畫";
 "settings_voice_show_success_animation_footer" = "語音輸入成功時顯示球員頭像和動作名稱動畫。";
+"voice_speech_transcriber_unavailable" = "目前裝置或語音語言不支援 SpeechTranscriber。";
+"voice_speech_transcriber_setup_failed" = "SpeechTranscriber 啟動失敗。請嘗試 Apple Speech（舊版），或檢查裝置的語音資源。";
 "voice_shortcuts_empty" = "沒有語音快捷指令";
 "voice_shortcuts_empty_desc" = "建立自訂短語來觸發動作。";
 "voice_shortcuts_custom" = "自訂";

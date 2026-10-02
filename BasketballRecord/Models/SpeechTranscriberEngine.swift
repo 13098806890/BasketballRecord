@@ -23,10 +23,40 @@ struct SpeechTranscriberProfile: Sendable {
         }
         return SpeechTranscriberProfile(
             name: live ? name + "-live" : name + "-file",
-            reportingOptions: live ? [.volatileResults, .alternativeTranscriptions] : [.alternativeTranscriptions],
+            reportingOptions: live ? [.volatileResults, .fastResults, .alternativeTranscriptions] : [.alternativeTranscriptions],
             transcriptionOptions: [],
             attributeOptions: [.transcriptionConfidence]
         )
+    }
+}
+
+@available(iOS 26.0, *)
+private final class SpeechTranscriberInputTimeline: @unchecked Sendable {
+    private let lock = NSLock()
+    private let sampleRate: CMTimeScale
+    private var endTime = CMTime.zero
+    private var hasInput = false
+
+    init(sampleRate: Double) {
+        self.sampleRate = CMTimeScale(sampleRate.rounded())
+    }
+
+    func append(frameCount: AVAudioFrameCount) -> CMTime {
+        lock.lock()
+        defer { lock.unlock() }
+        let startTime = endTime
+        let duration = CMTime(value: CMTimeValue(frameCount), timescale: sampleRate)
+        endTime = CMTimeAdd(endTime, duration)
+        hasInput = hasInput || frameCount > 0
+        return startTime
+    }
+
+    func end() -> CMTime? {
+        lock.lock()
+        defer { lock.unlock() }
+        guard hasInput else { return nil }
+        let lastSampleDuration = CMTime(value: 1, timescale: sampleRate)
+        return CMTimeSubtract(endTime, lastSampleDuration)
     }
 }
 
@@ -61,36 +91,45 @@ final class SpeechTranscriberEngine {
     private var resultTask: Task<Void, Never>?
     private var stopRequested = false
     private var reservedLocale: Locale?
+    private var preparedLocale: Locale?
+    private var preparedAudioFormat: AVAudioFormat?
+    private var inputTimeline: SpeechTranscriberInputTimeline?
+    private var recordingStartedAt: Date?
+    private var stopRequestedAt: Date?
 
-    func start(locale: Locale, contextualStrings: [String] = []) async throws {
-        logger.info("start requested locale=\(locale.identifier, privacy: .public) available=\(SpeechTranscriber.isAvailable, privacy: .public)")
+    func prepare(locale: Locale) async throws {
+        logger.info("xdz prepare requested locale=\(locale.identifier, privacy: .public)")
         guard SpeechTranscriber.isAvailable else { throw EngineError.unavailable }
         guard let supportedLocale = await SpeechTranscriber.supportedLocale(equivalentTo: locale) else {
-            logger.error("locale unsupported requested=\(locale.identifier, privacy: .public)")
+            logger.error("prepare locale unsupported requested=\(locale.identifier, privacy: .public)")
             throw EngineError.localeUnsupported
         }
+        if let preparedLocale, preparedLocale.identifier == supportedLocale.identifier {
+            return
+        }
+        if let preparedLocale, preparedLocale.identifier != supportedLocale.identifier {
+            await releaseReservedLocale()
+            self.preparedLocale = nil
+        }
 
-        stopRequested = false
         let profile = SpeechTranscriberProfile.forLocale(supportedLocale, live: true)
         let reservedLocales = await AssetInventory.reservedLocales
-        logger.info("profile=\(profile.name, privacy: .public) supportedLocale=\(supportedLocale.identifier, privacy: .public) reserved=\(reservedLocales.map(\.identifier).joined(separator: ","), privacy: .public)")
         if !reservedLocales.contains(where: { $0.identifier == supportedLocale.identifier }) {
             guard try await AssetInventory.reserve(locale: supportedLocale) else {
-                logger.error("locale reservation failed locale=\(supportedLocale.identifier, privacy: .public)")
+                logger.error("prepare locale reservation failed locale=\(supportedLocale.identifier, privacy: .public)")
                 throw EngineError.modelUnavailable
             }
             reservedLocale = supportedLocale
         }
+
         let transcriber = SpeechTranscriber(
             locale: supportedLocale,
             transcriptionOptions: profile.transcriptionOptions,
             reportingOptions: profile.reportingOptions,
             attributeOptions: profile.attributeOptions
         )
-        let analyzer = SpeechAnalyzer(modules: [transcriber])
-
         let status = await AssetInventory.status(forModules: [transcriber])
-        logger.info("asset status=\(String(describing: status), privacy: .public) locale=\(supportedLocale.identifier, privacy: .public) maxReserved=\(AssetInventory.maximumReservedLocales, privacy: .public)")
+        logger.info("prepare asset status=\(String(describing: status), privacy: .public) locale=\(supportedLocale.identifier, privacy: .public)")
         do {
             switch status {
             case .unsupported:
@@ -112,12 +151,49 @@ final class SpeechTranscriberEngine {
             await releaseReservedLocale()
             throw error
         }
+        if let analyzerFormat = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber]) {
+            let analyzerOptions = SpeechAnalyzer.Options(
+                priority: .userInitiated,
+                modelRetention: .lingering
+            )
+            let analyzer = SpeechAnalyzer(modules: [transcriber], options: analyzerOptions)
+            try await analyzer.prepareToAnalyze(in: analyzerFormat)
+            preparedAudioFormat = analyzerFormat
+        }
+        preparedLocale = supportedLocale
+    }
+
+    func start(locale: Locale, contextualStrings: [String] = []) async throws {
+        logger.info("xdz start requested locale=\(locale.identifier, privacy: .public) available=\(SpeechTranscriber.isAvailable, privacy: .public)")
+        stopRequested = false
+        try await prepare(locale: locale)
+        guard let supportedLocale = preparedLocale else { throw EngineError.modelUnavailable }
+        let profile = SpeechTranscriberProfile.forLocale(supportedLocale, live: true)
+        let reservedLocales = await AssetInventory.reservedLocales
+        logger.info("profile=\(profile.name, privacy: .public) supportedLocale=\(supportedLocale.identifier, privacy: .public) reserved=\(reservedLocales.map(\.identifier).joined(separator: ","), privacy: .public)")
+        let transcriber = SpeechTranscriber(
+            locale: supportedLocale,
+            transcriptionOptions: profile.transcriptionOptions,
+            reportingOptions: profile.reportingOptions,
+            attributeOptions: profile.attributeOptions
+        )
+        let analyzerOptions = SpeechAnalyzer.Options(
+            priority: .userInitiated,
+            modelRetention: .lingering
+        )
+        let analyzer = SpeechAnalyzer(modules: [transcriber], options: analyzerOptions)
 
         guard !stopRequested else {
             await releaseReservedLocale()
             return
         }
-        guard let analyzerFormat = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber]) else {
+        let analyzerFormat: AVAudioFormat?
+        if let preparedAudioFormat {
+            analyzerFormat = preparedAudioFormat
+        } else {
+            analyzerFormat = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber])
+        }
+        guard let analyzerFormat else {
             throw EngineError.setupFailed
         }
         let (inputSequence, inputContinuation) = AsyncStream<AnalyzerInput>.makeStream()
@@ -133,6 +209,7 @@ final class SpeechTranscriberEngine {
             }
             try await analyzer.prepareToAnalyze(in: analyzerFormat)
             try await analyzer.start(inputSequence: inputSequence)
+            recordingStartedAt = Date()
         } catch {
             self.inputContinuation?.finish()
             self.inputContinuation = nil
@@ -178,6 +255,8 @@ final class SpeechTranscriberEngine {
             throw EngineError.setupFailed
         }
         let continuation = inputContinuation
+        let inputTimeline = SpeechTranscriberInputTimeline(sampleRate: analyzerFormat.sampleRate)
+        self.inputTimeline = inputTimeline
         let converter = engineFormat.sampleRate == analyzerFormat.sampleRate && engineFormat.channelCount == analyzerFormat.channelCount
             ? nil
             : AVAudioConverter(from: engineFormat, to: analyzerFormat)
@@ -200,9 +279,11 @@ final class SpeechTranscriberEngine {
                     return buffer
                 }
                 guard conversionError == nil else { return }
-                continuation.yield(AnalyzerInput(buffer: converted))
+                let bufferStartTime = inputTimeline.append(frameCount: converted.frameLength)
+                continuation.yield(AnalyzerInput(buffer: converted, bufferStartTime: bufferStartTime))
             } else {
-                continuation.yield(AnalyzerInput(buffer: buffer))
+                let bufferStartTime = inputTimeline.append(frameCount: buffer.frameLength)
+                continuation.yield(AnalyzerInput(buffer: buffer, bufferStartTime: bufferStartTime))
             }
         }
 
@@ -218,6 +299,7 @@ final class SpeechTranscriberEngine {
             self.inputContinuation = nil
             resultTask?.cancel()
             resultTask = nil
+            self.inputTimeline = nil
             self.analyzer = nil
             self.transcriber = nil
             await analyzer.cancelAndFinishNow()
@@ -228,6 +310,7 @@ final class SpeechTranscriberEngine {
 
     func requestStop() {
         stopRequested = true
+        stopRequestedAt = Date()
         audioEngine?.stop()
         audioEngine?.inputNode.removeTap(onBus: 0)
         audioEngine = nil
@@ -238,18 +321,34 @@ final class SpeechTranscriberEngine {
             onFinished?()
             return
         }
+        let finalizationEndTime = inputTimeline?.end()
         self.analyzer = nil
         Task {
-            try? await analyzer.finalizeAndFinishThroughEndOfInput()
+            if let finalizationEndTime {
+                try? await analyzer.finalizeAndFinish(through: finalizationEndTime)
+            } else {
+                try? await analyzer.finalizeAndFinishThroughEndOfInput()
+            }
             await resultTask?.value
+            let elapsedMilliseconds = stopRequestedAt.map { Int(Date().timeIntervalSince($0) * 1000) } ?? 0
+            let totalMilliseconds = recordingStartedAt.map { Int(Date().timeIntervalSince($0) * 1000) } ?? 0
+            logger.info("xdz finish completed stopToFinishMs=\(elapsedMilliseconds, privacy: .public) recordingMs=\(totalMilliseconds, privacy: .public)")
             self.transcriber = nil
             self.resultTask = nil
-            await self.releaseReservedLocale()
+            self.inputTimeline = nil
+            self.recordingStartedAt = nil
+            self.stopRequestedAt = nil
             self.onFinished?()
         }
     }
 
     func cancel() {
+        Task {
+            await releasePreparedResources()
+        }
+    }
+
+    func releasePreparedResources() async {
         stopRequested = true
         audioEngine?.stop()
         audioEngine?.inputNode.removeTap(onBus: 0)
@@ -258,22 +357,27 @@ final class SpeechTranscriberEngine {
         inputContinuation = nil
         resultTask?.cancel()
         resultTask = nil
+        inputTimeline = nil
         let analyzer = self.analyzer
         self.analyzer = nil
         self.transcriber = nil
         if let analyzer {
-            Task {
-                await analyzer.cancelAndFinishNow()
-                await self.releaseReservedLocale()
-            }
+            await analyzer.cancelAndFinishNow()
         }
+        await releaseReservedLocale()
     }
 
     private func releaseReservedLocale() async {
-        guard let reservedLocale else { return }
+        guard let reservedLocale else {
+            preparedLocale = nil
+            preparedAudioFormat = nil
+            return
+        }
         _ = await AssetInventory.release(reservedLocale: reservedLocale)
         let remainingLocales = await AssetInventory.reservedLocales
         logger.info("locale released locale=\(reservedLocale.identifier, privacy: .public) remaining=\(remainingLocales.map(\.identifier).joined(separator: ","), privacy: .public)")
         self.reservedLocale = nil
+        self.preparedLocale = nil
+        self.preparedAudioFormat = nil
     }
 }

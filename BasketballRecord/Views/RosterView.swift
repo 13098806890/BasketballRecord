@@ -13,6 +13,7 @@ func localizedFormat(_ key: String, _ args: CVarArg...) -> String {
 
 struct RosterView: View {
     @EnvironmentObject private var store: AppStore
+    @Binding var openVoiceSettings: Bool
     @State private var showingDeepSeekConfig = false
     @State private var showingSettingsDocument: SettingsDocument?
     @State private var isShowingPurchase = false
@@ -214,6 +215,9 @@ struct RosterView: View {
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(isPresented: $openVoiceSettings) {
+                VoiceSettingsView(store: store)
+            }
             .sheet(isPresented: $showingDeepSeekConfig) {
                 AISettingsView()
             }

@@ -568,6 +568,7 @@ struct GameView: View {
                 voiceFlashDismissTask?.cancel()
                 voiceErrorDismissTask?.cancel()
                 voiceSuccessDismissTask?.cancel()
+                voiceRecognizer.clearSpeechTranscriberGameCache()
             })
     }
 
@@ -1162,13 +1163,19 @@ struct GameView: View {
             Circle()
                 .stroke(isVoiceButtonPressed ? GamePalette.homeScoreboard : Color.primary.opacity(0.12), lineWidth: isVoiceButtonPressed ? 2 : 0.5)
                 .frame(width: 72, height: 72)
-            Image(systemName: voiceRecognizer.isRecording ? "mic.fill" : "mic")
-                .font(.system(size: 26, weight: .semibold))
-                .foregroundStyle(isVoiceButtonPressed ? GamePalette.homeScoreboard : Color.primary)
-                .scaleEffect(isVoiceButtonPressed ? 1.15 : 1)
-                .animation(.spring(response: 0.2), value: isVoiceButtonPressed)
+            if voiceRecognizer.isSpeechTranscriberPreparing {
+                ProgressView()
+                    .tint(isVoiceButtonPressed ? GamePalette.homeScoreboard : Color.primary)
+            } else {
+                Image(systemName: voiceRecognizer.isRecording ? "mic.fill" : "mic")
+                    .font(.system(size: 26, weight: .semibold))
+                    .foregroundStyle(isVoiceButtonPressed ? GamePalette.homeScoreboard : Color.primary)
+                    .scaleEffect(isVoiceButtonPressed ? 1.15 : 1)
+                    .animation(.spring(response: 0.2), value: isVoiceButtonPressed)
+            }
         }
         .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
+        .disabled(voiceRecognizer.isSpeechTranscriberPreparing)
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in
@@ -2126,11 +2133,13 @@ struct GameView: View {
             gameVM.snapshot.isComplete = true
             gameVM.addEvent(NSLocalizedString("event_game_end", comment: "Game end event"), eventCode: "event.game_end")
         }
+        voiceRecognizer.clearSpeechTranscriberGameCache()
         return true
     }
 
     @discardableResult
     private func applyResetGameOperation(keepLiveSession: Bool) -> Bool {
+        voiceRecognizer.clearSpeechTranscriberGameCache()
         if !keepLiveSession {
             liveManager.resetSession()
         }

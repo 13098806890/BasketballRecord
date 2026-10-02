@@ -3,6 +3,7 @@ import SwiftUI
 struct VoiceTutorialView: View {
     @ObservedObject var store: AppStore
     @StateObject private var recognizer = VoiceRecognizer()
+    @AppStorage(kVoiceASREngineKey) private var voiceASREngineRawValue: String = VoiceASREngine.speechTranscriber.rawValue
 
     private static let playerIDs: [UUID] = Array(AppStore.tutorialPlayerIDs)
 
@@ -30,6 +31,8 @@ struct VoiceTutorialView: View {
     @State private var successfulAttempts: Int
     @State private var freePlayReboundMode = false
     @State private var voiceErrorMessage: String?
+    @State private var activeASREngine = VoiceASREngine.stored
+    @State private var isRecognizerConfigured = false
 
     private var isFreePlaySelected: Bool { showingFreePlay }
 
@@ -69,6 +72,8 @@ struct VoiceTutorialView: View {
     var body: some View {
         VStack(spacing: 0) {
             playerHeader
+
+            recognitionEngineView
 
             modeToggleView
 
@@ -114,6 +119,23 @@ struct VoiceTutorialView: View {
         }
         .onAppear(perform: setupTutorial)
         .onDisappear(perform: cleanupTutorial)
+        .task(id: "\(voiceLanguage)-\(voiceASREngineRawValue)-\(VoiceASREngine.speechTranscriber.isAvailableOnCurrentDevice)") {
+            let storedEngine = VoiceASREngine(rawValue: voiceASREngineRawValue) ?? .legacySpeech
+            guard storedEngine == .speechTranscriber else {
+                activeASREngine = .legacySpeech
+                if isRecognizerConfigured {
+                    recognizer.updateASREngine(.legacySpeech)
+                }
+                return
+            }
+
+            let locale = VoiceRules.forLocale(Locale(identifier: effectiveVoiceLocale)).speechRecognizerLocale
+            let localeSupported = await VoiceASREngine.supportsSpeechLocale(locale)
+            activeASREngine = localeSupported ? .speechTranscriber : .legacySpeech
+            if isRecognizerConfigured {
+                recognizer.updateASREngine(activeASREngine)
+            }
+        }
         .overlay(alignment: .bottom) {
             if showingFreePlay || selectedTask != nil {
                 VStack(spacing: 6) {
@@ -154,6 +176,32 @@ struct VoiceTutorialView: View {
         }
         .padding(.vertical, 8)
         .background(EditorialDesign.card)
+    }
+
+    private var recognitionEngineView: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "waveform.badge.mic")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(EditorialDesign.orange)
+                .frame(width: 28, height: 28)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(LocalizedStringKey("settings_voice_asr_engine"))
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Text(activeASREngine.titleKey)
+                    .font(.subheadline.weight(.medium))
+            }
+
+            Spacer()
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .background(EditorialDesign.card)
+    }
+
+    private var effectiveVoiceLocale: String {
+        voiceLanguage.isEmpty ? (Bundle.main.preferredLocalizations.first ?? "en") : voiceLanguage
     }
 
     private func teamRow(side: TeamSide, teamName: String, players: [Player]) -> some View {
@@ -497,6 +545,9 @@ struct VoiceTutorialView: View {
         if !voiceLanguage.isEmpty {
             recognizer.updateRules(for: Locale(identifier: voiceLanguage))
         }
+        activeASREngine = VoiceASREngine.effectiveStored
+        recognizer.updateASREngine(activeASREngine)
+        isRecognizerConfigured = true
         recognizer.onClear = { [self] in
             voiceErrorMessage = nil
         }

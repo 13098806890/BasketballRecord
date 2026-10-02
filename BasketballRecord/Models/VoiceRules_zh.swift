@@ -92,6 +92,7 @@ extension VoiceRulesData {
             ["下一节", "event.period"],
             ["结束本节", "event.period"],
             ["节结束", "event.period"],
+            ["结束", "event.game_end"],
             ["暂停", "event.pause"],
             ["停表", "event.pause"],
             ["继续", "event.pause"],

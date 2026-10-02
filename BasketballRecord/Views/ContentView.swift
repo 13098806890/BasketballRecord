@@ -25,6 +25,7 @@ struct ContentView: View {
     @State private var suppressBusyAlertUntilIdle = false
     @State private var storeSyncBusyAlertText = ""
     @State private var selectedTab: Int = Self.initialTab
+    @State private var shouldOpenVoiceSettings = false
 #if DEBUG
     @State private var isShowingDebugDetail = false
 #endif
@@ -122,7 +123,7 @@ struct ContentView: View {
                 }
                 .tag(2)
 
-            RosterView()
+            RosterView(openVoiceSettings: $shouldOpenVoiceSettings)
                 .tabItem {
                     Label(LocalizedStringKey("tab_settings"), systemImage: "gearshape")
                 }
@@ -145,6 +146,9 @@ struct ContentView: View {
             }
             refreshStoreSyncBusyAlertPresentation(force: true)
             presentNextGlobalAlertIfNeeded(force: true)
+        }
+        .onChange(of: selectedTab) { _, _ in
+            presentNextGlobalAlertIfNeeded(force: false)
         }
         .onChange(of: bluetooth.isStoreSyncPreparing) { _, _ in
             refreshStoreSyncBusyAlertPresentation(force: true)
@@ -238,6 +242,20 @@ struct ContentView: View {
                     message: Text(message),
                     dismissButton: .default(Text(LocalizedStringKey("alert_ok")), action: {
                         bluetoothAlertMessage = nil
+                    })
+                )
+
+            case .voiceEngineUpgrade:
+                Alert(
+                    title: Text(LocalizedStringKey("voice_engine_upgrade_title")),
+                    message: Text(LocalizedStringKey("voice_engine_upgrade_message")),
+                    primaryButton: .default(Text(LocalizedStringKey("voice_engine_upgrade_open_settings")), action: {
+                        dismissVoiceEngineUpgradeNotice()
+                        selectedTab = 3
+                        shouldOpenVoiceSettings = true
+                    }),
+                    secondaryButton: .cancel(Text(LocalizedStringKey("button_ok")), action: {
+                        dismissVoiceEngineUpgradeNotice()
                     })
                 )
             }
@@ -459,7 +477,17 @@ struct ContentView: View {
             return
         }
 
+        if UserDefaults.standard.bool(forKey: kVoiceASREngineUpgradeNoticePendingKey),
+           store.latestUnfinishedGame() == nil || selectedTab != 1 {
+            activeGlobalBluetoothAlert = .voiceEngineUpgrade
+            return
+        }
+
         activeGlobalBluetoothAlert = nil
+    }
+
+    private func dismissVoiceEngineUpgradeNotice() {
+        UserDefaults.standard.set(false, forKey: kVoiceASREngineUpgradeNoticePendingKey)
     }
 
     private func acceptLiveInviteGlobally(_ invite: BluetoothReceivedLiveInvite) {
@@ -556,6 +584,7 @@ private enum GlobalBluetoothAlert: Identifiable {
     case liveInvite(BluetoothReceivedLiveInvite)
     case status(BluetoothStoreSyncStatusAlert)
     case message(String)
+    case voiceEngineUpgrade
 
     var id: String {
         switch self {
@@ -569,6 +598,8 @@ private enum GlobalBluetoothAlert: Identifiable {
             return "status-\(status.id.uuidString)"
         case let .message(message):
             return "message-\(message)"
+        case .voiceEngineUpgrade:
+            return "voice-engine-upgrade"
         }
     }
 }

@@ -908,10 +908,19 @@
 "settings_voice_locale" = "Язык голоса";
 "settings_voice_locale_follow_app" = "Следовать языку приложения";
 "settings_voice_locale_footer" = "Выберите язык для распознавания речи. Влияет как на страницу подсчёта очков, так и на обучение.";
+"settings_voice_asr_engine" = "Система распознавания";
+"settings_voice_asr_legacy" = "Apple Speech (классическая)";
+"settings_voice_asr_speech_transcriber" = "Apple SpeechTranscriber";
+"settings_voice_asr_engine_footer" = "Вариант 2 доступен только на iOS 26 и новее, на устройствах с аппаратной поддержкой SpeechTranscriber и для поддерживаемых языков речи. Не все устройства с iOS 26 поддерживают вариант 2. На неподдерживаемых устройствах или языках автоматически используется Apple Speech (классическая версия).";
+"voice_engine_upgrade_title" = "Распознавание речи обновлено";
+"voice_engine_upgrade_message" = "В этом обновлении распознавание речи переключено на Apple SpeechTranscriber (вариант 2) для повышения скорости и точности. Если вам удобнее прежний режим, можно вернуться к Apple Speech (классическая версия) в разделе «Настройки > Голос > Система распознавания».";
+"voice_engine_upgrade_open_settings" = "Открыть настройки голоса";
 "settings_voice_matching_threshold" = "Чувствительность сопоставления";
 "settings_voice_matching_threshold_footer" = "Более низкие значения допускают менее строгие совпадения (рекомендуется 0.6)";
 
 "settings_voice_instruction" = "Голосовые инструкции";
+"voice_instruction_requirements" = "Требования для распознавания";
+"voice_instruction_requirements_content" = "Вариант 2 использует Apple SpeechTranscriber для распознавания речи.\n\nСистема: iOS 26 или новее.\nОборудование: устройство с аппаратной поддержкой SpeechTranscriber. Не все устройства, на которых работает iOS 26, поддерживают эту функцию; приложение автоматически проверяет аппаратные возможности, предоставленные системой.\nЯзык речи: для выбранного языка должна быть доступна поддерживаемая системная речевая модель.\n\nЕсли устройство или язык не поддерживаются, приложение автоматически использует Apple Speech (классическая версия). При первом использовании варианта 2 может потребоваться подготовка голосовых ресурсов. Переключить варианты можно в разделе «Настройки > Голос > Система распознавания».";
 "voice_instruction_shots" = "Броски";
 "voice_instruction_stats" = "Статистика";
 "voice_instruction_substitution" = "Замена";
@@ -923,6 +932,8 @@
 "settings_voice_log_enable_footer" = "Записывает детали распознавания для отладки и просмотра.";
 "settings_voice_show_success_animation" = "Показывать анимацию успеха";
 "settings_voice_show_success_animation_footer" = "Показывать анимацию с аватаром игрока и названием действия при распознавании голосового ввода.";
+"voice_speech_transcriber_unavailable" = "SpeechTranscriber недоступен для этого устройства или языка речи.";
+"voice_speech_transcriber_setup_failed" = "Не удалось запустить SpeechTranscriber. Попробуйте Apple Speech (классическую) или проверьте голосовые ресурсы устройства.";
 "voice_shortcuts_empty" = "Нет голосовых команд";
 "voice_shortcuts_empty_desc" = "Создайте пользовательские фразы для запуска действий.";
 "voice_shortcuts_custom" = "Пользовательские";

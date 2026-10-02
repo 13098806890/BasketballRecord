@@ -1,7 +1,11 @@
 import Foundation
+import Speech
 import SwiftUI
 
 let kVoiceASREngineKey = "voice_asr_engine"
+let kVoiceASREngineUpgradeNoticePendingKey = "voice_asr_engine_upgrade_notice_pending"
+
+private let kVoiceASREngineMigrationCompletedKey = "voice_asr_engine_migration_completed"
 
 enum VoiceASREngine: String, CaseIterable, Identifiable {
     case legacySpeech = "legacySpeech"
@@ -23,9 +27,27 @@ enum VoiceASREngine: String, CaseIterable, Identifiable {
         }
     }
 
+    var isAvailableOnCurrentDevice: Bool {
+        guard isAvailableOnCurrentOS else { return false }
+        if #available(iOS 26.0, *) {
+            return SpeechTranscriber.isAvailable
+        }
+        return false
+    }
+
+    static func supportsSpeechLocale(_ locale: Locale) async -> Bool {
+        guard speechTranscriber.isAvailableOnCurrentDevice else { return false }
+        if #available(iOS 26.0, *) {
+            return await SpeechTranscriber.supportedLocale(equivalentTo: locale) != nil
+        }
+        return false
+    }
+
     static var stored: VoiceASREngine {
-        guard let value = UserDefaults.standard.string(forKey: kVoiceASREngineKey),
-              let engine = VoiceASREngine(rawValue: value) else {
+        guard let value = UserDefaults.standard.string(forKey: kVoiceASREngineKey) else {
+            return .speechTranscriber
+        }
+        guard let engine = VoiceASREngine(rawValue: value) else {
             return .legacySpeech
         }
         return engine
@@ -33,6 +55,26 @@ enum VoiceASREngine: String, CaseIterable, Identifiable {
 
     static var effectiveStored: VoiceASREngine {
         let engine = stored
-        return engine.isAvailableOnCurrentOS ? engine : .legacySpeech
+        return engine.isAvailableOnCurrentDevice ? engine : .legacySpeech
+    }
+
+    static func migrateToSpeechTranscriberIfNeeded(hasExistingUserData: Bool) {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: kVoiceASREngineMigrationCompletedKey) else { return }
+
+        guard hasExistingUserData else {
+            defaults.set(true, forKey: kVoiceASREngineMigrationCompletedKey)
+            return
+        }
+
+        guard speechTranscriber.isAvailableOnCurrentDevice else { return }
+
+        let previousEngine = defaults.string(forKey: kVoiceASREngineKey).flatMap(VoiceASREngine.init(rawValue:)) ?? .legacySpeech
+        defaults.set(speechTranscriber.rawValue, forKey: kVoiceASREngineKey)
+        defaults.set(true, forKey: kVoiceASREngineMigrationCompletedKey)
+
+        if previousEngine != .speechTranscriber {
+            defaults.set(true, forKey: kVoiceASREngineUpgradeNoticePendingKey)
+        }
     }
 }

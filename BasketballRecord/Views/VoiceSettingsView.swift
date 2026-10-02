@@ -18,11 +18,40 @@ private let voiceLanguages: [(id: String, name: String)] = [
 struct VoiceSettingsView: View {
     @ObservedObject var store: AppStore
     @AppStorage(kVoiceLocaleKey) private var voiceLocale: String = ""
+    @AppStorage(kVoiceASREngineKey) private var voiceASREngineRawValue: String = VoiceASREngine.speechTranscriber.rawValue
     @AppStorage("voice_matching_threshold") private var voiceMatchingThreshold: Double = 0.6
     @AppStorage("voice_show_success_animation") private var showVoiceSuccessAnimation = true
+    @State private var speechTranscriberLocaleSupported: Bool?
 
     private var effectiveLocale: String {
         voiceLocale.isEmpty ? (Bundle.main.preferredLocalizations.first ?? "en") : voiceLocale
+    }
+
+    private var speechTranscriberDeviceAvailable: Bool {
+        VoiceASREngine.speechTranscriber.isAvailableOnCurrentDevice
+    }
+
+    private var speechTranscriberOptionAvailable: Bool {
+        speechTranscriberDeviceAvailable && speechTranscriberLocaleSupported != false
+    }
+
+    private var speechTranscriberLocale: Locale {
+        VoiceRules.forLocale(Locale(identifier: effectiveLocale)).speechRecognizerLocale
+    }
+
+    private var selectedASREngine: Binding<VoiceASREngine> {
+        Binding(
+            get: {
+                guard let engine = VoiceASREngine(rawValue: voiceASREngineRawValue), engine.isAvailableOnCurrentDevice else {
+                    return .legacySpeech
+                }
+                if engine == .speechTranscriber && speechTranscriberLocaleSupported == false {
+                    return .legacySpeech
+                }
+                return engine
+            },
+            set: { voiceASREngineRawValue = $0.rawValue }
+        )
     }
 
     var body: some View {
@@ -40,6 +69,21 @@ struct VoiceSettingsView: View {
                 }
             } footer: {
                 Text(LocalizedStringKey("settings_voice_locale_footer"))
+            }
+
+            Section {
+                Picker(selection: selectedASREngine) {
+                    ForEach(VoiceASREngine.allCases) { engine in
+                        if engine == .legacySpeech || (engine == .speechTranscriber && speechTranscriberOptionAvailable) {
+                            Text(engine.titleKey).tag(engine)
+                        }
+                    }
+                } label: {
+                    Label(LocalizedStringKey("settings_voice_asr_engine"), systemImage: "waveform.badge.mic")
+                        .foregroundStyle(.primary)
+                }
+            } footer: {
+                Text(LocalizedStringKey("settings_voice_asr_engine_footer"))
             }
 
             Section {
@@ -131,6 +175,9 @@ struct VoiceSettingsView: View {
         }
         .editorialSettingsListStyle()
         .navigationTitle(LocalizedStringKey("settings_voice"))
+        .task(id: "\(effectiveLocale)-\(speechTranscriberDeviceAvailable)") {
+            speechTranscriberLocaleSupported = await VoiceASREngine.supportsSpeechLocale(speechTranscriberLocale)
+        }
     }
 
     private func settingsRow(title: LocalizedStringKey, systemImage: String, countText: String?) -> some View {
