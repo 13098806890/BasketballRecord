@@ -1,1 +1,1 @@
-spielstand,spielerstatistik,punktezähler,team,training,turnier,coach
+spielstand,spielerstatistik,punktezähler,team,training,turnier,coach,spielbericht,mannschaft,liga

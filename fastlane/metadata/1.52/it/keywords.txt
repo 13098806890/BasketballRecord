@@ -1,1 +1,1 @@
-segnapunti,punteggio,squadra,allenatore,partita,registrazione,torneo,risultati
+segnapunti,punteggio,squadra,allenatore,partita,registrazione,torneo,risultati,giocatori,stagione

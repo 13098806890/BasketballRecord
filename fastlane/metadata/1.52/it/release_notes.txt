@@ -1,3 +1,3 @@
-La versione 1.52 migliora il punteggio vocale: tieni premuto il microfono, pronuncia il comando completo e rilascialo per elaborarlo in una volta sola. Sui dispositivi compatibili con iOS 26, Apple SpeechTranscriber (opzione 2) migliora il riconoscimento multilingue; Apple Speech (versione precedente) resta disponibile come fallback.
+La versione 1.52 rende più naturale il punteggio vocale: tieni premuto il microfono, pronuncia l’azione completa e rilascialo. Il comando viene elaborato in una sola volta, così puoi restare concentrato sulla partita.
 
-Abbiamo migliorato anche il riconoscimento dei nomi, i comandi combinati, la chiusura dei periodi e le schermate di modifica di squadre e giocatori.
+Abbiamo migliorato anche il riconoscimento dei nomi, le azioni combinate, la chiusura dei periodi e la gestione di squadre e giocatori. Ora puoi aggiungere i tempi supplementari e continuare a registrare ogni azione. Il punteggio vocale è disponibile in 10 lingue.

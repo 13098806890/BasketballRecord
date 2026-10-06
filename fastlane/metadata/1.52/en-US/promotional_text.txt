@@ -1,1 +1,1 @@
-New voice scoring with 10-language support, smarter player-name matching, and clearer team and player management.
+Keep your eyes on the game. Record plays and overtime by voice in 10 languages, and manage teams, rosters, and player details with ease.

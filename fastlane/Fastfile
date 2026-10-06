@@ -29,7 +29,7 @@ end
 platform :ios do
   desc "Upload metadata for a specific version to App Store Connect"
   lane :upload_metadata do |options|
-    version = options[:version] || "1.51"
+    version = options[:version] || "2.53"
 
     key_id, key_filepath = resolve_api_key
 
@@ -57,7 +57,7 @@ platform :ios do
 
   desc "Release an approved version to the App Store"
   lane :release do |options|
-    version = options[:version] || "1.51"
+    version = options[:version] || "2.53"
 
     key_id, key_filepath = resolve_api_key
 
@@ -87,7 +87,7 @@ platform :ios do
 
   desc "Download current metadata from App Store Connect"
   lane :download_metadata do |options|
-    version = options[:version] || "1.51"
+    version = options[:version] || "2.53"
 
     key_id, key_filepath = resolve_api_key
 

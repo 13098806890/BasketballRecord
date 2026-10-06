@@ -1,1 +1,1 @@
-marqueur,marquage,points,équipe,entraîneur,enregistrement,tournoi
+marqueur,marquage,points,équipe,entraîneur,enregistrement,tournoi,joueurs,saison,ligue,coach

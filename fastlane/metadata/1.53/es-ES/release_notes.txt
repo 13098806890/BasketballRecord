@@ -1,0 +1,3 @@
+La versión 1.53 hace que anotar por voz sea más natural: mantén pulsado el micrófono, di la jugada completa y suéltalo. La instrucción se procesa de una vez para que puedas seguir atento al partido.
+
+También mejoramos el reconocimiento de nombres, las jugadas combinadas, el final de los periodos y la gestión de equipos y jugadores. Ahora puedes añadir una prórroga y seguir registrando cada jugada. El registro por voz está disponible en 10 idiomas.

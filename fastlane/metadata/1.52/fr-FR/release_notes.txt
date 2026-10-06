@@ -1,3 +1,3 @@
-La version 1.52 améliore le score vocal : maintenez le micro enfoncé, prononcez toute la commande, puis relâchez-le pour la traiter en une fois. Sur les appareils compatibles avec iOS 26, Apple SpeechTranscriber (option 2) améliore la reconnaissance multilingue, tandis qu’Apple Speech (ancienne version) reste disponible en secours.
+La version 1.52 rend la saisie vocale plus naturelle : maintenez le micro enfoncé, dites l’action complète, puis relâchez-le. Elle est traitée en une seule fois pour vous laisser suivre le match.
 
-La reconnaissance des noms, les commandes combinées, la fin des périodes et les écrans de modification des équipes et des joueurs ont également été améliorés.
+Nous avons aussi amélioré la reconnaissance des noms, les actions combinées, la fin des périodes et la gestion des équipes et des joueurs. Vous pouvez maintenant ajouter une prolongation et continuer à enregistrer chaque action. La saisie vocale est disponible en 10 langues.

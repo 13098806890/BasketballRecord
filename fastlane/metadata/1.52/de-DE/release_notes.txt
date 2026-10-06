@@ -1,3 +1,3 @@
-Version 1.52 verbessert die Sprachaufzeichnung: Halte das Mikrofon gedrückt, sprich den vollständigen Befehl und lasse es los. Auf unterstützten iOS-26-Geräten ist Apple SpeechTranscriber (Option 2) verfügbar; Apple Speech (bisherige Version) bleibt als Fallback erhalten.
+Version 1.52 macht das Sprach-Scoring natürlicher: Halte das Mikrofon gedrückt, sprich die ganze Aktion und lasse es los. Der vollständige Befehl wird anschließend als Einheit verarbeitet, damit du dich auf das Spiel konzentrieren kannst.
 
-Außerdem wurden Spielernamenerkennung, kombinierte Befehle, das Beenden von Spielperioden sowie die Bearbeitungsseiten für Teams und Spieler verbessert.
+Außerdem wurden Spielernamen, kombinierte Aktionen, das Beenden von Spielperioden sowie die Verwaltung von Teams und Spielern verbessert. Du kannst jetzt auch Verlängerungen hinzufügen und jede weitere Aktion erfassen. Sprach-Scoring ist in 10 Sprachen verfügbar.
