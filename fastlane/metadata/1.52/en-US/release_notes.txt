@@ -1,3 +1,3 @@
-Version 1.52 brings a more natural voice-scoring workflow: hold the microphone while speaking, then release to process the full command. On supported iOS 26 devices, Apple SpeechTranscriber (Option 2) improves multilingual recognition, while Apple Speech (Legacy) remains available as a fallback.
+Version 1.52 makes voice scoring feel more natural: press and hold the microphone, say the complete play, then release to process it as one instruction. Keep your attention on the court while you record.
 
-We also improved player-name matching, compound commands, period-end handling, and the team and player editing screens.
+We also improved player-name recognition, combined plays, period-end actions, and team and player management. You can now add overtime and keep recording every play. Voice scoring is available in 10 languages.

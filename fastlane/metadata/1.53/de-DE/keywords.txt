@@ -1,0 +1,1 @@
+Spielstand,Statistik,Basketball App,Spielbericht,Punkte,Training,Mannschaft,Aufzeichnung,Turnier

@@ -1,0 +1,3 @@
+La versione 1.53 rende più naturale il punteggio vocale: tieni premuto il microfono, pronuncia l’azione completa e rilascialo. Il comando viene elaborato in una sola volta, così puoi restare concentrato sulla partita.
+
+Abbiamo migliorato anche il riconoscimento dei nomi, le azioni combinate, la chiusura dei periodi e la gestione di squadre e giocatori. Ora puoi aggiungere i tempi supplementari e continuare a registrare ogni azione. Il punteggio vocale è disponibile in 10 lingue.

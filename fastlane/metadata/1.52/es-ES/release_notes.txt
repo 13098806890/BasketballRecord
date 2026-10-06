@@ -1,3 +1,3 @@
-La versión 1.52 mejora el registro por voz: mantén pulsado el micrófono, di el comando completo y suéltalo para procesarlo de una vez. En dispositivos compatibles con iOS 26, Apple SpeechTranscriber (opción 2) mejora el reconocimiento multilingüe, mientras Apple Speech (versión anterior) sigue disponible como respaldo.
+La versión 1.52 hace que anotar por voz sea más natural: mantén pulsado el micrófono, di la jugada completa y suéltalo. La instrucción se procesa de una vez para que puedas seguir atento al partido.
 
-También mejoramos el reconocimiento de nombres, los comandos combinados, el final de los periodos y las pantallas de edición de equipos y jugadores.
+También mejoramos el reconocimiento de nombres, las jugadas combinadas, el final de los periodos y la gestión de equipos y jugadores. Ahora puedes añadir una prórroga y seguir registrando cada jugada. El registro por voz está disponible en 10 idiomas.

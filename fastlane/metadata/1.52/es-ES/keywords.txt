@@ -1,1 +1,1 @@
-marcador,baloncesto,anotador,puntos,equipo,entrenador,partido,registro,torneo
+marcador,baloncesto,anotador,puntos,equipo,entrenador,partido,registro,torneo,liga,jugadores,club
