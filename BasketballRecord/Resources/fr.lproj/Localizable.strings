@@ -1342,3 +1342,5 @@ Format :
 "voice_tutorial_en_task6" = "Faute de Dave";
 "voice_tutorial_en_task7" = "Trois points du numéro 7 à domicile";
 "voice_tutorial_en_task8" = "Deux points du numéro 7 à l’extérieur";
+"photo_processing" = "Traitement de la photo…";
+"career_trend_scale_summary" = "Échelles distinctes : %@ %@–%@ (réf. %@) · %@ %@–%@ (réf. %@) · %@ %@–%@ (réf. %@)";

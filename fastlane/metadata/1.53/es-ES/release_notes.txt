@@ -1,3 +1,11 @@
 La versión 1.53 hace que anotar por voz sea más natural: mantén pulsado el micrófono, di la jugada completa y suéltalo. La instrucción se procesa de una vez para que puedas seguir atento al partido.
 
 También mejoramos el reconocimiento de nombres, las jugadas combinadas, el final de los periodos y la gestión de equipos y jugadores. Ahora puedes añadir una prórroga y seguir registrando cada jugada. El registro por voz está disponible en 10 idiomas.
+
+Ahora los grupos de partidos y jugadores se sincronizan entre tus dispositivos con iCloud, manteniendo la compatibilidad con los datos de grupos existentes.
+
+Recupera equipos y jugadores desde los partidos guardados en Ajustes > Gestión de datos.
+
+El detalle de eventos de Excel ahora refleja las acciones eliminadas, restauradas y editadas en los informes de partidos y jugadores. También puedes quitar la foto de un jugador al editarlo.
+
+Las tendencias de carrera son más fáciles de comparar gracias a referencias y rangos propios para cada métrica. Las fotos de jugadores y equipos se procesan en segundo plano con un indicador de progreso.

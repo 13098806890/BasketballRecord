@@ -1350,3 +1350,5 @@ Format:
 "voice_tutorial_en_task6" = "Dave foul";
 "voice_tutorial_en_task7" = "Home #7 three";
 "voice_tutorial_en_task8" = "Away #7 two";
+"photo_processing" = "Processing photo…";
+"career_trend_scale_summary" = "Separate scales: %@ %@–%@ (ref. %@) · %@ %@–%@ (ref. %@) · %@ %@–%@ (ref. %@)";

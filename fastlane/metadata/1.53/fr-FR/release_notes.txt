@@ -1,3 +1,11 @@
 La version 1.53 rend la saisie vocale plus naturelle : maintenez le micro enfoncé, dites l’action complète, puis relâchez-le. Elle est traitée en une seule fois pour vous laisser suivre le match.
 
 Nous avons aussi amélioré la reconnaissance des noms, les actions combinées, la fin des périodes et la gestion des équipes et des joueurs. Vous pouvez maintenant ajouter une prolongation et continuer à enregistrer chaque action. La saisie vocale est disponible en 10 langues.
+
+Les groupes de matchs et de joueurs se synchronisent maintenant entre vos appareils avec iCloud, tout en restant compatibles avec les données existantes.
+
+Restaurez les équipes et les joueurs depuis les matchs enregistrés dans Réglages > Gestion des données.
+
+Les détails des événements Excel reflètent désormais les actions supprimées, restaurées et modifiées dans les rapports de match et de joueur. Vous pouvez aussi supprimer la photo d’un joueur lors de sa modification.
+
+Les tendances de carrière sont plus faciles à comparer grâce à des repères et plages propres à chaque statistique. Les photos des joueurs et des équipes sont traitées en arrière-plan avec une indication de progression.

@@ -16,6 +16,7 @@ struct PlayerEditorView: View {
     @State private var position: String
     @State private var photoData: Data?
     @State private var selectedPhoto: PhotosPickerItem?
+    @State private var isProcessingPhoto = false
     @State private var nicknames: [String]
     @State private var newNickname = ""
 
@@ -43,6 +44,7 @@ struct PlayerEditorView: View {
                         PhotosPicker(selection: $selectedPhoto, matching: .images) {
                             Label(LocalizedStringKey("label_select_photo"), systemImage: "photo")
                         }
+                        .disabled(isProcessingPhoto)
                     }
 
                     if photoData != nil {
@@ -51,6 +53,7 @@ struct PlayerEditorView: View {
                         } label: {
                             Label(LocalizedStringKey("label_remove_photo"), systemImage: "trash")
                         }
+                        .disabled(isProcessingPhoto)
                     }
                 } header: {
                     Text(LocalizedStringKey("label_select_photo"))
@@ -159,13 +162,16 @@ struct PlayerEditorView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(LocalizedStringKey("button_save")) { save() }
-                        .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isProcessingPhoto)
                 }
             }
             .task(id: selectedPhoto) {
-                guard let selectedPhoto,
-                      let data = try? await selectedPhoto.loadTransferable(type: Data.self) else { return }
-                photoData = compressedPhotoData(from: data)
+                guard let selectedPhoto else { return }
+                isProcessingPhoto = true
+                defer { isProcessingPhoto = false }
+                guard let data = try? await selectedPhoto.loadTransferable(type: Data.self) else { return }
+                guard let processedData = try? await PhotoImageProcessor.process(data), !Task.isCancelled else { return }
+                photoData = processedData
             }
             .onChange(of: heightUnit) { oldUnit, newUnit in
                 height = UnitSettings.editorHeightValue(UnitSettings.canonicalHeight(height, unit: oldUnit), unit: newUnit)
@@ -189,6 +195,17 @@ struct PlayerEditorView: View {
                         .font(.title2)
                         .foregroundStyle(.secondary)
                 }
+            }
+        }
+        .overlay {
+            if isProcessingPhoto {
+                Circle()
+                    .fill(.black.opacity(0.4))
+                    .overlay {
+                        ProgressView()
+                            .tint(.white)
+                            .accessibilityLabel(LocalizedStringKey("photo_processing"))
+                    }
             }
         }
         .frame(width: 72, height: 72)
@@ -225,34 +242,5 @@ struct PlayerEditorView: View {
             store.updatePlayer(next)
         }
         dismiss()
-    }
-
-    private func compressedPhotoData(from data: Data) -> Data {
-        guard let image = UIImage(data: data) else { return data }
-
-        let maxDimension: CGFloat = 720
-        let resized = resizedImage(image, maxDimension: maxDimension)
-
-        return resized.jpegData(compressionQuality: 0.8) ?? data
-    }
-
-    private func resizedImage(_ image: UIImage, maxDimension: CGFloat) -> UIImage {
-        let originalSize = image.size
-        let longestSide = max(originalSize.width, originalSize.height)
-
-        guard longestSide > maxDimension else { return image }
-
-        let ratio = maxDimension / longestSide
-        let targetSize = CGSize(
-            width: originalSize.width * ratio,
-            height: originalSize.height * ratio
-        )
-
-        let format = UIGraphicsImageRendererFormat.default()
-        format.scale = 1
-
-        return UIGraphicsImageRenderer(size: targetSize, format: format).image { _ in
-            image.draw(in: CGRect(origin: .zero, size: targetSize))
-        }
     }
 }

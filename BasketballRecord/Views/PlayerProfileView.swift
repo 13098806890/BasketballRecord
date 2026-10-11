@@ -503,7 +503,9 @@ struct PlayerProfileView: View {
     }
 
     private var eloHistoryCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let trendHistory = performanceTrendHistory
+        let trendScale = performanceTrendScale(for: trendHistory)
+        return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 Image(systemName: "chart.xyaxis.line")
                     .foregroundStyle(EditorialDesign.blue)
@@ -513,9 +515,10 @@ struct PlayerProfileView: View {
                 Spacer()
             }
 
-            if performanceTrendHistory.count > 1 {
-                performanceTrendLegend
-                performanceTrendChart
+            if trendHistory.count > 1 {
+                performanceTrendLegend(points: trendHistory)
+                performanceTrendChart(points: trendHistory, scale: trendScale)
+                performanceTrendScaleSummary(scale: trendScale)
             } else {
                 Text(LocalizedStringKey("text_no_data"))
                     .font(.caption)
@@ -732,9 +735,9 @@ struct PlayerProfileView: View {
         return .secondary
     }
 
-    private var performanceTrendLegend: some View {
+    private func performanceTrendLegend(points: [PerformanceTrendPoint]) -> some View {
         let selectedPoint = selectedTrendIndex.flatMap { index in
-            performanceTrendHistory.indices.contains(index) ? performanceTrendHistory[index] : nil
+            points.indices.contains(index) ? points[index] : nil
         }
         return HStack(spacing: 6) {
             trendLegendItem(
@@ -776,24 +779,27 @@ struct PlayerProfileView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var performanceTrendChart: some View {
+    private func performanceTrendChart(points: [PerformanceTrendPoint], scale: PerformanceTrendScale) -> some View {
         GeometryReader { proxy in
-            let points = performanceTrendHistory
-            ZStack {
-                Path { path in
-                    for row in 1..<4 {
-                        let y = proxy.size.height * CGFloat(row) / 4
-                        path.move(to: CGPoint(x: 0, y: y))
-                        path.addLine(to: CGPoint(x: proxy.size.width, y: y))
-                    }
-                }
-                .stroke(EditorialDesign.divider.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [3, 4]))
+            let eloValues = points.map(\.elo)
+            let pointValues = points.map(\.points)
+            let fieldGoalValues = points.map(\.fieldGoalRate)
 
-                trendPath(values: points.map(\.elo), size: proxy.size)
+            ZStack {
+                if scale.eloMinimum <= 1500, scale.eloMaximum >= 1500 {
+                    trendReferencePath(value: 1500, minimum: scale.eloMinimum, maximum: scale.eloMaximum, size: proxy.size)
+                        .stroke(EditorialDesign.orange.opacity(0.25), style: StrokeStyle(lineWidth: 1, dash: [3, 4]))
+                }
+                trendReferencePath(value: 10, minimum: 0, maximum: scale.pointsMaximum, size: proxy.size)
+                    .stroke(EditorialDesign.blue.opacity(0.25), style: StrokeStyle(lineWidth: 1, dash: [3, 4]))
+                trendReferencePath(value: 0.2, minimum: 0, maximum: scale.fieldGoalMaximum, size: proxy.size)
+                    .stroke(fieldGoalTrendColor.opacity(0.25), style: StrokeStyle(lineWidth: 1, dash: [3, 4]))
+
+                trendPath(values: eloValues, minimum: scale.eloMinimum, maximum: scale.eloMaximum, size: proxy.size)
                     .stroke(EditorialDesign.orange, style: trendLineStyle)
-                trendPath(values: points.map(\.points), size: proxy.size)
+                trendPath(values: pointValues, minimum: 0, maximum: scale.pointsMaximum, size: proxy.size)
                     .stroke(EditorialDesign.blue, style: trendLineStyle)
-                trendPath(values: points.map(\.fieldGoalRate), size: proxy.size)
+                trendPath(values: fieldGoalValues, minimum: 0, maximum: scale.fieldGoalMaximum, size: proxy.size)
                     .stroke(fieldGoalTrendColor, style: trendLineStyle)
 
                 if let selectedTrendIndex, points.indices.contains(selectedTrendIndex) {
@@ -804,21 +810,12 @@ struct PlayerProfileView: View {
                     }
                     .stroke(EditorialDesign.navy.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
 
-                    Circle()
-                        .fill(EditorialDesign.orange)
-                        .overlay(Circle().stroke(.white, lineWidth: 2))
-                        .frame(width: 9, height: 9)
-                        .position(x: x, y: trendY(value: points[selectedTrendIndex].elo, values: points.map(\.elo), height: proxy.size.height))
-                    Circle()
-                        .fill(EditorialDesign.blue)
-                        .overlay(Circle().stroke(.white, lineWidth: 2))
-                        .frame(width: 9, height: 9)
-                        .position(x: x, y: trendY(value: points[selectedTrendIndex].points, values: points.map(\.points), height: proxy.size.height))
-                    Circle()
-                        .fill(fieldGoalTrendColor)
-                        .overlay(Circle().stroke(.white, lineWidth: 2))
-                        .frame(width: 9, height: 9)
-                        .position(x: x, y: trendY(value: points[selectedTrendIndex].fieldGoalRate, values: points.map(\.fieldGoalRate), height: proxy.size.height))
+                    trendSelectionMarker(color: EditorialDesign.orange)
+                        .position(x: x, y: trendY(value: points[selectedTrendIndex].elo, minimum: scale.eloMinimum, maximum: scale.eloMaximum, height: proxy.size.height))
+                    trendSelectionMarker(color: EditorialDesign.blue)
+                        .position(x: x, y: trendY(value: points[selectedTrendIndex].points, minimum: 0, maximum: scale.pointsMaximum, height: proxy.size.height))
+                    trendSelectionMarker(color: fieldGoalTrendColor)
+                        .position(x: x, y: trendY(value: points[selectedTrendIndex].fieldGoalRate, minimum: 0, maximum: scale.fieldGoalMaximum, height: proxy.size.height))
                 }
             }
             .contentShape(Rectangle())
@@ -833,6 +830,38 @@ struct PlayerProfileView: View {
         }
         .frame(height: 92)
         .padding(.horizontal, 4)
+    }
+
+    private func performanceTrendScale(for points: [PerformanceTrendPoint]) -> PerformanceTrendScale {
+        let eloValues = points.map(\.elo)
+        let playerELOMinimum = eloValues.min() ?? 1400
+        let playerELOMaximum = eloValues.max() ?? 1600
+        let exceedsReferenceRange = playerELOMinimum < 1400 || playerELOMaximum > 1600
+        return PerformanceTrendScale(
+            eloMinimum: exceedsReferenceRange ? playerELOMinimum : 1400,
+            eloMaximum: exceedsReferenceRange ? playerELOMaximum : 1600,
+            pointsMaximum: max(60, points.map(\.points).max() ?? 60),
+            fieldGoalMaximum: max(0.8, points.map(\.fieldGoalRate).max() ?? 0.8)
+        )
+    }
+
+    private func performanceTrendScaleSummary(scale: PerformanceTrendScale) -> some View {
+        Text(localizedFormat(
+            "career_trend_scale_summary",
+            localized("label_elo"), formattedELO(scale.eloMinimum), formattedELO(scale.eloMaximum), formattedELO(1500),
+            localized("stats_points_format_short"), formattedPoints(0), formattedPoints(scale.pointsMaximum), formattedPoints(10),
+            localized("label_field_goal_percentage"), percent(0), percent(scale.fieldGoalMaximum), percent(0.2)
+        ))
+        .font(.caption2)
+        .foregroundStyle(.secondary)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func trendSelectionMarker(color: Color) -> some View {
+        Circle()
+            .fill(color)
+            .overlay(Circle().stroke(.white, lineWidth: 2))
+            .frame(width: 9, height: 9)
     }
 
     private var trendLineStyle: StrokeStyle {
@@ -855,23 +884,25 @@ struct PlayerProfileView: View {
         percent(value)
     }
 
-    private func trendY(value: Double, values: [Double], height: CGFloat) -> CGFloat {
-        let minValue = values.min() ?? 0
-        let maxValue = values.max() ?? 1
-        let span = maxValue - minValue
-        let normalizedValue = span > 0 ? (value - minValue) / span : 0.5
-        return height - height * CGFloat(normalizedValue)
+    private func trendY(value: Double, minimum: Double, maximum: Double, height: CGFloat) -> CGFloat {
+        let span = maximum - minimum
+        let normalizedValue = span > 0 ? (value - minimum) / span : 0.5
+        return height - height * CGFloat(min(max(normalizedValue, 0), 1))
     }
 
-    private func trendPath(values: [Double], size: CGSize) -> Path {
-        let minValue = values.min() ?? 0
-        let maxValue = values.max() ?? 1
-        let span = maxValue - minValue
+    private func trendReferencePath(value: Double, minimum: Double, maximum: Double, size: CGSize) -> Path {
+        let y = trendY(value: value, minimum: minimum, maximum: maximum, height: size.height)
+        return Path { path in
+            path.move(to: CGPoint(x: 0, y: y))
+            path.addLine(to: CGPoint(x: size.width, y: y))
+        }
+    }
+
+    private func trendPath(values: [Double], minimum: Double, maximum: Double, size: CGSize) -> Path {
         return Path { path in
             for (index, value) in values.enumerated() {
                 let x = size.width * CGFloat(index) / CGFloat(max(values.count - 1, 1))
-                let normalizedValue = span > 0 ? (value - minValue) / span : 0.5
-                let y = size.height - size.height * CGFloat(normalizedValue)
+                let y = trendY(value: value, minimum: minimum, maximum: maximum, height: size.height)
                 if index == 0 {
                     path.move(to: CGPoint(x: x, y: y))
                 } else {
@@ -945,6 +976,13 @@ struct PlayerProfileView: View {
         let elo: Double
         let points: Double
         let fieldGoalRate: Double
+    }
+
+    private struct PerformanceTrendScale {
+        let eloMinimum: Double
+        let eloMaximum: Double
+        let pointsMaximum: Double
+        let fieldGoalMaximum: Double
     }
 
     struct StatCell: Identifiable {

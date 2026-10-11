@@ -1,3 +1,11 @@
 Version 1.53 makes voice scoring feel more natural: press and hold the microphone, say the complete play, then release to process it as one instruction. Keep your attention on the court while you record.
 
 We also improved player-name recognition, combined plays, period-end actions, and team and player management. You can now add overtime and keep recording every play. Voice scoring is available in 10 languages.
+
+Game and player groups now sync with iCloud across your devices, while remaining compatible with existing group data.
+
+Restore teams and players from saved games in Settings > Data Management.
+
+Excel event details now reflect deleted, restored, and edited plays in both game and player reports. You can also clear a player's photo while editing.
+
+Career trends are easier to compare with metric-specific reference points and ranges. Player and team photos are processed in the background with a progress indicator.

@@ -1,0 +1,95 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -project BasketballRecord.xcodeproj -scheme BasketballRecord -destination "platform=iOS Simulator,name=iPhone 18 Pro" CODE_SIGNING_ALLOWED=NO "-only-testing:BasketballRecordTests/GameLogEditTests" "-only-testing:BasketballRecordTests/AppStoreOperationsTests" "-only-testing:BasketballRecordTests/DataCompatibilityTests"
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+
+2026-10-07 12:22:51.340 xcodebuild[41749:2728644] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (2 targets)
+    Target 'BasketballRecordTests' in project 'BasketballRecord'
+        ➜ Explicit dependency on target 'BasketballRecord' in project 'BasketballRecord'
+    Target 'BasketballRecord' in project 'BasketballRecord' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /Users/xiedongze/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /Users/xiedongze/Desktop/Github/BasketballRecord/BasketballRecord.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /Users/xiedongze/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+PruneExplicitPrecompiledModules /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /Users/xiedongze/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules
+
+2026-10-07 12:23:31.474 xcodebuild[41749:2728644] [MT] IDETestOperationsObserverDebug: 39.425 elapsed -- Testing started completed.
+2026-10-07 12:23:31.474 xcodebuild[41749:2728644] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 12:23:31.474 xcodebuild[41749:2728644] [MT] IDETestOperationsObserverDebug: 39.425 sec, +39.425 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Logs/Test/Test-BasketballRecord-2026.10.07_12-22-51-+0800.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started
+Test suite 'GameLogEditTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)'
+Test case 'GameLogEditTests.testAddedThenDeletedVanishes()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.021 seconds)
+Test case 'GameLogEditTests.testAddEvent()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.012 seconds)
+Test case 'GameLogEditTests.testAnalyzerExcludesDeletedEventFromPeriodStats()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.011 seconds)
+Test case 'GameLogEditTests.testDeleteAfterRestoreIsStillExcludedFromPeriodStats()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.011 seconds)
+Test case 'GameLogEditTests.testDeleteAndRestore()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.011 seconds)
+Test case 'GameLogEditTests.testLatestDeleteOrRestoreDeterminesEventState()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.009 seconds)
+Test case 'GameLogEditTests.testModifyPlayer()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.011 seconds)
+Test case 'GameLogEditTests.testModifyUsesEventIDAfterLogOrderChangesAndCanRestoreTimestamp()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.006 seconds)
+Test case 'GameLogEditTests.testOlderEditRecordWithoutPeriodElapsedSecondsStillDecodes()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.007 seconds)
+Test case 'GameLogEditTests.testOnlySupportedStatEventsCanBeEditedAsStats()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.006 seconds)
+Test case 'GameLogEditTests.testStatsExcludeDeleted()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.011 seconds)
+Test suite 'AppStoreOperationsTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)'
+Test case 'AppStoreOperationsTests.testAISummaryUpdateAdvancesCloudSyncModificationDate()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.014 seconds)
+Test case 'AppStoreOperationsTests.testAutoSavePreservesCreationDateAndAdvancesModificationDate()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.011 seconds)
+Test case 'AppStoreOperationsTests.testCorruptedStoredPayloadDoesNotSeedSampleData()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.029 seconds)
+Test case 'AppStoreOperationsTests.testELOIncludesOpponentGamesPlayedWithoutTargetPlayer()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.007 seconds)
+Test case 'AppStoreOperationsTests.testGameExportImportSupportsExplicitIDMapping()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.032 seconds)
+Test case 'AppStoreOperationsTests.testImportGamePackageUpsertsByGameID()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.012 seconds)
+Test case 'AppStoreOperationsTests.testLatestUnfinishedGameSkipsNewerCompletedGame()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.008 seconds)
+Test case 'AppStoreOperationsTests.testMergePlayerPreservesPreviousAndUndoSnapshots()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.008 seconds)
+Test case 'AppStoreOperationsTests.testMergePlayerPreservesProfileAndGroupMembership()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.007 seconds)
+Test case 'AppStoreOperationsTests.testMergePlayerRemapsRelatedPlayerIDsInAllSnapshots()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.008 seconds)
+Test case 'AppStoreOperationsTests.testMergePlayerRemapsTeamAndGameData()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.007 seconds)
+Test case 'AppStoreOperationsTests.testMergeTeamRemapsHistoricalTeamIDsAndMergesRoster()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.008 seconds)
+Test case 'AppStoreOperationsTests.testSaveGameKeepsStarterWhenNoTechnicalStats()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.009 seconds)
+Test case 'AppStoreOperationsTests.testTeamExportImportRoundTripKeepsUUIDsAndBasicInfo()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.017 seconds)
+Test suite 'DataCompatibilityTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)'
+Test case 'DataCompatibilityTests.testCloudEnabledGameIDPersistence()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.023 seconds)
+Test case 'DataCompatibilityTests.testCoreDataGamePersistence()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.011 seconds)
+Test case 'DataCompatibilityTests.testCoreDataGroupPersistence()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.006 seconds)
+Test case 'DataCompatibilityTests.testCoreDataPlayerPersistence()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.006 seconds)
+Test case 'DataCompatibilityTests.testCoreDataTeamPersistence()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.007 seconds)
+Test case 'DataCompatibilityTests.testGameGroupRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.008 seconds)
+Test case 'DataCompatibilityTests.testGameSnapshotJSONRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.008 seconds)
+Test case 'DataCompatibilityTests.testGameWithEmptyUndoSnapshotsRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.009 seconds)
+Test case 'DataCompatibilityTests.testGameWithGroupIDsRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.009 seconds)
+Test case 'DataCompatibilityTests.testLegacySingleGroupIDDecoding()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.007 seconds)
+Test case 'DataCompatibilityTests.testLegacyTeamWithoutIconDecodes()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.007 seconds)
+Test case 'DataCompatibilityTests.testPlayerRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.006 seconds)
+Test case 'DataCompatibilityTests.testPlayerStatsCodingAllFields()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.006 seconds)
+Test case 'DataCompatibilityTests.testPlayerWithNilPhotoMigratesCorrectly()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.006 seconds)
+Test case 'DataCompatibilityTests.testSavedGameJSONRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.006 seconds)
+Test case 'DataCompatibilityTests.testSavedGameWithTeamStatsRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.011 seconds)
+Test case 'DataCompatibilityTests.testTeamRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.006 seconds)
+Test case 'DataCompatibilityTests.testTeamStatsByIDRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.006 seconds)
+Test case 'DataCompatibilityTests.testTeamStatsModeFlagsRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (41990)' (0.006 seconds)

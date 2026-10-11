@@ -1,3 +1,11 @@
 Version 1.53 macht das Sprach-Scoring natürlicher: Halte das Mikrofon gedrückt, sprich die ganze Aktion und lasse es los. Der vollständige Befehl wird anschließend als Einheit verarbeitet, damit du dich auf das Spiel konzentrieren kannst.
 
 Außerdem wurden Spielernamen, kombinierte Aktionen, das Beenden von Spielperioden sowie die Verwaltung von Teams und Spielern verbessert. Du kannst jetzt auch Verlängerungen hinzufügen und jede weitere Aktion erfassen. Sprach-Scoring ist in 10 Sprachen verfügbar.
+
+Spiel- und Spielergruppen werden jetzt über iCloud zwischen deinen Geräten synchronisiert – auch bestehende Gruppendaten bleiben kompatibel.
+
+Stelle Teams und Spieler unter „Einstellungen“ > „Datenverwaltung“ aus gespeicherten Spielen wieder her.
+
+Excel-Ereignisdetails berücksichtigen jetzt gelöschte, wiederhergestellte und bearbeitete Aktionen in Spiel- und Spielerberichten. Spielerfotos lassen sich beim Bearbeiten entfernen.
+
+Karrieretrends lassen sich dank eigener Bezugspunkte und Wertebereiche pro Kennzahl leichter vergleichen. Spieler- und Teamfotos werden im Hintergrund verarbeitet, mit Fortschrittsanzeige.

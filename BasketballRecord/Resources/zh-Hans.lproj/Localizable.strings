@@ -1353,3 +1353,5 @@
 "voice_tutorial_en_task6" = "戴夫犯规";
 "voice_tutorial_en_task7" = "主队7号三分";
 "voice_tutorial_en_task8" = "客队7号两分";
+"photo_processing" = "正在处理照片…";
+"career_trend_scale_summary" = "各指标使用独立刻度：%@ %@–%@（基准 %@）· %@ %@–%@（基准 %@）· %@ %@–%@（基准 %@）";

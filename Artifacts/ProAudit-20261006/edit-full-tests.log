@@ -1,0 +1,539 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -project BasketballRecord.xcodeproj -scheme BasketballRecord -destination "platform=iOS Simulator,name=iPhone 18 Pro" CODE_SIGNING_ALLOWED=NO
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+
+2026-10-08 09:20:41.105 xcodebuild[52060:3724561] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (2 targets)
+    Target 'BasketballRecordTests' in project 'BasketballRecord'
+        ➜ Explicit dependency on target 'BasketballRecord' in project 'BasketballRecord'
+    Target 'BasketballRecord' in project 'BasketballRecord' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /Users/xiedongze/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /Users/xiedongze/Desktop/Github/BasketballRecord/BasketballRecord.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /Users/xiedongze/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+CompileStoryboard /Users/xiedongze/Desktop/Github/BasketballRecord/BasketballRecord/LaunchScreen.storyboard (in target 'BasketballRecord' from project 'BasketballRecord')
+    cd /Users/xiedongze/Desktop/Github/BasketballRecord
+    /Applications/Xcode.app/Contents/Developer/usr/bin/ibtool --errors --warnings --notices --module BasketballRecord --output-partial-info-plist /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/LaunchScreen-SBPartialInfo.plist --auto-activate-custom-fonts --target-device iphone --target-device ipad --minimum-deployment-target 17.6 --output-format human-readable-text /Users/xiedongze/Desktop/Github/BasketballRecord/BasketballRecord/LaunchScreen.storyboard --compilation-directory /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build
+
+GenerateAssetSymbols /Users/xiedongze/Desktop/Github/BasketballRecord/BasketballRecord/Assets.xcassets (in target 'BasketballRecord' from project 'BasketballRecord')
+    cd /Users/xiedongze/Desktop/Github/BasketballRecord
+    /Applications/Xcode.app/Contents/Developer/usr/bin/actool /Users/xiedongze/Desktop/Github/BasketballRecord/BasketballRecord/Assets.xcassets --compile /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app --output-format human-readable-text --notices --warnings --export-dependency-info /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/assetcatalog_dependencies --output-partial-info-plist /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/assetcatalog_generated_info.plist --app-icon AppIcon --include-all-app-icons --accent-color AccentColor --compress-pngs --enable-on-demand-resources YES --development-region zh-Hans --target-device iphone --target-device ipad --minimum-deployment-target 17.6 --platform iphonesimulator --bundle-identifier com.xiedongze.BasketballRecord --generate-swift-asset-symbol-extensions NO --generate-swift-asset-symbols /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/DerivedSources/GeneratedAssetSymbols.swift --generate-objc-asset-symbols /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/DerivedSources/GeneratedAssetSymbols.h --generate-asset-symbol-index /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/* com.apple.actool.compilation-results */
+/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/DerivedSources/GeneratedAssetSymbols.h
+/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/DerivedSources/GeneratedAssetSymbols.swift
+
+
+LinkAssetCatalog /Users/xiedongze/Desktop/Github/BasketballRecord/BasketballRecord/Assets.xcassets (in target 'BasketballRecord' from project 'BasketballRecord')
+    cd /Users/xiedongze/Desktop/Github/BasketballRecord
+    builtin-linkAssetCatalog --thinned /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/assetcatalog_output/thinned --thinned-dependencies /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/assetcatalog_dependencies_thinned --thinned-info-plist-content /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/assetcatalog_generated_info.plist_thinned --unthinned /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/assetcatalog_output/unthinned --unthinned-dependencies /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/assetcatalog_dependencies_unthinned --unthinned-info-plist-content /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/assetcatalog_generated_info.plist_unthinned --output /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app --plist-output /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/assetcatalog_generated_info.plist
+note: Emplaced /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app/AppIcon60x60@2x.png (in target 'BasketballRecord' from project 'BasketballRecord')
+note: Emplaced /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app/Assets.car (in target 'BasketballRecord' from project 'BasketballRecord')
+note: Emplaced /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app/AppIcon76x76@2x~ipad.png (in target 'BasketballRecord' from project 'BasketballRecord')
+
+LinkStoryboards (in target 'BasketballRecord' from project 'BasketballRecord')
+    cd /Users/xiedongze/Desktop/Github/BasketballRecord
+    /Applications/Xcode.app/Contents/Developer/usr/bin/ibtool --errors --warnings --notices --module BasketballRecord --target-device iphone --target-device ipad --minimum-deployment-target 17.6 --output-format human-readable-text --link /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/LaunchScreen.storyboardc
+
+ProcessInfoPlistFile /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app/Info.plist /Users/xiedongze/Desktop/Github/BasketballRecord/BasketballRecord/Info.plist (in target 'BasketballRecord' from project 'BasketballRecord')
+    cd /Users/xiedongze/Desktop/Github/BasketballRecord
+    builtin-infoPlistUtility /Users/xiedongze/Desktop/Github/BasketballRecord/BasketballRecord/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/LaunchScreen-SBPartialInfo.plist -additionalcontentfile /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/assetcatalog_generated_info.plist -o /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app/Info.plist
+
+SwiftDriver BasketballRecord normal arm64 com.apple.xcode.tools.swift.compiler (in target 'BasketballRecord' from project 'BasketballRecord')
+    cd /Users/xiedongze/Desktop/Github/BasketballRecord
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name BasketballRecord -Onone @/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios17.6-simulator -g -module-cache-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator -F /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/xiedongze/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /Users/xiedongze/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord_const_extract_protocols.json -Xcc -iquote -Xcc /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/BasketballRecord-generated-files.hmap -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/BasketballRecord-own-target-headers.hmap -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/BasketballRecord-all-target-headers.hmap -Xcc -iquote -Xcc /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/BasketballRecord-project-headers.hmap -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/DerivedSources-normal/arm64 -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/DerivedSources/arm64 -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord-Swift.h -working-directory /Users/xiedongze/Desktop/Github/BasketballRecord -experimental-emit-module-separately -disable-cmo
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ BasketballRecord (in target 'BasketballRecord' from project 'BasketballRecord')
+
+SwiftCompile normal arm64 (in target 'BasketballRecord' from project 'BasketballRecord')
+    cd /Users/xiedongze/Desktop/Github/BasketballRecord
+    
+
+SwiftDriver\ Compilation BasketballRecord normal arm64 com.apple.xcode.tools.swift.compiler (in target 'BasketballRecord' from project 'BasketballRecord')
+    cd /Users/xiedongze/Desktop/Github/BasketballRecord
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name BasketballRecord -Onone @/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios17.6-simulator -g -module-cache-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator -F /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/xiedongze/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /Users/xiedongze/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord_const_extract_protocols.json -Xcc -iquote -Xcc /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/BasketballRecord-generated-files.hmap -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/BasketballRecord-own-target-headers.hmap -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/BasketballRecord-all-target-headers.hmap -Xcc -iquote -Xcc /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/BasketballRecord-project-headers.hmap -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/DerivedSources-normal/arm64 -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/DerivedSources/arm64 -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord-Swift.h -working-directory /Users/xiedongze/Desktop/Github/BasketballRecord -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for BasketballRecord (in target 'BasketballRecord' from project 'BasketballRecord')
+
+SwiftDriver\ Compilation\ Requirements BasketballRecord normal arm64 com.apple.xcode.tools.swift.compiler (in target 'BasketballRecord' from project 'BasketballRecord')
+    cd /Users/xiedongze/Desktop/Github/BasketballRecord
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name BasketballRecord -Onone @/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios17.6-simulator -g -module-cache-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator -F /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/xiedongze/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /Users/xiedongze/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord_const_extract_protocols.json -Xcc -iquote -Xcc /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/BasketballRecord-generated-files.hmap -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/BasketballRecord-own-target-headers.hmap -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/BasketballRecord-all-target-headers.hmap -Xcc -iquote -Xcc /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/BasketballRecord-project-headers.hmap -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/DerivedSources-normal/arm64 -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/DerivedSources/arm64 -Xcc -I/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord-Swift.h -working-directory /Users/xiedongze/Desktop/Github/BasketballRecord -experimental-emit-module-separately -disable-cmo
+
+Copy /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord.abi.json (in target 'BasketballRecord' from project 'BasketballRecord')
+    cd /Users/xiedongze/Desktop/Github/BasketballRecord
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord.abi.json /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+ExtractAppIntentsMetadata (in target 'BasketballRecord' from project 'BasketballRecord')
+    cd /Users/xiedongze/Desktop/Github/BasketballRecord
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name BasketballRecord --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk --xcode-version 27A266a --platform-family iOS --deployment-target 17.6 --bundle-identifier com.xiedongze.BasketballRecord --output /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app --target-triple arm64-apple-ios17.6-simulator --binary-file /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app/BasketballRecord --dependency-file /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord_dependency_info.dat --stringsdata-file /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord.SwiftFileList --metadata-file-list /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/BasketballRecord.DependencyMetadataFileList --static-metadata-file-list /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/BasketballRecord.DependencyStaticMetadataFileList --swift-const-vals-list /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/Objects-normal/arm64/BasketballRecord.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-10-08 09:20:44.561 appintentsmetadataprocessor[52072:3724790] Starting appintentsmetadataprocessor export
+2026-10-08 09:20:44.562 appintentsmetadataprocessor[52072:3724790] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+AppIntentsSSUTraining (in target 'BasketballRecord' from project 'BasketballRecord')
+    cd /Users/xiedongze/Desktop/Github/BasketballRecord
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app/Info.plist --temp-dir-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/ssu --bundle-id com.xiedongze.BasketballRecord --product-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app --extracted-metadata-path /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app/Metadata.appintents --metadata-file-list /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/BasketballRecord.build/Debug-iphonesimulator/BasketballRecord.build/BasketballRecord.DependencyMetadataFileList --source-file /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app/Info.plist --archive-ssu-assets
+2026-10-08 09:20:44.581 appintentsnltrainingprocessor[52074:3724792] Parsing options for appintentsnltrainingprocessor
+2026-10-08 09:20:44.582 appintentsnltrainingprocessor[52074:3724792] Starting AppIntents SSU YAML Generation
+2026-10-08 09:20:44.582 appintentsnltrainingprocessor[52074:3724792] No AppShortcuts found - Skipping.
+
+PruneExplicitPrecompiledModules /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /Users/xiedongze/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules
+
+Testing started
+Test suite 'AppStoreOperationsTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)'
+Test case 'AppStoreOperationsTests.testAISummaryUpdateAdvancesCloudSyncModificationDate()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.019 seconds)
+Test case 'AppStoreOperationsTests.testAutoSavePreservesCreationDateAndAdvancesModificationDate()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.011 seconds)
+Test case 'AppStoreOperationsTests.testCorruptedStoredPayloadDoesNotSeedSampleData()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.023 seconds)
+Test case 'AppStoreOperationsTests.testDeleteGameGroupCleansSavedGameReferences()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.009 seconds)
+Test case 'AppStoreOperationsTests.testDeletePlayerGroupCleansPlayerReferences()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.007 seconds)
+Test case 'AppStoreOperationsTests.testELOIncludesOpponentGamesPlayedWithoutTargetPlayer()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.006 seconds)
+Test case 'AppStoreOperationsTests.testGameExportImportSupportsExplicitIDMapping()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.030 seconds)
+Test case 'AppStoreOperationsTests.testImportGamePackageUpsertsByGameID()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.012 seconds)
+Test case 'AppStoreOperationsTests.testLatestUnfinishedGameSkipsNewerCompletedGame()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.008 seconds)
+Test case 'AppStoreOperationsTests.testMergePlayerPreservesPreviousAndUndoSnapshots()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.008 seconds)
+Test case 'AppStoreOperationsTests.testMergePlayerPreservesProfileAndGroupMembership()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.008 seconds)
+Test case 'AppStoreOperationsTests.testMergePlayerRemapsRelatedPlayerIDsInAllSnapshots()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.009 seconds)
+Test case 'AppStoreOperationsTests.testMergePlayerRemapsTeamAndGameData()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.009 seconds)
+Test case 'AppStoreOperationsTests.testMergeTeamRemapsHistoricalTeamIDsAndMergesRoster()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.008 seconds)
+Test case 'AppStoreOperationsTests.testSaveGameKeepsStarterWhenNoTechnicalStats()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.008 seconds)
+Test case 'AppStoreOperationsTests.testSyncGameGroupMembershipUpdatesModifiedAtWhenReverseLinkAlreadyExists()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.008 seconds)
+Test case 'AppStoreOperationsTests.testTeamExportImportRoundTripKeepsUUIDsAndBasicInfo()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.016 seconds)
+Test case 'AppStoreOperationsTests.testUpdatePlayerClearsPhotoAndPhotoFileWhenEditedValueIsNil()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.014 seconds)
+Test case 'AppStoreOperationsTests.testUpsertPlayerWithoutPhotoPreservesExistingPhoto()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.010 seconds)
+Test suite 'DataCompatibilityTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)'
+Test case 'DataCompatibilityTests.testCloudEnabledGameIDPersistence()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.025 seconds)
+Test case 'DataCompatibilityTests.testCoreDataGamePersistence()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.014 seconds)
+Test case 'DataCompatibilityTests.testCoreDataGroupPersistence()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.007 seconds)
+Test case 'DataCompatibilityTests.testCoreDataPlayerPersistence()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.007 seconds)
+Test case 'DataCompatibilityTests.testCoreDataTeamPersistence()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.007 seconds)
+Test case 'DataCompatibilityTests.testGameGroupRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.010 seconds)
+Test case 'DataCompatibilityTests.testGameSnapshotJSONRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.011 seconds)
+Test case 'DataCompatibilityTests.testGameWithEmptyUndoSnapshotsRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.009 seconds)
+Test case 'DataCompatibilityTests.testGameWithGroupIDsRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.006 seconds)
+Test case 'DataCompatibilityTests.testLegacySingleGroupIDDecoding()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.008 seconds)
+Test case 'DataCompatibilityTests.testLegacyTeamWithoutIconDecodes()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.006 seconds)
+Test case 'DataCompatibilityTests.testPlayerRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.006 seconds)
+Test case 'DataCompatibilityTests.testPlayerStatsCodingAllFields()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.007 seconds)
+Test case 'DataCompatibilityTests.testPlayerWithNilPhotoMigratesCorrectly()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.007 seconds)
+Test case 'DataCompatibilityTests.testSavedGameJSONRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.006 seconds)
+Test case 'DataCompatibilityTests.testSavedGameWithTeamStatsRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.013 seconds)
+Test case 'DataCompatibilityTests.testTeamRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.007 seconds)
+Test case 'DataCompatibilityTests.testTeamStatsByIDRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.007 seconds)
+Test case 'DataCompatibilityTests.testTeamStatsModeFlagsRoundTrip()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.006 seconds)
+Test suite 'GameLogEditTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)'
+Test case 'GameLogEditTests.testAddedThenDeletedVanishes()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.019 seconds)
+Test case 'GameLogEditTests.testAddEvent()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.013 seconds)
+Test case 'GameLogEditTests.testAnalyzerExcludesDeletedEventFromPeriodStats()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.013 seconds)
+Test case 'GameLogEditTests.testDeleteAfterRestoreIsStillExcludedFromPeriodStats()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.012 seconds)
+Test case 'GameLogEditTests.testDeleteAndRestore()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.012 seconds)
+Test case 'GameLogEditTests.testLatestDeleteOrRestoreDeterminesEventState()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.007 seconds)
+Test case 'GameLogEditTests.testModifyPlayer()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.012 seconds)
+Test case 'GameLogEditTests.testModifyUsesEventIDAfterLogOrderChangesAndCanRestoreTimestamp()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.006 seconds)
+Test case 'GameLogEditTests.testOlderEditRecordWithoutPeriodElapsedSecondsStillDecodes()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.008 seconds)
+Test case 'GameLogEditTests.testOnlySupportedStatEventsCanBeEditedAsStats()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.006 seconds)
+Test case 'GameLogEditTests.testStatsExcludeDeleted()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.014 seconds)
+Test suite 'GameUndoMultilingualTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)'
+Test case 'GameUndoMultilingualTests.testAllStatActionsMapFromEventCode()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.006 seconds)
+Test case 'GameUndoMultilingualTests.testApplyRevertRoundTripAllStatActions()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.006 seconds)
+Test case 'GameUndoMultilingualTests.testLegacyUndoChineseOnly()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.006 seconds)
+Test case 'GameUndoMultilingualTests.testLegacyUndoWithoutEventCodeButWithPlayerID()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.006 seconds)
+Test case 'GameUndoMultilingualTests.testMultipleStatsAndUndoInSequence()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.005 seconds)
+Test case 'GameUndoMultilingualTests.testSubstitutionUndoEnglishVsPattern()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.007 seconds)
+Test case 'GameUndoMultilingualTests.testSubstitutionUndoWithRelatedPlayerID()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.005 seconds)
+Test case 'GameUndoMultilingualTests.testUndoFoulDecrementsPeriodFouls()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.005 seconds)
+Test case 'GameUndoMultilingualTests.testUndoNonScoringActionNoPlusMinusEffect()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.005 seconds)
+Test case 'GameUndoMultilingualTests.testUndoScoringActionRevertsPlusMinus()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.005 seconds)
+Test case 'GameUndoMultilingualTests.testUndoWithChineseMessage()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.005 seconds)
+Test case 'GameUndoMultilingualTests.testUndoWithEnglishMessage()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.005 seconds)
+Test case 'GameUndoMultilingualTests.testUndoWithFrenchMessage()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.005 seconds)
+Test case 'GameUndoMultilingualTests.testUndoWithGermanMessage()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.005 seconds)
+Test case 'GameUndoMultilingualTests.testUndoWithJapaneseMessage()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.006 seconds)
+Test case 'GameUndoMultilingualTests.testUndoWithKoreanMessage()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.005 seconds)
+Test case 'GameUndoMultilingualTests.testUndoWithSpanishMessage()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.005 seconds)
+Test suite 'VoiceASREngineTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)'
+Test case 'VoiceASREngineTests.testEveryEngineHasStableIdentifierAndTitle()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceASREngineTests.testEveryLocaleProvidesSpeechContextVocabulary()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.012 seconds)
+Test case 'VoiceASREngineTests.testExistingUserWithLegacyEngineMigratesToSpeechTranscriber()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceASREngineTests.testMissingStoredEngineUsesSpeechTranscriber()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceASREngineTests.testNewUserDoesNotReceiveUpgradeNotice()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.002 seconds)
+Test case 'VoiceASREngineTests.testSpeechTranscriberProfilesUseFastResultsForLiveRecognition()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceASREngineTests.testStoredEngineRoundTrips()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.001 seconds)
+Test case 'VoiceASREngineTests.testUnknownStoredEngineUsesLegacySpeech()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.001 seconds)
+Test suite 'VoiceMatchingTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)'
+Test case 'VoiceMatchingTests.testDuplicateNumber7HomeAndAway()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.100 seconds)
+Test case 'VoiceMatchingTests.testEnglishAnchorGotNumberTwo()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.028 seconds)
+Test case 'VoiceMatchingTests.testEnglishAnchorGotNumberTwoWithName()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.022 seconds)
+Test case 'VoiceMatchingTests.testEnglishAssist()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.025 seconds)
+Test case 'VoiceMatchingTests.testEnglishBlock()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.025 seconds)
+Test case 'VoiceMatchingTests.testEnglishBlockCapitalized()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.023 seconds)
+Test case 'VoiceMatchingTests.testEnglishBlockStat()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceMatchingTests.testEnglishFoul()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.026 seconds)
+Test case 'VoiceMatchingTests.testEnglishMrAsMiss()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.026 seconds)
+Test case 'VoiceMatchingTests.testEnglishNumberThreeNoThree()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.018 seconds)
+Test case 'VoiceMatchingTests.testEnglishNumberThreeWordNoThree()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.011 seconds)
+Test case 'VoiceMatchingTests.testEnglishRebound()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.027 seconds)
+Test case 'VoiceMatchingTests.testEnglishSteal()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.023 seconds)
+Test case 'VoiceMatchingTests.testEnglishSubstitution()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.013 seconds)
+Test case 'VoiceMatchingTests.testEnglishThreeMissed()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceMatchingTests.testEnglishThreeNoThree()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.011 seconds)
+Test case 'VoiceMatchingTests.testEnglishThreeWordNoThree()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.011 seconds)
+Test case 'VoiceMatchingTests.testEnglishTimeout()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.014 seconds)
+Test case 'VoiceMatchingTests.testEnglishToKnowAsTwoMissed()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.057 seconds)
+Test case 'VoiceMatchingTests.testEnglishTurnover()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceMatchingTests.testEnglishTurnOver()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.025 seconds)
+Test case 'VoiceMatchingTests.testExactMatch()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.010 seconds)
+Test case 'VoiceMatchingTests.testFuzzyNasalMatch()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.005 seconds)
+Test case 'VoiceMatchingTests.testGeneratePinyinVariants()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.007 seconds)
+Test case 'VoiceMatchingTests.testLowSimilarity()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.005 seconds)
+Test case 'VoiceMatchingTests.testMacFreeThroughMatchesMike()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceMatchingTests.testNameSimilarityExactMatch()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.006 seconds)
+Test case 'VoiceMatchingTests.testPartialMatchWithinText()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.009 seconds)
+Test case 'VoiceMatchingTests.testShortPatternInText()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.005 seconds)
+Test case 'VoiceMatchingTests.testSubstitutionByNameIntegration()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.017 seconds)
+Test case 'VoiceMatchingTests.testSubstitutionByNumberIntegration()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.011 seconds)
+Test case 'VoiceMatchingTests.testTeamModeAwayWithTeamName()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.020 seconds)
+Test case 'VoiceMatchingTests.testTeamModeHomeAliasZhuDui()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.030 seconds)
+Test case 'VoiceMatchingTests.testTeamModeHomeWithInitFlag()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.023 seconds)
+Test case 'VoiceMatchingTests.testTeamModeWithVariants()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.017 seconds)
+Test case 'VoiceMatchingTests.testToPinyin()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.010 seconds)
+Test suite 'VoiceRulesTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)'
+Test case 'VoiceRulesTests.testAllEmbeddedJSONParsesSuccessfully()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.013 seconds)
+Test case 'VoiceRulesTests.testAllLanguagesHaveRequiredFields()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testChineseColloquial()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testChinesePolyphonicZiAndZai()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.002 seconds)
+Test case 'VoiceRulesTests.testChineseShotMade()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testEnglishColloquial()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testEnglishNoFuzzyMap()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testEnglishShots()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testFrenchColloquial()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testFrenchShots()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testGermanColloquial()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testGermanShots()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testItalianColloquial()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testItalianShots()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testJapaneseColloquial()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testJapaneseShots()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testKoreanColloquial()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testKoreanShots()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testLanguagesAreIndependent()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testLocaleDetection()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.027 seconds)
+Test case 'VoiceRulesTests.testRussianColloquial()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testRussianShots()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testSpanishColloquial()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testSpanishShots()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testTraditionalChinese()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'VoiceRulesTests.testTutorialHintsUseValidKeywords()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.005 seconds)
+Test suite 'BasketballExcelExportTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)'
+Test case 'BasketballExcelExportTests.testCompositeEventsKeepBothPlayersAndShotDetailsInExport()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.002 seconds)
+Test case 'BasketballExcelExportTests.testExportFilenameUsesXLSXExtension()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BasketballExcelExportTests.testGameSelectionReturnsOnlySelectedGames()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BasketballExcelExportTests.testLegacyEventExportPreservesPlayerNameWhenPlayerIDIsMissing()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.001 seconds)
+Test case 'BasketballExcelExportTests.testPlayerProfileReportUsesSelectedGamesAndNumericAverages()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.001 seconds)
+Test case 'BasketballExcelExportTests.testSingleGameEventExportLocalizesGameLifecycleEventsInsteadOfAssist()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.001 seconds)
+Test case 'BasketballExcelExportTests.testSingleGameReportIncludesAllSheetsAndTeamScore()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.012 seconds)
+Test case 'BasketballExcelExportTests.testStatsAggregatorPreservesDetailedShotAndTeamMetrics()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BasketballExcelExportTests.testTeamStatsModeDoesNotCreatePlayerBoxScoreRowsForThatTeam()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.001 seconds)
+Test suite 'VoiceASRFileTranscriptionTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)'
+Test case 'VoiceASRFileTranscriptionTests.testConfiguredFileCorpus()' skipped on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.006 seconds)
+Test case 'VoiceASRFileTranscriptionTests.testConfiguredTranscriptReplay()' skipped on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.001 seconds)
+Test case 'VoiceASRFileTranscriptionTests.testConfiguredWAVCorpusIsReadable()' skipped on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.001 seconds)
+Test suite 'BluetoothProtocolTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)'
+Test case 'BluetoothProtocolTests.testBluetoothLiveStatActionRawValues()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BluetoothProtocolTests.testGameLogEntryIdUniqueness()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BluetoothProtocolTests.testPlayerStatsEffectiveFieldGoalRate()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BluetoothProtocolTests.testPlayerStatsEquality()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BluetoothProtocolTests.testPlayerStatsFieldGoalAggregation()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BluetoothProtocolTests.testPlayerStatsFieldGoalRate()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BluetoothProtocolTests.testPlayerStatsFreeThrowAggregation()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BluetoothProtocolTests.testPlayerStatsFreeThrowRate()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BluetoothProtocolTests.testPlayerStatsPoints()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BluetoothProtocolTests.testPlayerStatsPointsPerShot()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BluetoothProtocolTests.testPlayerStatsTrueShootingRate()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BluetoothProtocolTests.testPlayerStatsZeroRates()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BluetoothProtocolTests.testStatActionApplyAndRevert()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BluetoothProtocolTests.testStatActionEventCodes()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BluetoothProtocolTests.testStatActionMessages()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BluetoothProtocolTests.testStatActionPoints()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'BluetoothProtocolTests.testTeamSideDisplayName()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test suite 'VoiceASRTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)'
+Test case 'VoiceASRTests.testDeAssist_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testDeAssist_german()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testDeBlock_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testDeFoul_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.025 seconds)
+Test case 'VoiceASRTests.testDeFreeThrow()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.031 seconds)
+Test case 'VoiceASRTests.testDeGameEnd()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.012 seconds)
+Test case 'VoiceASRTests.testDeRebound_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.027 seconds)
+Test case 'VoiceASRTests.testDeRebound_german()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.032 seconds)
+Test case 'VoiceASRTests.testDeSteal_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.031 seconds)
+Test case 'VoiceASRTests.testDeSubstitution()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.014 seconds)
+Test case 'VoiceASRTests.testDeThree_capital()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceASRTests.testDeThree_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.035 seconds)
+Test case 'VoiceASRTests.testDeThree_dreier()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testDeThree_dreier_lower()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.032 seconds)
+Test case 'VoiceASRTests.testDeTimeout()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.013 seconds)
+Test case 'VoiceASRTests.testDeTurnover_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testDeTurnover_german()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.024 seconds)
+Test case 'VoiceASRTests.testDeTurnover_steps()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.024 seconds)
+Test case 'VoiceASRTests.testDeTwo_capital()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.030 seconds)
+Test case 'VoiceASRTests.testDeTwo_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.028 seconds)
+Test case 'VoiceASRTests.testDeTwo_pts()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceASRTests.testEnAssist_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.026 seconds)
+Test case 'VoiceASRTests.testEnAssist_dime()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.026 seconds)
+Test case 'VoiceASRTests.testEnAssist_sister()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.026 seconds)
+Test case 'VoiceASRTests.testEnBlock_bloc()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.031 seconds)
+Test case 'VoiceASRTests.testEnBlock_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.027 seconds)
+Test case 'VoiceASRTests.testEnBlock_swat()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.023 seconds)
+Test case 'VoiceASRTests.testEnFoul_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.027 seconds)
+Test case 'VoiceASRTests.testEnFoul_faul()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.031 seconds)
+Test case 'VoiceASRTests.testEnFoul_fowl()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.027 seconds)
+Test case 'VoiceASRTests.testEnFreeThrow_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.028 seconds)
+Test case 'VoiceASRTests.testEnFreeThrow_foul()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.028 seconds)
+Test case 'VoiceASRTests.testEnGameEnd()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.016 seconds)
+Test case 'VoiceASRTests.testEnLayup_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.030 seconds)
+Test case 'VoiceASRTests.testEnLayup_separated()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.036 seconds)
+Test case 'VoiceASRTests.testEnMid_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceASRTests.testEnMid_jumper()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.037 seconds)
+Test case 'VoiceASRTests.testEnMid_pullup()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testEnPaint_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.032 seconds)
+Test case 'VoiceASRTests.testEnPaint_inside()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testEnPaint_post()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceASRTests.testEnRebound_board()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testEnRebound_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.026 seconds)
+Test case 'VoiceASRTests.testEnSteal_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.030 seconds)
+Test case 'VoiceASRTests.testEnSteal_steel()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.026 seconds)
+Test case 'VoiceASRTests.testEnSteal_takeaway()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.026 seconds)
+Test case 'VoiceASRTests.testEnSubstitution()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.011 seconds)
+Test case 'VoiceASRTests.testEnThree_3pt()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.027 seconds)
+Test case 'VoiceASRTests.testEnThree_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.036 seconds)
+Test case 'VoiceASRTests.testEnThree_free()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.037 seconds)
+Test case 'VoiceASRTests.testEnThree_tree()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testEnThree_trey()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.030 seconds)
+Test case 'VoiceASRTests.testEnTimeout()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.014 seconds)
+Test case 'VoiceASRTests.testEnTurnover_carry()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.026 seconds)
+Test case 'VoiceASRTests.testEnTurnover_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.027 seconds)
+Test case 'VoiceASRTests.testEnTurnover_travel()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.025 seconds)
+Test case 'VoiceASRTests.testEnTurnover_walk()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.026 seconds)
+Test case 'VoiceASRTests.testEnTwo_2pt()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.027 seconds)
+Test case 'VoiceASRTests.testEnTwo_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testEnTwo_too()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.035 seconds)
+Test case 'VoiceASRTests.testEsAssist_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.037 seconds)
+Test case 'VoiceASRTests.testEsBlock_acent()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testEsBlock_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.032 seconds)
+Test case 'VoiceASRTests.testEsFoul_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testEsFoul_lr()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.035 seconds)
+Test case 'VoiceASRTests.testEsFreeThrow_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceASRTests.testEsFreeThrow_short()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testEsLayup_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceASRTests.testEsRebound_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.027 seconds)
+Test case 'VoiceASRTests.testEsSteal_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testEsThree_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testEsThree_pt()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.037 seconds)
+Test case 'VoiceASRTests.testEsThree_sdrop()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceASRTests.testEsThree_sdrop_aspirated()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceASRTests.testEsTimeout()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.021 seconds)
+Test case 'VoiceASRTests.testEsTurnover_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testEsTwo_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceASRTests.testEsTwo_sdrop()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceASRTests.testFrAssist_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.030 seconds)
+Test case 'VoiceASRTests.testFrBlock_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.030 seconds)
+Test case 'VoiceASRTests.testFrFoul_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.030 seconds)
+Test case 'VoiceASRTests.testFrFoul_vowel()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.028 seconds)
+Test case 'VoiceASRTests.testFrFreeThrow()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testFrLayup()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testFrRebound_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.024 seconds)
+Test case 'VoiceASRTests.testFrRebound_silentd()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.028 seconds)
+Test case 'VoiceASRTests.testFrSteal_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.028 seconds)
+Test case 'VoiceASRTests.testFrThree_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.032 seconds)
+Test case 'VoiceASRTests.testFrThree_pts()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testFrThree_sdrop()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testFrThree_silent()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testFrTimeout()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.019 seconds)
+Test case 'VoiceASRTests.testFrTurnover_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.028 seconds)
+Test case 'VoiceASRTests.testFrTwo_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testFrTwo_silentx()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.032 seconds)
+Test case 'VoiceASRTests.testHantAssistTwo_numberComposite()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.017 seconds)
+Test case 'VoiceASRTests.testHantAssistTwo_speechTranscriberNumberComposite()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.014 seconds)
+Test case 'VoiceASRTests.testHantFoul()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.043 seconds)
+Test case 'VoiceASRTests.testHantMissed()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.046 seconds)
+Test case 'VoiceASRTests.testHantOffensiveRebound_fullCourtAlias()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.039 seconds)
+Test case 'VoiceASRTests.testHantRebound()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.042 seconds)
+Test case 'VoiceASRTests.testHantSteal()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.040 seconds)
+Test case 'VoiceASRTests.testHantSteal_commonAlias()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.046 seconds)
+Test case 'VoiceASRTests.testHantThree()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.050 seconds)
+Test case 'VoiceASRTests.testItAssist_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceASRTests.testItBlock_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.030 seconds)
+Test case 'VoiceASRTests.testItBlock_open()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testItFoul_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testItFreeThrow_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceASRTests.testItFreeThrow_geminate()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceASRTests.testItRebound_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.032 seconds)
+Test case 'VoiceASRTests.testItRebound_zs()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testItSteal_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.030 seconds)
+Test case 'VoiceASRTests.testItThree_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.030 seconds)
+Test case 'VoiceASRTests.testItThree_diphthong()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.051 seconds)
+Test case 'VoiceASRTests.testItThree_pts()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceASRTests.testItThree_tripla()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testItTurnover_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.030 seconds)
+Test case 'VoiceASRTests.testItTwo_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testJaAndOne()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.038 seconds)
+Test case 'VoiceASRTests.testJaAssist_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testJaAssist_drop_su()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testJaBlock_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testJaBlock_short()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testJaBonus()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.040 seconds)
+Test case 'VoiceASRTests.testJaDunkMissed_transcriberVariant()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.056 seconds)
+Test case 'VoiceASRTests.testJaFoul_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.040 seconds)
+Test case 'VoiceASRTests.testJaFreeThrow_both_short()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.049 seconds)
+Test case 'VoiceASRTests.testJaFreeThrow_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.039 seconds)
+Test case 'VoiceASRTests.testJaFreeThrow_short()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.039 seconds)
+Test case 'VoiceASRTests.testJaGameEnd()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.017 seconds)
+Test case 'VoiceASRTests.testJaLayup_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.040 seconds)
+Test case 'VoiceASRTests.testJaLayup_drop()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.043 seconds)
+Test case 'VoiceASRTests.testJaPutbackMissed_transcriberVariant()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.051 seconds)
+Test case 'VoiceASRTests.testJaRebound_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.043 seconds)
+Test case 'VoiceASRTests.testJaRebound_drop_d()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.039 seconds)
+Test case 'VoiceASRTests.testJaSteal_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.035 seconds)
+Test case 'VoiceASRTests.testJaSteal_short()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testJaSubstitution()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.011 seconds)
+Test case 'VoiceASRTests.testJaThree_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.035 seconds)
+Test case 'VoiceASRTests.testJaThree_pt()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.040 seconds)
+Test case 'VoiceASRTests.testJaThree_short()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.040 seconds)
+Test case 'VoiceASRTests.testJaTimeout()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.016 seconds)
+Test case 'VoiceASRTests.testJaTurnover_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.032 seconds)
+Test case 'VoiceASRTests.testJaTurnover_drop_t()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.030 seconds)
+Test case 'VoiceASRTests.testJaTurnover_short()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testJaTurnover_transcriberVariant()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.031 seconds)
+Test case 'VoiceASRTests.testJaTwo_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.052 seconds)
+Test case 'VoiceASRTests.testJaTwo_politeRequest()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.048 seconds)
+Test case 'VoiceASRTests.testJaTwo_short()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.057 seconds)
+Test case 'VoiceASRTests.testKoAssist_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.035 seconds)
+Test case 'VoiceASRTests.testKoBlock_aspirated()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testKoBlock_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testKoFoul_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testKoFreeThrow_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.036 seconds)
+Test case 'VoiceASRTests.testKoFreeThrow_eng()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.038 seconds)
+Test case 'VoiceASRTests.testKoRebound_aspirated()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testKoRebound_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.031 seconds)
+Test case 'VoiceASRTests.testKoSteal_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.030 seconds)
+Test case 'VoiceASRTests.testKoSubstitution()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.018 seconds)
+Test case 'VoiceASRTests.testKoThree_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.039 seconds)
+Test case 'VoiceASRTests.testKoThree_lax()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.039 seconds)
+Test case 'VoiceASRTests.testKoThree_pt()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.044 seconds)
+Test case 'VoiceASRTests.testKoTurnover_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testKoTurnover_geminate()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testKoTwo_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.045 seconds)
+Test case 'VoiceASRTests.testKoTwo_lax()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.048 seconds)
+Test case 'VoiceASRTests.testKoTwo_pt()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.039 seconds)
+Test case 'VoiceASRTests.testLegacySpeechChineseASRCorrections()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.092 seconds)
+Test case 'VoiceASRTests.testLegacySpeechNonChineseASRCorrections()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.121 seconds)
+Test case 'VoiceASRTests.testRuAssist_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.045 seconds)
+Test case 'VoiceASRTests.testRuBlock_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.036 seconds)
+Test case 'VoiceASRTests.testRuFoul_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.031 seconds)
+Test case 'VoiceASRTests.testRuFoul_fv()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.035 seconds)
+Test case 'VoiceASRTests.testRuFoul_vowel_reduction()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.032 seconds)
+Test case 'VoiceASRTests.testRuFreeThrow()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.036 seconds)
+Test case 'VoiceASRTests.testRuGameEnd()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.015 seconds)
+Test case 'VoiceASRTests.testRuRebound_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.037 seconds)
+Test case 'VoiceASRTests.testRuRebound_devoice()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testRuSteal_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case 'VoiceASRTests.testRuSubstitution()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.007 seconds)
+Test case 'VoiceASRTests.testRuThree_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.031 seconds)
+Test case 'VoiceASRTests.testRuThree_rl()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceASRTests.testRuTurnover_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.025 seconds)
+Test case 'VoiceASRTests.testRuTwo_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.029 seconds)
+Test case2026-10-08 09:22:00.273 xcodebuild[52060:3724561] [MT] IDETestOperationsObserverDebug: 75.628 elapsed -- Testing started completed.
+2026-10-08 09:22:00.273 xcodebuild[52060:3724561] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-08 09:22:00.273 xcodebuild[52060:3724561] [MT] IDETestOperationsObserverDebug: 75.639 sec, +75.639 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Logs/Test/Test-BasketballRecord-2026.10.08_09-20-41-+0800.xcresult
+
+Failing tests:
+	TutorialLocalizationTests.testEnglishTutorialDoesNotContainCJKText()
+
+** TEST FAILED **
+
+ 'VoiceASRTests.testRuTwo_pts()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testRuTwo_vl()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.032 seconds)
+Test case 'VoiceASRTests.testSpeechTranscriberObservedVariants()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.436 seconds)
+Test case 'VoiceASRTests.testSpeechTranscriberSpecificReboundPrecedesGeneric()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.139 seconds)
+Test case 'VoiceASRTests.testZhAlphanumericName_speechTranscriber()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.238 seconds)
+Test case 'VoiceASRTests.testZhAssist_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.113 seconds)
+Test case 'VoiceASRTests.testZhAssist_zhugong()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.235 seconds)
+Test case 'VoiceASRTests.testZhAssistTwo_composite()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.102 seconds)
+Test case 'VoiceASRTests.testZhAssistTwo_numberComposite()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.016 seconds)
+Test case 'VoiceASRTests.testZhAssistTwo_speechTranscriberComposite()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.060 seconds)
+Test case 'VoiceASRTests.testZhAssistTwo_speechTranscriberNumberComposite()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.023 seconds)
+Test case 'VoiceASRTests.testZhBlock_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.058 seconds)
+Test case 'VoiceASRTests.testZhBlock_gaimao()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.107 seconds)
+Test case 'VoiceASRTests.testZhBonus_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.052 seconds)
+Test case 'VoiceASRTests.testZhBonus_tongue()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.038 seconds)
+Test case 'VoiceASRTests.testZhEndDuringRunningPeriodLegacyEndsPeriod()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.011 seconds)
+Test case 'VoiceASRTests.testZhEndDuringRunningPeriodSpeechTranscriberEndsPeriod()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.007 seconds)
+Test case 'VoiceASRTests.testZhExplicitGameEndDuringRunningPeriodSpeechTranscriberFinishesGame()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.008 seconds)
+Test case 'VoiceASRTests.testZhFoul_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.055 seconds)
+Test case 'VoiceASRTests.testZhFoul_fang()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.061 seconds)
+Test case 'VoiceASRTests.testZhFreeThrow_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.053 seconds)
+Test case 'VoiceASRTests.testZhFreeThrow_f()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.044 seconds)
+Test case 'VoiceASRTests.testZhLayup_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.048 seconds)
+Test case 'VoiceASRTests.testZhLayup_nasal()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.081 seconds)
+Test case 'VoiceASRTests.testZhLayup_sangs()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.077 seconds)
+Test case 'VoiceASRTests.testZhMid_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.038 seconds)
+Test case 'VoiceASRTests.testZhMid_zong()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.074 seconds)
+Test case 'VoiceASRTests.testZhPaint_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.051 seconds)
+Test case 'VoiceASRTests.testZhPaint_nanxia()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.073 seconds)
+Test case 'VoiceASRTests.testZhPeriodEndPhraseDuringRunningPeriodSpeechTranscriberEndsPeriod()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.013 seconds)
+Test case 'VoiceASRTests.testZhPolyphonicName_speechTranscriber()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.053 seconds)
+Test case 'VoiceASRTests.testZhPolyphonicZiAndZaiName_speechTranscriber()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.125 seconds)
+Test case 'VoiceASRTests.testZhRebound_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.062 seconds)
+Test case 'VoiceASRTests.testZhRebound_homophone()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.056 seconds)
+Test case 'VoiceASRTests.testZhRebound_lanban()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.052 seconds)
+Test case 'VoiceASRTests.testZhRebound_nanban()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.038 seconds)
+Test case 'VoiceASRTests.testZhSteal_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.033 seconds)
+Test case 'VoiceASRTests.testZhSteal_qiang()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.073 seconds)
+Test case 'VoiceASRTests.testZhSubstitution()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.012 seconds)
+Test case 'VoiceASRTests.testZhSubstitution_dan()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.011 seconds)
+Test case 'VoiceASRTests.testZhThree_anap()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.034 seconds)
+Test case 'VoiceASRTests.testZhThree_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.036 seconds)
+Test case 'VoiceASRTests.testZhThree_tone()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.039 seconds)
+Test case 'VoiceASRTests.testZhThree_zsh()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.037 seconds)
+Test case 'VoiceASRTests.testZhTurnover_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.032 seconds)
+Test case 'VoiceASRTests.testZhTurnover_shi()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.073 seconds)
+Test case 'VoiceASRTests.testZhTwo_common()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.040 seconds)
+Test suite 'PlusMinusTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)'
+Test case 'PlusMinusTests.testBenchPlayerNotAffected()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.001 seconds)
+Test case 'PlusMinusTests.testEngineBothTeamsStatsModeTracksNobody()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'PlusMinusTests.testFullGameFlowWithSubstitution()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'PlusMinusTests.testTeamStatsModeAwayScoringDoesNotTouchAwayPlayers()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'PlusMinusTests.testTeamStatsModeHomeScoringDoesNotTouchHomePlayers()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test suite 'TutorialLocalizationTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)'
+Test case 'TutorialLocalizationTests.testEnglishTutorialDoesNotContainCJKText()' failed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.311 seconds)
+Test case 'TutorialLocalizationTests.testSimplifiedChineseTutorialDoesNotContainTraditionalTaskText()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.001 seconds)
+Test suite 'GameLogFormatterTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)'
+Test case 'GameLogFormatterTests.testExtractEventCode()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.001 seconds)
+Test case 'GameLogFormatterTests.testIsScoring()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'GameLogFormatterTests.testLineText()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.001 seconds)
+Test case 'GameLogFormatterTests.testNormalizedMessage()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
+Test case 'GameLogFormatterTests.testPeriodDetectionViaEventCode()' passed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (52284)' (0.000 seconds)
