@@ -18,6 +18,7 @@ struct RosterView: View {
     @State private var showingSettingsDocument: SettingsDocument?
     @State private var isShowingPurchase = false
     @State private var isShowingLanguageInfo = false
+    @State private var rosterRecoveryMessage: String?
 
     var body: some View {
         NavigationStack {
@@ -108,6 +109,37 @@ struct RosterView: View {
                                 )
                             }
                             .buttonStyle(.plain)
+                            settingsDivider()
+                            Button {
+                                let playerCountBefore = store.players.count
+                                let teamCountBefore = store.teams.count
+                                store.recoverRosterFromSavedGames()
+                                let playersAdded = max(0, store.players.count - playerCountBefore)
+                                let teamsAdded = max(0, store.teams.count - teamCountBefore)
+                                rosterRecoveryMessage = localizedFormat(
+                                    "settings_recover_roster_result",
+                                    playersAdded,
+                                    teamsAdded,
+                                    store.players.count,
+                                    store.teams.count
+                                )
+                            } label: {
+                                settingsRow(
+                                    title: LocalizedStringKey("settings_recover_roster_from_games"),
+                                    systemImage: "arrow.triangle.2.circlepath",
+                                    countText: nil,
+                                    iconColor: EditorialDesign.orange,
+                                    showsDisclosure: false
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            if let rosterRecoveryMessage {
+                                Text(rosterRecoveryMessage)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .padding(.horizontal, 16)
+                                    .padding(.bottom, 14)
+                            }
                             settingsDivider()
                             Button {
                                 isShowingLanguageInfo = true

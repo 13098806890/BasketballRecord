@@ -294,7 +294,7 @@ struct BasketballExcelReportBuilder {
             header(["excel_header_date", "excel_header_game", "excel_header_period", "excel_header_time", "excel_header_event_code", "excel_header_event", "excel_header_player", "excel_header_related_player"])
         ]
         for game in games.sorted(by: { $0.savedAt > $1.savedAt }) {
-            for log in game.snapshot.logs {
+            for log in activeLogs(for: game) {
                 rows.append([
                     .date(game.savedAt),
                     .text(game.displayTitle),
@@ -362,7 +362,7 @@ struct BasketballExcelReportBuilder {
     private static func playerEventSheet(playerID: UUID, games: [SavedGame]) -> BasketballExcelSheet {
         var rows: [[BasketballExcelCell]] = [header(["excel_header_date", "excel_header_game", "excel_header_period", "excel_header_time", "excel_header_event_code", "excel_header_event"])]
         for game in games {
-            for log in game.snapshot.logs where log.playerID == playerID || log.relatedPlayerID == playerID {
+            for log in activeLogs(for: game) where log.playerID == playerID || log.relatedPlayerID == playerID {
                 rows.append([
                     .date(game.savedAt),
                     .text(game.displayTitle),
@@ -374,6 +374,10 @@ struct BasketballExcelReportBuilder {
             }
         }
         return BasketballExcelSheet(name: localized("excel_sheet_events"), rows: rows)
+    }
+
+    private static func activeLogs(for game: SavedGame) -> [GameLogEntry] {
+        GameLogEditLogic.activeLogs(game.snapshot.logs, history: game.snapshot.editHistory)
     }
 
     private static func periodTimeCell(_ seconds: TimeInterval?) -> BasketballExcelCell {

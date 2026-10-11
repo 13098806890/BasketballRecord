@@ -1,1 +1,1 @@
-segnapunti,statistiche,basket,punteggio,squadra,allenatore,partita,registrazione,torneo,risultati
+punteggio,squadra,allenatore,partita,torneo,risultati,canestri,rimbalzi,assist,coach,gara,falli,tiri

@@ -116,6 +116,72 @@ final class BasketballExcelExportTests: XCTestCase {
         XCTAssertNil(StatAction.parseFromSuffix("比赛继续"))
     }
 
+    func testEventExportsOmitDeletedEventsFromGameAndPlayerSheets() {
+        let playerID = UUID(uuidString: "00000000-0000-0000-0000-000000000051")!
+        let timestamp = Date(timeIntervalSince1970: 1_700_000_000)
+        let kept = GameLogEntry(timestamp: timestamp, message: "Alex 2分命中", eventCode: StatAction.twoMade.eventCode, playerID: playerID)
+        let deleted = GameLogEntry(timestamp: timestamp.addingTimeInterval(10), message: "Alex 助攻", eventCode: StatAction.assist.eventCode, playerID: playerID)
+        var game = makeEventGame(logs: [kept, deleted], playerID: playerID)
+        game.snapshot.editHistory.append(deletionRecord(for: deleted))
+
+        let gameRows = singleGameEventRows(game)
+        XCTAssertEqual(gameRows.count, 1)
+        XCTAssertEqual(gameRows[0][4], .text(kept.eventCode!))
+
+        let playerRows = playerEventRows(game, playerID: playerID)
+        XCTAssertEqual(playerRows.count, 1)
+        XCTAssertEqual(playerRows[0][4], .text(kept.eventCode!))
+    }
+
+    func testEventExportsRestoreEventsAfterRestoreEdit() {
+        let playerID = UUID(uuidString: "00000000-0000-0000-0000-000000000052")!
+        let timestamp = Date(timeIntervalSince1970: 1_700_000_000)
+        let deleted = GameLogEntry(timestamp: timestamp, message: "Alex 篮板", eventCode: StatAction.rebound.eventCode, playerID: playerID)
+        var game = makeEventGame(logs: [deleted], playerID: playerID)
+        game.snapshot.editHistory.append(deletionRecord(for: deleted))
+        game.snapshot.editHistory.append(restorationRecord(for: deleted.id))
+
+        let rows = singleGameEventRows(game)
+        XCTAssertEqual(rows.count, 1)
+        XCTAssertEqual(rows[0][4], .text(deleted.eventCode!))
+    }
+
+    func testEventExportsModifiedEventFields() {
+        let playerID = UUID(uuidString: "00000000-0000-0000-0000-000000000053")!
+        let timestamp = Date(timeIntervalSince1970: 1_700_000_000)
+        let target = GameLogEntry(timestamp: timestamp, message: "Alex 2分命中", eventCode: StatAction.twoMade.eventCode, playerID: playerID, period: 1, periodElapsedSeconds: 30)
+        var game = makeEventGame(logs: [target], playerID: playerID)
+        let modified = GameLogEditLogic.modify(
+            snapshot: &game.snapshot,
+            eventID: target.id,
+            timestamp: timestamp.addingTimeInterval(20),
+            playerID: playerID,
+            eventCode: StatAction.threeMade.eventCode,
+            message: "Alex 3分命中",
+            period: 2,
+            periodElapsedSeconds: 95
+        )
+
+        XCTAssertTrue(modified)
+        let rows = singleGameEventRows(game)
+        XCTAssertEqual(rows.count, 1)
+        XCTAssertEqual(rows[0][2], .integer(2))
+        XCTAssertEqual(rows[0][3], .text("01:35"))
+        XCTAssertEqual(rows[0][4], .text(StatAction.threeMade.eventCode))
+    }
+
+    func testEventExportsOmitAddedThenDeletedEvents() {
+        let playerID = UUID(uuidString: "00000000-0000-0000-0000-000000000054")!
+        let timestamp = Date(timeIntervalSince1970: 1_700_000_000)
+        let added = GameLogEntry(timestamp: timestamp, message: "Alex 抢断", eventCode: StatAction.steal.eventCode, playerID: playerID)
+        var game = makeEventGame(logs: [added], playerID: playerID)
+        game.snapshot.editHistory.append(additionRecord(for: added))
+        game.snapshot.editHistory.append(deletionRecord(for: added))
+
+        XCTAssertTrue(singleGameEventRows(game).isEmpty)
+        XCTAssertTrue(playerEventRows(game, playerID: playerID).isEmpty)
+    }
+
     func testCompositeEventsKeepBothPlayersAndShotDetailsInExport() {
         let timestamp = Date(timeIntervalSince1970: 1_700_000_000)
         let assisterID = UUID(uuidString: "00000000-0000-0000-0000-000000000041")!
@@ -223,5 +289,70 @@ final class BasketballExcelExportTests: XCTestCase {
     private func makeGame(homeID: UUID, awayID: UUID, playerID: UUID, stats: PlayerStats, timestamp: TimeInterval) -> SavedGame {
         let snapshot = GameSnapshot(statsByPlayerID: [playerID: stats], homeTeamID: homeID, awayTeamID: awayID, playingSecondsByPlayerID: [playerID: 600])
         return SavedGame(savedAt: Date(timeIntervalSince1970: timestamp), snapshot: snapshot, homeTeamName: "Home", awayTeamName: "Away", homePlayerIDs: [playerID], awayPlayerIDs: [], playerNamesByID: [playerID: "Alex"])
+    }
+
+    private func makeEventGame(logs: [GameLogEntry], playerID: UUID) -> SavedGame {
+        let teamID = UUID(uuidString: "00000000-0000-0000-0000-000000000055")!
+        let snapshot = GameSnapshot(logs: logs, homeTeamID: teamID, awayTeamID: teamID)
+        return SavedGame(savedAt: Date(timeIntervalSince1970: 1_700_000_000), snapshot: snapshot, homeTeamName: "Home", awayTeamName: "Away", homePlayerIDs: [playerID], awayPlayerIDs: [], playerNamesByID: [playerID: "Alex"])
+    }
+
+    private func singleGameEventRows(_ game: SavedGame) -> [[BasketballExcelCell]] {
+        Array(BasketballExcelReportBuilder.singleGame(game, players: []).sheets[4].rows.dropFirst())
+    }
+
+    private func playerEventRows(_ game: SavedGame, playerID: UUID) -> [[BasketballExcelCell]] {
+        Array(BasketballExcelReportBuilder.playerProfile(playerID: playerID, games: [game], players: []).sheets[4].rows.dropFirst())
+    }
+
+    private func additionRecord(for event: GameLogEntry) -> GameLogEditRecord {
+        GameLogEditRecord(
+            timestamp: event.timestamp,
+            action: "add",
+            eventID: event.id,
+            previousMessage: nil,
+            previousEventCode: nil,
+            previousPlayerID: nil,
+            previousTimestamp: nil,
+            previousPeriod: nil,
+            previousPeriodElapsedSeconds: nil,
+            currentMessage: event.message,
+            currentEventCode: event.eventCode,
+            currentPlayerID: event.playerID
+        )
+    }
+
+    private func deletionRecord(for event: GameLogEntry) -> GameLogEditRecord {
+        GameLogEditRecord(
+            timestamp: event.timestamp,
+            action: "delete",
+            eventID: event.id,
+            previousMessage: event.message,
+            previousEventCode: event.eventCode,
+            previousPlayerID: event.playerID,
+            previousTimestamp: event.timestamp,
+            previousPeriod: event.period,
+            previousPeriodElapsedSeconds: event.periodElapsedSeconds,
+            currentMessage: nil,
+            currentEventCode: nil,
+            currentPlayerID: nil
+        )
+    }
+
+    private func restorationRecord(for eventID: UUID) -> GameLogEditRecord {
+        GameLogEditRecord(
+            timestamp: Date(timeIntervalSince1970: 1_700_000_001),
+            action: "restore",
+            eventID: eventID,
+            previousMessage: nil,
+            previousEventCode: nil,
+            previousPlayerID: nil,
+            previousTimestamp: nil,
+            previousPeriod: nil,
+            previousPeriodElapsedSeconds: nil,
+            currentMessage: nil,
+            currentEventCode: nil,
+            currentPlayerID: nil
+        )
     }
 }

@@ -601,10 +601,17 @@ struct VoiceCommandExamples {
         return fill(first, name: name, number: number, team: team, oppTeam: oppTeam, target: target)
     }
 
+    private static func quoted(_ value: String, for templates: Templates) -> String {
+        if templates.locale == "en" {
+            return "\"\(value)\""
+        }
+        return "\u{300C}\(value)\u{300D}"
+    }
+
     static func buildHint(for action: StatAction, templates: Templates, name: String, number: String, team: String = "", oppTeam: String = "", target: String = "") -> String {
         guard let tpls = templates.actionTemplates[action] else { return "" }
         let filled = tpls.map { fill($0, name: name, number: number, team: team, oppTeam: oppTeam, target: target) }
-        return "\(templates.hintPrefix)\(filled.map { "\u{300C}\($0)\u{300D}" }.joined(separator: templates.hintSeparator))"
+        return "\(templates.hintPrefix)\(filled.map { quoted($0, for: templates) }.joined(separator: templates.hintSeparator))"
     }
 
     static func substitutionHint(templates: Templates, outName: String, outNumber: String, inName: String, inNumber: String) -> String {

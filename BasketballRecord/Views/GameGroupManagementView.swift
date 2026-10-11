@@ -211,22 +211,7 @@ struct GameGroupEditView: View {
 
     private func saveGroup() {
         if let group = group {
-            let oldIDs = Set(store.savedGames.filter { $0.groupIDs.contains(group.id) }.map(\.id))
-            let newIDs = Set(selectedGameIDs)
-            var savedGamesCopy = store.savedGames
-            for id in oldIDs.subtracting(newIDs) {
-                if let idx = savedGamesCopy.firstIndex(where: { $0.id == id }) {
-                    savedGamesCopy[idx].groupIDs.removeAll { $0 == group.id }
-                }
-            }
-            for id in newIDs.subtracting(oldIDs) {
-                if let idx = savedGamesCopy.firstIndex(where: { $0.id == id }) {
-                    if !savedGamesCopy[idx].groupIDs.contains(group.id) {
-                        savedGamesCopy[idx].groupIDs.append(group.id)
-                    }
-                }
-            }
-            store.savedGames = savedGamesCopy
+            store.syncGameGroupMembership(groupID: group.id, gameIDs: Array(selectedGameIDs))
             var updatedGroup = group
             updatedGroup.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
             updatedGroup.description = description.isEmpty ? nil : description.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -234,13 +219,6 @@ struct GameGroupEditView: View {
             store.updateGameGroup(updatedGroup)
         } else {
             let newGroup = store.addGameGroup(name.trimmingCharacters(in: .whitespacesAndNewlines), description: description.isEmpty ? nil : description.trimmingCharacters(in: .whitespacesAndNewlines))
-            var savedGamesCopy = store.savedGames
-            for id in selectedGameIDs {
-                if let idx = savedGamesCopy.firstIndex(where: { $0.id == id }) {
-                    savedGamesCopy[idx].groupIDs.append(newGroup.id)
-                }
-            }
-            store.savedGames = savedGamesCopy
             store.syncGameGroupMembership(groupID: newGroup.id, gameIDs: Array(selectedGameIDs))
         }
         dismiss()

@@ -203,6 +203,245 @@ final class AppStoreOperationsTests: XCTestCase {
         XCTAssertNil(mergedGame.playerNamesByID[sourceID])
     }
 
+    func testUpdatePlayerClearsPhotoAndPhotoFileWhenEditedValueIsNil() throws {
+        let playerID = uuid("00000000-0000-0000-0000-000000009001")
+        let store = AppStore()
+        let photoFile = store.photoFile(for: playerID)
+        try? FileManager.default.createDirectory(at: store.photosDir, withIntermediateDirectories: true)
+        try? Data([1, 2, 3]).write(to: photoFile)
+        store.players = [Player(id: playerID, name: "球员", photoData: Data([1, 2, 3]))]
+        store.saveIfNeeded()
+
+        store.updatePlayer(Player(id: playerID, name: "球员", photoData: nil))
+        store.saveIfNeeded()
+
+        XCTAssertNil(store.player(for: playerID)?.photoData)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: photoFile.path))
+    }
+
+    func testUpsertPlayerWithoutPhotoPreservesExistingPhoto() throws {
+        let playerID = uuid("00000000-0000-0000-0000-000000009002")
+        let store = AppStore()
+        let photo = Data([4, 5, 6])
+        store.players = [Player(id: playerID, name: "原球员", photoData: photo)]
+
+        store.upsertPlayers([Player(id: playerID, name: "更新球员", photoData: nil)])
+
+        XCTAssertEqual(store.player(for: playerID)?.photoData, photo)
+    }
+
+    func testRecoverRosterFromSavedGamesRestoresMissingPlayersAndTeams() {
+        let homeTeamID = uuid("00000000-0000-0000-0000-000000009071")
+        let awayTeamID = uuid("00000000-0000-0000-0000-000000009072")
+        let homePlayerID = uuid("00000000-0000-0000-0000-000000009073")
+        let awayPlayerID = uuid("00000000-0000-0000-0000-000000009074")
+        var snapshot = GameSnapshot(homeTeamID: homeTeamID, awayTeamID: awayTeamID)
+        snapshot.statsByPlayerID[homePlayerID] = PlayerStats()
+        snapshot.statsByPlayerID[awayPlayerID] = PlayerStats()
+        let game = SavedGame(
+            savedAt: Date(timeIntervalSince1970: 1_000),
+            snapshot: snapshot,
+            homeTeamName: "主队",
+            awayTeamName: "客队",
+            homePlayerIDs: [homePlayerID],
+            awayPlayerIDs: [awayPlayerID],
+            playerNamesByID: [homePlayerID: "主队球员", awayPlayerID: "客队球员"]
+        )
+        let store = AppStore()
+        store.savedGames = [game]
+
+        store.recoverRosterFromSavedGames()
+
+        XCTAssertEqual(Set(store.players.map(\.id)), [homePlayerID, awayPlayerID])
+        XCTAssertEqual(Set(store.teams.map(\.id)), [homeTeamID, awayTeamID])
+        XCTAssertEqual(store.teams.first(where: { $0.id == homeTeamID })?.playerIDs, [homePlayerID])
+        XCTAssertEqual(store.teams.first(where: { $0.id == awayTeamID })?.playerIDs, [awayPlayerID])
+    }
+
+    func testSyncGameGroupMembershipUpdatesModifiedAtWhenReverseLinkAlreadyExists() throws {
+        let groupID = uuid("00000000-0000-0000-0000-000000009011")
+        let gameID = uuid("00000000-0000-0000-0000-000000009012")
+        let oldDate = Date(timeIntervalSince1970: 1_000)
+        let game = SavedGame(
+            id: gameID,
+            savedAt: oldDate,
+            modifiedAt: oldDate,
+            snapshot: GameSnapshot(),
+            homeTeamName: "主队",
+            awayTeamName: "客队",
+            homePlayerIDs: [],
+            awayPlayerIDs: [],
+            playerNamesByID: [:],
+            groupIDs: [groupID]
+        )
+        let store = AppStore()
+        store.gameGroups = [GameGroup(id: groupID, name: "分组")]
+        store.savedGames = [game]
+
+        store.syncGameGroupMembership(groupID: groupID, gameIDs: [gameID])
+
+        XCTAssertEqual(store.gameGroups.first?.gameIDs, [gameID])
+        XCTAssertGreaterThan(store.savedGames.first?.modifiedAt ?? oldDate, oldDate)
+    }
+
+    func testCloudGroupMembershipReconciliationRepairsBothDirectionsAndDropsDeletedIDs() {
+        let gameGroupID = uuid("00000000-0000-0000-0000-000000009013")
+        let deletedGameGroupID = uuid("00000000-0000-0000-0000-000000009014")
+        let playerGroupID = uuid("00000000-0000-0000-0000-000000009015")
+        let deletedPlayerGroupID = uuid("00000000-0000-0000-0000-000000009016")
+        let gameID = uuid("00000000-0000-0000-0000-000000009017")
+        let playerID = uuid("00000000-0000-0000-0000-000000009018")
+        let game = SavedGame(
+            id: gameID,
+            savedAt: Date(timeIntervalSince1970: 1_000),
+            snapshot: GameSnapshot(),
+            homeTeamName: "主队",
+            awayTeamName: "客队",
+            homePlayerIDs: [],
+            awayPlayerIDs: [],
+            playerNamesByID: [:],
+            groupIDs: [gameGroupID, deletedGameGroupID]
+        )
+        let store = AppStore()
+        store.gameGroups = [GameGroup(id: gameGroupID, name: "比赛分组", gameIDs: [gameID])]
+        store.savedGames = [game]
+        store.playerGroups = [PlayerGroup(id: playerGroupID, name: "球员分组", playerIDs: [playerID])]
+        store.players = [Player(id: playerID, name: "球员", playerGroupIDs: [deletedPlayerGroupID])]
+
+        let changedGames = store.reconcileCloudGroupMembership()
+
+        XCTAssertEqual(store.gameGroups.first?.gameIDs, [gameID])
+        XCTAssertEqual(store.savedGames.first?.groupIDs, [gameGroupID])
+        XCTAssertEqual(store.playerGroups.first?.playerIDs, [playerID])
+        XCTAssertEqual(store.player(for: playerID)?.playerGroupIDs, [playerGroupID])
+        XCTAssertEqual(changedGames.map(\.id), [gameID])
+    }
+
+    func testGroupMembershipEditorsRemoveReverseOnlyRelationships() {
+        let gameGroupID = uuid("00000000-0000-0000-0000-000000009041")
+        let playerGroupID = uuid("00000000-0000-0000-0000-000000009042")
+        let gameID = uuid("00000000-0000-0000-0000-000000009043")
+        let playerID = uuid("00000000-0000-0000-0000-000000009044")
+        let game = SavedGame(
+            id: gameID,
+            savedAt: Date(timeIntervalSince1970: 1_000),
+            snapshot: GameSnapshot(),
+            homeTeamName: "主队",
+            awayTeamName: "客队",
+            homePlayerIDs: [],
+            awayPlayerIDs: [],
+            playerNamesByID: [:],
+            groupIDs: [gameGroupID]
+        )
+        let store = AppStore()
+        store.gameGroups = [GameGroup(id: gameGroupID, name: "比赛分组")]
+        store.savedGames = [game]
+        store.playerGroups = [PlayerGroup(id: playerGroupID, name: "球员分组")]
+        store.players = [Player(id: playerID, name: "球员", playerGroupIDs: [playerGroupID])]
+
+        store.syncGameGroupMembership(groupID: gameGroupID, gameIDs: [])
+        store.syncPlayerGroupMembership(groupID: playerGroupID, playerIDs: [])
+
+        XCTAssertTrue(store.gameGroups.first?.gameIDs.isEmpty == true)
+        XCTAssertTrue(store.savedGames.first?.groupIDs.isEmpty == true)
+        XCTAssertTrue(store.playerGroups.first?.playerIDs.isEmpty == true)
+        XCTAssertTrue(store.player(for: playerID)?.playerGroupIDs.isEmpty == true)
+    }
+
+    func testLegacyReverseMembershipsMigrateIntoCanonicalGroupMemberships() {
+        let gameGroupID = uuid("00000000-0000-0000-0000-000000009051")
+        let playerGroupID = uuid("00000000-0000-0000-0000-000000009052")
+        let gameID = uuid("00000000-0000-0000-0000-000000009053")
+        let playerID = uuid("00000000-0000-0000-0000-000000009054")
+        let game = SavedGame(
+            id: gameID,
+            savedAt: Date(timeIntervalSince1970: 1_000),
+            snapshot: GameSnapshot(),
+            homeTeamName: "主队",
+            awayTeamName: "客队",
+            homePlayerIDs: [],
+            awayPlayerIDs: [],
+            playerNamesByID: [:],
+            groupIDs: [gameGroupID]
+        )
+        let store = AppStore()
+        store.gameGroups = [GameGroup(id: gameGroupID, name: "比赛分组")]
+        store.savedGames = [game]
+        store.playerGroups = [PlayerGroup(id: playerGroupID, name: "球员分组")]
+        store.players = [Player(id: playerID, name: "球员", playerGroupIDs: [playerGroupID])]
+
+        store.migrateLegacyGroupMemberships()
+
+        XCTAssertEqual(store.gameGroups.first?.gameIDs, [gameID])
+        XCTAssertEqual(store.playerGroups.first?.playerIDs, [playerID])
+        XCTAssertEqual(store.reconcileCloudGroupMembership().map(\.id), [])
+        XCTAssertEqual(store.savedGames.first?.groupIDs, [gameGroupID])
+        XCTAssertEqual(store.player(for: playerID)?.playerGroupIDs, [playerGroupID])
+    }
+
+    func testCloudGroupMembershipReconciliationDoesNotResurrectReverseOnlyRelationships() {
+        let gameGroupID = uuid("00000000-0000-0000-0000-000000009061")
+        let playerGroupID = uuid("00000000-0000-0000-0000-000000009062")
+        let gameID = uuid("00000000-0000-0000-0000-000000009063")
+        let playerID = uuid("00000000-0000-0000-0000-000000009064")
+        let game = SavedGame(
+            id: gameID,
+            savedAt: Date(timeIntervalSince1970: 1_000),
+            snapshot: GameSnapshot(),
+            homeTeamName: "主队",
+            awayTeamName: "客队",
+            homePlayerIDs: [],
+            awayPlayerIDs: [],
+            playerNamesByID: [:],
+            groupIDs: [gameGroupID]
+        )
+        let store = AppStore()
+        store.gameGroups = [GameGroup(id: gameGroupID, name: "比赛分组")]
+        store.savedGames = [game]
+        store.playerGroups = [PlayerGroup(id: playerGroupID, name: "球员分组")]
+        store.players = [Player(id: playerID, name: "球员", playerGroupIDs: [playerGroupID])]
+
+        let changedGames = store.reconcileCloudGroupMembership()
+
+        XCTAssertTrue(store.gameGroups.first?.gameIDs.isEmpty == true)
+        XCTAssertTrue(store.savedGames.first?.groupIDs.isEmpty == true)
+        XCTAssertTrue(store.playerGroups.first?.playerIDs.isEmpty == true)
+        XCTAssertTrue(store.player(for: playerID)?.playerGroupIDs.isEmpty == true)
+        XCTAssertEqual(changedGames.map(\.id), [gameID])
+    }
+
+    func testDeleteGameGroupCleansSavedGameReferences() throws {
+        let groupID = uuid("00000000-0000-0000-0000-000000009021")
+        let store = AppStore()
+        store.gameGroups = [GameGroup(id: groupID, name: "分组")]
+        store.savedGames = [SavedGame(
+            savedAt: Date(),
+            snapshot: GameSnapshot(),
+            homeTeamName: "主队",
+            awayTeamName: "客队",
+            homePlayerIDs: [],
+            awayPlayerIDs: [],
+            playerNamesByID: [:],
+            groupIDs: [groupID]
+        )]
+
+        store.deleteGameGroup(groupID)
+
+        XCTAssertTrue(store.savedGames.first?.groupIDs.isEmpty == true)
+    }
+
+    func testDeletePlayerGroupCleansPlayerReferences() throws {
+        let groupID = uuid("00000000-0000-0000-0000-000000009031")
+        let playerID = uuid("00000000-0000-0000-0000-000000009032")
+        let store = AppStore()
+        store.playerGroups = [PlayerGroup(id: groupID, name: "分组", playerIDs: [playerID])]
+        store.players = [Player(id: playerID, name: "球员", playerGroupIDs: [groupID])]
+
+        store.deletePlayerGroup(groupID)
+
+        XCTAssertTrue(store.player(for: playerID)?.playerGroupIDs.isEmpty == true)
+    }
+
     func testSaveGameKeepsStarterWhenNoTechnicalStats() throws {
         let homeStarterID = uuid("00000000-0000-0000-0000-000000006001")
         let awayStarterID = uuid("00000000-0000-0000-0000-000000006002")
@@ -611,6 +850,10 @@ final class AppStoreOperationsTests: XCTestCase {
 
     private func clearStore() {
         UserDefaults.standard.removeObject(forKey: storageKey)
+        UserDefaults.standard.removeObject(forKey: "cloud_group_membership_migration_v1")
+        UserDefaults.standard.removeObject(forKey: "cloud_group_metadata_modified_at")
+        UserDefaults.standard.removeObject(forKey: "deleted_cloud_game_group_ids")
+        UserDefaults.standard.removeObject(forKey: "deleted_cloud_player_group_ids")
     }
 
     private func uuid(_ value: String) -> UUID {
