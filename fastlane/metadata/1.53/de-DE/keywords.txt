@@ -1,1 +1,1 @@
-Spielstand,Spielbericht,Punkte,Training,Mannschaft,Turnier,Spieler,Trainer,MVP,Liga,Kader,Fouls,Wurf
+Spielstand,Spielbericht,Punkte,Live,Mannschaft,Turnier,Spieler,Trainer,MVP,Liga,Kader,Fouls,Wurf,3er
