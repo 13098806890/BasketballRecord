@@ -1,3 +1,11 @@
 La versione 1.53 rende più naturale il punteggio vocale: tieni premuto il microfono, pronuncia l’azione completa e rilascialo. Il comando viene elaborato in una sola volta, così puoi restare concentrato sulla partita.
 
 Abbiamo migliorato anche il riconoscimento dei nomi, le azioni combinate, la chiusura dei periodi e la gestione di squadre e giocatori. Ora puoi aggiungere i tempi supplementari e continuare a registrare ogni azione. Il punteggio vocale è disponibile in 10 lingue.
+
+Ora i gruppi di partite e giocatori si sincronizzano tra i tuoi dispositivi con iCloud, mantenendo la compatibilità con i dati dei gruppi esistenti.
+
+Recupera squadre e giocatori dalle partite salvate in Impostazioni > Gestione dati.
+
+I dettagli degli eventi Excel ora riflettono le azioni eliminate, ripristinate e modificate nei report di partite e giocatori. Puoi anche rimuovere la foto di un giocatore durante la modifica.
+
+I trend della carriera sono più facili da confrontare grazie a riferimenti e intervalli specifici per ogni statistica. Le foto di giocatori e squadre vengono elaborate in background con un indicatore di avanzamento.

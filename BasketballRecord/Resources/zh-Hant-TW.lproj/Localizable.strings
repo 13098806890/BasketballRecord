@@ -1351,3 +1351,5 @@
 "voice_tutorial_en_task6" = "戴夫犯規";
 "voice_tutorial_en_task7" = "主隊7號三分";
 "voice_tutorial_en_task8" = "客隊7號兩分";
+"photo_processing" = "正在處理照片…";
+"career_trend_scale_summary" = "各指標使用獨立刻度：%@ %@–%@（基準 %@）· %@ %@–%@（基準 %@）· %@ %@–%@（基準 %@）";

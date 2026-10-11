@@ -1361,3 +1361,5 @@ Unmatched items will be created with original UUIDs. Photos will not be imported
 "voice_tutorial_en_task6" = "데이브 파울";
 "voice_tutorial_en_task7" = "홈 7번 3점";
 "voice_tutorial_en_task8" = "원정 7번 2점";
+"photo_processing" = "사진 처리 중…";
+"career_trend_scale_summary" = "지표별 별도 눈금: %@ %@–%@ (기준 %@) · %@ %@–%@ (기준 %@) · %@ %@–%@ (기준 %@)";

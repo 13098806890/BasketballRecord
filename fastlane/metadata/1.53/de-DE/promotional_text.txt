@@ -1,1 +1,1 @@
-Bleib beim Spiel. Erfasse Aktionen und Verlängerungen per Sprache in 10 Sprachen und verwalte Teams, Kader und Spielerdaten einfach.
+Synchronisiere Spiel- und Spielergruppen mit iCloud, stelle Kader aus gespeicherten Spielen wieder her und exportiere Ereignisdetails passend zu deinen Änderungen.

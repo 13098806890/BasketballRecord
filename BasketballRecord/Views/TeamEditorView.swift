@@ -12,6 +12,7 @@ struct TeamEditorView: View {
     @State private var selectedPlayerGroupID: UUID?
     @State private var iconData: Data?
     @State private var selectedIcon: PhotosPickerItem?
+    @State private var isProcessingIcon = false
     @State private var selectedBuiltinIconID: Int?
     @State private var isShowingDefaultIconPicker = false
 
@@ -56,6 +57,7 @@ struct TeamEditorView: View {
                         } label: {
                             Label(LocalizedStringKey("label_select_team_icon"), systemImage: "photo.badge.plus")
                         }
+                        .disabled(isProcessingIcon)
                     }
 
                     if iconData != nil {
@@ -65,6 +67,7 @@ struct TeamEditorView: View {
                         } label: {
                             Label(LocalizedStringKey("label_remove_team_icon"), systemImage: "trash")
                         }
+                        .disabled(isProcessingIcon)
                     }
                 } header: {
                     Text(LocalizedStringKey("label_team_icon"))
@@ -118,14 +121,17 @@ struct TeamEditorView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(LocalizedStringKey("button_save")) { save() }
-                        .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isProcessingIcon)
                 }
             }
             .task(id: selectedIcon) {
-                guard let selectedIcon,
-                      let data = try? await selectedIcon.loadTransferable(type: Data.self) else { return }
+                guard let selectedIcon else { return }
+                isProcessingIcon = true
+                defer { isProcessingIcon = false }
+                guard let data = try? await selectedIcon.loadTransferable(type: Data.self) else { return }
+                guard let processedData = try? await PhotoImageProcessor.process(data), !Task.isCancelled else { return }
                 selectedBuiltinIconID = nil
-                iconData = compressedIconData(from: data)
+                iconData = processedData
             }
             .sheet(isPresented: $isShowingDefaultIconPicker) {
                 NavigationStack {
@@ -174,6 +180,17 @@ struct TeamEditorView: View {
                 TeamBadgeView(teamID: team?.id, fallbackName: name, size: 72)
             }
         }
+        .overlay {
+            if isProcessingIcon {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(.black.opacity(0.4))
+                    .overlay {
+                        ProgressView()
+                            .tint(.white)
+                            .accessibilityLabel(LocalizedStringKey("photo_processing"))
+                    }
+            }
+        }
         .frame(width: 72, height: 72)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
@@ -218,24 +235,5 @@ struct TeamEditorView: View {
             store.updateTeam(next)
         }
         dismiss()
-    }
-
-    private func compressedIconData(from data: Data) -> Data {
-        guard let image = UIImage(data: data) else { return data }
-
-        let maxDimension: CGFloat = 720
-        let longestSide = max(image.size.width, image.size.height)
-        guard longestSide > maxDimension else {
-            return image.jpegData(compressionQuality: 0.8) ?? data
-        }
-
-        let ratio = maxDimension / longestSide
-        let targetSize = CGSize(width: image.size.width * ratio, height: image.size.height * ratio)
-        let format = UIGraphicsImageRendererFormat.default()
-        format.scale = 1
-        let resized = UIGraphicsImageRenderer(size: targetSize, format: format).image { _ in
-            image.draw(in: CGRect(origin: .zero, size: targetSize))
-        }
-        return resized.jpegData(compressionQuality: 0.8) ?? data
     }
 }

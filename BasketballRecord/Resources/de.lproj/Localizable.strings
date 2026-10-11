@@ -1342,3 +1342,5 @@ Format:
 "voice_tutorial_en_task6" = "Dave Foul";
 "voice_tutorial_en_task7" = "Heim Nr. 7 drei Punkte";
 "voice_tutorial_en_task8" = "Auswärts Nr. 7 zwei Punkte";
+"photo_processing" = "Foto wird verarbeitet …";
+"career_trend_scale_summary" = "Eigene Skalen: %@ %@–%@ (Ref. %@) · %@ %@–%@ (Ref. %@) · %@ %@–%@ (Ref. %@)";

@@ -1,0 +1,48 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -project BasketballRecord.xcodeproj -scheme BasketballRecord -destination "platform=iOS Simulator,name=iPhone 18 Pro" "-only-testing:BasketballRecordTests/TutorialLocalizationTests/testEnglishTutorialDoesNotContainCJKText" CODE_SIGNING_ALLOWED=NO
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (2 targets)
+    Target 'BasketballRecordTests' in project 'BasketballRecord'
+        ➜ Explicit dependency on target 'BasketballRecord' in project 'BasketballRecord'
+    Target 'BasketballRecord' in project 'BasketballRecord' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /Users/xiedongze/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /Users/xiedongze/Desktop/Github/BasketballRecord/BasketballRecord.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /Users/xiedongze/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+Validate /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app (in target 'BasketballRecord' from project 'BasketballRecord')
+    cd /Users/xiedongze/Desktop/Github/BasketballRecord
+    builtin-validationUtility /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Products/Debug-iphonesimulator/BasketballRecord.app -shallow-bundle -infoplist-subpath Info.plist
+
+PruneExplicitPrecompiledModules /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /Users/xiedongze/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+
+Test session results, code coverage, and logs:
+	/Users/xiedongze/Library/Developer/Xcode/DerivedData/BasketballRecord-ehukhovrlitnghgsbgayhekxjxoe/Logs/Test/Test-BasketballRecord-2026.10.06_23-27-16-+0800.xcresult
+
+Testing started
+Test suite 'TutorialLocalizationTests' started on 'Clone 1 of iPhone 18 Pro - BasketballRecord (36026)'
+Test case 'TutorialLocalizationTests.testEnglishTutorialDoesNotContainCJKText()' failed on 'Clone 1 of iPhone 18 Pro - BasketballRecord (36026)' (0.199 seconds)

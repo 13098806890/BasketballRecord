@@ -1342,3 +1342,5 @@ Formato:
 "voice_tutorial_en_task6" = "Fallo di Dave";
 "voice_tutorial_en_task7" = "Tripla del numero 7 in casa";
 "voice_tutorial_en_task8" = "Canestro da due del numero 7 in trasferta";
+"photo_processing" = "Elaborazione della foto…";
+"career_trend_scale_summary" = "Scale separate: %@ %@–%@ (rif. %@) · %@ %@–%@ (rif. %@) · %@ %@–%@ (rif. %@)";

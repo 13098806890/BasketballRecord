@@ -1353,3 +1353,5 @@
 "voice_tutorial_en_task6" = "デイブのファウル";
 "voice_tutorial_en_task7" = "ホーム #7の3点";
 "voice_tutorial_en_task8" = "アウェイ #7の2点";
+"photo_processing" = "写真を処理中…";
+"career_trend_scale_summary" = "各指標の目盛り：%@ %@–%@（基準 %@） · %@ %@–%@（基準 %@） · %@ %@–%@（基準 %@）";
