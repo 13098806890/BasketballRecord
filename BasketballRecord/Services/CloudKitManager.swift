@@ -1,6 +1,88 @@
 import Foundation
 import CloudKit
 
+struct CloudGroupSnapshot: Codable, Equatable {
+    var version: Int
+    var modifiedAt: Date
+    var gameGroups: [GameGroup]
+    var playerGroups: [PlayerGroup]
+    var deletedGameGroupIDs: Set<UUID>
+    var deletedPlayerGroupIDs: Set<UUID>
+
+    init(
+        version: Int = 1,
+        modifiedAt: Date = .distantPast,
+        gameGroups: [GameGroup] = [],
+        playerGroups: [PlayerGroup] = [],
+        deletedGameGroupIDs: Set<UUID> = [],
+        deletedPlayerGroupIDs: Set<UUID> = []
+    ) {
+        self.version = version
+        self.modifiedAt = modifiedAt
+        self.gameGroups = gameGroups
+        self.playerGroups = playerGroups
+        self.deletedGameGroupIDs = deletedGameGroupIDs
+        self.deletedPlayerGroupIDs = deletedPlayerGroupIDs
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case version
+        case modifiedAt
+        case gameGroups
+        case playerGroups
+        case deletedGameGroupIDs
+        case deletedPlayerGroupIDs
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        version = try container.decodeIfPresent(Int.self, forKey: .version) ?? 0
+        modifiedAt = try container.decodeIfPresent(Date.self, forKey: .modifiedAt) ?? .distantPast
+        gameGroups = try container.decodeIfPresent([GameGroup].self, forKey: .gameGroups) ?? []
+        playerGroups = try container.decodeIfPresent([PlayerGroup].self, forKey: .playerGroups) ?? []
+        deletedGameGroupIDs = try container.decodeIfPresent(Set<UUID>.self, forKey: .deletedGameGroupIDs) ?? []
+        deletedPlayerGroupIDs = try container.decodeIfPresent(Set<UUID>.self, forKey: .deletedPlayerGroupIDs) ?? []
+    }
+}
+
+enum CloudGroupSyncLogic {
+    static func merge(local: CloudGroupSnapshot, cloud: CloudGroupSnapshot) -> CloudGroupSnapshot {
+        let deletedGameGroupIDs = local.deletedGameGroupIDs.union(cloud.deletedGameGroupIDs)
+        let deletedPlayerGroupIDs = local.deletedPlayerGroupIDs.union(cloud.deletedPlayerGroupIDs)
+        let cloudIsNewer = cloud.modifiedAt >= local.modifiedAt
+
+        var gameGroupsByID = Dictionary(uniqueKeysWithValues: local.gameGroups.map { ($0.id, $0) })
+        for group in cloud.gameGroups {
+            if gameGroupsByID[group.id] == nil || cloudIsNewer {
+                gameGroupsByID[group.id] = group
+            }
+        }
+        var playerGroupsByID = Dictionary(uniqueKeysWithValues: local.playerGroups.map { ($0.id, $0) })
+        for group in cloud.playerGroups {
+            if playerGroupsByID[group.id] == nil || cloudIsNewer {
+                playerGroupsByID[group.id] = group
+            }
+        }
+
+        return CloudGroupSnapshot(
+            version: max(max(local.version, cloud.version), 1),
+            modifiedAt: max(local.modifiedAt, cloud.modifiedAt),
+            gameGroups: gameGroupsByID.values.filter { !deletedGameGroupIDs.contains($0.id) }.sorted { $0.id.uuidString < $1.id.uuidString },
+            playerGroups: playerGroupsByID.values.filter { !deletedPlayerGroupIDs.contains($0.id) }.sorted { $0.id.uuidString < $1.id.uuidString },
+            deletedGameGroupIDs: deletedGameGroupIDs,
+            deletedPlayerGroupIDs: deletedPlayerGroupIDs
+        )
+    }
+
+    static func preservingLegacyGameGroupIDs(cloudGame: SavedGame, localGame: SavedGame?, payload: Data) -> SavedGame {
+        let fields = (try? JSONSerialization.jsonObject(with: payload)) as? [String: Any]
+        guard fields?["groupIDs"] == nil, fields?["groupID"] == nil, let localGame else { return cloudGame }
+        var updated = cloudGame
+        updated.groupIDs = localGame.groupIDs
+        return updated
+    }
+}
+
 @MainActor
 final class CloudKitManager: ObservableObject {
     static let shared = CloudKitManager()
@@ -11,6 +93,7 @@ final class CloudKitManager: ObservableObject {
     private let container: CKContainer?
     private let database: CKDatabase?
     private let recordType = "GameRecord"
+    private let groupMetadataRecordID = CKRecord.ID(recordName: "BasketballRecordGroupMetadata")
 
     private var isAvailable: Bool = true
 
@@ -137,8 +220,57 @@ final class CloudKitManager: ObservableObject {
         }
     }
 
+    func syncGroupMetadata(_ local: CloudGroupSnapshot) async -> CloudGroupSnapshot? {
+        await syncGroupMetadata(local, retryCount: 0)
+    }
+
+    private func syncGroupMetadata(_ local: CloudGroupSnapshot, retryCount: Int) async -> CloudGroupSnapshot? {
+        guard await checkAvailability() == nil, let database else { return nil }
+
+        do {
+            let record: CKRecord
+            let cloudSnapshot: CloudGroupSnapshot
+            do {
+                record = try await database.record(for: groupMetadataRecordID)
+                guard let asset = record["gameData"] as? CKAsset,
+                      let fileURL = asset.fileURL,
+                      let data = try? Data(contentsOf: fileURL),
+                      let decoded = try? JSONDecoder().decode(CloudGroupSnapshot.self, from: data) else {
+                    return local
+                }
+                cloudSnapshot = decoded
+            } catch CKError.unknownItem {
+                guard !local.gameGroups.isEmpty || !local.playerGroups.isEmpty || !local.deletedGameGroupIDs.isEmpty || !local.deletedPlayerGroupIDs.isEmpty else {
+                    return local
+                }
+                let newRecord = CKRecord(recordType: recordType, recordID: groupMetadataRecordID)
+                try await saveGroupSnapshot(local, to: newRecord, in: database)
+                return local
+            }
+
+            let merged = CloudGroupSyncLogic.merge(local: local, cloud: cloudSnapshot)
+            guard merged.gameGroups != cloudSnapshot.gameGroups ||
+                    merged.playerGroups != cloudSnapshot.playerGroups ||
+                    merged.deletedGameGroupIDs != cloudSnapshot.deletedGameGroupIDs ||
+                    merged.deletedPlayerGroupIDs != cloudSnapshot.deletedPlayerGroupIDs else {
+                return cloudSnapshot
+            }
+
+            var updated = merged
+            updated.modifiedAt = max(Date(), cloudSnapshot.modifiedAt.addingTimeInterval(0.001))
+            try await saveGroupSnapshot(updated, to: record, in: database)
+            return updated
+        } catch let error as CKError where error.code == .serverRecordChanged && retryCount < 2 {
+            return await syncGroupMetadata(local, retryCount: retryCount + 1)
+        } catch {
+            lastSyncError = error.localizedDescription
+            print("[CloudKit] Group metadata sync error: \(error)")
+            return nil
+        }
+    }
+
     /// Fetch games from CloudKit using known record IDs (avoids CKQuery index requirement).
-    func fetchGames(ids: Set<UUID>) async -> [SavedGame] {
+    func fetchGames(ids: Set<UUID>, localGames: [SavedGame] = []) async -> [SavedGame] {
         print("[CloudKit] fetchGames called with \(ids.count) IDs")
         if let error = await checkAvailability() {
             print("[CloudKit] fetchGames skipped - availability check failed: \(error)")
@@ -153,6 +285,7 @@ final class CloudKitManager: ObservableObject {
         }
 
         let recordIDs = ids.map { CKRecord.ID(recordName: $0.uuidString) }
+        let localGamesByID = Dictionary(uniqueKeysWithValues: localGames.map { ($0.id, $0) })
         return await withCheckedContinuation { continuation in
             let operation = CKFetchRecordsOperation(recordIDs: recordIDs)
             var games: [SavedGame] = []
@@ -162,7 +295,12 @@ final class CloudKitManager: ObservableObject {
                     if let asset = record["gameData"] as? CKAsset,
                        let fileURL = asset.fileURL,
                        let data = try? Data(contentsOf: fileURL),
-                       var game = try? JSONDecoder().decode(SavedGame.self, from: data) {
+                       let decodedGame = try? JSONDecoder().decode(SavedGame.self, from: data) {
+                        var game = CloudGroupSyncLogic.preservingLegacyGameGroupIDs(
+                            cloudGame: decodedGame,
+                            localGame: localGamesByID[decodedGame.id],
+                            payload: data
+                        )
                         if let cloudUpdatedAt = record["updatedAt"] as? Date {
                             game.modifiedAt = cloudUpdatedAt
                         }
@@ -198,7 +336,7 @@ final class CloudKitManager: ObservableObject {
             await uploadGame(game)
         }
 
-        let cloudGames = await fetchGames(ids: cloudEnabledIDs)
+        let cloudGames = await fetchGames(ids: cloudEnabledIDs, localGames: localGames)
         print("[CloudKit] Fetched \(cloudGames.count) cloud games")
 
         let localByID = Dictionary(uniqueKeysWithValues: localGames.map { ($0.id, $0) })
@@ -211,7 +349,6 @@ final class CloudKitManager: ObservableObject {
             }
             if cloudGame.modifiedAt > local.modifiedAt {
                 var updated = cloudGame
-                updated.groupIDs = local.groupIDs
                 if local.aiSummary != nil {
                     updated.aiSummary = local.aiSummary
                 }
@@ -240,5 +377,15 @@ final class CloudKitManager: ObservableObject {
         let url = tempDir.appendingPathComponent(UUID().uuidString)
         try? data.write(to: url)
         return url
+    }
+
+    private func saveGroupSnapshot(_ snapshot: CloudGroupSnapshot, to record: CKRecord, in database: CKDatabase) async throws {
+        let data = try JSONEncoder().encode(snapshot)
+        let fileURL = writeTempFile(data)
+        defer { try? FileManager.default.removeItem(at: fileURL) }
+        record["gameData"] = CKAsset(fileURL: fileURL)
+        record["version"] = Int64(snapshot.version)
+        record["updatedAt"] = snapshot.modifiedAt == .distantPast ? Date() : snapshot.modifiedAt
+        _ = try await database.save(record)
     }
 }

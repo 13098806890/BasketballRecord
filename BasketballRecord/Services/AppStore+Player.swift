@@ -13,11 +13,7 @@ extension AppStore {
 
     func updatePlayer(_ player: Player) {
         guard let index = players.firstIndex(where: { $0.id == player.id }) else { return }
-        var merged = player
-        if merged.photoData == nil {
-            merged.photoData = players[index].photoData
-        }
-        players[index] = merged
+        players[index] = player
     }
 
     func deletePlayers(at offsets: IndexSet) {
@@ -116,6 +112,7 @@ extension AppStore {
         nextPlayers.removeAll { $0.id == sourceID }
         players = nextPlayers
 
+        let originalPlayerGroups = playerGroups
         playerGroups = playerGroups.map { group in
             guard group.playerIDs.contains(sourceID) else { return group }
             return PlayerGroup(
@@ -123,6 +120,9 @@ extension AppStore {
                 name: group.name,
                 playerIDs: remapDedupedIDs(group.playerIDs, sourceID: sourceID, targetID: targetID)
             )
+        }
+        if playerGroups != originalPlayerGroups {
+            markCloudGroupMetadataModified()
         }
 
         var updatedTeams = 0

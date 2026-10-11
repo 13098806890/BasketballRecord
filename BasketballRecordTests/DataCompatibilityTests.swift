@@ -282,6 +282,105 @@ final class DataCompatibilityTests: XCTestCase {
         XCTAssertEqual(decoded.groupIDs, [uuid("B0000000-0000-0000-0000-000000000002")])
     }
 
+    func testCloudGroupSnapshotDecodesLegacyPayloadWithMissingFields() throws {
+        let legacyData = Data(#"{"gameGroups":[],"playerGroups":[]}"#.utf8)
+
+        let decoded = try JSONDecoder().decode(CloudGroupSnapshot.self, from: legacyData)
+
+        XCTAssertEqual(decoded.version, 0)
+        XCTAssertEqual(decoded.modifiedAt, .distantPast)
+        XCTAssertTrue(decoded.gameGroups.isEmpty)
+        XCTAssertTrue(decoded.playerGroups.isEmpty)
+        XCTAssertTrue(decoded.deletedGameGroupIDs.isEmpty)
+        XCTAssertTrue(decoded.deletedPlayerGroupIDs.isEmpty)
+    }
+
+    func testCloudGroupSnapshotMergeKeepsGroupsAndAppliesDeletionTombstones() {
+        let localGameGroupID = uuid("C0000000-0000-0000-0000-000000000001")
+        let cloudGameGroupID = uuid("C0000000-0000-0000-0000-000000000002")
+        let deletedPlayerGroupID = uuid("C0000000-0000-0000-0000-000000000003")
+        let local = CloudGroupSnapshot(
+            modifiedAt: Date(timeIntervalSince1970: 10),
+            gameGroups: [GameGroup(id: localGameGroupID, name: "Local")],
+            playerGroups: [PlayerGroup(id: deletedPlayerGroupID, name: "Deleted")]
+        )
+        let cloud = CloudGroupSnapshot(
+            modifiedAt: Date(timeIntervalSince1970: 20),
+            gameGroups: [GameGroup(id: cloudGameGroupID, name: "Cloud")],
+            deletedPlayerGroupIDs: [deletedPlayerGroupID]
+        )
+
+        let merged = CloudGroupSyncLogic.merge(local: local, cloud: cloud)
+
+        XCTAssertEqual(Set(merged.gameGroups.map(\.id)), [localGameGroupID, cloudGameGroupID])
+        XCTAssertTrue(merged.playerGroups.isEmpty)
+        XCTAssertEqual(merged.deletedPlayerGroupIDs, [deletedPlayerGroupID])
+        XCTAssertEqual(merged.modifiedAt, cloud.modifiedAt)
+    }
+
+    func testLegacyCloudGameWithoutGroupIDsPreservesLocalGroups() throws {
+        let groupID = uuid("C0000000-0000-0000-0000-000000000004")
+        let game = SavedGame(
+            id: uuid("C0000000-0000-0000-0000-000000000005"),
+            savedAt: Date(timeIntervalSince1970: 30),
+            snapshot: GameSnapshot(),
+            homeTeamName: "Home",
+            awayTeamName: "Away",
+            homePlayerIDs: [],
+            awayPlayerIDs: [],
+            playerNamesByID: [:],
+            groupIDs: [groupID]
+        )
+        let encoded = try JSONEncoder().encode(game)
+        var payload = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        payload.removeValue(forKey: "groupIDs")
+        let legacyPayload = try JSONSerialization.data(withJSONObject: payload)
+        let cloudGame = try JSONDecoder().decode(SavedGame.self, from: legacyPayload)
+
+        let merged = CloudGroupSyncLogic.preservingLegacyGameGroupIDs(
+            cloudGame: cloudGame,
+            localGame: game,
+            payload: legacyPayload
+        )
+
+        XCTAssertEqual(merged.groupIDs, [groupID])
+    }
+
+    func testExplicitEmptyCloudGroupIDsCanClearLocalMembership() throws {
+        let groupID = uuid("C0000000-0000-0000-0000-000000000006")
+        let localGame = SavedGame(
+            id: uuid("C0000000-0000-0000-0000-000000000007"),
+            savedAt: Date(timeIntervalSince1970: 40),
+            snapshot: GameSnapshot(),
+            homeTeamName: "Home",
+            awayTeamName: "Away",
+            homePlayerIDs: [],
+            awayPlayerIDs: [],
+            playerNamesByID: [:],
+            groupIDs: [groupID]
+        )
+        let cloudGame = SavedGame(
+            id: localGame.id,
+            savedAt: localGame.savedAt,
+            snapshot: localGame.snapshot,
+            homeTeamName: "Home",
+            awayTeamName: "Away",
+            homePlayerIDs: [],
+            awayPlayerIDs: [],
+            playerNamesByID: [:],
+            groupIDs: []
+        )
+        let payload = try JSONEncoder().encode(cloudGame)
+
+        let merged = CloudGroupSyncLogic.preservingLegacyGameGroupIDs(
+            cloudGame: cloudGame,
+            localGame: localGame,
+            payload: payload
+        )
+
+        XCTAssertTrue(merged.groupIDs.isEmpty)
+    }
+
     private struct LegacyGameWrapper: Codable {
         var id: UUID
         var savedAt: Date

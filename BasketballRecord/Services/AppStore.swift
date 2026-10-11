@@ -2,25 +2,6 @@ import SwiftUI
 import Combine
 import CoreData
 
-/**
- AppStore - Central data manager for Basketball Record app
- 
- ## Game Group Policy (groupID)
- 
- The `SavedGame.groupID` field is LOCAL to each device and should NEVER be synced across devices.
- 
- ### Rules:
- - **Export**: ExportGameRecord strips groupID - games exported never carry group info
- - **Bluetooth Sync (Send)**: sendStoreSync() removes groupID from all games before transmission
- - **Bluetooth Sync (Receive)**: 
-     - New incoming games have groupID set to nil
-     - Existing games keep their local groupID (don't let incoming data overwrite it)
- - **Import from Code**: remappedGame() sets groupID to nil for all imported games
- - **Local Merges**: remappedGameForPlayerMerge() and remappedGameForTeamMerge() preserve local groupID
- 
- This ensures each device manages its own game organization independently.
- */
-
 @MainActor
 final class AppStore: ObservableObject {
     static let tutorialPlayerIDs: Set<UUID> = [
@@ -138,6 +119,12 @@ final class AppStore: ObservableObject {
     var deletedCloudGameIDs: Set<UUID> = []
 
     private static let deletedCloudGameIDsKey = "deleted_cloud_game_ids"
+    private static let cloudGroupMetadataModifiedAtKey = "cloud_group_metadata_modified_at"
+    private static let cloudGroupMembershipMigrationKey = "cloud_group_membership_migration_v1"
+    private static let deletedCloudGameGroupIDsKey = "deleted_cloud_game_group_ids"
+    private static let deletedCloudPlayerGroupIDsKey = "deleted_cloud_player_group_ids"
+    private var deletedCloudGameGroupIDs: Set<UUID> = []
+    private var deletedCloudPlayerGroupIDs: Set<UUID> = []
 
     func downloadFromCloud(_ game: SavedGame) {
         if !savedGames.contains(where: { $0.id == game.id }) {
@@ -184,6 +171,8 @@ final class AppStore: ObservableObject {
            let ids = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
             deletedCloudGameIDs = ids
         }
+        deletedCloudGameGroupIDs = loadUUIDSet(forKey: Self.deletedCloudGameGroupIDsKey)
+        deletedCloudPlayerGroupIDs = loadUUIDSet(forKey: Self.deletedCloudPlayerGroupIDsKey)
     }
 
     func saveDeletedCloudGameIDs() {
@@ -194,6 +183,7 @@ final class AppStore: ObservableObject {
 
     private let storageKey = "basketball-record-store-v1"
     private var saveTask: Task<Void, Never>?
+    private var cloudGroupSyncTask: Task<Void, Never>?
     private var saveGeneration = 0
     private let saveDebounceNanoseconds: UInt64 = 500_000_000
     private var cancellables = Set<AnyCancellable>()
@@ -294,7 +284,6 @@ final class AppStore: ObservableObject {
             .store(in: &cancellables)
     }
 
-#if DEBUG
     func recoverRosterFromSavedGames() {
         guard !savedGames.isEmpty else {
             print("[RecoveryCheck] game-roster-recovery skipped; savedGames=0")
@@ -395,7 +384,6 @@ final class AppStore: ObservableObject {
             print("[RecoveryCheck] game-roster-recovery persisted")
         }
     }
-#endif
 
     func syncCloudGames() async {
         let cloudIDs = cloudEnabledGameIDs.subtracting(deletedCloudGameIDs)
@@ -409,9 +397,133 @@ final class AppStore: ObservableObject {
                 savedGames[idx].aiSummary = update.aiSummary
             }
         }
-        guard !newGames.isEmpty else { return }
-        savedGames.append(contentsOf: newGames)
-        savedGames.sort { $0.savedAt > $1.savedAt }
+        if !newGames.isEmpty {
+            savedGames.append(contentsOf: newGames)
+            savedGames.sort { $0.savedAt > $1.savedAt }
+        }
+        await syncCloudGroupMetadata()
+    }
+
+    private func syncCloudGroupMetadata() async {
+        let needsLegacyMembershipMigration = !UserDefaults.standard.bool(forKey: Self.cloudGroupMembershipMigrationKey)
+        if needsLegacyMembershipMigration {
+            migrateLegacyGroupMemberships()
+        }
+        let modifiedAt = UserDefaults.standard.object(forKey: Self.cloudGroupMetadataModifiedAtKey) as? Date ?? .distantPast
+        let snapshot = CloudGroupSnapshot(
+            modifiedAt: modifiedAt,
+            gameGroups: gameGroups,
+            playerGroups: playerGroups,
+            deletedGameGroupIDs: loadUUIDSet(forKey: Self.deletedCloudGameGroupIDsKey),
+            deletedPlayerGroupIDs: loadUUIDSet(forKey: Self.deletedCloudPlayerGroupIDsKey)
+        )
+        guard let synced = await CloudKitManager.shared.syncGroupMetadata(snapshot) else { return }
+        if needsLegacyMembershipMigration {
+            UserDefaults.standard.set(true, forKey: Self.cloudGroupMembershipMigrationKey)
+        }
+
+        if gameGroups != synced.gameGroups { gameGroups = synced.gameGroups }
+        if playerGroups != synced.playerGroups { playerGroups = synced.playerGroups }
+        deletedCloudGameGroupIDs = synced.deletedGameGroupIDs
+        deletedCloudPlayerGroupIDs = synced.deletedPlayerGroupIDs
+        UserDefaults.standard.set(synced.modifiedAt, forKey: Self.cloudGroupMetadataModifiedAtKey)
+        saveUUIDSet(synced.deletedGameGroupIDs, forKey: Self.deletedCloudGameGroupIDsKey)
+        saveUUIDSet(synced.deletedPlayerGroupIDs, forKey: Self.deletedCloudPlayerGroupIDsKey)
+        let changedGames = reconcileCloudGroupMembership()
+        for game in changedGames where cloudEnabledGameIDs.contains(game.id) {
+            await CloudKitManager.shared.uploadGame(game)
+        }
+    }
+
+    func migrateLegacyGroupMemberships() {
+        var gameGroupsByID = Dictionary(uniqueKeysWithValues: gameGroups.map { ($0.id, $0) })
+        for game in savedGames {
+            for groupID in game.groupIDs {
+                guard var group = gameGroupsByID[groupID], !group.gameIDs.contains(game.id) else { continue }
+                group.gameIDs.append(game.id)
+                gameGroupsByID[groupID] = group
+            }
+        }
+        gameGroups = gameGroups.map { gameGroupsByID[$0.id] ?? $0 }
+
+        var playerGroupsByID = Dictionary(uniqueKeysWithValues: playerGroups.map { ($0.id, $0) })
+        for player in players {
+            for groupID in player.playerGroupIDs {
+                guard var group = playerGroupsByID[groupID], !group.playerIDs.contains(player.id) else { continue }
+                group.playerIDs.append(player.id)
+                playerGroupsByID[groupID] = group
+            }
+        }
+        playerGroups = playerGroups.map { playerGroupsByID[$0.id] ?? $0 }
+    }
+
+    func reconcileCloudGroupMembership() -> [SavedGame] {
+        let originalGroupIDs = Dictionary(uniqueKeysWithValues: savedGames.map { ($0.id, $0.groupIDs) })
+        let gameGroupIDs = Set(gameGroups.map(\.id))
+        for groupID in gameGroupIDs {
+            let memberIDs = Set(gameGroups.first(where: { $0.id == groupID })?.gameIDs ?? [])
+            for gameIndex in savedGames.indices {
+                if memberIDs.contains(savedGames[gameIndex].id) {
+                    if !savedGames[gameIndex].groupIDs.contains(groupID) {
+                        savedGames[gameIndex].groupIDs.append(groupID)
+                    }
+                } else {
+                    savedGames[gameIndex].groupIDs.removeAll { $0 == groupID }
+                }
+            }
+        }
+        for gameIndex in savedGames.indices {
+            savedGames[gameIndex].groupIDs.removeAll { !gameGroupIDs.contains($0) }
+        }
+
+        let playerGroupIDs = Set(playerGroups.map(\.id))
+        for groupID in playerGroupIDs {
+            let memberIDs = Set(playerGroups.first(where: { $0.id == groupID })?.playerIDs ?? [])
+            for playerIndex in players.indices {
+                if memberIDs.contains(players[playerIndex].id) {
+                    if !players[playerIndex].playerGroupIDs.contains(groupID) {
+                        players[playerIndex].playerGroupIDs.append(groupID)
+                    }
+                } else {
+                    players[playerIndex].playerGroupIDs.removeAll { $0 == groupID }
+                }
+            }
+        }
+        for playerIndex in players.indices {
+            players[playerIndex].playerGroupIDs.removeAll { !playerGroupIDs.contains($0) }
+        }
+
+        let modifiedAt = Date()
+        for gameIndex in savedGames.indices where originalGroupIDs[savedGames[gameIndex].id] != savedGames[gameIndex].groupIDs {
+            savedGames[gameIndex].modifiedAt = modifiedAt
+        }
+        return savedGames.filter { originalGroupIDs[$0.id] != $0.groupIDs }
+    }
+
+    func markCloudGroupMetadataModified() {
+        UserDefaults.standard.set(Date(), forKey: Self.cloudGroupMetadataModifiedAtKey)
+        guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
+        cloudGroupSyncTask?.cancel()
+        cloudGroupSyncTask = Task { [weak self] in
+            do {
+                try await Task.sleep(nanoseconds: 500_000_000)
+            } catch {
+                return
+            }
+            guard !Task.isCancelled, let self else { return }
+            await syncCloudGames()
+        }
+    }
+
+    private func loadUUIDSet(forKey key: String) -> Set<UUID> {
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let ids = try? JSONDecoder().decode(Set<UUID>.self, from: data) else { return [] }
+        return ids
+    }
+
+    private func saveUUIDSet(_ ids: Set<UUID>, forKey key: String) {
+        guard let data = try? JSONEncoder().encode(ids) else { return }
+        UserDefaults.standard.set(data, forKey: key)
     }
 
     @objc private func cloudStoreDidChange() {
@@ -462,16 +574,29 @@ final class AppStore: ObservableObject {
     func addGameGroup(_ name: String, description: String? = nil) -> GameGroup {
         let group = GameGroup(name: name, description: description)
         gameGroups.append(group)
+        markCloudGroupMetadataModified()
         return group
     }
 
     func updateGameGroup(_ group: GameGroup) {
         guard let index = gameGroups.firstIndex(where: { $0.id == group.id }) else { return }
         gameGroups[index] = group
+        markCloudGroupMetadataModified()
     }
 
     func deleteGameGroup(_ groupID: UUID) {
         gameGroups.removeAll { $0.id == groupID }
+        deletedCloudGameGroupIDs.insert(groupID)
+        saveUUIDSet(deletedCloudGameGroupIDs, forKey: Self.deletedCloudGameGroupIDsKey)
+        let modifiedAt = Date()
+        savedGames = savedGames.map { game in
+            guard game.groupIDs.contains(groupID) else { return game }
+            var updated = game
+            updated.groupIDs.removeAll { $0 == groupID }
+            updated.modifiedAt = modifiedAt
+            return updated
+        }
+        markCloudGroupMetadataModified()
     }
 
     func toggleGameGroup(_ gameID: UUID, groupID: UUID) {
@@ -495,6 +620,7 @@ final class AppStore: ObservableObject {
         savedGamesCopy[gameIndex].modifiedAt = Date()
         savedGames = savedGamesCopy
         gameGroups = gameGroupsCopy
+        markCloudGroupMetadataModified()
     }
 
     func gamesInGroup(_ groupID: UUID) -> [SavedGame] {
@@ -511,54 +637,56 @@ final class AppStore: ObservableObject {
     func addPlayerGroup(_ name: String) -> PlayerGroup {
         let group = PlayerGroup(name: name)
         playerGroups.append(group)
+        markCloudGroupMetadataModified()
         return group
     }
 
     func updatePlayerGroup(_ group: PlayerGroup) {
         guard let index = playerGroups.firstIndex(where: { $0.id == group.id }) else { return }
         playerGroups[index] = group
+        markCloudGroupMetadataModified()
     }
 
     func deletePlayerGroup(_ groupID: UUID) {
         playerGroups.removeAll { $0.id == groupID }
+        deletedCloudPlayerGroupIDs.insert(groupID)
+        saveUUIDSet(deletedCloudPlayerGroupIDs, forKey: Self.deletedCloudPlayerGroupIDsKey)
+        players = players.map { player in
+            guard player.playerGroupIDs.contains(groupID) else { return player }
+            var updated = player
+            updated.playerGroupIDs.removeAll { $0 == groupID }
+            return updated
+        }
+        markCloudGroupMetadataModified()
     }
 
     func syncPlayerGroupMembership(groupID: UUID, playerIDs: [UUID]) {
         guard let groupIndex = playerGroups.firstIndex(where: { $0.id == groupID }) else { return }
-        let oldPlayerIDs = Set(playerGroups[groupIndex].playerIDs)
         let newPlayerIDs = Set(playerIDs)
-        let added = newPlayerIDs.subtracting(oldPlayerIDs)
-        let removed = oldPlayerIDs.subtracting(newPlayerIDs)
 
         var playerGroupsCopy = playerGroups
         var playersCopy = players
 
         playerGroupsCopy[groupIndex].playerIDs = playerIDs
-
-        for playerID in removed {
-            if let playerIndex = playersCopy.firstIndex(where: { $0.id == playerID }) {
-                playersCopy[playerIndex].playerGroupIDs.removeAll { $0 == groupID }
-            }
-        }
-        for playerID in added {
-            if let playerIndex = playersCopy.firstIndex(where: { $0.id == playerID }) {
+        for playerIndex in playersCopy.indices {
+            if newPlayerIDs.contains(playersCopy[playerIndex].id) {
                 if !playersCopy[playerIndex].playerGroupIDs.contains(groupID) {
                     playersCopy[playerIndex].playerGroupIDs.append(groupID)
                 }
+            } else {
+                playersCopy[playerIndex].playerGroupIDs.removeAll { $0 == groupID }
             }
         }
 
         playerGroups = playerGroupsCopy
         players = playersCopy
         scheduleSave()
+        markCloudGroupMetadataModified()
     }
 
     func syncGameGroupMembership(groupID: UUID, gameIDs: [UUID]) {
         guard let groupIndex = gameGroups.firstIndex(where: { $0.id == groupID }) else { return }
-        let oldGameIDs = Set(gameGroups[groupIndex].gameIDs)
         let newGameIDs = Set(gameIDs)
-        let added = newGameIDs.subtracting(oldGameIDs)
-        let removed = oldGameIDs.subtracting(newGameIDs)
 
         var gameGroupsCopy = gameGroups
         var savedGamesCopy = savedGames
@@ -566,24 +694,21 @@ final class AppStore: ObservableObject {
         gameGroupsCopy[groupIndex].gameIDs = gameIDs
         let modifiedAt = Date()
 
-        for gameID in removed {
-            if let gameIndex = savedGamesCopy.firstIndex(where: { $0.id == gameID }) {
-                savedGamesCopy[gameIndex].groupIDs.removeAll { $0 == groupID }
-                savedGamesCopy[gameIndex].modifiedAt = modifiedAt
-            }
-        }
-        for gameID in added {
-            if let gameIndex = savedGamesCopy.firstIndex(where: { $0.id == gameID }) {
+        for gameIndex in savedGamesCopy.indices {
+            if newGameIDs.contains(savedGamesCopy[gameIndex].id) {
                 if !savedGamesCopy[gameIndex].groupIDs.contains(groupID) {
                     savedGamesCopy[gameIndex].groupIDs.append(groupID)
-                    savedGamesCopy[gameIndex].modifiedAt = modifiedAt
                 }
+                savedGamesCopy[gameIndex].modifiedAt = modifiedAt
+            } else {
+                savedGamesCopy[gameIndex].groupIDs.removeAll { $0 == groupID }
             }
         }
 
         gameGroups = gameGroupsCopy
         savedGames = savedGamesCopy
         scheduleSave()
+        markCloudGroupMetadataModified()
     }
 
 
@@ -676,12 +801,14 @@ final class AppStore: ObservableObject {
         if dirtyKeys.contains(.players) {
             try? FileManager.default.createDirectory(at: photosDir, withIntermediateDirectories: true)
             for i in strippedPlayers.indices {
+                let fileURL = photoFile(for: strippedPlayers[i].id)
                 if let data = strippedPlayers[i].photoData {
-                    let fileURL = photoFile(for: strippedPlayers[i].id)
                     let existingData = try? Data(contentsOf: fileURL)
                     if data != existingData {
                         try? data.write(to: fileURL, options: .atomic)
                     }
+                } else {
+                    try? FileManager.default.removeItem(at: fileURL)
                 }
             }
         }
